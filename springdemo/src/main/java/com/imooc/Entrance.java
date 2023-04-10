@@ -21,6 +21,7 @@ import org.springframework.context.support.FileSystemXmlApplicationContext;
 //@ComponentScan("com.imooc")
 public class Entrance {
 
+
 	public static void main(String[] args) {
 
 		// 通过FileSystemXmlApplicationContext获取bean容器实例
@@ -42,3 +43,5 @@ public class Entrance {
 
 	}
 }
+
+
