@@ -162,6 +162,8 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 	/** Map from dependency type to corresponding autowired value. */
 	private final Map<Class<?>, Object> resolvableDependencies = new ConcurrentHashMap<>(16);
 
+
+	// DefaultListableBeanFactory作为BeanFactory默认是维护这一张beanDefinition的表。
 	/** Map of bean definition objects, keyed by bean name. */
 	private final Map<String, BeanDefinition> beanDefinitionMap = new ConcurrentHashMap<>(256);
 
@@ -346,6 +348,7 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 	@Override
 	public <T> T getBean(Class<T> requiredType, @Nullable Object... args) throws BeansException {
 		Assert.notNull(requiredType, "Required type must not be null");
+		//根据类型解析bean
 		Object resolved = resolveBean(ResolvableType.forRawClass(requiredType), args, false);
 		if (resolved == null) {
 			throw new NoSuchBeanDefinitionException(requiredType);

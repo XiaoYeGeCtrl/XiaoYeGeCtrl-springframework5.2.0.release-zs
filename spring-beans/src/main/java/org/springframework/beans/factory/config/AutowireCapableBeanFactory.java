@@ -69,7 +69,6 @@ public interface AutowireCapableBeanFactory extends BeanFactory {
 	 * @see #autowireBeanProperties
 	 */
 	int AUTOWIRE_NO = 0;
-
 	/**
 	 * Constant that indicates autowiring bean properties by name
 	 * (applying to all bean property setters).

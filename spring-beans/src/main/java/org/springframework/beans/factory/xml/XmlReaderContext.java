@@ -44,8 +44,10 @@ import org.springframework.lang.Nullable;
  */
 public class XmlReaderContext extends ReaderContext {
 
+	// 注册BeanDefinition实际上就是用DefaultListableBeanFacotry
 	private final XmlBeanDefinitionReader reader;
 
+	// 根据xml文件命名空间，查找对应的Handler去解析属性(除了固定的属性的自定义属性)
 	private final NamespaceHandlerResolver namespaceHandlerResolver;
 
 

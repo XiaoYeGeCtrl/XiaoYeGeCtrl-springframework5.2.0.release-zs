@@ -3,7 +3,6 @@ package com.imooc;
 import com.imooc.entity.User;
 import com.imooc.service.WelcomeService;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.support.FileSystemXmlApplicationContext;
 
 //@Configuration
@@ -16,7 +15,7 @@ public class Entrance {
     public static void main(String[] args) {
 
         // 通过FileSystemXmlApplicationContext获取bean容器实例
-		String xmlPath = "D:\\workspace-idea\\imooc\\springframework\\ZhuShi\\springframework5.2.0.release-zhushi\\springframework5.2.0.release\\springdemo\\src\\main\\java\\com\\imooc\\service\\WelcomeService.java";
+		String xmlPath = "/d/workspace-idea/imooc/springframework/ZhuShi/springframework5.2.0.release-zhushi/springframework5.2.0.release/springdemo1/src/main/java/com/imooc/service";
 		ApplicationContext applicationContext = new FileSystemXmlApplicationContext(xmlPath);
 		WelcomeService welcomeService = (WelcomeService) applicationContext.getBean("welcomeService");
 		welcomeService.sayHello("强大的spring框架");

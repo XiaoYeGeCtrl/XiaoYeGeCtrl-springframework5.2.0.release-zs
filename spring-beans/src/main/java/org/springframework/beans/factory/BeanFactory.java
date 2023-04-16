@@ -213,6 +213,10 @@ public interface BeanFactory {
 	 * @throws BeansException if the bean could not be created
 	 * @since 4.1
 	 */
+
+	// 基于类型获取 bean，如果指定的类型有多个被实例化的 bean，查找时会抛异常
+	// 这里允许指定 bean 的属性，比如这个 bean 的属性是基于构造方法/工厂方法赋值的，
+	// 当然这些参数可以在 BeanDefinition 中进行覆盖
 	<T> T getBean(Class<T> requiredType, Object... args) throws BeansException;
 
 	/**
@@ -241,6 +245,8 @@ public interface BeanFactory {
 	 * @see ObjectProvider#stream()
 	 * @see ObjectProvider#orderedStream()
 	 */
+	// 返回对应的 ObjectProvider，这是一种可以延迟获取 bean 实例的模式
+	//	比如基于 ObjectProvider#getObject 方法获取实例
 	<T> ObjectProvider<T> getBeanProvider(ResolvableType requiredType);
 
 	/**
@@ -259,6 +265,10 @@ public interface BeanFactory {
 	 * @return whether a bean with the given name is present
 	 */
 	//看看是否在容器有这个名字的bean
+	// 此处返回 true 并不意味着 getBean 能返回对应实例。
+	// 个人理解：如果 beanFactory 中包含 beanDefinition，也会返回 true，但是不一定有这个 beanDefinition 的实例，可能还没有实例化出来对应的 bean。
+	//	 * 1. 支持别名解析
+	//	 * 2. 支持层级查找
 	boolean containsBean(String name);
 
 	/**
@@ -370,6 +380,8 @@ public interface BeanFactory {
 	 * @see #getBean
 	 * @see #isTypeMatch
 	 */
+	// 在 getType(String name) 的基础上加了参数 allowFactoryBeanInit
+	//	控制是否允许 FactoryBean 的提前初始化
 	@Nullable
 	Class<?> getType(String name, boolean allowFactoryBeanInit) throws NoSuchBeanDefinitionException;
 
@@ -386,5 +398,6 @@ public interface BeanFactory {
 	 */
 	//得到bean的别名，如果根据别名检索，那么其原名也会被检索出来
 	String[] getAliases(String name);
+
 
 }

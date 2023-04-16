@@ -519,6 +519,8 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	public Collection<ApplicationListener<?>> getApplicationListeners() {
 		return this.applicationListeners;
 	}
+
+
 	/**
 	 * 加载或刷新一个持久化的配置，可能是XML文件、属性文件或关系数据库模式。
 	 * 由于这是一种启动方法，如果失败，应该销毁已经创建的单例，以避免悬空资源。
@@ -528,8 +530,10 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	 */
 	@Override
 	public void refresh() throws BeansException, IllegalStateException {
+
 		// 给容器refresh加锁，避免容器处在refresh阶段时，容器进行了初始化或者销毁的操作
 		synchronized (this.startupShutdownMonitor) {
+
 			// 调用容器准备刷新的方法，获取容器的当时时间，同时给容器设置同步标识，具体方法
 			prepareRefresh();
 

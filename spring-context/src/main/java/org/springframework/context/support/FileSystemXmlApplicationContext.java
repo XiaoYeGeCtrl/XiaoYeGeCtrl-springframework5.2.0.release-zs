@@ -81,6 +81,8 @@ public class FileSystemXmlApplicationContext extends AbstractXmlApplicationConte
 	 * @param configLocation file path
 	 * @throws BeansException if context creation failed
 	 */
+
+	// this调用了另一个构造函数
 	public FileSystemXmlApplicationContext(String configLocation) throws BeansException {
 		this(new String[] {configLocation}, true, null);
 	}
@@ -137,8 +139,10 @@ public class FileSystemXmlApplicationContext extends AbstractXmlApplicationConte
 			throws BeansException {
 
 		super(parent);
+		// configLocations: 就是传入的配置文件
 		setConfigLocations(configLocations);
 		if (refresh) {
+			// 调用refresh()进行容器的初始化操作
 			refresh();
 		}
 	}

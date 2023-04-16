@@ -92,9 +92,12 @@ public class DefaultBeanDefinitionDocumentReader implements BeanDefinitionDocume
 	 */
 	@Override
 	public void registerBeanDefinitions(Document doc, XmlReaderContext readerContext) {
+
+		//BeanDefinition读取过程中传递的上下文，封装相关的的配置和状态
 		this.readerContext = readerContext;
 		doRegisterBeanDefinitions(doc.getDocumentElement());
 	}
+
 
 	/**
 	 * Return the descriptor for the XML resource that this parser works on.
@@ -125,15 +128,19 @@ public class DefaultBeanDefinitionDocumentReader implements BeanDefinitionDocume
 		// the new (child) delegate with a reference to the parent for fallback purposes,
 		// then ultimately reset this.delegate back to its original (parent) reference.
 		// this behavior emulates a stack of delegates without actually necessitating one.
+
 		//BeanDefintion解析委托类
 		BeanDefinitionParserDelegate parent = this.delegate;
 		this.delegate = createDelegate(getReaderContext(), root, parent);
+
 		//判断这个根节点是否是默认的命名空间，
 		// 底层就是判断这个根节点的nameSpaceUrl=="http://www.springframework.org/schema/beans"
 		if (this.delegate.isDefaultNamespace(root)) {
+
 			//获取这个profile属性的值，表示剖面，用于设置环境
 			String profileSpec = root.getAttribute(PROFILE_ATTRIBUTE);
 			if (StringUtils.hasText(profileSpec)) {
+
 				//根据分隔符换换成数组
 				String[] specifiedProfiles = StringUtils.tokenizeToStringArray(
 						profileSpec, BeanDefinitionParserDelegate.MULTI_VALUE_ATTRIBUTE_DELIMITERS);
@@ -149,15 +156,20 @@ public class DefaultBeanDefinitionDocumentReader implements BeanDefinitionDocume
 				}
 			}
 		}
+
 		//在解析xml之前做的准备工作，其实什么也没做
 		preProcessXml(root);
+
 		//调用这个方法，解析
 		parseBeanDefinitions(root, this.delegate);
+
 		//后续处理的
 		postProcessXml(root);
 
 		this.delegate = parent;
 	}
+
+
 
 	protected BeanDefinitionParserDelegate createDelegate(
 			XmlReaderContext readerContext, Element root, @Nullable BeanDefinitionParserDelegate parentDelegate) {
