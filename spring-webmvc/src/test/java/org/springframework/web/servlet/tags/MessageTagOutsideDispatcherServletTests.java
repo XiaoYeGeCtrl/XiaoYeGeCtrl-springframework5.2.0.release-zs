@@ -22,9 +22,9 @@ package org.springframework.web.servlet.tags;
  */
 public class MessageTagOutsideDispatcherServletTests extends MessageTagTests {
 
-	@Override
-	protected boolean inDispatcherServlet() {
-		return false;
-	}
+    @Override
+    protected boolean inDispatcherServlet() {
+        return false;
+    }
 
 }

@@ -52,171 +52,171 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 public class DefaultHandlerExceptionResolverTests {
 
-	private final DefaultHandlerExceptionResolver exceptionResolver = new DefaultHandlerExceptionResolver();
+    private final DefaultHandlerExceptionResolver exceptionResolver = new DefaultHandlerExceptionResolver();
 
-	private final MockHttpServletRequest request = new MockHttpServletRequest("GET", "/");
+    private final MockHttpServletRequest request = new MockHttpServletRequest("GET", "/");
 
-	private final MockHttpServletResponse response = new MockHttpServletResponse();
-
-
-	@BeforeEach
-	public void setup() {
-		exceptionResolver.setWarnLogCategory(exceptionResolver.getClass().getName());
-	}
+    private final MockHttpServletResponse response = new MockHttpServletResponse();
 
 
-	@Test
-	public void handleHttpRequestMethodNotSupported() {
-		HttpRequestMethodNotSupportedException ex =
-				new HttpRequestMethodNotSupportedException("GET", new String[]{"POST", "PUT"});
-		ModelAndView mav = exceptionResolver.resolveException(request, response, null, ex);
-		assertThat(mav).as("No ModelAndView returned").isNotNull();
-		assertThat(mav.isEmpty()).as("No Empty ModelAndView returned").isTrue();
-		assertThat(response.getStatus()).as("Invalid status code").isEqualTo(405);
-		assertThat(response.getHeader("Allow")).as("Invalid Allow header").isEqualTo("POST, PUT");
-	}
-
-	@Test
-	public void handleHttpMediaTypeNotSupported() {
-		HttpMediaTypeNotSupportedException ex = new HttpMediaTypeNotSupportedException(new MediaType("text", "plain"),
-				Collections.singletonList(new MediaType("application", "pdf")));
-		ModelAndView mav = exceptionResolver.resolveException(request, response, null, ex);
-		assertThat(mav).as("No ModelAndView returned").isNotNull();
-		assertThat(mav.isEmpty()).as("No Empty ModelAndView returned").isTrue();
-		assertThat(response.getStatus()).as("Invalid status code").isEqualTo(415);
-		assertThat(response.getHeader("Accept")).as("Invalid Accept header").isEqualTo("application/pdf");
-	}
-
-	@Test
-	public void handleMissingPathVariable() throws NoSuchMethodException {
-		Method method = getClass().getMethod("handle", String.class);
-		MethodParameter parameter = new MethodParameter(method, 0);
-		MissingPathVariableException ex = new MissingPathVariableException("foo", parameter);
-		ModelAndView mav = exceptionResolver.resolveException(request, response, null, ex);
-		assertThat(mav).as("No ModelAndView returned").isNotNull();
-		assertThat(mav.isEmpty()).as("No Empty ModelAndView returned").isTrue();
-		assertThat(response.getStatus()).as("Invalid status code").isEqualTo(500);
-		assertThat(response.getErrorMessage()).isEqualTo("Missing URI template variable 'foo' for method parameter of type String");
-	}
-
-	@Test
-	public void handleMissingServletRequestParameter() {
-		MissingServletRequestParameterException ex = new MissingServletRequestParameterException("foo", "bar");
-		ModelAndView mav = exceptionResolver.resolveException(request, response, null, ex);
-		assertThat(mav).as("No ModelAndView returned").isNotNull();
-		assertThat(mav.isEmpty()).as("No Empty ModelAndView returned").isTrue();
-		assertThat(response.getStatus()).as("Invalid status code").isEqualTo(400);
-		assertThat(response.getErrorMessage()).isEqualTo("Required bar parameter 'foo' is not present");
-	}
-
-	@Test
-	public void handleServletRequestBindingException() {
-		String message = "Missing required value - header, cookie, or pathvar";
-		ServletRequestBindingException ex = new ServletRequestBindingException(message);
-		ModelAndView mav = exceptionResolver.resolveException(request, response, null, ex);
-		assertThat(mav).as("No ModelAndView returned").isNotNull();
-		assertThat(mav.isEmpty()).as("No Empty ModelAndView returned").isTrue();
-		assertThat(response.getStatus()).as("Invalid status code").isEqualTo(400);
-	}
-
-	@Test
-	public void handleTypeMismatch() {
-		TypeMismatchException ex = new TypeMismatchException("foo", String.class);
-		ModelAndView mav = exceptionResolver.resolveException(request, response, null, ex);
-		assertThat(mav).as("No ModelAndView returned").isNotNull();
-		assertThat(mav.isEmpty()).as("No Empty ModelAndView returned").isTrue();
-		assertThat(response.getStatus()).as("Invalid status code").isEqualTo(400);
-	}
-
-	@Test
-	@SuppressWarnings("deprecation")
-	public void handleHttpMessageNotReadable() {
-		HttpMessageNotReadableException ex = new HttpMessageNotReadableException("foo");
-		ModelAndView mav = exceptionResolver.resolveException(request, response, null, ex);
-		assertThat(mav).as("No ModelAndView returned").isNotNull();
-		assertThat(mav.isEmpty()).as("No Empty ModelAndView returned").isTrue();
-		assertThat(response.getStatus()).as("Invalid status code").isEqualTo(400);
-	}
-
-	@Test
-	public void handleHttpMessageNotWritable() {
-		HttpMessageNotWritableException ex = new HttpMessageNotWritableException("foo");
-		ModelAndView mav = exceptionResolver.resolveException(request, response, null, ex);
-		assertThat(mav).as("No ModelAndView returned").isNotNull();
-		assertThat(mav.isEmpty()).as("No Empty ModelAndView returned").isTrue();
-		assertThat(response.getStatus()).as("Invalid status code").isEqualTo(500);
-	}
-
-	@Test
-	public void handleMethodArgumentNotValid() throws Exception {
-		BeanPropertyBindingResult errors = new BeanPropertyBindingResult(new TestBean(), "testBean");
-		errors.rejectValue("name", "invalid");
-		MethodParameter parameter = new MethodParameter(this.getClass().getMethod("handle", String.class), 0);
-		MethodArgumentNotValidException ex = new MethodArgumentNotValidException(parameter, errors);
-		ModelAndView mav = exceptionResolver.resolveException(request, response, null, ex);
-		assertThat(mav).as("No ModelAndView returned").isNotNull();
-		assertThat(mav.isEmpty()).as("No Empty ModelAndView returned").isTrue();
-		assertThat(response.getStatus()).as("Invalid status code").isEqualTo(400);
-	}
-
-	@Test
-	public void handleMissingServletRequestPartException() throws Exception {
-		MissingServletRequestPartException ex = new MissingServletRequestPartException("name");
-		ModelAndView mav = exceptionResolver.resolveException(request, response, null, ex);
-		assertThat(mav).as("No ModelAndView returned").isNotNull();
-		assertThat(mav.isEmpty()).as("No Empty ModelAndView returned").isTrue();
-		assertThat(response.getStatus()).as("Invalid status code").isEqualTo(400);
-		assertThat(response.getErrorMessage().contains("request part")).isTrue();
-		assertThat(response.getErrorMessage().contains("name")).isTrue();
-		assertThat(response.getErrorMessage().contains("not present")).isTrue();
-	}
-
-	@Test
-	public void handleBindException() throws Exception {
-		BindException ex = new BindException(new Object(), "name");
-		ModelAndView mav = exceptionResolver.resolveException(request, response, null, ex);
-		assertThat(mav).as("No ModelAndView returned").isNotNull();
-		assertThat(mav.isEmpty()).as("No Empty ModelAndView returned").isTrue();
-		assertThat(response.getStatus()).as("Invalid status code").isEqualTo(400);
-	}
-
-	@Test
-	public void handleNoHandlerFoundException() throws Exception {
-		ServletServerHttpRequest req = new ServletServerHttpRequest(
-				new MockHttpServletRequest("GET","/resource"));
-		NoHandlerFoundException ex = new NoHandlerFoundException(req.getMethod().name(),
-				req.getServletRequest().getRequestURI(),req.getHeaders());
-		ModelAndView mav = exceptionResolver.resolveException(request, response, null, ex);
-		assertThat(mav).as("No ModelAndView returned").isNotNull();
-		assertThat(mav.isEmpty()).as("No Empty ModelAndView returned").isTrue();
-		assertThat(response.getStatus()).as("Invalid status code").isEqualTo(404);
-	}
-
-	@Test
-	public void handleConversionNotSupportedException() throws Exception {
-		ConversionNotSupportedException ex =
-				new ConversionNotSupportedException(new Object(), String.class, new Exception());
-		ModelAndView mav = exceptionResolver.resolveException(request, response, null, ex);
-		assertThat(mav).as("No ModelAndView returned").isNotNull();
-		assertThat(mav.isEmpty()).as("No Empty ModelAndView returned").isTrue();
-		assertThat(response.getStatus()).as("Invalid status code").isEqualTo(500);
-
-		// SPR-9653
-		assertThat(request.getAttribute("javax.servlet.error.exception")).isSameAs(ex);
-	}
-
-	@Test  // SPR-14669
-	public void handleAsyncRequestTimeoutException() throws Exception {
-		Exception ex = new AsyncRequestTimeoutException();
-		ModelAndView mav = exceptionResolver.resolveException(request, response, null, ex);
-		assertThat(mav).as("No ModelAndView returned").isNotNull();
-		assertThat(mav.isEmpty()).as("No Empty ModelAndView returned").isTrue();
-		assertThat(response.getStatus()).as("Invalid status code").isEqualTo(503);
-	}
+    @BeforeEach
+    public void setup() {
+        exceptionResolver.setWarnLogCategory(exceptionResolver.getClass().getName());
+    }
 
 
-	@SuppressWarnings("unused")
-	public void handle(String arg) {
-	}
+    @Test
+    public void handleHttpRequestMethodNotSupported() {
+        HttpRequestMethodNotSupportedException ex =
+                new HttpRequestMethodNotSupportedException("GET", new String[]{"POST", "PUT"});
+        ModelAndView mav = exceptionResolver.resolveException(request, response, null, ex);
+        assertThat(mav).as("No ModelAndView returned").isNotNull();
+        assertThat(mav.isEmpty()).as("No Empty ModelAndView returned").isTrue();
+        assertThat(response.getStatus()).as("Invalid status code").isEqualTo(405);
+        assertThat(response.getHeader("Allow")).as("Invalid Allow header").isEqualTo("POST, PUT");
+    }
+
+    @Test
+    public void handleHttpMediaTypeNotSupported() {
+        HttpMediaTypeNotSupportedException ex = new HttpMediaTypeNotSupportedException(new MediaType("text", "plain"),
+                Collections.singletonList(new MediaType("application", "pdf")));
+        ModelAndView mav = exceptionResolver.resolveException(request, response, null, ex);
+        assertThat(mav).as("No ModelAndView returned").isNotNull();
+        assertThat(mav.isEmpty()).as("No Empty ModelAndView returned").isTrue();
+        assertThat(response.getStatus()).as("Invalid status code").isEqualTo(415);
+        assertThat(response.getHeader("Accept")).as("Invalid Accept header").isEqualTo("application/pdf");
+    }
+
+    @Test
+    public void handleMissingPathVariable() throws NoSuchMethodException {
+        Method method = getClass().getMethod("handle", String.class);
+        MethodParameter parameter = new MethodParameter(method, 0);
+        MissingPathVariableException ex = new MissingPathVariableException("foo", parameter);
+        ModelAndView mav = exceptionResolver.resolveException(request, response, null, ex);
+        assertThat(mav).as("No ModelAndView returned").isNotNull();
+        assertThat(mav.isEmpty()).as("No Empty ModelAndView returned").isTrue();
+        assertThat(response.getStatus()).as("Invalid status code").isEqualTo(500);
+        assertThat(response.getErrorMessage()).isEqualTo("Missing URI template variable 'foo' for method parameter of type String");
+    }
+
+    @Test
+    public void handleMissingServletRequestParameter() {
+        MissingServletRequestParameterException ex = new MissingServletRequestParameterException("foo", "bar");
+        ModelAndView mav = exceptionResolver.resolveException(request, response, null, ex);
+        assertThat(mav).as("No ModelAndView returned").isNotNull();
+        assertThat(mav.isEmpty()).as("No Empty ModelAndView returned").isTrue();
+        assertThat(response.getStatus()).as("Invalid status code").isEqualTo(400);
+        assertThat(response.getErrorMessage()).isEqualTo("Required bar parameter 'foo' is not present");
+    }
+
+    @Test
+    public void handleServletRequestBindingException() {
+        String message = "Missing required value - header, cookie, or pathvar";
+        ServletRequestBindingException ex = new ServletRequestBindingException(message);
+        ModelAndView mav = exceptionResolver.resolveException(request, response, null, ex);
+        assertThat(mav).as("No ModelAndView returned").isNotNull();
+        assertThat(mav.isEmpty()).as("No Empty ModelAndView returned").isTrue();
+        assertThat(response.getStatus()).as("Invalid status code").isEqualTo(400);
+    }
+
+    @Test
+    public void handleTypeMismatch() {
+        TypeMismatchException ex = new TypeMismatchException("foo", String.class);
+        ModelAndView mav = exceptionResolver.resolveException(request, response, null, ex);
+        assertThat(mav).as("No ModelAndView returned").isNotNull();
+        assertThat(mav.isEmpty()).as("No Empty ModelAndView returned").isTrue();
+        assertThat(response.getStatus()).as("Invalid status code").isEqualTo(400);
+    }
+
+    @Test
+    @SuppressWarnings("deprecation")
+    public void handleHttpMessageNotReadable() {
+        HttpMessageNotReadableException ex = new HttpMessageNotReadableException("foo");
+        ModelAndView mav = exceptionResolver.resolveException(request, response, null, ex);
+        assertThat(mav).as("No ModelAndView returned").isNotNull();
+        assertThat(mav.isEmpty()).as("No Empty ModelAndView returned").isTrue();
+        assertThat(response.getStatus()).as("Invalid status code").isEqualTo(400);
+    }
+
+    @Test
+    public void handleHttpMessageNotWritable() {
+        HttpMessageNotWritableException ex = new HttpMessageNotWritableException("foo");
+        ModelAndView mav = exceptionResolver.resolveException(request, response, null, ex);
+        assertThat(mav).as("No ModelAndView returned").isNotNull();
+        assertThat(mav.isEmpty()).as("No Empty ModelAndView returned").isTrue();
+        assertThat(response.getStatus()).as("Invalid status code").isEqualTo(500);
+    }
+
+    @Test
+    public void handleMethodArgumentNotValid() throws Exception {
+        BeanPropertyBindingResult errors = new BeanPropertyBindingResult(new TestBean(), "testBean");
+        errors.rejectValue("name", "invalid");
+        MethodParameter parameter = new MethodParameter(this.getClass().getMethod("handle", String.class), 0);
+        MethodArgumentNotValidException ex = new MethodArgumentNotValidException(parameter, errors);
+        ModelAndView mav = exceptionResolver.resolveException(request, response, null, ex);
+        assertThat(mav).as("No ModelAndView returned").isNotNull();
+        assertThat(mav.isEmpty()).as("No Empty ModelAndView returned").isTrue();
+        assertThat(response.getStatus()).as("Invalid status code").isEqualTo(400);
+    }
+
+    @Test
+    public void handleMissingServletRequestPartException() throws Exception {
+        MissingServletRequestPartException ex = new MissingServletRequestPartException("name");
+        ModelAndView mav = exceptionResolver.resolveException(request, response, null, ex);
+        assertThat(mav).as("No ModelAndView returned").isNotNull();
+        assertThat(mav.isEmpty()).as("No Empty ModelAndView returned").isTrue();
+        assertThat(response.getStatus()).as("Invalid status code").isEqualTo(400);
+        assertThat(response.getErrorMessage().contains("request part")).isTrue();
+        assertThat(response.getErrorMessage().contains("name")).isTrue();
+        assertThat(response.getErrorMessage().contains("not present")).isTrue();
+    }
+
+    @Test
+    public void handleBindException() throws Exception {
+        BindException ex = new BindException(new Object(), "name");
+        ModelAndView mav = exceptionResolver.resolveException(request, response, null, ex);
+        assertThat(mav).as("No ModelAndView returned").isNotNull();
+        assertThat(mav.isEmpty()).as("No Empty ModelAndView returned").isTrue();
+        assertThat(response.getStatus()).as("Invalid status code").isEqualTo(400);
+    }
+
+    @Test
+    public void handleNoHandlerFoundException() throws Exception {
+        ServletServerHttpRequest req = new ServletServerHttpRequest(
+                new MockHttpServletRequest("GET", "/resource"));
+        NoHandlerFoundException ex = new NoHandlerFoundException(req.getMethod().name(),
+                req.getServletRequest().getRequestURI(), req.getHeaders());
+        ModelAndView mav = exceptionResolver.resolveException(request, response, null, ex);
+        assertThat(mav).as("No ModelAndView returned").isNotNull();
+        assertThat(mav.isEmpty()).as("No Empty ModelAndView returned").isTrue();
+        assertThat(response.getStatus()).as("Invalid status code").isEqualTo(404);
+    }
+
+    @Test
+    public void handleConversionNotSupportedException() throws Exception {
+        ConversionNotSupportedException ex =
+                new ConversionNotSupportedException(new Object(), String.class, new Exception());
+        ModelAndView mav = exceptionResolver.resolveException(request, response, null, ex);
+        assertThat(mav).as("No ModelAndView returned").isNotNull();
+        assertThat(mav.isEmpty()).as("No Empty ModelAndView returned").isTrue();
+        assertThat(response.getStatus()).as("Invalid status code").isEqualTo(500);
+
+        // SPR-9653
+        assertThat(request.getAttribute("javax.servlet.error.exception")).isSameAs(ex);
+    }
+
+    @Test  // SPR-14669
+    public void handleAsyncRequestTimeoutException() throws Exception {
+        Exception ex = new AsyncRequestTimeoutException();
+        ModelAndView mav = exceptionResolver.resolveException(request, response, null, ex);
+        assertThat(mav).as("No ModelAndView returned").isNotNull();
+        assertThat(mav.isEmpty()).as("No Empty ModelAndView returned").isTrue();
+        assertThat(response.getStatus()).as("Invalid status code").isEqualTo(503);
+    }
+
+
+    @SuppressWarnings("unused")
+    public void handle(String arg) {
+    }
 
 }

@@ -37,134 +37,135 @@ import java.util.*
  */
 class MockMvcExtensionsTests {
 
-	private val mockMvc = MockMvcBuilders.standaloneSetup(PersonController()).build()
+    private val mockMvc = MockMvcBuilders.standaloneSetup(PersonController()).build()
 
-	@Test
-	fun request() {
-		mockMvc.request(HttpMethod.GET, "/person/{name}", "Lee") {
-			secure = true
-			accept = APPLICATION_JSON
-			headers {
-				contentLanguage = Locale.FRANCE
-			}
-			principal = Principal { "foo" }
-		}.andExpect {
-			status { isOk }
-			content { contentType(APPLICATION_JSON) }
-			jsonPath("$.name") { value("Lee") }
-			content { json("""{"someBoolean": false}""", false) }
-		}.andDo {
-			print()
-		}
-	}
+    @Test
+    fun request() {
+        mockMvc.request(HttpMethod.GET, "/person/{name}", "Lee") {
+            secure = true
+            accept = APPLICATION_JSON
+            headers {
+                contentLanguage = Locale.FRANCE
+            }
+            principal = Principal { "foo" }
+        }.andExpect {
+            status { isOk }
+            content { contentType(APPLICATION_JSON) }
+            jsonPath("$.name") { value("Lee") }
+            content { json("""{"someBoolean": false}""", false) }
+        }.andDo {
+            print()
+        }
+    }
 
-	@Test
-	fun `request without MockHttpServletRequestDsl`() {
-		mockMvc.request(HttpMethod.GET, "/person/{name}", "Lee").andExpect {
-			status { isOk }
-		}.andDo {
-			print()
-		}
-	}
+    @Test
+    fun `request without MockHttpServletRequestDsl`() {
+        mockMvc.request(HttpMethod.GET, "/person/{name}", "Lee").andExpect {
+            status { isOk }
+        }.andDo {
+            print()
+        }
+    }
 
-	@Test
-	fun `request with custom matcher and handler`() {
-		var matcherInvoked = false
-		var handlerInvoked = false
-		val matcher = ResultMatcher { matcherInvoked = true }
-		val handler = ResultHandler { handlerInvoked = true }
-		mockMvc.request(HttpMethod.GET, "/person/{name}", "Lee").andExpect {
-			status { isOk }
-		}.andExpect {
-			match(matcher)
-		}.andDo {
-			handle(handler)
-		}
-		assertThat(matcherInvoked).isTrue()
-		assertThat(handlerInvoked).isTrue()
-	}
+    @Test
+    fun `request with custom matcher and handler`() {
+        var matcherInvoked = false
+        var handlerInvoked = false
+        val matcher = ResultMatcher { matcherInvoked = true }
+        val handler = ResultHandler { handlerInvoked = true }
+        mockMvc.request(HttpMethod.GET, "/person/{name}", "Lee").andExpect {
+            status { isOk }
+        }.andExpect {
+            match(matcher)
+        }.andDo {
+            handle(handler)
+        }
+        assertThat(matcherInvoked).isTrue()
+        assertThat(handlerInvoked).isTrue()
+    }
 
-	@Test
-	fun get() {
-		mockMvc.get("/person/{name}", "Lee") {
-				secure = true
-				accept = APPLICATION_JSON
-				headers {
-					contentLanguage = Locale.FRANCE
-				}
-				principal = Principal { "foo" }
-		}.andExpect {
-			status { isOk }
-			content { contentType(APPLICATION_JSON) }
-			jsonPath("$.name") { value("Lee") }
-			content { json("""{"someBoolean": false}""", false) }
-		}.andDo {
-			print()
-		}
-	}
+    @Test
+    fun get() {
+        mockMvc.get("/person/{name}", "Lee") {
+            secure = true
+            accept = APPLICATION_JSON
+            headers {
+                contentLanguage = Locale.FRANCE
+            }
+            principal = Principal { "foo" }
+        }.andExpect {
+            status { isOk }
+            content { contentType(APPLICATION_JSON) }
+            jsonPath("$.name") { value("Lee") }
+            content { json("""{"someBoolean": false}""", false) }
+        }.andDo {
+            print()
+        }
+    }
 
-	@Test
-	fun post() {
-		mockMvc.post("/person") {
-			content = """{ "name": "foo" }"""
-			headers {
-				accept = listOf(APPLICATION_JSON)
-				contentType = APPLICATION_JSON
-			}
-		}.andExpect {
-			status {
-				isCreated
-			}
-		}
-	}
+    @Test
+    fun post() {
+        mockMvc.post("/person") {
+            content = """{ "name": "foo" }"""
+            headers {
+                accept = listOf(APPLICATION_JSON)
+                contentType = APPLICATION_JSON
+            }
+        }.andExpect {
+            status {
+                isCreated
+            }
+        }
+    }
 
-	@Test
-	fun `negative assertion tests to verify the matchers throw errors when expected`() {
-		val name = "Petr"
-		mockMvc.get("/person/$name") {
-			accept = APPLICATION_JSON
-		}.andExpect {
-			assertThatExceptionOfType(AssertionError::class.java).isThrownBy { content { contentType(APPLICATION_ATOM_XML) } }
-			assertThatExceptionOfType(AssertionError::class.java).isThrownBy { content { string("Wrong") } }
-			assertThatExceptionOfType(AssertionError::class.java).isThrownBy { jsonPath("name", CoreMatchers.`is`("Wrong")) }
-			assertThatExceptionOfType(AssertionError::class.java).isThrownBy { content { json("""{"name":"wrong"}""") } }
-			assertThatExceptionOfType(AssertionError::class.java).isThrownBy { jsonPath("name") { value("wrong") } }
-			assertThatExceptionOfType(AssertionError::class.java).isThrownBy { cookie { value("name", "wrong") } }
-			assertThatExceptionOfType(AssertionError::class.java).isThrownBy { flash { attribute<String>("name", "wrong") } }
-			assertThatExceptionOfType(AssertionError::class.java).isThrownBy { header { stringValues("name", "wrong") } }
-			assertThatExceptionOfType(AssertionError::class.java).isThrownBy { model { attributeExists("name", "wrong") } }
-			assertThatExceptionOfType(AssertionError::class.java).isThrownBy { redirectedUrl("wrong/Url") }
-			assertThatExceptionOfType(AssertionError::class.java).isThrownBy { redirectedUrlPattern("wrong/Url") }
-			assertThatExceptionOfType(AssertionError::class.java).isThrownBy { status { isAccepted } }
-			assertThatExceptionOfType(AssertionError::class.java).isThrownBy { view { name("wrongName") } }
-			assertThatExceptionOfType(AssertionError::class.java).isThrownBy { jsonPath("name") { value("wrong") } }
-		}
-	}
+    @Test
+    fun `negative assertion tests to verify the matchers throw errors when expected`() {
+        val name = "Petr"
+        mockMvc.get("/person/$name") {
+            accept = APPLICATION_JSON
+        }.andExpect {
+            assertThatExceptionOfType(AssertionError::class.java).isThrownBy { content { contentType(APPLICATION_ATOM_XML) } }
+            assertThatExceptionOfType(AssertionError::class.java).isThrownBy { content { string("Wrong") } }
+            assertThatExceptionOfType(AssertionError::class.java).isThrownBy { jsonPath("name", CoreMatchers.`is`("Wrong")) }
+            assertThatExceptionOfType(AssertionError::class.java).isThrownBy { content { json("""{"name":"wrong"}""") } }
+            assertThatExceptionOfType(AssertionError::class.java).isThrownBy { jsonPath("name") { value("wrong") } }
+            assertThatExceptionOfType(AssertionError::class.java).isThrownBy { cookie { value("name", "wrong") } }
+            assertThatExceptionOfType(AssertionError::class.java).isThrownBy { flash { attribute<String>("name", "wrong") } }
+            assertThatExceptionOfType(AssertionError::class.java).isThrownBy { header { stringValues("name", "wrong") } }
+            assertThatExceptionOfType(AssertionError::class.java).isThrownBy { model { attributeExists("name", "wrong") } }
+            assertThatExceptionOfType(AssertionError::class.java).isThrownBy { redirectedUrl("wrong/Url") }
+            assertThatExceptionOfType(AssertionError::class.java).isThrownBy { redirectedUrlPattern("wrong/Url") }
+            assertThatExceptionOfType(AssertionError::class.java).isThrownBy { status { isAccepted } }
+            assertThatExceptionOfType(AssertionError::class.java).isThrownBy { view { name("wrongName") } }
+            assertThatExceptionOfType(AssertionError::class.java).isThrownBy { jsonPath("name") { value("wrong") } }
+        }
+    }
 
-	@Test
-	fun `negative assertion tests for xpath`() {
-		mockMvc.get("/person/Clint") {
-			accept = APPLICATION_XML
-		}.andExpect {
-			status { isOk }
-			assertThatExceptionOfType(AssertionError::class.java).isThrownBy { xpath("//wrong") { nodeCount(1) } }
-		}.andDo {
-			print()
-		}
-	}
+    @Test
+    fun `negative assertion tests for xpath`() {
+        mockMvc.get("/person/Clint") {
+            accept = APPLICATION_XML
+        }.andExpect {
+            status { isOk }
+            assertThatExceptionOfType(AssertionError::class.java).isThrownBy { xpath("//wrong") { nodeCount(1) } }
+        }.andDo {
+            print()
+        }
+    }
 
 
-	@RestController
-	private class PersonController {
+    @RestController
+    private class PersonController {
 
-		@GetMapping("/person/{name}")
-		fun get(@PathVariable name: String): Person {
-			return Person(name)
-		}
+        @GetMapping("/person/{name}")
+        fun get(@PathVariable name: String): Person {
+            return Person(name)
+        }
 
-		@Suppress("UNUSED_PARAMETER")
-		@PostMapping("/person")
-		@ResponseStatus(HttpStatus.CREATED)
-		fun post(@RequestBody person: Person) {}
-	}
+        @Suppress("UNUSED_PARAMETER")
+        @PostMapping("/person")
+        @ResponseStatus(HttpStatus.CREATED)
+        fun post(@RequestBody person: Person) {
+        }
+    }
 }

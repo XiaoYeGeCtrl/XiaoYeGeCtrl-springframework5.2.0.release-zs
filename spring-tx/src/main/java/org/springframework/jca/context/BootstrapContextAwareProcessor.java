@@ -31,34 +31,34 @@ import org.springframework.lang.Nullable;
  * this processor with its underlying bean factory.
  *
  * @author Juergen Hoeller
- * @since 2.5
  * @see BootstrapContextAware
+ * @since 2.5
  */
 class BootstrapContextAwareProcessor implements BeanPostProcessor {
 
-	@Nullable
-	private final BootstrapContext bootstrapContext;
+    @Nullable
+    private final BootstrapContext bootstrapContext;
 
 
-	/**
-	 * Create a new BootstrapContextAwareProcessor for the given context.
-	 */
-	public BootstrapContextAwareProcessor(@Nullable BootstrapContext bootstrapContext) {
-		this.bootstrapContext = bootstrapContext;
-	}
+    /**
+     * Create a new BootstrapContextAwareProcessor for the given context.
+     */
+    public BootstrapContextAwareProcessor(@Nullable BootstrapContext bootstrapContext) {
+        this.bootstrapContext = bootstrapContext;
+    }
 
 
-	@Override
-	public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
-		if (this.bootstrapContext != null && bean instanceof BootstrapContextAware) {
-			((BootstrapContextAware) bean).setBootstrapContext(this.bootstrapContext);
-		}
-		return bean;
-	}
+    @Override
+    public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
+        if (this.bootstrapContext != null && bean instanceof BootstrapContextAware) {
+            ((BootstrapContextAware) bean).setBootstrapContext(this.bootstrapContext);
+        }
+        return bean;
+    }
 
-	@Override
-	public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
-		return bean;
-	}
+    @Override
+    public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
+        return bean;
+    }
 
 }

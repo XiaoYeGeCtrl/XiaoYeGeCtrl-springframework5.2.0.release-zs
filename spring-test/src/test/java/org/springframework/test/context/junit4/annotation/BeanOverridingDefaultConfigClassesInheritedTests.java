@@ -38,25 +38,24 @@ import static org.assertj.core.api.Assertions.assertThat;
 @ContextConfiguration
 public class BeanOverridingDefaultConfigClassesInheritedTests extends DefaultConfigClassesBaseTests {
 
-	@Configuration
-	static class ContextConfiguration {
+    @Test
+    @Override
+    public void verifyEmployeeSetFromBaseContextConfig() {
+        assertThat(this.employee).as("The employee should have been autowired.").isNotNull();
+        assertThat(this.employee.getName()).as("The employee bean should have been overridden.").isEqualTo("Yoda");
+    }
 
-		@Bean
-		public Employee employee() {
-			Employee employee = new Employee();
-			employee.setName("Yoda");
-			employee.setAge(900);
-			employee.setCompany("The Force");
-			return employee;
-		}
-	}
+    @Configuration
+    static class ContextConfiguration {
 
-
-	@Test
-	@Override
-	public void verifyEmployeeSetFromBaseContextConfig() {
-		assertThat(this.employee).as("The employee should have been autowired.").isNotNull();
-		assertThat(this.employee.getName()).as("The employee bean should have been overridden.").isEqualTo("Yoda");
-	}
+        @Bean
+        public Employee employee() {
+            Employee employee = new Employee();
+            employee.setName("Yoda");
+            employee.setAge(900);
+            employee.setCompany("The Force");
+            return employee;
+        }
+    }
 
 }

@@ -32,49 +32,50 @@ import org.springframework.lang.Nullable;
  * will use the carried encoding and FileTypeMap unless explicitly overridden.
  *
  * @author Juergen Hoeller
- * @since 1.2
  * @see JavaMailSenderImpl#createMimeMessage()
  * @see MimeMessageHelper#getDefaultEncoding(javax.mail.internet.MimeMessage)
  * @see MimeMessageHelper#getDefaultFileTypeMap(javax.mail.internet.MimeMessage)
+ * @since 1.2
  */
 class SmartMimeMessage extends MimeMessage {
 
-	@Nullable
-	private final String defaultEncoding;
+    @Nullable
+    private final String defaultEncoding;
 
-	@Nullable
-	private final FileTypeMap defaultFileTypeMap;
-
-
-	/**
-	 * Create a new SmartMimeMessage.
-	 * @param session the JavaMail Session to create the message for
-	 * @param defaultEncoding the default encoding, or {@code null} if none
-	 * @param defaultFileTypeMap the default FileTypeMap, or {@code null} if none
-	 */
-	public SmartMimeMessage(
-			Session session, @Nullable String defaultEncoding, @Nullable FileTypeMap defaultFileTypeMap) {
-
-		super(session);
-		this.defaultEncoding = defaultEncoding;
-		this.defaultFileTypeMap = defaultFileTypeMap;
-	}
+    @Nullable
+    private final FileTypeMap defaultFileTypeMap;
 
 
-	/**
-	 * Return the default encoding of this message, or {@code null} if none.
-	 */
-	@Nullable
-	public final String getDefaultEncoding() {
-		return this.defaultEncoding;
-	}
+    /**
+     * Create a new SmartMimeMessage.
+     *
+     * @param session            the JavaMail Session to create the message for
+     * @param defaultEncoding    the default encoding, or {@code null} if none
+     * @param defaultFileTypeMap the default FileTypeMap, or {@code null} if none
+     */
+    public SmartMimeMessage(
+            Session session, @Nullable String defaultEncoding, @Nullable FileTypeMap defaultFileTypeMap) {
 
-	/**
-	 * Return the default FileTypeMap of this message, or {@code null} if none.
-	 */
-	@Nullable
-	public final FileTypeMap getDefaultFileTypeMap() {
-		return this.defaultFileTypeMap;
-	}
+        super(session);
+        this.defaultEncoding = defaultEncoding;
+        this.defaultFileTypeMap = defaultFileTypeMap;
+    }
+
+
+    /**
+     * Return the default encoding of this message, or {@code null} if none.
+     */
+    @Nullable
+    public final String getDefaultEncoding() {
+        return this.defaultEncoding;
+    }
+
+    /**
+     * Return the default FileTypeMap of this message, or {@code null} if none.
+     */
+    @Nullable
+    public final FileTypeMap getDefaultFileTypeMap() {
+        return this.defaultFileTypeMap;
+    }
 
 }

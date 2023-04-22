@@ -32,47 +32,47 @@ import org.springframework.util.Assert;
  * @since 4.0
  */
 public class BeanFactoryMessageChannelDestinationResolver
-		implements DestinationResolver<MessageChannel>, BeanFactoryAware {
+        implements DestinationResolver<MessageChannel>, BeanFactoryAware {
 
-	@Nullable
-	private BeanFactory beanFactory;
-
-
-	/**
-	 * A default constructor that can be used when the resolver itself is configured
-	 * as a Spring bean and will have the {@code BeanFactory} injected as a result
-	 * of ing having implemented {@link BeanFactoryAware}.
-	 */
-	public BeanFactoryMessageChannelDestinationResolver() {
-	}
-
-	/**
-	 * A constructor that accepts a {@link BeanFactory} useful if instantiating this
-	 * resolver manually rather than having it defined as a Spring-managed bean.
-	 * @param beanFactory the bean factory to perform lookups against
-	 */
-	public BeanFactoryMessageChannelDestinationResolver(BeanFactory beanFactory) {
-		Assert.notNull(beanFactory, "beanFactory must not be null");
-		this.beanFactory = beanFactory;
-	}
+    @Nullable
+    private BeanFactory beanFactory;
 
 
-	@Override
-	public void setBeanFactory(BeanFactory beanFactory) {
-		this.beanFactory = beanFactory;
-	}
+    /**
+     * A default constructor that can be used when the resolver itself is configured
+     * as a Spring bean and will have the {@code BeanFactory} injected as a result
+     * of ing having implemented {@link BeanFactoryAware}.
+     */
+    public BeanFactoryMessageChannelDestinationResolver() {
+    }
+
+    /**
+     * A constructor that accepts a {@link BeanFactory} useful if instantiating this
+     * resolver manually rather than having it defined as a Spring-managed bean.
+     *
+     * @param beanFactory the bean factory to perform lookups against
+     */
+    public BeanFactoryMessageChannelDestinationResolver(BeanFactory beanFactory) {
+        Assert.notNull(beanFactory, "beanFactory must not be null");
+        this.beanFactory = beanFactory;
+    }
 
 
-	@Override
-	public MessageChannel resolveDestination(String name) {
-		Assert.state(this.beanFactory != null, "No BeanFactory configured");
-		try {
-			return this.beanFactory.getBean(name, MessageChannel.class);
-		}
-		catch (BeansException ex) {
-			throw new DestinationResolutionException(
-					"Failed to find MessageChannel bean with name '" + name + "'", ex);
-		}
-	}
+    @Override
+    public void setBeanFactory(BeanFactory beanFactory) {
+        this.beanFactory = beanFactory;
+    }
+
+
+    @Override
+    public MessageChannel resolveDestination(String name) {
+        Assert.state(this.beanFactory != null, "No BeanFactory configured");
+        try {
+            return this.beanFactory.getBean(name, MessageChannel.class);
+        } catch (BeansException ex) {
+            throw new DestinationResolutionException(
+                    "Failed to find MessageChannel bean with name '" + name + "'", ex);
+        }
+    }
 
 }

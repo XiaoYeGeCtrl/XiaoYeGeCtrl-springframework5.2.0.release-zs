@@ -45,142 +45,142 @@ import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
  */
 public class HandlerMethodMappingTests {
 
-	private AbstractHandlerMethodMapping<String> mapping;
+    private AbstractHandlerMethodMapping<String> mapping;
 
-	private MyHandler handler;
+    private MyHandler handler;
 
-	private Method method1;
+    private Method method1;
 
-	private Method method2;
-
-
-	@BeforeEach
-	public void setup() throws Exception {
-		this.mapping = new MyHandlerMethodMapping();
-		this.handler = new MyHandler();
-		this.method1 = handler.getClass().getMethod("handlerMethod1");
-		this.method2 = handler.getClass().getMethod("handlerMethod2");
-	}
+    private Method method2;
 
 
-	@Test
-	public void registerDuplicates() {
-		this.mapping.registerMapping("foo", this.handler, this.method1);
-		assertThatIllegalStateException().isThrownBy(() ->
-				this.mapping.registerMapping("foo", this.handler, this.method2));
-	}
-
-	@Test
-	public void directMatch() throws Exception {
-		String key = "foo";
-		this.mapping.registerMapping(key, this.handler, this.method1);
-		MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get(key));
-		Mono<Object> result = this.mapping.getHandler(exchange);
-
-		assertThat(((HandlerMethod) result.block()).getMethod()).isEqualTo(this.method1);
-	}
-
-	@Test
-	public void patternMatch() throws Exception {
-		this.mapping.registerMapping("/fo*", this.handler, this.method1);
-		this.mapping.registerMapping("/f*", this.handler, this.method2);
-
-		MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/foo"));
-		Mono<Object> result = this.mapping.getHandler(exchange);
-		assertThat(((HandlerMethod) result.block()).getMethod()).isEqualTo(this.method1);
-	}
-
-	@Test
-	public void ambiguousMatch() throws Exception {
-		this.mapping.registerMapping("/f?o", this.handler, this.method1);
-		this.mapping.registerMapping("/fo?", this.handler, this.method2);
-		MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/foo"));
-		Mono<Object> result = this.mapping.getHandler(exchange);
-
-		StepVerifier.create(result).expectError(IllegalStateException.class).verify();
-	}
-
-	@Test
-	public void registerMapping() throws Exception {
-		String key1 = "/foo";
-		String key2 = "/foo*";
-		this.mapping.registerMapping(key1, this.handler, this.method1);
-		this.mapping.registerMapping(key2, this.handler, this.method2);
-
-		assertThat(this.mapping.getMappingRegistry().getMappings())
-				.containsKeys(key1, key2);
-	}
-
-	@Test
-	public void registerMappingWithSameMethodAndTwoHandlerInstances() throws Exception {
-		String key1 = "foo";
-		String key2 = "bar";
-		MyHandler handler1 = new MyHandler();
-		MyHandler handler2 = new MyHandler();
-		this.mapping.registerMapping(key1, handler1, this.method1);
-		this.mapping.registerMapping(key2, handler2, this.method1);
-
-		assertThat(this.mapping.getMappingRegistry().getMappings())
-				.containsKeys(key1, key2);
-	}
-
-	@Test
-	public void unregisterMapping() throws Exception {
-		String key = "foo";
-		this.mapping.registerMapping(key, this.handler, this.method1);
-		Mono<Object> result = this.mapping.getHandler(MockServerWebExchange.from(MockServerHttpRequest.get(key)));
-
-		assertThat(result.block()).isNotNull();
-
-		this.mapping.unregisterMapping(key);
-		result = this.mapping.getHandler(MockServerWebExchange.from(MockServerHttpRequest.get(key)));
-
-		assertThat(result.block()).isNull();
-		assertThat(this.mapping.getMappingRegistry().getMappings().keySet()).doesNotContain(key);
-	}
+    @BeforeEach
+    public void setup() throws Exception {
+        this.mapping = new MyHandlerMethodMapping();
+        this.handler = new MyHandler();
+        this.method1 = handler.getClass().getMethod("handlerMethod1");
+        this.method2 = handler.getClass().getMethod("handlerMethod2");
+    }
 
 
-	private static class MyHandlerMethodMapping extends AbstractHandlerMethodMapping<String> {
+    @Test
+    public void registerDuplicates() {
+        this.mapping.registerMapping("foo", this.handler, this.method1);
+        assertThatIllegalStateException().isThrownBy(() ->
+                this.mapping.registerMapping("foo", this.handler, this.method2));
+    }
 
-		private PathPatternParser parser = new PathPatternParser();
+    @Test
+    public void directMatch() throws Exception {
+        String key = "foo";
+        this.mapping.registerMapping(key, this.handler, this.method1);
+        MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get(key));
+        Mono<Object> result = this.mapping.getHandler(exchange);
 
-		@Override
-		protected boolean isHandler(Class<?> beanType) {
-			return true;
-		}
+        assertThat(((HandlerMethod) result.block()).getMethod()).isEqualTo(this.method1);
+    }
 
-		@Override
-		protected String getMappingForMethod(Method method, Class<?> handlerType) {
-			String methodName = method.getName();
-			return methodName.startsWith("handler") ? methodName : null;
-		}
+    @Test
+    public void patternMatch() throws Exception {
+        this.mapping.registerMapping("/fo*", this.handler, this.method1);
+        this.mapping.registerMapping("/f*", this.handler, this.method2);
 
-		@Override
-		protected String getMatchingMapping(String pattern, ServerWebExchange exchange) {
-			PathContainer lookupPath = exchange.getRequest().getPath().pathWithinApplication();
-			PathPattern parsedPattern = this.parser.parse(pattern);
-			return (parsedPattern.matches(lookupPath) ? pattern : null);
-		}
+        MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/foo"));
+        Mono<Object> result = this.mapping.getHandler(exchange);
+        assertThat(((HandlerMethod) result.block()).getMethod()).isEqualTo(this.method1);
+    }
 
-		@Override
-		protected Comparator<String> getMappingComparator(ServerWebExchange exchange) {
-			return (o1, o2) -> PathPattern.SPECIFICITY_COMPARATOR.compare(parser.parse(o1), parser.parse(o2));
-		}
+    @Test
+    public void ambiguousMatch() throws Exception {
+        this.mapping.registerMapping("/f?o", this.handler, this.method1);
+        this.mapping.registerMapping("/fo?", this.handler, this.method2);
+        MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/foo"));
+        Mono<Object> result = this.mapping.getHandler(exchange);
 
-	}
+        StepVerifier.create(result).expectError(IllegalStateException.class).verify();
+    }
 
-	@Controller
-	private static class MyHandler {
+    @Test
+    public void registerMapping() throws Exception {
+        String key1 = "/foo";
+        String key2 = "/foo*";
+        this.mapping.registerMapping(key1, this.handler, this.method1);
+        this.mapping.registerMapping(key2, this.handler, this.method2);
 
-		@RequestMapping
-		@SuppressWarnings("unused")
-		public void handlerMethod1() {
-		}
+        assertThat(this.mapping.getMappingRegistry().getMappings())
+                .containsKeys(key1, key2);
+    }
 
-		@RequestMapping
-		@SuppressWarnings("unused")
-		public void handlerMethod2() {
-		}
-	}
+    @Test
+    public void registerMappingWithSameMethodAndTwoHandlerInstances() throws Exception {
+        String key1 = "foo";
+        String key2 = "bar";
+        MyHandler handler1 = new MyHandler();
+        MyHandler handler2 = new MyHandler();
+        this.mapping.registerMapping(key1, handler1, this.method1);
+        this.mapping.registerMapping(key2, handler2, this.method1);
+
+        assertThat(this.mapping.getMappingRegistry().getMappings())
+                .containsKeys(key1, key2);
+    }
+
+    @Test
+    public void unregisterMapping() throws Exception {
+        String key = "foo";
+        this.mapping.registerMapping(key, this.handler, this.method1);
+        Mono<Object> result = this.mapping.getHandler(MockServerWebExchange.from(MockServerHttpRequest.get(key)));
+
+        assertThat(result.block()).isNotNull();
+
+        this.mapping.unregisterMapping(key);
+        result = this.mapping.getHandler(MockServerWebExchange.from(MockServerHttpRequest.get(key)));
+
+        assertThat(result.block()).isNull();
+        assertThat(this.mapping.getMappingRegistry().getMappings().keySet()).doesNotContain(key);
+    }
+
+
+    private static class MyHandlerMethodMapping extends AbstractHandlerMethodMapping<String> {
+
+        private PathPatternParser parser = new PathPatternParser();
+
+        @Override
+        protected boolean isHandler(Class<?> beanType) {
+            return true;
+        }
+
+        @Override
+        protected String getMappingForMethod(Method method, Class<?> handlerType) {
+            String methodName = method.getName();
+            return methodName.startsWith("handler") ? methodName : null;
+        }
+
+        @Override
+        protected String getMatchingMapping(String pattern, ServerWebExchange exchange) {
+            PathContainer lookupPath = exchange.getRequest().getPath().pathWithinApplication();
+            PathPattern parsedPattern = this.parser.parse(pattern);
+            return (parsedPattern.matches(lookupPath) ? pattern : null);
+        }
+
+        @Override
+        protected Comparator<String> getMappingComparator(ServerWebExchange exchange) {
+            return (o1, o2) -> PathPattern.SPECIFICITY_COMPARATOR.compare(parser.parse(o1), parser.parse(o2));
+        }
+
+    }
+
+    @Controller
+    private static class MyHandler {
+
+        @RequestMapping
+        @SuppressWarnings("unused")
+        public void handlerMethod1() {
+        }
+
+        @RequestMapping
+        @SuppressWarnings("unused")
+        public void handlerMethod2() {
+        }
+    }
 
 }

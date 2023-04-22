@@ -40,13 +40,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 @ContextConfiguration("DefaultLocationsBaseTests-context.xml")
 public class ExplicitLocationsBaseTests {
 
-	@Autowired
-	protected Employee employee;
+    @Autowired
+    protected Employee employee;
 
 
-	@Test
-	public void verifyEmployeeSetFromBaseContextConfig() {
-		assertThat(this.employee).as("The employee should have been autowired.").isNotNull();
-		assertThat(this.employee.getName()).isEqualTo("John Smith");
-	}
+    @Test
+    public void verifyEmployeeSetFromBaseContextConfig() {
+        assertThat(this.employee).as("The employee should have been autowired.").isNotNull();
+        assertThat(this.employee.getName()).isEqualTo("John Smith");
+    }
 }

@@ -35,12 +35,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 @ConfigClassesAndProfilesWithCustomDefaultsMetaConfig
 public class ConfigClassesAndProfilesWithCustomDefaultsMetaConfigTests {
 
-	@Autowired
-	private String foo;
+    @Autowired
+    private String foo;
 
 
-	@Test
-	public void foo() {
-		assertThat(foo).isEqualTo("Dev Foo");
-	}
+    @Test
+    public void foo() {
+        assertThat(foo).isEqualTo("Dev Foo");
+    }
 }

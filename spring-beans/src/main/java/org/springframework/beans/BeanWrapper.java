@@ -39,60 +39,64 @@ import java.beans.PropertyDescriptor;
  *
  * @author Rod Johnson
  * @author Juergen Hoeller
- * @since 13 April 2001
  * @see PropertyAccessor
  * @see PropertyEditorRegistry
  * @see PropertyAccessorFactory#forBeanPropertyAccess
  * @see org.springframework.beans.factory.BeanFactory
  * @see org.springframework.validation.BeanPropertyBindingResult
  * @see org.springframework.validation.DataBinder#initBeanPropertyAccess()
+ * @since 13 April 2001
  */
 public interface BeanWrapper extends ConfigurablePropertyAccessor {
 
-	/**
-	 * Specify a limit for array and collection auto-growing.
-	 * <p>Default is unlimited on a plain BeanWrapper.
-	 * @since 4.1
-	 * 为数组和集合自动增长指定一个限制。在普通的BeanWrapper上默认是无限的
-	 */
-	void setAutoGrowCollectionLimit(int autoGrowCollectionLimit);
+    /**
+     * Return the limit for array and collection auto-growing.
+     * 返回数组和集合自动增长的限制
+     *
+     * @since 4.1
+     */
+    int getAutoGrowCollectionLimit();
 
-	/**
-	 * Return the limit for array and collection auto-growing.
-	 * 返回数组和集合自动增长的限制
-	 * @since 4.1
-	 */
-	int getAutoGrowCollectionLimit();
+    /**
+     * Specify a limit for array and collection auto-growing.
+     * <p>Default is unlimited on a plain BeanWrapper.
+     *
+     * @since 4.1
+     * 为数组和集合自动增长指定一个限制。在普通的BeanWrapper上默认是无限的
+     */
+    void setAutoGrowCollectionLimit(int autoGrowCollectionLimit);
 
-	/**
-	 * Return the bean instance wrapped by this object.
-	 * 如果有的话,返回由此对象包装的bean实例
-	 */
-	Object getWrappedInstance();
+    /**
+     * Return the bean instance wrapped by this object.
+     * 如果有的话,返回由此对象包装的bean实例
+     */
+    Object getWrappedInstance();
 
-	/**
-	 * Return the type of the wrapped bean instance.
-	 * 返回被包装的JavaBean对象的类型。
-	 */
-	Class<?> getWrappedClass();
+    /**
+     * Return the type of the wrapped bean instance.
+     * 返回被包装的JavaBean对象的类型。
+     */
+    Class<?> getWrappedClass();
 
-	/**
-	 * 获取包装对象的PropertyDescriptors
-	 * Obtain the PropertyDescriptors for the wrapped object
-	 * (as determined by standard JavaBeans introspection).
-	 * @return the PropertyDescriptors for the wrapped object
-	 */
-	PropertyDescriptor[] getPropertyDescriptors();
+    /**
+     * 获取包装对象的PropertyDescriptors
+     * Obtain the PropertyDescriptors for the wrapped object
+     * (as determined by standard JavaBeans introspection).
+     *
+     * @return the PropertyDescriptors for the wrapped object
+     */
+    PropertyDescriptor[] getPropertyDescriptors();
 
-	/**
-	 * 获取包装对象的特定属性的属性描述符
-	 * Obtain the property descriptor for a specific property
-	 * of the wrapped object.
-	 * @param propertyName the property to obtain the descriptor for
-	 * (may be a nested path, but no indexed/mapped property)
-	 * @return the property descriptor for the specified property
-	 * @throws InvalidPropertyException if there is no such property
-	 */
-	PropertyDescriptor getPropertyDescriptor(String propertyName) throws InvalidPropertyException;
+    /**
+     * 获取包装对象的特定属性的属性描述符
+     * Obtain the property descriptor for a specific property
+     * of the wrapped object.
+     *
+     * @param propertyName the property to obtain the descriptor for
+     *                     (may be a nested path, but no indexed/mapped property)
+     * @return the property descriptor for the specified property
+     * @throws InvalidPropertyException if there is no such property
+     */
+    PropertyDescriptor getPropertyDescriptor(String propertyName) throws InvalidPropertyException;
 
 }

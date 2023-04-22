@@ -30,26 +30,26 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 public class TransactionAssert {
 
-	private static final TransactionAssert instance = new TransactionAssert();
+    private static final TransactionAssert instance = new TransactionAssert();
 
-	public TransactionAssert isActive() {
-		return isInTransaction(true);
-	}
+    public static TransactionAssert assertThatTransaction() {
+        return instance;
+    }
 
-	public TransactionAssert isNotActive() {
-		return isInTransaction(false);
+    public TransactionAssert isActive() {
+        return isInTransaction(true);
+    }
 
-	}
+    public TransactionAssert isNotActive() {
+        return isInTransaction(false);
 
-	public TransactionAssert isInTransaction(boolean expected) {
-		assertThat(TransactionSynchronizationManager.isActualTransactionActive())
-				.as("active transaction")
-				.isEqualTo(expected);
-		return this;
-	}
+    }
 
-	public static TransactionAssert assertThatTransaction() {
-		return instance;
-	}
+    public TransactionAssert isInTransaction(boolean expected) {
+        assertThat(TransactionSynchronizationManager.isActualTransactionActive())
+                .as("active transaction")
+                .isEqualTo(expected);
+        return this;
+    }
 
 }

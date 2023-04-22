@@ -31,78 +31,78 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 class AnnotationBackCompatibiltyTests {
 
-	@Test
-	void multiplRoutesToMetaAnnotation() {
-		Class<WithMetaMetaTestAnnotation1AndMetaTestAnnotation2> source = WithMetaMetaTestAnnotation1AndMetaTestAnnotation2.class;
-		// Merged annotation chooses lowest depth
-		MergedAnnotation<TestAnnotation> mergedAnnotation = MergedAnnotations.from(source).get(TestAnnotation.class);
-		assertThat(mergedAnnotation.getString("value")).isEqualTo("testAndMetaTest");
-		// AnnotatedElementUtils finds first
-		TestAnnotation previousVersion = AnnotatedElementUtils.getMergedAnnotation(source, TestAnnotation.class);
-		assertThat(previousVersion.value()).isEqualTo("metaTest");
-	}
+    @Test
+    void multiplRoutesToMetaAnnotation() {
+        Class<WithMetaMetaTestAnnotation1AndMetaTestAnnotation2> source = WithMetaMetaTestAnnotation1AndMetaTestAnnotation2.class;
+        // Merged annotation chooses lowest depth
+        MergedAnnotation<TestAnnotation> mergedAnnotation = MergedAnnotations.from(source).get(TestAnnotation.class);
+        assertThat(mergedAnnotation.getString("value")).isEqualTo("testAndMetaTest");
+        // AnnotatedElementUtils finds first
+        TestAnnotation previousVersion = AnnotatedElementUtils.getMergedAnnotation(source, TestAnnotation.class);
+        assertThat(previousVersion.value()).isEqualTo("metaTest");
+    }
 
-	@Test
-	void defaultValue() {
-		DefaultValueAnnotation synthesized = MergedAnnotations.from(WithDefaultValue.class).get(DefaultValueAnnotation.class).synthesize();
-		assertThat(synthesized).isInstanceOf(SynthesizedAnnotation.class);
-		Object defaultValue = AnnotationUtils.getDefaultValue(synthesized, "enumValue");
-		assertThat(defaultValue).isEqualTo(TestEnum.ONE);
-	}
+    @Test
+    void defaultValue() {
+        DefaultValueAnnotation synthesized = MergedAnnotations.from(WithDefaultValue.class).get(DefaultValueAnnotation.class).synthesize();
+        assertThat(synthesized).isInstanceOf(SynthesizedAnnotation.class);
+        Object defaultValue = AnnotationUtils.getDefaultValue(synthesized, "enumValue");
+        assertThat(defaultValue).isEqualTo(TestEnum.ONE);
+    }
 
-	@Retention(RetentionPolicy.RUNTIME)
-	@interface TestAnnotation {
+    static enum TestEnum {
 
-		String value();
+        ONE,
 
-	}
+        TWO
 
-	@Retention(RetentionPolicy.RUNTIME)
-	@TestAnnotation("metaTest")
-	@interface MetaTestAnnotation {
+    }
 
-	}
+    @Retention(RetentionPolicy.RUNTIME)
+    @interface TestAnnotation {
 
-	@Retention(RetentionPolicy.RUNTIME)
-	@TestAnnotation("testAndMetaTest")
-	@MetaTestAnnotation
-	@interface TestAndMetaTestAnnotation {
+        String value();
 
-	}
+    }
 
-	@Retention(RetentionPolicy.RUNTIME)
-	@MetaTestAnnotation
-	@interface MetaMetaTestAnnotation {
-	}
+    @Retention(RetentionPolicy.RUNTIME)
+    @TestAnnotation("metaTest")
+    @interface MetaTestAnnotation {
 
-	@MetaMetaTestAnnotation
-	@TestAndMetaTestAnnotation
-	static class WithMetaMetaTestAnnotation1AndMetaTestAnnotation2 {
+    }
 
-	}
+    @Retention(RetentionPolicy.RUNTIME)
+    @TestAnnotation("testAndMetaTest")
+    @MetaTestAnnotation
+    @interface TestAndMetaTestAnnotation {
 
-	@Retention(RetentionPolicy.RUNTIME)
-	@interface DefaultValueAnnotation {
+    }
 
-		@AliasFor("enumAlais")
-		TestEnum enumValue() default TestEnum.ONE;
+    @Retention(RetentionPolicy.RUNTIME)
+    @MetaTestAnnotation
+    @interface MetaMetaTestAnnotation {
+    }
 
-		@AliasFor("enumValue")
-		TestEnum enumAlais() default TestEnum.ONE;
+    @Retention(RetentionPolicy.RUNTIME)
+    @interface DefaultValueAnnotation {
 
-	}
+        @AliasFor("enumAlais")
+        TestEnum enumValue() default TestEnum.ONE;
 
-	@DefaultValueAnnotation
-	static class WithDefaultValue {
+        @AliasFor("enumValue")
+        TestEnum enumAlais() default TestEnum.ONE;
 
-	}
+    }
 
-	static enum TestEnum {
+    @MetaMetaTestAnnotation
+    @TestAndMetaTestAnnotation
+    static class WithMetaMetaTestAnnotation1AndMetaTestAnnotation2 {
 
-		ONE,
+    }
 
-		TWO
+    @DefaultValueAnnotation
+    static class WithDefaultValue {
 
-	}
+    }
 
 }

@@ -23,20 +23,21 @@ import org.springframework.jmx.JmxException;
  * incorrect metadata on a managed resource or one of its methods.
  *
  * @author Rob Harrop
- * @since 1.2
  * @see JmxAttributeSource
  * @see org.springframework.jmx.export.assembler.MetadataMBeanInfoAssembler
+ * @since 1.2
  */
 @SuppressWarnings("serial")
 public class InvalidMetadataException extends JmxException {
 
-	/**
-	 * Create a new {@code InvalidMetadataException} with the supplied
-	 * error message.
-	 * @param msg the detail message
-	 */
-	public InvalidMetadataException(String msg) {
-		super(msg);
-	}
+    /**
+     * Create a new {@code InvalidMetadataException} with the supplied
+     * error message.
+     *
+     * @param msg the detail message
+     */
+    public InvalidMetadataException(String msg) {
+        super(msg);
+    }
 
 }

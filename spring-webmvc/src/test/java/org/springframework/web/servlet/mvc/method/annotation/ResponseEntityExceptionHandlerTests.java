@@ -70,259 +70,253 @@ import static org.mockito.Mockito.mock;
  */
 public class ResponseEntityExceptionHandlerTests {
 
-	private ResponseEntityExceptionHandler exceptionHandlerSupport = new ApplicationExceptionHandler();
+    private ResponseEntityExceptionHandler exceptionHandlerSupport = new ApplicationExceptionHandler();
 
-	private DefaultHandlerExceptionResolver defaultExceptionResolver = new DefaultHandlerExceptionResolver();
+    private DefaultHandlerExceptionResolver defaultExceptionResolver = new DefaultHandlerExceptionResolver();
 
-	private MockHttpServletRequest servletRequest = new MockHttpServletRequest("GET", "/");
+    private MockHttpServletRequest servletRequest = new MockHttpServletRequest("GET", "/");
 
-	private MockHttpServletResponse servletResponse = new MockHttpServletResponse();
+    private MockHttpServletResponse servletResponse = new MockHttpServletResponse();
 
-	private WebRequest request = new ServletWebRequest(this.servletRequest, this.servletResponse);
-
-
-	@Test
-	public void supportsAllDefaultHandlerExceptionResolverExceptionTypes() throws Exception {
-		Class<ResponseEntityExceptionHandler> clazz = ResponseEntityExceptionHandler.class;
-		Method handleExceptionMethod = clazz.getMethod("handleException", Exception.class, WebRequest.class);
-		ExceptionHandler annotation = handleExceptionMethod.getAnnotation(ExceptionHandler.class);
-		List<Class<?>> exceptionTypes = Arrays.asList(annotation.value());
-
-		for (Method method : DefaultHandlerExceptionResolver.class.getDeclaredMethods()) {
-			Class<?>[] paramTypes = method.getParameterTypes();
-			if (method.getName().startsWith("handle") && (paramTypes.length == 4)) {
-				String name = paramTypes[0].getSimpleName();
-				assertThat(exceptionTypes.contains(paramTypes[0])).as("@ExceptionHandler is missing " + name).isTrue();
-			}
-		}
-	}
-
-	@Test
-	public void httpRequestMethodNotSupported() {
-		List<String> supported = Arrays.asList("POST", "DELETE");
-		Exception ex = new HttpRequestMethodNotSupportedException("GET", supported);
-
-		ResponseEntity<Object> responseEntity = testException(ex);
-		assertThat(responseEntity.getHeaders().getAllow()).isEqualTo(EnumSet.of(HttpMethod.POST, HttpMethod.DELETE));
-	}
-
-	@Test
-	public void handleHttpMediaTypeNotSupported() {
-		List<MediaType> acceptable = Arrays.asList(MediaType.APPLICATION_ATOM_XML, MediaType.APPLICATION_XML);
-		Exception ex = new HttpMediaTypeNotSupportedException(MediaType.APPLICATION_JSON, acceptable);
-
-		ResponseEntity<Object> responseEntity = testException(ex);
-		assertThat(responseEntity.getHeaders().getAccept()).isEqualTo(acceptable);
-	}
-
-	@Test
-	public void httpMediaTypeNotAcceptable() {
-		Exception ex = new HttpMediaTypeNotAcceptableException("");
-		testException(ex);
-	}
-
-	@Test
-	public void missingPathVariable() throws NoSuchMethodException {
-		Method method = getClass().getDeclaredMethod("handle", String.class);
-		MethodParameter parameter = new MethodParameter(method, 0);
-		Exception ex = new MissingPathVariableException("param", parameter);
-		testException(ex);
-	}
-
-	@Test
-	public void missingServletRequestParameter() {
-		Exception ex = new MissingServletRequestParameterException("param", "type");
-		testException(ex);
-	}
-
-	@Test
-	public void servletRequestBindingException() {
-		Exception ex = new ServletRequestBindingException("message");
-		testException(ex);
-	}
-
-	@Test
-	public void conversionNotSupported() {
-		Exception ex = new ConversionNotSupportedException(new Object(), Object.class, null);
-		testException(ex);
-	}
-
-	@Test
-	public void typeMismatch() {
-		Exception ex = new TypeMismatchException("foo", String.class);
-		testException(ex);
-	}
-
-	@Test
-	@SuppressWarnings("deprecation")
-	public void httpMessageNotReadable() {
-		Exception ex = new HttpMessageNotReadableException("message");
-		testException(ex);
-	}
-
-	@Test
-	public void httpMessageNotWritable() {
-		Exception ex = new HttpMessageNotWritableException("");
-		testException(ex);
-	}
-
-	@Test
-	public void methodArgumentNotValid() {
-		Exception ex = mock(MethodArgumentNotValidException.class);
-		testException(ex);
-	}
-
-	@Test
-	public void missingServletRequestPart() {
-		Exception ex = new MissingServletRequestPartException("partName");
-		testException(ex);
-	}
-
-	@Test
-	public void bindException() {
-		Exception ex = new BindException(new Object(), "name");
-		testException(ex);
-	}
-
-	@Test
-	public void noHandlerFoundException() {
-		ServletServerHttpRequest req = new ServletServerHttpRequest(
-				new MockHttpServletRequest("GET","/resource"));
-		Exception ex = new NoHandlerFoundException(req.getMethod().toString(),
-				req.getServletRequest().getRequestURI(),req.getHeaders());
-		testException(ex);
-	}
-
-	@Test
-	public void asyncRequestTimeoutException() {
-		testException(new AsyncRequestTimeoutException());
-	}
-
-	@Test
-	public void controllerAdvice() throws Exception {
-		StaticWebApplicationContext ctx = new StaticWebApplicationContext();
-		ctx.registerSingleton("exceptionHandler", ApplicationExceptionHandler.class);
-		ctx.refresh();
-
-		ExceptionHandlerExceptionResolver resolver = new ExceptionHandlerExceptionResolver();
-		resolver.setApplicationContext(ctx);
-		resolver.afterPropertiesSet();
-
-		ServletRequestBindingException ex = new ServletRequestBindingException("message");
-		assertThat(resolver.resolveException(this.servletRequest, this.servletResponse, null, ex)).isNotNull();
-
-		assertThat(this.servletResponse.getStatus()).isEqualTo(400);
-		assertThat(this.servletResponse.getContentAsString()).isEqualTo("error content");
-		assertThat(this.servletResponse.getHeader("someHeader")).isEqualTo("someHeaderValue");
-	}
-
-	@Test
-	public void controllerAdviceWithNestedException() {
-		StaticWebApplicationContext ctx = new StaticWebApplicationContext();
-		ctx.registerSingleton("exceptionHandler", ApplicationExceptionHandler.class);
-		ctx.refresh();
-
-		ExceptionHandlerExceptionResolver resolver = new ExceptionHandlerExceptionResolver();
-		resolver.setApplicationContext(ctx);
-		resolver.afterPropertiesSet();
-
-		IllegalStateException ex = new IllegalStateException(new ServletRequestBindingException("message"));
-		assertThat(resolver.resolveException(this.servletRequest, this.servletResponse, null, ex)).isNull();
-	}
-
-	@Test
-	public void controllerAdviceWithinDispatcherServlet() throws Exception {
-		StaticWebApplicationContext ctx = new StaticWebApplicationContext();
-		ctx.registerSingleton("controller", ExceptionThrowingController.class);
-		ctx.registerSingleton("exceptionHandler", ApplicationExceptionHandler.class);
-		ctx.refresh();
-
-		DispatcherServlet servlet = new DispatcherServlet(ctx);
-		servlet.init(new MockServletConfig());
-		servlet.service(this.servletRequest, this.servletResponse);
-
-		assertThat(this.servletResponse.getStatus()).isEqualTo(400);
-		assertThat(this.servletResponse.getContentAsString()).isEqualTo("error content");
-		assertThat(this.servletResponse.getHeader("someHeader")).isEqualTo("someHeaderValue");
-	}
-
-	@Test
-	public void controllerAdviceWithNestedExceptionWithinDispatcherServlet() throws Exception {
-		StaticWebApplicationContext ctx = new StaticWebApplicationContext();
-		ctx.registerSingleton("controller", NestedExceptionThrowingController.class);
-		ctx.registerSingleton("exceptionHandler", ApplicationExceptionHandler.class);
-		ctx.refresh();
-
-		DispatcherServlet servlet = new DispatcherServlet(ctx);
-		servlet.init(new MockServletConfig());
-		try {
-			servlet.service(this.servletRequest, this.servletResponse);
-		}
-		catch (ServletException ex) {
-			boolean condition1 = ex.getCause() instanceof IllegalStateException;
-			assertThat(condition1).isTrue();
-			boolean condition = ex.getCause().getCause() instanceof ServletRequestBindingException;
-			assertThat(condition).isTrue();
-		}
-	}
+    private WebRequest request = new ServletWebRequest(this.servletRequest, this.servletResponse);
 
 
-	private ResponseEntity<Object> testException(Exception ex) {
-		try {
-			ResponseEntity<Object> responseEntity = this.exceptionHandlerSupport.handleException(ex, this.request);
+    @Test
+    public void supportsAllDefaultHandlerExceptionResolverExceptionTypes() throws Exception {
+        Class<ResponseEntityExceptionHandler> clazz = ResponseEntityExceptionHandler.class;
+        Method handleExceptionMethod = clazz.getMethod("handleException", Exception.class, WebRequest.class);
+        ExceptionHandler annotation = handleExceptionMethod.getAnnotation(ExceptionHandler.class);
+        List<Class<?>> exceptionTypes = Arrays.asList(annotation.value());
 
-			// SPR-9653
-			if (HttpStatus.INTERNAL_SERVER_ERROR.equals(responseEntity.getStatusCode())) {
-				assertThat(this.servletRequest.getAttribute("javax.servlet.error.exception")).isSameAs(ex);
-			}
+        for (Method method : DefaultHandlerExceptionResolver.class.getDeclaredMethods()) {
+            Class<?>[] paramTypes = method.getParameterTypes();
+            if (method.getName().startsWith("handle") && (paramTypes.length == 4)) {
+                String name = paramTypes[0].getSimpleName();
+                assertThat(exceptionTypes.contains(paramTypes[0])).as("@ExceptionHandler is missing " + name).isTrue();
+            }
+        }
+    }
 
-			this.defaultExceptionResolver.resolveException(this.servletRequest, this.servletResponse, null, ex);
+    @Test
+    public void httpRequestMethodNotSupported() {
+        List<String> supported = Arrays.asList("POST", "DELETE");
+        Exception ex = new HttpRequestMethodNotSupportedException("GET", supported);
 
-			assertThat(responseEntity.getStatusCode().value()).isEqualTo(this.servletResponse.getStatus());
+        ResponseEntity<Object> responseEntity = testException(ex);
+        assertThat(responseEntity.getHeaders().getAllow()).isEqualTo(EnumSet.of(HttpMethod.POST, HttpMethod.DELETE));
+    }
 
-			return responseEntity;
-		}
-		catch (Exception ex2) {
-			throw new IllegalStateException("handleException threw exception", ex2);
-		}
-	}
+    @Test
+    public void handleHttpMediaTypeNotSupported() {
+        List<MediaType> acceptable = Arrays.asList(MediaType.APPLICATION_ATOM_XML, MediaType.APPLICATION_XML);
+        Exception ex = new HttpMediaTypeNotSupportedException(MediaType.APPLICATION_JSON, acceptable);
+
+        ResponseEntity<Object> responseEntity = testException(ex);
+        assertThat(responseEntity.getHeaders().getAccept()).isEqualTo(acceptable);
+    }
+
+    @Test
+    public void httpMediaTypeNotAcceptable() {
+        Exception ex = new HttpMediaTypeNotAcceptableException("");
+        testException(ex);
+    }
+
+    @Test
+    public void missingPathVariable() throws NoSuchMethodException {
+        Method method = getClass().getDeclaredMethod("handle", String.class);
+        MethodParameter parameter = new MethodParameter(method, 0);
+        Exception ex = new MissingPathVariableException("param", parameter);
+        testException(ex);
+    }
+
+    @Test
+    public void missingServletRequestParameter() {
+        Exception ex = new MissingServletRequestParameterException("param", "type");
+        testException(ex);
+    }
+
+    @Test
+    public void servletRequestBindingException() {
+        Exception ex = new ServletRequestBindingException("message");
+        testException(ex);
+    }
+
+    @Test
+    public void conversionNotSupported() {
+        Exception ex = new ConversionNotSupportedException(new Object(), Object.class, null);
+        testException(ex);
+    }
+
+    @Test
+    public void typeMismatch() {
+        Exception ex = new TypeMismatchException("foo", String.class);
+        testException(ex);
+    }
+
+    @Test
+    @SuppressWarnings("deprecation")
+    public void httpMessageNotReadable() {
+        Exception ex = new HttpMessageNotReadableException("message");
+        testException(ex);
+    }
+
+    @Test
+    public void httpMessageNotWritable() {
+        Exception ex = new HttpMessageNotWritableException("");
+        testException(ex);
+    }
+
+    @Test
+    public void methodArgumentNotValid() {
+        Exception ex = mock(MethodArgumentNotValidException.class);
+        testException(ex);
+    }
+
+    @Test
+    public void missingServletRequestPart() {
+        Exception ex = new MissingServletRequestPartException("partName");
+        testException(ex);
+    }
+
+    @Test
+    public void bindException() {
+        Exception ex = new BindException(new Object(), "name");
+        testException(ex);
+    }
+
+    @Test
+    public void noHandlerFoundException() {
+        ServletServerHttpRequest req = new ServletServerHttpRequest(
+                new MockHttpServletRequest("GET", "/resource"));
+        Exception ex = new NoHandlerFoundException(req.getMethod().toString(),
+                req.getServletRequest().getRequestURI(), req.getHeaders());
+        testException(ex);
+    }
+
+    @Test
+    public void asyncRequestTimeoutException() {
+        testException(new AsyncRequestTimeoutException());
+    }
+
+    @Test
+    public void controllerAdvice() throws Exception {
+        StaticWebApplicationContext ctx = new StaticWebApplicationContext();
+        ctx.registerSingleton("exceptionHandler", ApplicationExceptionHandler.class);
+        ctx.refresh();
+
+        ExceptionHandlerExceptionResolver resolver = new ExceptionHandlerExceptionResolver();
+        resolver.setApplicationContext(ctx);
+        resolver.afterPropertiesSet();
+
+        ServletRequestBindingException ex = new ServletRequestBindingException("message");
+        assertThat(resolver.resolveException(this.servletRequest, this.servletResponse, null, ex)).isNotNull();
+
+        assertThat(this.servletResponse.getStatus()).isEqualTo(400);
+        assertThat(this.servletResponse.getContentAsString()).isEqualTo("error content");
+        assertThat(this.servletResponse.getHeader("someHeader")).isEqualTo("someHeaderValue");
+    }
+
+    @Test
+    public void controllerAdviceWithNestedException() {
+        StaticWebApplicationContext ctx = new StaticWebApplicationContext();
+        ctx.registerSingleton("exceptionHandler", ApplicationExceptionHandler.class);
+        ctx.refresh();
+
+        ExceptionHandlerExceptionResolver resolver = new ExceptionHandlerExceptionResolver();
+        resolver.setApplicationContext(ctx);
+        resolver.afterPropertiesSet();
+
+        IllegalStateException ex = new IllegalStateException(new ServletRequestBindingException("message"));
+        assertThat(resolver.resolveException(this.servletRequest, this.servletResponse, null, ex)).isNull();
+    }
+
+    @Test
+    public void controllerAdviceWithinDispatcherServlet() throws Exception {
+        StaticWebApplicationContext ctx = new StaticWebApplicationContext();
+        ctx.registerSingleton("controller", ExceptionThrowingController.class);
+        ctx.registerSingleton("exceptionHandler", ApplicationExceptionHandler.class);
+        ctx.refresh();
+
+        DispatcherServlet servlet = new DispatcherServlet(ctx);
+        servlet.init(new MockServletConfig());
+        servlet.service(this.servletRequest, this.servletResponse);
+
+        assertThat(this.servletResponse.getStatus()).isEqualTo(400);
+        assertThat(this.servletResponse.getContentAsString()).isEqualTo("error content");
+        assertThat(this.servletResponse.getHeader("someHeader")).isEqualTo("someHeaderValue");
+    }
+
+    @Test
+    public void controllerAdviceWithNestedExceptionWithinDispatcherServlet() throws Exception {
+        StaticWebApplicationContext ctx = new StaticWebApplicationContext();
+        ctx.registerSingleton("controller", NestedExceptionThrowingController.class);
+        ctx.registerSingleton("exceptionHandler", ApplicationExceptionHandler.class);
+        ctx.refresh();
+
+        DispatcherServlet servlet = new DispatcherServlet(ctx);
+        servlet.init(new MockServletConfig());
+        try {
+            servlet.service(this.servletRequest, this.servletResponse);
+        } catch (ServletException ex) {
+            boolean condition1 = ex.getCause() instanceof IllegalStateException;
+            assertThat(condition1).isTrue();
+            boolean condition = ex.getCause().getCause() instanceof ServletRequestBindingException;
+            assertThat(condition).isTrue();
+        }
+    }
 
 
-	@Controller
-	private static class ExceptionThrowingController {
+    private ResponseEntity<Object> testException(Exception ex) {
+        try {
+            ResponseEntity<Object> responseEntity = this.exceptionHandlerSupport.handleException(ex, this.request);
 
-		@RequestMapping("/")
-		public void handleRequest() throws Exception {
-			throw new ServletRequestBindingException("message");
-		}
-	}
+            // SPR-9653
+            if (HttpStatus.INTERNAL_SERVER_ERROR.equals(responseEntity.getStatusCode())) {
+                assertThat(this.servletRequest.getAttribute("javax.servlet.error.exception")).isSameAs(ex);
+            }
 
+            this.defaultExceptionResolver.resolveException(this.servletRequest, this.servletResponse, null, ex);
 
-	@Controller
-	private static class NestedExceptionThrowingController {
+            assertThat(responseEntity.getStatusCode().value()).isEqualTo(this.servletResponse.getStatus());
 
-		@RequestMapping("/")
-		public void handleRequest() throws Exception {
-			throw new IllegalStateException(new ServletRequestBindingException("message"));
-		}
-	}
+            return responseEntity;
+        } catch (Exception ex2) {
+            throw new IllegalStateException("handleException threw exception", ex2);
+        }
+    }
 
+    @SuppressWarnings("unused")
+    void handle(String arg) {
+    }
 
-	@ControllerAdvice
-	private static class ApplicationExceptionHandler extends ResponseEntityExceptionHandler {
+    @Controller
+    private static class ExceptionThrowingController {
 
-		@Override
-		protected ResponseEntity<Object> handleServletRequestBindingException(
-				ServletRequestBindingException ex, HttpHeaders headers, HttpStatus status, WebRequest request) {
+        @RequestMapping("/")
+        public void handleRequest() throws Exception {
+            throw new ServletRequestBindingException("message");
+        }
+    }
 
-			headers.set("someHeader", "someHeaderValue");
-			return handleExceptionInternal(ex, "error content", headers, status, request);
-		}
-	}
+    @Controller
+    private static class NestedExceptionThrowingController {
 
+        @RequestMapping("/")
+        public void handleRequest() throws Exception {
+            throw new IllegalStateException(new ServletRequestBindingException("message"));
+        }
+    }
 
-	@SuppressWarnings("unused")
-	void handle(String arg) {
-	}
+    @ControllerAdvice
+    private static class ApplicationExceptionHandler extends ResponseEntityExceptionHandler {
+
+        @Override
+        protected ResponseEntity<Object> handleServletRequestBindingException(
+                ServletRequestBindingException ex, HttpHeaders headers, HttpStatus status, WebRequest request) {
+
+            headers.set("someHeader", "someHeaderValue");
+            return handleExceptionInternal(ex, "error content", headers, status, request);
+        }
+    }
 
 }

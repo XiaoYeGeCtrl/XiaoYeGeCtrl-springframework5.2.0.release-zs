@@ -24,28 +24,28 @@ import org.springframework.stereotype.Component;
 @Component
 public class ScannedComponent {
 
-	@Autowired
-	private State state;
+    @Autowired
+    private State state;
 
-	public String iDoAnything() {
-		return state.anyMethod();
-	}
-
-
-	public interface State {
-
-		String anyMethod();
-	}
+    public String iDoAnything() {
+        return state.anyMethod();
+    }
 
 
-	@Component
-	@Scope(proxyMode = ScopedProxyMode.INTERFACES, value = "prototype")
-	public static class StateImpl implements State {
+    public interface State {
 
-		@Override
-		public String anyMethod() {
-			return "anyMethod called";
-		}
-	}
+        String anyMethod();
+    }
+
+
+    @Component
+    @Scope(proxyMode = ScopedProxyMode.INTERFACES, value = "prototype")
+    public static class StateImpl implements State {
+
+        @Override
+        public String anyMethod() {
+            return "anyMethod called";
+        }
+    }
 
 }

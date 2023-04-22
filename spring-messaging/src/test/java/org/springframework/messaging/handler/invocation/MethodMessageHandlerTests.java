@@ -52,212 +52,214 @@ import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
  */
 public class MethodMessageHandlerTests {
 
-	private static final String DESTINATION_HEADER = "destination";
+    private static final String DESTINATION_HEADER = "destination";
 
-	private TestMethodMessageHandler messageHandler;
+    private TestMethodMessageHandler messageHandler;
 
-	private TestController testController;
-
-
-	@BeforeEach
-	public void setup() {
-
-		List<String> destinationPrefixes = Arrays.asList("/test");
-
-		this.messageHandler = new TestMethodMessageHandler();
-		this.messageHandler.setApplicationContext(new StaticApplicationContext());
-		this.messageHandler.setDestinationPrefixes(destinationPrefixes);
-		this.messageHandler.afterPropertiesSet();
-
-		this.testController = new TestController();
-		this.messageHandler.registerHandler(this.testController);
-	}
-
-	@Test
-	public void duplicateMapping() {
-		assertThatIllegalStateException().isThrownBy(() ->
-				this.messageHandler.registerHandler(new DuplicateMappingsController()));
-	}
-
-	@Test
-	public void registeredMappings() {
-
-		Map<String, HandlerMethod> handlerMethods = this.messageHandler.getHandlerMethods();
-
-		assertThat(handlerMethods).isNotNull();
-		assertThat(handlerMethods).hasSize(3);
-	}
-
-	@Test
-	public void patternMatch() throws Exception {
-
-		Method method = this.testController.getClass().getMethod("handlerPathMatchWildcard");
-		this.messageHandler.registerHandlerMethod(this.testController, method, "/handlerPathMatch*");
-
-		this.messageHandler.handleMessage(toDestination("/test/handlerPathMatchFoo"));
-
-		assertThat(this.testController.method).isEqualTo("pathMatchWildcard");
-	}
-
-	@Test
-	public void bestMatch() throws Exception {
-
-		Method method = this.testController.getClass().getMethod("bestMatch");
-		this.messageHandler.registerHandlerMethod(this.testController, method, "/bestmatch/{foo}/path");
-
-		method = this.testController.getClass().getMethod("secondBestMatch");
-		this.messageHandler.registerHandlerMethod(this.testController, method, "/bestmatch/*/*");
-
-		this.messageHandler.handleMessage(toDestination("/test/bestmatch/bar/path"));
-
-		assertThat(this.testController.method).isEqualTo("bestMatch");
-	}
-
-	@Test
-	public void argumentResolution() {
-
-		this.messageHandler.handleMessage(toDestination("/test/handlerArgumentResolver"));
-
-		assertThat(this.testController.method).isEqualTo("handlerArgumentResolver");
-		assertThat(this.testController.arguments.get("message")).isNotNull();
-	}
-
-	@Test
-	public void handleException() {
-
-		this.messageHandler.handleMessage(toDestination("/test/handlerThrowsExc"));
-
-		assertThat(this.testController.method).isEqualTo("illegalStateException");
-		assertThat(this.testController.arguments.get("exception")).isNotNull();
-	}
-
-	private Message<?> toDestination(String destination) {
-		return MessageBuilder.withPayload(new byte[0]).setHeader(DESTINATION_HEADER, destination).build();
-	}
+    private TestController testController;
 
 
-	@SuppressWarnings("unused")
-	private static class TestController {
+    @BeforeEach
+    public void setup() {
 
-		public String method;
+        List<String> destinationPrefixes = Arrays.asList("/test");
 
-		private Map<String, Object> arguments = new LinkedHashMap<>();
+        this.messageHandler = new TestMethodMessageHandler();
+        this.messageHandler.setApplicationContext(new StaticApplicationContext());
+        this.messageHandler.setDestinationPrefixes(destinationPrefixes);
+        this.messageHandler.afterPropertiesSet();
 
-		public void handlerPathMatchWildcard() {
-			this.method = "pathMatchWildcard";
-		}
+        this.testController = new TestController();
+        this.messageHandler.registerHandler(this.testController);
+    }
 
-		@SuppressWarnings("rawtypes")
-		public void handlerArgumentResolver(Message message) {
-			this.method = "handlerArgumentResolver";
-			this.arguments.put("message", message);
-		}
+    @Test
+    public void duplicateMapping() {
+        assertThatIllegalStateException().isThrownBy(() ->
+                this.messageHandler.registerHandler(new DuplicateMappingsController()));
+    }
 
-		public void handlerThrowsExc() {
-			throw new IllegalStateException();
-		}
+    @Test
+    public void registeredMappings() {
 
-		public void bestMatch() {
-			this.method = "bestMatch";
-		}
+        Map<String, HandlerMethod> handlerMethods = this.messageHandler.getHandlerMethods();
 
-		public void secondBestMatch() {
-			this.method = "secondBestMatch";
-		}
+        assertThat(handlerMethods).isNotNull();
+        assertThat(handlerMethods).hasSize(3);
+    }
 
-		public void handleIllegalStateException(IllegalStateException exception) {
-			this.method = "illegalStateException";
-			this.arguments.put("exception", exception);
-		}
+    @Test
+    public void patternMatch() throws Exception {
 
-	}
+        Method method = this.testController.getClass().getMethod("handlerPathMatchWildcard");
+        this.messageHandler.registerHandlerMethod(this.testController, method, "/handlerPathMatch*");
 
-	@SuppressWarnings("unused")
-	private static class DuplicateMappingsController {
+        this.messageHandler.handleMessage(toDestination("/test/handlerPathMatchFoo"));
 
-		public void handlerFoo() { }
+        assertThat(this.testController.method).isEqualTo("pathMatchWildcard");
+    }
 
-		public void handlerFoo(String arg) { }
-	}
+    @Test
+    public void bestMatch() throws Exception {
+
+        Method method = this.testController.getClass().getMethod("bestMatch");
+        this.messageHandler.registerHandlerMethod(this.testController, method, "/bestmatch/{foo}/path");
+
+        method = this.testController.getClass().getMethod("secondBestMatch");
+        this.messageHandler.registerHandlerMethod(this.testController, method, "/bestmatch/*/*");
+
+        this.messageHandler.handleMessage(toDestination("/test/bestmatch/bar/path"));
+
+        assertThat(this.testController.method).isEqualTo("bestMatch");
+    }
+
+    @Test
+    public void argumentResolution() {
+
+        this.messageHandler.handleMessage(toDestination("/test/handlerArgumentResolver"));
+
+        assertThat(this.testController.method).isEqualTo("handlerArgumentResolver");
+        assertThat(this.testController.arguments.get("message")).isNotNull();
+    }
+
+    @Test
+    public void handleException() {
+
+        this.messageHandler.handleMessage(toDestination("/test/handlerThrowsExc"));
+
+        assertThat(this.testController.method).isEqualTo("illegalStateException");
+        assertThat(this.testController.arguments.get("exception")).isNotNull();
+    }
+
+    private Message<?> toDestination(String destination) {
+        return MessageBuilder.withPayload(new byte[0]).setHeader(DESTINATION_HEADER, destination).build();
+    }
 
 
-	private static class TestMethodMessageHandler extends AbstractMethodMessageHandler<String> {
+    @SuppressWarnings("unused")
+    private static class TestController {
 
-		private PathMatcher pathMatcher = new AntPathMatcher();
+        public String method;
+
+        private Map<String, Object> arguments = new LinkedHashMap<>();
+
+        public void handlerPathMatchWildcard() {
+            this.method = "pathMatchWildcard";
+        }
+
+        @SuppressWarnings("rawtypes")
+        public void handlerArgumentResolver(Message message) {
+            this.method = "handlerArgumentResolver";
+            this.arguments.put("message", message);
+        }
+
+        public void handlerThrowsExc() {
+            throw new IllegalStateException();
+        }
+
+        public void bestMatch() {
+            this.method = "bestMatch";
+        }
+
+        public void secondBestMatch() {
+            this.method = "secondBestMatch";
+        }
+
+        public void handleIllegalStateException(IllegalStateException exception) {
+            this.method = "illegalStateException";
+            this.arguments.put("exception", exception);
+        }
+
+    }
+
+    @SuppressWarnings("unused")
+    private static class DuplicateMappingsController {
+
+        public void handlerFoo() {
+        }
+
+        public void handlerFoo(String arg) {
+        }
+    }
 
 
-		public void registerHandler(Object handler) {
-			super.detectHandlerMethods(handler);
-		}
+    private static class TestMethodMessageHandler extends AbstractMethodMessageHandler<String> {
 
-		@Override
-		public void registerHandlerMethod(Object handler, Method method, String mapping) {
-			super.registerHandlerMethod(handler, method, mapping);
-		}
+        private PathMatcher pathMatcher = new AntPathMatcher();
 
-		@Override
-		protected List<? extends HandlerMethodArgumentResolver> initArgumentResolvers() {
-			List<HandlerMethodArgumentResolver> resolvers = new ArrayList<>();
-			resolvers.add(new MessageMethodArgumentResolver(new SimpleMessageConverter()));
-			resolvers.addAll(getCustomArgumentResolvers());
-			return resolvers;
-		}
 
-		@Override
-		protected List<? extends HandlerMethodReturnValueHandler> initReturnValueHandlers() {
-			List<HandlerMethodReturnValueHandler> handlers = new ArrayList<>();
-			handlers.addAll(getCustomReturnValueHandlers());
-			return handlers;
-		}
+        public void registerHandler(Object handler) {
+            super.detectHandlerMethods(handler);
+        }
 
-		@Override
-		protected boolean isHandler(Class<?> beanType) {
-			return beanType.getName().contains("Controller");
-		}
+        @Override
+        public void registerHandlerMethod(Object handler, Method method, String mapping) {
+            super.registerHandlerMethod(handler, method, mapping);
+        }
 
-		@Override
-		protected String getMappingForMethod(Method method, Class<?> handlerType) {
-			String methodName = method.getName();
-			if (methodName.startsWith("handler")) {
-				return "/" + methodName;
-			}
-			return null;
-		}
+        @Override
+        protected List<? extends HandlerMethodArgumentResolver> initArgumentResolvers() {
+            List<HandlerMethodArgumentResolver> resolvers = new ArrayList<>();
+            resolvers.add(new MessageMethodArgumentResolver(new SimpleMessageConverter()));
+            resolvers.addAll(getCustomArgumentResolvers());
+            return resolvers;
+        }
 
-		@Override
-		protected Set<String> getDirectLookupDestinations(String mapping) {
-			Set<String> result = new LinkedHashSet<>();
-			if (!this.pathMatcher.isPattern(mapping)) {
-				result.add(mapping);
-			}
-			return result;
-		}
+        @Override
+        protected List<? extends HandlerMethodReturnValueHandler> initReturnValueHandlers() {
+            List<HandlerMethodReturnValueHandler> handlers = new ArrayList<>();
+            handlers.addAll(getCustomReturnValueHandlers());
+            return handlers;
+        }
 
-		@Override
-		protected String getDestination(Message<?> message) {
-			return (String) message.getHeaders().get(DESTINATION_HEADER);
-		}
+        @Override
+        protected boolean isHandler(Class<?> beanType) {
+            return beanType.getName().contains("Controller");
+        }
 
-		@Override
-		protected String getMatchingMapping(String mapping, Message<?> message) {
-			String destination = getLookupDestination(getDestination(message));
-			Assert.notNull(destination, "No destination");
-			return mapping.equals(destination) || this.pathMatcher.match(mapping, destination) ? mapping : null;
-		}
+        @Override
+        protected String getMappingForMethod(Method method, Class<?> handlerType) {
+            String methodName = method.getName();
+            if (methodName.startsWith("handler")) {
+                return "/" + methodName;
+            }
+            return null;
+        }
 
-		@Override
-		protected Comparator<String> getMappingComparator(final Message<?> message) {
-			return (info1, info2) -> {
-				DestinationPatternsMessageCondition cond1 = new DestinationPatternsMessageCondition(info1);
-				DestinationPatternsMessageCondition cond2 = new DestinationPatternsMessageCondition(info2);
-				return cond1.compareTo(cond2, message);
-			};
-		}
+        @Override
+        protected Set<String> getDirectLookupDestinations(String mapping) {
+            Set<String> result = new LinkedHashSet<>();
+            if (!this.pathMatcher.isPattern(mapping)) {
+                result.add(mapping);
+            }
+            return result;
+        }
 
-		@Override
-		protected AbstractExceptionHandlerMethodResolver createExceptionHandlerMethodResolverFor(Class<?> beanType) {
-			return new TestExceptionResolver(beanType);
-		}
-	}
+        @Override
+        protected String getDestination(Message<?> message) {
+            return (String) message.getHeaders().get(DESTINATION_HEADER);
+        }
+
+        @Override
+        protected String getMatchingMapping(String mapping, Message<?> message) {
+            String destination = getLookupDestination(getDestination(message));
+            Assert.notNull(destination, "No destination");
+            return mapping.equals(destination) || this.pathMatcher.match(mapping, destination) ? mapping : null;
+        }
+
+        @Override
+        protected Comparator<String> getMappingComparator(final Message<?> message) {
+            return (info1, info2) -> {
+                DestinationPatternsMessageCondition cond1 = new DestinationPatternsMessageCondition(info1);
+                DestinationPatternsMessageCondition cond2 = new DestinationPatternsMessageCondition(info2);
+                return cond1.compareTo(cond2, message);
+            };
+        }
+
+        @Override
+        protected AbstractExceptionHandlerMethodResolver createExceptionHandlerMethodResolverFor(Class<?> beanType) {
+            return new TestExceptionResolver(beanType);
+        }
+    }
 
 }

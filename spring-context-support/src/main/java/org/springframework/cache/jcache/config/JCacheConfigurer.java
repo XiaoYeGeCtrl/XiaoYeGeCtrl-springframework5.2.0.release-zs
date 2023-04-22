@@ -34,32 +34,32 @@ import org.springframework.lang.Nullable;
  * detailed instructions.
  *
  * @author Stephane Nicoll
- * @since 4.1
  * @see CachingConfigurer
  * @see JCacheConfigurerSupport
  * @see org.springframework.cache.annotation.EnableCaching
+ * @since 4.1
  */
 public interface JCacheConfigurer extends CachingConfigurer {
 
-	/**
-	 * Return the {@link CacheResolver} bean to use to resolve exception caches for
-	 * annotation-driven cache management. Implementations must explicitly declare
-	 * {@link org.springframework.context.annotation.Bean @Bean}, e.g.
-	 * <pre class="code">
-	 * &#064;Configuration
-	 * &#064;EnableCaching
-	 * public class AppConfig extends JCacheConfigurerSupport {
-	 *     &#064;Bean // important!
-	 *     &#064;Override
-	 *     public CacheResolver exceptionCacheResolver() {
-	 *         // configure and return CacheResolver instance
-	 *     }
-	 *     // ...
-	 * }
-	 * </pre>
-	 * See {@link org.springframework.cache.annotation.EnableCaching} for more complete examples.
-	 */
-	@Nullable
-	CacheResolver exceptionCacheResolver();
+    /**
+     * Return the {@link CacheResolver} bean to use to resolve exception caches for
+     * annotation-driven cache management. Implementations must explicitly declare
+     * {@link org.springframework.context.annotation.Bean @Bean}, e.g.
+     * <pre class="code">
+     * &#064;Configuration
+     * &#064;EnableCaching
+     * public class AppConfig extends JCacheConfigurerSupport {
+     *     &#064;Bean // important!
+     *     &#064;Override
+     *     public CacheResolver exceptionCacheResolver() {
+     *         // configure and return CacheResolver instance
+     *     }
+     *     // ...
+     * }
+     * </pre>
+     * See {@link org.springframework.cache.annotation.EnableCaching} for more complete examples.
+     */
+    @Nullable
+    CacheResolver exceptionCacheResolver();
 
 }

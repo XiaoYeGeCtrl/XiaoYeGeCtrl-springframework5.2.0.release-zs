@@ -27,12 +27,12 @@ import org.springframework.util.SerializationTestUtils;
  */
 public class TransactionAttributeSourceAdvisorTests {
 
-	@Test
-	public void serializability() throws Exception {
-		TransactionInterceptor ti = new TransactionInterceptor();
-		ti.setTransactionAttributes(new Properties());
-		TransactionAttributeSourceAdvisor tas = new TransactionAttributeSourceAdvisor(ti);
-		SerializationTestUtils.serializeAndDeserialize(tas);
-	}
+    @Test
+    public void serializability() throws Exception {
+        TransactionInterceptor ti = new TransactionInterceptor();
+        ti.setTransactionAttributes(new Properties());
+        TransactionAttributeSourceAdvisor tas = new TransactionAttributeSourceAdvisor(ti);
+        SerializationTestUtils.serializeAndDeserialize(tas);
+    }
 
 }

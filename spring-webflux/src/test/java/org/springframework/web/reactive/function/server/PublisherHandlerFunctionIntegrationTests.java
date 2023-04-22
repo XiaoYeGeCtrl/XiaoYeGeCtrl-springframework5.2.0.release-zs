@@ -42,121 +42,122 @@ import static org.springframework.web.reactive.function.server.RouterFunctions.r
  */
 class PublisherHandlerFunctionIntegrationTests extends AbstractRouterFunctionIntegrationTests {
 
-	private final RestTemplate restTemplate = new RestTemplate();
+    private final RestTemplate restTemplate = new RestTemplate();
 
 
-	@Override
-	protected RouterFunction<?> routerFunction() {
-		PersonHandler personHandler = new PersonHandler();
-		return route(GET("/mono"), personHandler::mono)
-				.and(route(POST("/mono"), personHandler::postMono))
-				.and(route(GET("/flux"), personHandler::flux));
-	}
+    @Override
+    protected RouterFunction<?> routerFunction() {
+        PersonHandler personHandler = new PersonHandler();
+        return route(GET("/mono"), personHandler::mono)
+                .and(route(POST("/mono"), personHandler::postMono))
+                .and(route(GET("/flux"), personHandler::flux));
+    }
 
 
-	@ParameterizedHttpServerTest
-	void mono(HttpServer httpServer) throws Exception {
-		startServer(httpServer);
+    @ParameterizedHttpServerTest
+    void mono(HttpServer httpServer) throws Exception {
+        startServer(httpServer);
 
-		ResponseEntity<Person> result =
-				restTemplate.getForEntity("http://localhost:" + super.port + "/mono", Person.class);
+        ResponseEntity<Person> result =
+                restTemplate.getForEntity("http://localhost:" + super.port + "/mono", Person.class);
 
-		assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
-		assertThat(result.getBody().getName()).isEqualTo("John");
-	}
+        assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(result.getBody().getName()).isEqualTo("John");
+    }
 
-	@ParameterizedHttpServerTest
-	void flux(HttpServer httpServer) throws Exception {
-		startServer(httpServer);
+    @ParameterizedHttpServerTest
+    void flux(HttpServer httpServer) throws Exception {
+        startServer(httpServer);
 
-		ParameterizedTypeReference<List<Person>> reference = new ParameterizedTypeReference<List<Person>>() {};
-		ResponseEntity<List<Person>> result =
-				restTemplate.exchange("http://localhost:" + super.port + "/flux", HttpMethod.GET, null, reference);
+        ParameterizedTypeReference<List<Person>> reference = new ParameterizedTypeReference<List<Person>>() {
+        };
+        ResponseEntity<List<Person>> result =
+                restTemplate.exchange("http://localhost:" + super.port + "/flux", HttpMethod.GET, null, reference);
 
-		assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
-		List<Person> body = result.getBody();
-		assertThat(body.size()).isEqualTo(2);
-		assertThat(body.get(0).getName()).isEqualTo("John");
-		assertThat(body.get(1).getName()).isEqualTo("Jane");
-	}
+        assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
+        List<Person> body = result.getBody();
+        assertThat(body.size()).isEqualTo(2);
+        assertThat(body.get(0).getName()).isEqualTo("John");
+        assertThat(body.get(1).getName()).isEqualTo("Jane");
+    }
 
-	@ParameterizedHttpServerTest
-	void postMono(HttpServer httpServer) throws Exception {
-		startServer(httpServer);
+    @ParameterizedHttpServerTest
+    void postMono(HttpServer httpServer) throws Exception {
+        startServer(httpServer);
 
-		URI uri = URI.create("http://localhost:" + super.port + "/mono");
-		Person person = new Person("Jack");
-		RequestEntity<Person> requestEntity = RequestEntity.post(uri).body(person);
-		ResponseEntity<Person> result = restTemplate.exchange(requestEntity, Person.class);
+        URI uri = URI.create("http://localhost:" + super.port + "/mono");
+        Person person = new Person("Jack");
+        RequestEntity<Person> requestEntity = RequestEntity.post(uri).body(person);
+        ResponseEntity<Person> result = restTemplate.exchange(requestEntity, Person.class);
 
-		assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
-		assertThat(result.getBody().getName()).isEqualTo("Jack");
-	}
-
-
-	private static class PersonHandler {
-
-		public Mono<ServerResponse> mono(ServerRequest request) {
-			Person person = new Person("John");
-			return ServerResponse.ok().body(fromPublisher(Mono.just(person), Person.class));
-		}
-
-		public Mono<ServerResponse> postMono(ServerRequest request) {
-			Mono<Person> personMono = request.body(toMono(Person.class));
-			return ServerResponse.ok().body(fromPublisher(personMono, Person.class));
-		}
-
-		public Mono<ServerResponse> flux(ServerRequest request) {
-			Person person1 = new Person("John");
-			Person person2 = new Person("Jane");
-			return ServerResponse.ok().body(
-					fromPublisher(Flux.just(person1, person2), Person.class));
-		}
-	}
+        assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(result.getBody().getName()).isEqualTo("Jack");
+    }
 
 
-	private static class Person {
+    private static class PersonHandler {
 
-		private String name;
+        public Mono<ServerResponse> mono(ServerRequest request) {
+            Person person = new Person("John");
+            return ServerResponse.ok().body(fromPublisher(Mono.just(person), Person.class));
+        }
 
-		@SuppressWarnings("unused")
-		public Person() {
-		}
+        public Mono<ServerResponse> postMono(ServerRequest request) {
+            Mono<Person> personMono = request.body(toMono(Person.class));
+            return ServerResponse.ok().body(fromPublisher(personMono, Person.class));
+        }
 
-		public Person(String name) {
-			this.name = name;
-		}
+        public Mono<ServerResponse> flux(ServerRequest request) {
+            Person person1 = new Person("John");
+            Person person2 = new Person("Jane");
+            return ServerResponse.ok().body(
+                    fromPublisher(Flux.just(person1, person2), Person.class));
+        }
+    }
 
-		public String getName() {
-			return name;
-		}
 
-		@SuppressWarnings("unused")
-		public void setName(String name) {
-			this.name = name;
-		}
+    private static class Person {
 
-		@Override
-		public boolean equals(Object o) {
-			if (this == o) {
-				return true;
-			}
-			if (o == null || getClass() != o.getClass()) {
-				return false;
-			}
-			Person person = (Person) o;
-			return !(this.name != null ? !this.name.equals(person.name) : person.name != null);
-		}
+        private String name;
 
-		@Override
-		public int hashCode() {
-			return this.name != null ? this.name.hashCode() : 0;
-		}
+        @SuppressWarnings("unused")
+        public Person() {
+        }
 
-		@Override
-		public String toString() {
-			return "Person{" + "name='" + name + '\'' + '}';
-		}
-	}
+        public Person(String name) {
+            this.name = name;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        @SuppressWarnings("unused")
+        public void setName(String name) {
+            this.name = name;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+            Person person = (Person) o;
+            return !(this.name != null ? !this.name.equals(person.name) : person.name != null);
+        }
+
+        @Override
+        public int hashCode() {
+            return this.name != null ? this.name.hashCode() : 0;
+        }
+
+        @Override
+        public String toString() {
+            return "Person{" + "name='" + name + '\'' + '}';
+        }
+    }
 
 }

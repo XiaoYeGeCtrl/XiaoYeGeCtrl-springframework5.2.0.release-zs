@@ -42,26 +42,26 @@ import java.lang.annotation.Target;
  * custom stereotype annotation or a custom group-specific validated annotation.
  *
  * @author Juergen Hoeller
- * @since 3.1
  * @see javax.validation.Validator#validate(Object, Class[])
  * @see org.springframework.validation.SmartValidator#validate(Object, org.springframework.validation.Errors, Object...)
  * @see org.springframework.validation.beanvalidation.SpringValidatorAdapter
  * @see org.springframework.validation.beanvalidation.MethodValidationPostProcessor
+ * @since 3.1
  */
 @Target({ElementType.TYPE, ElementType.METHOD, ElementType.PARAMETER})
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 public @interface Validated {
 
-	/**
-	 * Specify one or more validation groups to apply to the validation step
-	 * kicked off by this annotation.
-	 * <p>JSR-303 defines validation groups as custom annotations which an application declares
-	 * for the sole purpose of using them as type-safe group arguments, as implemented in
-	 * {@link org.springframework.validation.beanvalidation.SpringValidatorAdapter}.
-	 * <p>Other {@link org.springframework.validation.SmartValidator} implementations may
-	 * support class arguments in other ways as well.
-	 */
-	Class<?>[] value() default {};
+    /**
+     * Specify one or more validation groups to apply to the validation step
+     * kicked off by this annotation.
+     * <p>JSR-303 defines validation groups as custom annotations which an application declares
+     * for the sole purpose of using them as type-safe group arguments, as implemented in
+     * {@link org.springframework.validation.beanvalidation.SpringValidatorAdapter}.
+     * <p>Other {@link org.springframework.validation.SmartValidator} implementations may
+     * support class arguments in other ways as well.
+     */
+    Class<?>[] value() default {};
 
 }

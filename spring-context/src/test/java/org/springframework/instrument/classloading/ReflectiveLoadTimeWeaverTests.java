@@ -33,87 +33,87 @@ import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
  */
 public class ReflectiveLoadTimeWeaverTests {
 
-	@Test
-	public void testCtorWithNullClassLoader() {
-		assertThatIllegalArgumentException().isThrownBy(() ->
-				new ReflectiveLoadTimeWeaver(null));
-	}
+    @Test
+    public void testCtorWithNullClassLoader() {
+        assertThatIllegalArgumentException().isThrownBy(() ->
+                new ReflectiveLoadTimeWeaver(null));
+    }
 
-	@Test
-	public void testCtorWithClassLoaderThatDoesNotExposeAnAddTransformerMethod() {
-		assertThatIllegalStateException().isThrownBy(() ->
-				new ReflectiveLoadTimeWeaver(getClass().getClassLoader()));
-	}
+    @Test
+    public void testCtorWithClassLoaderThatDoesNotExposeAnAddTransformerMethod() {
+        assertThatIllegalStateException().isThrownBy(() ->
+                new ReflectiveLoadTimeWeaver(getClass().getClassLoader()));
+    }
 
-	@Test
-	public void testCtorWithClassLoaderThatDoesNotExposeAGetThrowawayClassLoaderMethodIsOkay() {
-		JustAddTransformerClassLoader classLoader = new JustAddTransformerClassLoader();
-		ReflectiveLoadTimeWeaver weaver = new ReflectiveLoadTimeWeaver(classLoader);
-		weaver.addTransformer(new ClassFileTransformer() {
-			@Override
-			public byte[] transform(ClassLoader loader, String className, Class<?> classBeingRedefined, ProtectionDomain protectionDomain, byte[] classfileBuffer) {
-				return "CAFEDEAD".getBytes();
-			}
-		});
-		assertThat(classLoader.getNumTimesGetThrowawayClassLoaderCalled()).isEqualTo(1);
-	}
+    @Test
+    public void testCtorWithClassLoaderThatDoesNotExposeAGetThrowawayClassLoaderMethodIsOkay() {
+        JustAddTransformerClassLoader classLoader = new JustAddTransformerClassLoader();
+        ReflectiveLoadTimeWeaver weaver = new ReflectiveLoadTimeWeaver(classLoader);
+        weaver.addTransformer(new ClassFileTransformer() {
+            @Override
+            public byte[] transform(ClassLoader loader, String className, Class<?> classBeingRedefined, ProtectionDomain protectionDomain, byte[] classfileBuffer) {
+                return "CAFEDEAD".getBytes();
+            }
+        });
+        assertThat(classLoader.getNumTimesGetThrowawayClassLoaderCalled()).isEqualTo(1);
+    }
 
-	@Test
-	public void testAddTransformerWithNullTransformer() {
-		assertThatIllegalArgumentException().isThrownBy(() ->
-				new ReflectiveLoadTimeWeaver(new JustAddTransformerClassLoader()).addTransformer(null));
-	}
+    @Test
+    public void testAddTransformerWithNullTransformer() {
+        assertThatIllegalArgumentException().isThrownBy(() ->
+                new ReflectiveLoadTimeWeaver(new JustAddTransformerClassLoader()).addTransformer(null));
+    }
 
-	@Test
-	public void testGetThrowawayClassLoaderWithClassLoaderThatDoesNotExposeAGetThrowawayClassLoaderMethodYieldsFallbackClassLoader() {
-		ReflectiveLoadTimeWeaver weaver = new ReflectiveLoadTimeWeaver(new JustAddTransformerClassLoader());
-		ClassLoader throwawayClassLoader = weaver.getThrowawayClassLoader();
-		assertThat(throwawayClassLoader).isNotNull();
-	}
+    @Test
+    public void testGetThrowawayClassLoaderWithClassLoaderThatDoesNotExposeAGetThrowawayClassLoaderMethodYieldsFallbackClassLoader() {
+        ReflectiveLoadTimeWeaver weaver = new ReflectiveLoadTimeWeaver(new JustAddTransformerClassLoader());
+        ClassLoader throwawayClassLoader = weaver.getThrowawayClassLoader();
+        assertThat(throwawayClassLoader).isNotNull();
+    }
 
-	@Test
-	public void testGetThrowawayClassLoaderWithTotallyCompliantClassLoader() {
-		TotallyCompliantClassLoader classLoader = new TotallyCompliantClassLoader();
-		ReflectiveLoadTimeWeaver weaver = new ReflectiveLoadTimeWeaver(classLoader);
-		ClassLoader throwawayClassLoader = weaver.getThrowawayClassLoader();
-		assertThat(throwawayClassLoader).isNotNull();
-		assertThat(classLoader.getNumTimesGetThrowawayClassLoaderCalled()).isEqualTo(1);
-	}
-
-
-	public static class JustAddTransformerClassLoader extends ClassLoader {
-
-		private int numTimesAddTransformerCalled = 0;
+    @Test
+    public void testGetThrowawayClassLoaderWithTotallyCompliantClassLoader() {
+        TotallyCompliantClassLoader classLoader = new TotallyCompliantClassLoader();
+        ReflectiveLoadTimeWeaver weaver = new ReflectiveLoadTimeWeaver(classLoader);
+        ClassLoader throwawayClassLoader = weaver.getThrowawayClassLoader();
+        assertThat(throwawayClassLoader).isNotNull();
+        assertThat(classLoader.getNumTimesGetThrowawayClassLoaderCalled()).isEqualTo(1);
+    }
 
 
-		public int getNumTimesGetThrowawayClassLoaderCalled() {
-			return this.numTimesAddTransformerCalled;
-		}
+    public static class JustAddTransformerClassLoader extends ClassLoader {
+
+        private int numTimesAddTransformerCalled = 0;
 
 
-		public void addTransformer(ClassFileTransformer transformer) {
-			++this.numTimesAddTransformerCalled;
-		}
-
-	}
+        public int getNumTimesGetThrowawayClassLoaderCalled() {
+            return this.numTimesAddTransformerCalled;
+        }
 
 
-	public static final class TotallyCompliantClassLoader extends JustAddTransformerClassLoader {
+        public void addTransformer(ClassFileTransformer transformer) {
+            ++this.numTimesAddTransformerCalled;
+        }
 
-		private int numTimesGetThrowawayClassLoaderCalled = 0;
-
-
-		@Override
-		public int getNumTimesGetThrowawayClassLoaderCalled() {
-			return this.numTimesGetThrowawayClassLoaderCalled;
-		}
+    }
 
 
-		public ClassLoader getThrowawayClassLoader() {
-			++this.numTimesGetThrowawayClassLoaderCalled;
-			return getClass().getClassLoader();
-		}
+    public static final class TotallyCompliantClassLoader extends JustAddTransformerClassLoader {
 
-	}
+        private int numTimesGetThrowawayClassLoaderCalled = 0;
+
+
+        @Override
+        public int getNumTimesGetThrowawayClassLoaderCalled() {
+            return this.numTimesGetThrowawayClassLoaderCalled;
+        }
+
+
+        public ClassLoader getThrowawayClassLoader() {
+            ++this.numTimesGetThrowawayClassLoaderCalled;
+            return getClass().getClassLoader();
+        }
+
+    }
 
 }

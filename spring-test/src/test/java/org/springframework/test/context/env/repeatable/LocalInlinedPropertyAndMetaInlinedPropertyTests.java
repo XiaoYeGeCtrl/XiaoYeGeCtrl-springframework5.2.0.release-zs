@@ -32,10 +32,10 @@ import org.springframework.test.context.TestPropertySource;
 @MetaInlinedTestProperty
 class LocalInlinedPropertyAndMetaInlinedPropertyTests extends AbstractRepeatableTestPropertySourceTests {
 
-	@Test
-	void test() {
-		assertEnvironmentValue("key1", "local");
-		assertEnvironmentValue("enigma", "meta");
-	}
+    @Test
+    void test() {
+        assertEnvironmentValue("key1", "local");
+        assertEnvironmentValue("enigma", "meta");
+    }
 
 }

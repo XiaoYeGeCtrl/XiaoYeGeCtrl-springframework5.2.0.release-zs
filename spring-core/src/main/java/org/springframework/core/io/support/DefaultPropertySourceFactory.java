@@ -26,15 +26,15 @@ import org.springframework.lang.Nullable;
  * wrapping every resource in a {@link ResourcePropertySource}.
  *
  * @author Juergen Hoeller
- * @since 4.3
  * @see PropertySourceFactory
  * @see ResourcePropertySource
+ * @since 4.3
  */
 public class DefaultPropertySourceFactory implements PropertySourceFactory {
 
-	@Override
-	public PropertySource<?> createPropertySource(@Nullable String name, EncodedResource resource) throws IOException {
-		return (name != null ? new ResourcePropertySource(name, resource) : new ResourcePropertySource(resource));
-	}
+    @Override
+    public PropertySource<?> createPropertySource(@Nullable String name, EncodedResource resource) throws IOException {
+        return (name != null ? new ResourcePropertySource(name, resource) : new ResourcePropertySource(resource));
+    }
 
 }

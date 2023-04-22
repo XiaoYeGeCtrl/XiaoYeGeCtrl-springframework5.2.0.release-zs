@@ -49,170 +49,170 @@ import static org.springframework.web.method.MvcAnnotationPredicates.requestPara
  */
 public class RequestParamMapMethodArgumentResolverTests {
 
-	private RequestParamMapMethodArgumentResolver resolver = new RequestParamMapMethodArgumentResolver();
+    private RequestParamMapMethodArgumentResolver resolver = new RequestParamMapMethodArgumentResolver();
 
-	private MockHttpServletRequest request = new MockHttpServletRequest();
+    private MockHttpServletRequest request = new MockHttpServletRequest();
 
-	private NativeWebRequest webRequest = new ServletWebRequest(request, new MockHttpServletResponse());
+    private NativeWebRequest webRequest = new ServletWebRequest(request, new MockHttpServletResponse());
 
-	private ResolvableMethod testMethod = ResolvableMethod.on(getClass()).named("handle").build();
-
-
-	@Test
-	public void supportsParameter() {
-		MethodParameter param = this.testMethod.annot(requestParam().noName()).arg(Map.class, String.class, String.class);
-		assertThat(resolver.supportsParameter(param)).isTrue();
-
-		param = this.testMethod.annotPresent(RequestParam.class).arg(MultiValueMap.class, String.class, String.class);
-		assertThat(resolver.supportsParameter(param)).isTrue();
-
-		param = this.testMethod.annot(requestParam().name("name")).arg(Map.class, String.class, String.class);
-		assertThat(resolver.supportsParameter(param)).isFalse();
-
-		param = this.testMethod.annotNotPresent(RequestParam.class).arg(Map.class, String.class, String.class);
-		assertThat(resolver.supportsParameter(param)).isFalse();
-	}
-
-	@Test
-	public void resolveMapOfString() throws Exception {
-		String name = "foo";
-		String value = "bar";
-		request.addParameter(name, value);
-		Map<String, String> expected = Collections.singletonMap(name, value);
-
-		MethodParameter param = this.testMethod.annot(requestParam().noName()).arg(Map.class, String.class, String.class);
-		Object result = resolver.resolveArgument(param, null, webRequest, null);
-
-		boolean condition = result instanceof Map;
-		assertThat(condition).isTrue();
-		assertThat(result).as("Invalid result").isEqualTo(expected);
-	}
-
-	@Test
-	public void resolveMultiValueMapOfString() throws Exception {
-		String name = "foo";
-		String value1 = "bar";
-		String value2 = "baz";
-		request.addParameter(name, value1, value2);
-
-		MultiValueMap<String, String> expected = new LinkedMultiValueMap<>(1);
-		expected.add(name, value1);
-		expected.add(name, value2);
-
-		MethodParameter param = this.testMethod.annotPresent(RequestParam.class).arg(MultiValueMap.class, String.class, String.class);
-		Object result = resolver.resolveArgument(param, null, webRequest, null);
-
-		boolean condition = result instanceof MultiValueMap;
-		assertThat(condition).isTrue();
-		assertThat(result).as("Invalid result").isEqualTo(expected);
-	}
-
-	@Test
-	@SuppressWarnings("unchecked")
-	public void resolveMapOfMultipartFile() throws Exception {
-		MockMultipartHttpServletRequest request = new MockMultipartHttpServletRequest();
-		MultipartFile expected1 = new MockMultipartFile("mfile", "Hello World".getBytes());
-		MultipartFile expected2 = new MockMultipartFile("other", "Hello World 3".getBytes());
-		request.addFile(expected1);
-		request.addFile(expected2);
-		webRequest = new ServletWebRequest(request);
-
-		MethodParameter param = this.testMethod.annot(requestParam().noName()).arg(Map.class, String.class, MultipartFile.class);
-		Object result = resolver.resolveArgument(param, null, webRequest, null);
-
-		boolean condition = result instanceof Map;
-		assertThat(condition).isTrue();
-		Map<String, MultipartFile> resultMap = (Map<String, MultipartFile>) result;
-		assertThat(resultMap.size()).isEqualTo(2);
-		assertThat(resultMap.get("mfile")).isEqualTo(expected1);
-		assertThat(resultMap.get("other")).isEqualTo(expected2);
-	}
-
-	@Test
-	@SuppressWarnings("unchecked")
-	public void resolveMultiValueMapOfMultipartFile() throws Exception {
-		MockMultipartHttpServletRequest request = new MockMultipartHttpServletRequest();
-		MultipartFile expected1 = new MockMultipartFile("mfilelist", "Hello World 1".getBytes());
-		MultipartFile expected2 = new MockMultipartFile("mfilelist", "Hello World 2".getBytes());
-		MultipartFile expected3 = new MockMultipartFile("other", "Hello World 3".getBytes());
-		request.addFile(expected1);
-		request.addFile(expected2);
-		request.addFile(expected3);
-		webRequest = new ServletWebRequest(request);
-
-		MethodParameter param = this.testMethod.annot(requestParam().noName()).arg(MultiValueMap.class, String.class, MultipartFile.class);
-		Object result = resolver.resolveArgument(param, null, webRequest, null);
-
-		boolean condition = result instanceof MultiValueMap;
-		assertThat(condition).isTrue();
-		MultiValueMap<String, MultipartFile> resultMap = (MultiValueMap<String, MultipartFile>) result;
-		assertThat(resultMap.size()).isEqualTo(2);
-		assertThat(resultMap.get("mfilelist").size()).isEqualTo(2);
-		assertThat(resultMap.get("mfilelist").get(0)).isEqualTo(expected1);
-		assertThat(resultMap.get("mfilelist").get(1)).isEqualTo(expected2);
-		assertThat(resultMap.get("other").size()).isEqualTo(1);
-		assertThat(resultMap.get("other").get(0)).isEqualTo(expected3);
-	}
-
-	@Test
-	@SuppressWarnings("unchecked")
-	public void resolveMapOfPart() throws Exception {
-		MockHttpServletRequest request = new MockHttpServletRequest();
-		request.setContentType("multipart/form-data");
-		Part expected1 = new MockPart("mfile", "Hello World".getBytes());
-		Part expected2 = new MockPart("other", "Hello World 3".getBytes());
-		request.addPart(expected1);
-		request.addPart(expected2);
-		webRequest = new ServletWebRequest(request);
-
-		MethodParameter param = this.testMethod.annot(requestParam().noName()).arg(Map.class, String.class, Part.class);
-		Object result = resolver.resolveArgument(param, null, webRequest, null);
-
-		boolean condition = result instanceof Map;
-		assertThat(condition).isTrue();
-		Map<String, Part> resultMap = (Map<String, Part>) result;
-		assertThat(resultMap.size()).isEqualTo(2);
-		assertThat(resultMap.get("mfile")).isEqualTo(expected1);
-		assertThat(resultMap.get("other")).isEqualTo(expected2);
-	}
-
-	@Test
-	@SuppressWarnings("unchecked")
-	public void resolveMultiValueMapOfPart() throws Exception {
-		MockHttpServletRequest request = new MockHttpServletRequest();
-		request.setContentType("multipart/form-data");
-		Part expected1 = new MockPart("mfilelist", "Hello World 1".getBytes());
-		Part expected2 = new MockPart("mfilelist", "Hello World 2".getBytes());
-		Part expected3 = new MockPart("other", "Hello World 3".getBytes());
-		request.addPart(expected1);
-		request.addPart(expected2);
-		request.addPart(expected3);
-		webRequest = new ServletWebRequest(request);
-
-		MethodParameter param = this.testMethod.annot(requestParam().noName()).arg(MultiValueMap.class, String.class, Part.class);
-		Object result = resolver.resolveArgument(param, null, webRequest, null);
-
-		boolean condition = result instanceof MultiValueMap;
-		assertThat(condition).isTrue();
-		MultiValueMap<String, Part> resultMap = (MultiValueMap<String, Part>) result;
-		assertThat(resultMap.size()).isEqualTo(2);
-		assertThat(resultMap.get("mfilelist").size()).isEqualTo(2);
-		assertThat(resultMap.get("mfilelist").get(0)).isEqualTo(expected1);
-		assertThat(resultMap.get("mfilelist").get(1)).isEqualTo(expected2);
-		assertThat(resultMap.get("other").size()).isEqualTo(1);
-		assertThat(resultMap.get("other").get(0)).isEqualTo(expected3);
-	}
+    private ResolvableMethod testMethod = ResolvableMethod.on(getClass()).named("handle").build();
 
 
-	public void handle(
-			@RequestParam Map<String, String> param1,
-			@RequestParam MultiValueMap<String, String> param2,
-			@RequestParam Map<String, MultipartFile> param3,
-			@RequestParam MultiValueMap<String, MultipartFile> param4,
-			@RequestParam Map<String, Part> param5,
-			@RequestParam MultiValueMap<String, Part> param6,
-			@RequestParam("name") Map<String, String> param7,
-			Map<String, String> param8) {
-	}
+    @Test
+    public void supportsParameter() {
+        MethodParameter param = this.testMethod.annot(requestParam().noName()).arg(Map.class, String.class, String.class);
+        assertThat(resolver.supportsParameter(param)).isTrue();
+
+        param = this.testMethod.annotPresent(RequestParam.class).arg(MultiValueMap.class, String.class, String.class);
+        assertThat(resolver.supportsParameter(param)).isTrue();
+
+        param = this.testMethod.annot(requestParam().name("name")).arg(Map.class, String.class, String.class);
+        assertThat(resolver.supportsParameter(param)).isFalse();
+
+        param = this.testMethod.annotNotPresent(RequestParam.class).arg(Map.class, String.class, String.class);
+        assertThat(resolver.supportsParameter(param)).isFalse();
+    }
+
+    @Test
+    public void resolveMapOfString() throws Exception {
+        String name = "foo";
+        String value = "bar";
+        request.addParameter(name, value);
+        Map<String, String> expected = Collections.singletonMap(name, value);
+
+        MethodParameter param = this.testMethod.annot(requestParam().noName()).arg(Map.class, String.class, String.class);
+        Object result = resolver.resolveArgument(param, null, webRequest, null);
+
+        boolean condition = result instanceof Map;
+        assertThat(condition).isTrue();
+        assertThat(result).as("Invalid result").isEqualTo(expected);
+    }
+
+    @Test
+    public void resolveMultiValueMapOfString() throws Exception {
+        String name = "foo";
+        String value1 = "bar";
+        String value2 = "baz";
+        request.addParameter(name, value1, value2);
+
+        MultiValueMap<String, String> expected = new LinkedMultiValueMap<>(1);
+        expected.add(name, value1);
+        expected.add(name, value2);
+
+        MethodParameter param = this.testMethod.annotPresent(RequestParam.class).arg(MultiValueMap.class, String.class, String.class);
+        Object result = resolver.resolveArgument(param, null, webRequest, null);
+
+        boolean condition = result instanceof MultiValueMap;
+        assertThat(condition).isTrue();
+        assertThat(result).as("Invalid result").isEqualTo(expected);
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    public void resolveMapOfMultipartFile() throws Exception {
+        MockMultipartHttpServletRequest request = new MockMultipartHttpServletRequest();
+        MultipartFile expected1 = new MockMultipartFile("mfile", "Hello World".getBytes());
+        MultipartFile expected2 = new MockMultipartFile("other", "Hello World 3".getBytes());
+        request.addFile(expected1);
+        request.addFile(expected2);
+        webRequest = new ServletWebRequest(request);
+
+        MethodParameter param = this.testMethod.annot(requestParam().noName()).arg(Map.class, String.class, MultipartFile.class);
+        Object result = resolver.resolveArgument(param, null, webRequest, null);
+
+        boolean condition = result instanceof Map;
+        assertThat(condition).isTrue();
+        Map<String, MultipartFile> resultMap = (Map<String, MultipartFile>) result;
+        assertThat(resultMap.size()).isEqualTo(2);
+        assertThat(resultMap.get("mfile")).isEqualTo(expected1);
+        assertThat(resultMap.get("other")).isEqualTo(expected2);
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    public void resolveMultiValueMapOfMultipartFile() throws Exception {
+        MockMultipartHttpServletRequest request = new MockMultipartHttpServletRequest();
+        MultipartFile expected1 = new MockMultipartFile("mfilelist", "Hello World 1".getBytes());
+        MultipartFile expected2 = new MockMultipartFile("mfilelist", "Hello World 2".getBytes());
+        MultipartFile expected3 = new MockMultipartFile("other", "Hello World 3".getBytes());
+        request.addFile(expected1);
+        request.addFile(expected2);
+        request.addFile(expected3);
+        webRequest = new ServletWebRequest(request);
+
+        MethodParameter param = this.testMethod.annot(requestParam().noName()).arg(MultiValueMap.class, String.class, MultipartFile.class);
+        Object result = resolver.resolveArgument(param, null, webRequest, null);
+
+        boolean condition = result instanceof MultiValueMap;
+        assertThat(condition).isTrue();
+        MultiValueMap<String, MultipartFile> resultMap = (MultiValueMap<String, MultipartFile>) result;
+        assertThat(resultMap.size()).isEqualTo(2);
+        assertThat(resultMap.get("mfilelist").size()).isEqualTo(2);
+        assertThat(resultMap.get("mfilelist").get(0)).isEqualTo(expected1);
+        assertThat(resultMap.get("mfilelist").get(1)).isEqualTo(expected2);
+        assertThat(resultMap.get("other").size()).isEqualTo(1);
+        assertThat(resultMap.get("other").get(0)).isEqualTo(expected3);
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    public void resolveMapOfPart() throws Exception {
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        request.setContentType("multipart/form-data");
+        Part expected1 = new MockPart("mfile", "Hello World".getBytes());
+        Part expected2 = new MockPart("other", "Hello World 3".getBytes());
+        request.addPart(expected1);
+        request.addPart(expected2);
+        webRequest = new ServletWebRequest(request);
+
+        MethodParameter param = this.testMethod.annot(requestParam().noName()).arg(Map.class, String.class, Part.class);
+        Object result = resolver.resolveArgument(param, null, webRequest, null);
+
+        boolean condition = result instanceof Map;
+        assertThat(condition).isTrue();
+        Map<String, Part> resultMap = (Map<String, Part>) result;
+        assertThat(resultMap.size()).isEqualTo(2);
+        assertThat(resultMap.get("mfile")).isEqualTo(expected1);
+        assertThat(resultMap.get("other")).isEqualTo(expected2);
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    public void resolveMultiValueMapOfPart() throws Exception {
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        request.setContentType("multipart/form-data");
+        Part expected1 = new MockPart("mfilelist", "Hello World 1".getBytes());
+        Part expected2 = new MockPart("mfilelist", "Hello World 2".getBytes());
+        Part expected3 = new MockPart("other", "Hello World 3".getBytes());
+        request.addPart(expected1);
+        request.addPart(expected2);
+        request.addPart(expected3);
+        webRequest = new ServletWebRequest(request);
+
+        MethodParameter param = this.testMethod.annot(requestParam().noName()).arg(MultiValueMap.class, String.class, Part.class);
+        Object result = resolver.resolveArgument(param, null, webRequest, null);
+
+        boolean condition = result instanceof MultiValueMap;
+        assertThat(condition).isTrue();
+        MultiValueMap<String, Part> resultMap = (MultiValueMap<String, Part>) result;
+        assertThat(resultMap.size()).isEqualTo(2);
+        assertThat(resultMap.get("mfilelist").size()).isEqualTo(2);
+        assertThat(resultMap.get("mfilelist").get(0)).isEqualTo(expected1);
+        assertThat(resultMap.get("mfilelist").get(1)).isEqualTo(expected2);
+        assertThat(resultMap.get("other").size()).isEqualTo(1);
+        assertThat(resultMap.get("other").get(0)).isEqualTo(expected3);
+    }
+
+
+    public void handle(
+            @RequestParam Map<String, String> param1,
+            @RequestParam MultiValueMap<String, String> param2,
+            @RequestParam Map<String, MultipartFile> param3,
+            @RequestParam MultiValueMap<String, MultipartFile> param4,
+            @RequestParam Map<String, Part> param5,
+            @RequestParam MultiValueMap<String, Part> param6,
+            @RequestParam("name") Map<String, String> param7,
+            Map<String, String> param8) {
+    }
 
 }

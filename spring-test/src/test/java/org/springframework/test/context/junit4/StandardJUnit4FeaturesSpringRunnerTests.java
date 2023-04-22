@@ -32,13 +32,13 @@ import org.springframework.test.context.TestExecutionListeners;
  * </p>
  *
  * @author Sam Brannen
- * @since 2.5
  * @see StandardJUnit4FeaturesTests
+ * @since 2.5
  */
 @RunWith(SpringRunner.class)
 @TestExecutionListeners({})
 public class StandardJUnit4FeaturesSpringRunnerTests extends StandardJUnit4FeaturesTests {
 
-	/* All tests are in the parent class... */
+    /* All tests are in the parent class... */
 
 }

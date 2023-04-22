@@ -42,86 +42,82 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
  */
 public class ConnectorServerFactoryBeanTests extends AbstractMBeanServerTests {
 
-	private static final String OBJECT_NAME = "spring:type=connector,name=test";
+    private static final String OBJECT_NAME = "spring:type=connector,name=test";
 
 
-	@Test
-	public void startupWithLocatedServer() throws Exception {
-		ConnectorServerFactoryBean bean = new ConnectorServerFactoryBean();
-		bean.afterPropertiesSet();
+    @Test
+    public void startupWithLocatedServer() throws Exception {
+        ConnectorServerFactoryBean bean = new ConnectorServerFactoryBean();
+        bean.afterPropertiesSet();
 
-		try {
-			checkServerConnection(getServer());
-		}
-		finally {
-			bean.destroy();
-		}
-	}
+        try {
+            checkServerConnection(getServer());
+        } finally {
+            bean.destroy();
+        }
+    }
 
-	@Test
-	public void startupWithSuppliedServer() throws Exception {
-		//Added a brief snooze here - seems to fix occasional
-		//java.net.BindException: Address already in use errors
-		Thread.sleep(1);
+    @Test
+    public void startupWithSuppliedServer() throws Exception {
+        //Added a brief snooze here - seems to fix occasional
+        //java.net.BindException: Address already in use errors
+        Thread.sleep(1);
 
-		ConnectorServerFactoryBean bean = new ConnectorServerFactoryBean();
-		bean.setServer(getServer());
-		bean.afterPropertiesSet();
+        ConnectorServerFactoryBean bean = new ConnectorServerFactoryBean();
+        bean.setServer(getServer());
+        bean.afterPropertiesSet();
 
-		try {
-			checkServerConnection(getServer());
-		}
-		finally {
-			bean.destroy();
-		}
-	}
+        try {
+            checkServerConnection(getServer());
+        } finally {
+            bean.destroy();
+        }
+    }
 
-	@Test
-	public void registerWithMBeanServer() throws Exception {
-		//Added a brief snooze here - seems to fix occasional
-		//java.net.BindException: Address already in use errors
-		Thread.sleep(1);
-		ConnectorServerFactoryBean bean = new ConnectorServerFactoryBean();
-		bean.setObjectName(OBJECT_NAME);
-		bean.afterPropertiesSet();
+    @Test
+    public void registerWithMBeanServer() throws Exception {
+        //Added a brief snooze here - seems to fix occasional
+        //java.net.BindException: Address already in use errors
+        Thread.sleep(1);
+        ConnectorServerFactoryBean bean = new ConnectorServerFactoryBean();
+        bean.setObjectName(OBJECT_NAME);
+        bean.afterPropertiesSet();
 
-		try {
-			// Try to get the connector bean.
-			ObjectInstance instance = getServer().getObjectInstance(ObjectName.getInstance(OBJECT_NAME));
-			assertThat(instance).as("ObjectInstance should not be null").isNotNull();
-		}
-		finally {
-			bean.destroy();
-		}
-	}
+        try {
+            // Try to get the connector bean.
+            ObjectInstance instance = getServer().getObjectInstance(ObjectName.getInstance(OBJECT_NAME));
+            assertThat(instance).as("ObjectInstance should not be null").isNotNull();
+        } finally {
+            bean.destroy();
+        }
+    }
 
-	@Test
-	public void noRegisterWithMBeanServer() throws Exception {
-		ConnectorServerFactoryBean bean = new ConnectorServerFactoryBean();
-		bean.afterPropertiesSet();
-		try {
-			// Try to get the connector bean.
-			assertThatExceptionOfType(InstanceNotFoundException.class).isThrownBy(() ->
-				getServer().getObjectInstance(ObjectName.getInstance(OBJECT_NAME)));
-		}
-		finally {
-			bean.destroy();
-		}
-	}
+    @Test
+    public void noRegisterWithMBeanServer() throws Exception {
+        ConnectorServerFactoryBean bean = new ConnectorServerFactoryBean();
+        bean.afterPropertiesSet();
+        try {
+            // Try to get the connector bean.
+            assertThatExceptionOfType(InstanceNotFoundException.class).isThrownBy(() ->
+                    getServer().getObjectInstance(ObjectName.getInstance(OBJECT_NAME)));
+        } finally {
+            bean.destroy();
+        }
+    }
 
-	private void checkServerConnection(MBeanServer hostedServer) throws IOException, MalformedURLException {
-		// Try to connect using client.
-		JMXServiceURL serviceURL = new JMXServiceURL(ConnectorServerFactoryBean.DEFAULT_SERVICE_URL);
-		JMXConnector connector = JMXConnectorFactory.connect(serviceURL);
+    private void checkServerConnection(MBeanServer hostedServer) throws IOException, MalformedURLException {
+        // Try to connect using client.
+        JMXServiceURL serviceURL = new JMXServiceURL(ConnectorServerFactoryBean.DEFAULT_SERVICE_URL);
+        JMXConnector connector = JMXConnectorFactory.connect(serviceURL);
 
-		assertThat(connector).as("Client Connector should not be null").isNotNull();
+        assertThat(connector).as("Client Connector should not be null").isNotNull();
 
-		// Get the MBean server connection.
-		MBeanServerConnection connection = connector.getMBeanServerConnection();
-		assertThat(connection).as("MBeanServerConnection should not be null").isNotNull();
+        // Get the MBean server connection.
+        MBeanServerConnection connection = connector.getMBeanServerConnection();
+        assertThat(connection).as("MBeanServerConnection should not be null").isNotNull();
 
-		// Test for MBean server equality.
-		assertThat(connection.getMBeanCount()).as("Registered MBean count should be the same").isEqualTo(hostedServer.getMBeanCount());
-	}
+        // Test for MBean server equality.
+        assertThat(connection.getMBeanCount()).as("Registered MBean count should be the same").isEqualTo(hostedServer.getMBeanCount());
+    }
 
 }

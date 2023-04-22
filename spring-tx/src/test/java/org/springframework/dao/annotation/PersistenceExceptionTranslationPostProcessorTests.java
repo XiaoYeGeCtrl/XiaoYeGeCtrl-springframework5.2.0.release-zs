@@ -46,94 +46,92 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
  */
 public class PersistenceExceptionTranslationPostProcessorTests {
 
-	@Test
-	@SuppressWarnings("resource")
-	public void proxiesCorrectly() {
-		GenericApplicationContext gac = new GenericApplicationContext();
-		gac.registerBeanDefinition("translator",
-				new RootBeanDefinition(PersistenceExceptionTranslationPostProcessor.class));
-		gac.registerBeanDefinition("notProxied", new RootBeanDefinition(RepositoryInterfaceImpl.class));
-		gac.registerBeanDefinition("proxied", new RootBeanDefinition(StereotypedRepositoryInterfaceImpl.class));
-		gac.registerBeanDefinition("classProxied", new RootBeanDefinition(RepositoryWithoutInterface.class));
-		gac.registerBeanDefinition("classProxiedAndAdvised",
-				new RootBeanDefinition(RepositoryWithoutInterfaceAndOtherwiseAdvised.class));
-		gac.registerBeanDefinition("myTranslator",
-				new RootBeanDefinition(MyPersistenceExceptionTranslator.class));
-		gac.registerBeanDefinition("proxyCreator",
-				BeanDefinitionBuilder.rootBeanDefinition(AnnotationAwareAspectJAutoProxyCreator.class).
-						addPropertyValue("order", 50).getBeanDefinition());
-		gac.registerBeanDefinition("logger", new RootBeanDefinition(LogAllAspect.class));
-		gac.refresh();
+    @Test
+    @SuppressWarnings("resource")
+    public void proxiesCorrectly() {
+        GenericApplicationContext gac = new GenericApplicationContext();
+        gac.registerBeanDefinition("translator",
+                new RootBeanDefinition(PersistenceExceptionTranslationPostProcessor.class));
+        gac.registerBeanDefinition("notProxied", new RootBeanDefinition(RepositoryInterfaceImpl.class));
+        gac.registerBeanDefinition("proxied", new RootBeanDefinition(StereotypedRepositoryInterfaceImpl.class));
+        gac.registerBeanDefinition("classProxied", new RootBeanDefinition(RepositoryWithoutInterface.class));
+        gac.registerBeanDefinition("classProxiedAndAdvised",
+                new RootBeanDefinition(RepositoryWithoutInterfaceAndOtherwiseAdvised.class));
+        gac.registerBeanDefinition("myTranslator",
+                new RootBeanDefinition(MyPersistenceExceptionTranslator.class));
+        gac.registerBeanDefinition("proxyCreator",
+                BeanDefinitionBuilder.rootBeanDefinition(AnnotationAwareAspectJAutoProxyCreator.class).
+                        addPropertyValue("order", 50).getBeanDefinition());
+        gac.registerBeanDefinition("logger", new RootBeanDefinition(LogAllAspect.class));
+        gac.refresh();
 
-		RepositoryInterface shouldNotBeProxied = (RepositoryInterface) gac.getBean("notProxied");
-		assertThat(AopUtils.isAopProxy(shouldNotBeProxied)).isFalse();
-		RepositoryInterface shouldBeProxied = (RepositoryInterface) gac.getBean("proxied");
-		assertThat(AopUtils.isAopProxy(shouldBeProxied)).isTrue();
-		RepositoryWithoutInterface rwi = (RepositoryWithoutInterface) gac.getBean("classProxied");
-		assertThat(AopUtils.isAopProxy(rwi)).isTrue();
-		checkWillTranslateExceptions(rwi);
+        RepositoryInterface shouldNotBeProxied = (RepositoryInterface) gac.getBean("notProxied");
+        assertThat(AopUtils.isAopProxy(shouldNotBeProxied)).isFalse();
+        RepositoryInterface shouldBeProxied = (RepositoryInterface) gac.getBean("proxied");
+        assertThat(AopUtils.isAopProxy(shouldBeProxied)).isTrue();
+        RepositoryWithoutInterface rwi = (RepositoryWithoutInterface) gac.getBean("classProxied");
+        assertThat(AopUtils.isAopProxy(rwi)).isTrue();
+        checkWillTranslateExceptions(rwi);
 
-		Additional rwi2 = (Additional) gac.getBean("classProxiedAndAdvised");
-		assertThat(AopUtils.isAopProxy(rwi2)).isTrue();
-		rwi2.additionalMethod(false);
-		checkWillTranslateExceptions(rwi2);
-		assertThatExceptionOfType(DataAccessResourceFailureException.class).isThrownBy(() ->
-				rwi2.additionalMethod(true))
-			.withMessage("my failure");
-	}
+        Additional rwi2 = (Additional) gac.getBean("classProxiedAndAdvised");
+        assertThat(AopUtils.isAopProxy(rwi2)).isTrue();
+        rwi2.additionalMethod(false);
+        checkWillTranslateExceptions(rwi2);
+        assertThatExceptionOfType(DataAccessResourceFailureException.class).isThrownBy(() ->
+                rwi2.additionalMethod(true))
+                .withMessage("my failure");
+    }
 
-	protected void checkWillTranslateExceptions(Object o) {
-		assertThat(o).isInstanceOf(Advised.class);
-		assertThat(((Advised) o).getAdvisors()).anyMatch(
-				PersistenceExceptionTranslationAdvisor.class::isInstance);
-	}
-
-
-	@Repository
-	public static class RepositoryWithoutInterface {
-
-		public void nameDoesntMatter() {
-		}
-	}
+    protected void checkWillTranslateExceptions(Object o) {
+        assertThat(o).isInstanceOf(Advised.class);
+        assertThat(((Advised) o).getAdvisors()).anyMatch(
+                PersistenceExceptionTranslationAdvisor.class::isInstance);
+    }
 
 
-	public interface Additional {
+    public interface Additional {
 
-		void additionalMethod(boolean fail);
-	}
+        void additionalMethod(boolean fail);
+    }
 
+    @Repository
+    public static class RepositoryWithoutInterface {
 
-	public static class RepositoryWithoutInterfaceAndOtherwiseAdvised extends StereotypedRepositoryInterfaceImpl
-			implements Additional {
+        public void nameDoesntMatter() {
+        }
+    }
 
-		@Override
-		public void additionalMethod(boolean fail) {
-			if (fail) {
-				throw new PersistenceException("my failure");
-			}
-		}
-	}
+    public static class RepositoryWithoutInterfaceAndOtherwiseAdvised extends StereotypedRepositoryInterfaceImpl
+            implements Additional {
 
-
-	public static class MyPersistenceExceptionTranslator implements PersistenceExceptionTranslator {
-
-		@Override
-		public DataAccessException translateExceptionIfPossible(RuntimeException ex) {
-			if (ex instanceof PersistenceException) {
-				return new DataAccessResourceFailureException(ex.getMessage());
-			}
-			return null;
-		}
-	}
+        @Override
+        public void additionalMethod(boolean fail) {
+            if (fail) {
+                throw new PersistenceException("my failure");
+            }
+        }
+    }
 
 
-	@Aspect
-	public static class LogAllAspect {
+    public static class MyPersistenceExceptionTranslator implements PersistenceExceptionTranslator {
 
-		@Before("execution(void *.additionalMethod(*))")
-		public void log(JoinPoint jp) {
-			System.out.println("Before " + jp.getSignature().getName());
-		}
-	}
+        @Override
+        public DataAccessException translateExceptionIfPossible(RuntimeException ex) {
+            if (ex instanceof PersistenceException) {
+                return new DataAccessResourceFailureException(ex.getMessage());
+            }
+            return null;
+        }
+    }
+
+
+    @Aspect
+    public static class LogAllAspect {
+
+        @Before("execution(void *.additionalMethod(*))")
+        public void log(JoinPoint jp) {
+            System.out.println("Before " + jp.getSignature().getName());
+        }
+    }
 
 }

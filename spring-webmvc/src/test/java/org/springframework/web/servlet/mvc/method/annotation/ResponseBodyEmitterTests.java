@@ -45,174 +45,172 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 @ExtendWith(MockitoExtension.class)
 public class ResponseBodyEmitterTests {
 
-	@Mock
-	private ResponseBodyEmitter.Handler handler;
+    private final ResponseBodyEmitter emitter = new ResponseBodyEmitter();
+    @Mock
+    private ResponseBodyEmitter.Handler handler;
 
-	private final ResponseBodyEmitter emitter = new ResponseBodyEmitter();
+    @Test
+    public void sendBeforeHandlerInitialized() throws Exception {
+        this.emitter.send("foo", MediaType.TEXT_PLAIN);
+        this.emitter.send("bar", MediaType.TEXT_PLAIN);
+        this.emitter.complete();
+        verifyNoMoreInteractions(this.handler);
 
+        this.emitter.initialize(this.handler);
+        verify(this.handler).send("foo", MediaType.TEXT_PLAIN);
+        verify(this.handler).send("bar", MediaType.TEXT_PLAIN);
+        verify(this.handler).complete();
+        verifyNoMoreInteractions(this.handler);
+    }
 
-	@Test
-	public void sendBeforeHandlerInitialized() throws Exception {
-		this.emitter.send("foo", MediaType.TEXT_PLAIN);
-		this.emitter.send("bar", MediaType.TEXT_PLAIN);
-		this.emitter.complete();
-		verifyNoMoreInteractions(this.handler);
+    @Test
+    public void sendDuplicateBeforeHandlerInitialized() throws Exception {
+        this.emitter.send("foo", MediaType.TEXT_PLAIN);
+        this.emitter.send("foo", MediaType.TEXT_PLAIN);
+        this.emitter.complete();
+        verifyNoMoreInteractions(this.handler);
 
-		this.emitter.initialize(this.handler);
-		verify(this.handler).send("foo", MediaType.TEXT_PLAIN);
-		verify(this.handler).send("bar", MediaType.TEXT_PLAIN);
-		verify(this.handler).complete();
-		verifyNoMoreInteractions(this.handler);
-	}
+        this.emitter.initialize(this.handler);
+        verify(this.handler, times(2)).send("foo", MediaType.TEXT_PLAIN);
+        verify(this.handler).complete();
+        verifyNoMoreInteractions(this.handler);
+    }
 
-	@Test
-	public void sendDuplicateBeforeHandlerInitialized() throws Exception {
-		this.emitter.send("foo", MediaType.TEXT_PLAIN);
-		this.emitter.send("foo", MediaType.TEXT_PLAIN);
-		this.emitter.complete();
-		verifyNoMoreInteractions(this.handler);
+    @Test
+    public void sendBeforeHandlerInitializedWithError() throws Exception {
+        IllegalStateException ex = new IllegalStateException();
+        this.emitter.send("foo", MediaType.TEXT_PLAIN);
+        this.emitter.send("bar", MediaType.TEXT_PLAIN);
+        this.emitter.completeWithError(ex);
+        verifyNoMoreInteractions(this.handler);
 
-		this.emitter.initialize(this.handler);
-		verify(this.handler, times(2)).send("foo", MediaType.TEXT_PLAIN);
-		verify(this.handler).complete();
-		verifyNoMoreInteractions(this.handler);
-	}
+        this.emitter.initialize(this.handler);
+        verify(this.handler).send("foo", MediaType.TEXT_PLAIN);
+        verify(this.handler).send("bar", MediaType.TEXT_PLAIN);
+        verify(this.handler).completeWithError(ex);
+        verifyNoMoreInteractions(this.handler);
+    }
 
-	@Test
-	public void sendBeforeHandlerInitializedWithError() throws Exception {
-		IllegalStateException ex = new IllegalStateException();
-		this.emitter.send("foo", MediaType.TEXT_PLAIN);
-		this.emitter.send("bar", MediaType.TEXT_PLAIN);
-		this.emitter.completeWithError(ex);
-		verifyNoMoreInteractions(this.handler);
+    @Test
+    public void sendFailsAfterComplete() throws Exception {
+        this.emitter.complete();
+        assertThatIllegalStateException().isThrownBy(() ->
+                this.emitter.send("foo"));
+    }
 
-		this.emitter.initialize(this.handler);
-		verify(this.handler).send("foo", MediaType.TEXT_PLAIN);
-		verify(this.handler).send("bar", MediaType.TEXT_PLAIN);
-		verify(this.handler).completeWithError(ex);
-		verifyNoMoreInteractions(this.handler);
-	}
+    @Test
+    public void sendAfterHandlerInitialized() throws Exception {
+        this.emitter.initialize(this.handler);
+        verify(this.handler).onTimeout(any());
+        verify(this.handler).onError(any());
+        verify(this.handler).onCompletion(any());
+        verifyNoMoreInteractions(this.handler);
 
-	@Test
-	public void sendFailsAfterComplete() throws Exception {
-		this.emitter.complete();
-		assertThatIllegalStateException().isThrownBy(() ->
-				this.emitter.send("foo"));
-	}
+        this.emitter.send("foo", MediaType.TEXT_PLAIN);
+        this.emitter.send("bar", MediaType.TEXT_PLAIN);
+        this.emitter.complete();
 
-	@Test
-	public void sendAfterHandlerInitialized() throws Exception {
-		this.emitter.initialize(this.handler);
-		verify(this.handler).onTimeout(any());
-		verify(this.handler).onError(any());
-		verify(this.handler).onCompletion(any());
-		verifyNoMoreInteractions(this.handler);
+        verify(this.handler).send("foo", MediaType.TEXT_PLAIN);
+        verify(this.handler).send("bar", MediaType.TEXT_PLAIN);
+        verify(this.handler).complete();
+        verifyNoMoreInteractions(this.handler);
+    }
 
-		this.emitter.send("foo", MediaType.TEXT_PLAIN);
-		this.emitter.send("bar", MediaType.TEXT_PLAIN);
-		this.emitter.complete();
+    @Test
+    public void sendAfterHandlerInitializedWithError() throws Exception {
+        this.emitter.initialize(this.handler);
+        verify(this.handler).onTimeout(any());
+        verify(this.handler).onError(any());
+        verify(this.handler).onCompletion(any());
+        verifyNoMoreInteractions(this.handler);
 
-		verify(this.handler).send("foo", MediaType.TEXT_PLAIN);
-		verify(this.handler).send("bar", MediaType.TEXT_PLAIN);
-		verify(this.handler).complete();
-		verifyNoMoreInteractions(this.handler);
-	}
+        IllegalStateException ex = new IllegalStateException();
+        this.emitter.send("foo", MediaType.TEXT_PLAIN);
+        this.emitter.send("bar", MediaType.TEXT_PLAIN);
+        this.emitter.completeWithError(ex);
 
-	@Test
-	public void sendAfterHandlerInitializedWithError() throws Exception {
-		this.emitter.initialize(this.handler);
-		verify(this.handler).onTimeout(any());
-		verify(this.handler).onError(any());
-		verify(this.handler).onCompletion(any());
-		verifyNoMoreInteractions(this.handler);
+        verify(this.handler).send("foo", MediaType.TEXT_PLAIN);
+        verify(this.handler).send("bar", MediaType.TEXT_PLAIN);
+        verify(this.handler).completeWithError(ex);
+        verifyNoMoreInteractions(this.handler);
+    }
 
-		IllegalStateException ex = new IllegalStateException();
-		this.emitter.send("foo", MediaType.TEXT_PLAIN);
-		this.emitter.send("bar", MediaType.TEXT_PLAIN);
-		this.emitter.completeWithError(ex);
+    @Test
+    public void sendWithError() throws Exception {
+        this.emitter.initialize(this.handler);
+        verify(this.handler).onTimeout(any());
+        verify(this.handler).onError(any());
+        verify(this.handler).onCompletion(any());
+        verifyNoMoreInteractions(this.handler);
 
-		verify(this.handler).send("foo", MediaType.TEXT_PLAIN);
-		verify(this.handler).send("bar", MediaType.TEXT_PLAIN);
-		verify(this.handler).completeWithError(ex);
-		verifyNoMoreInteractions(this.handler);
-	}
+        IOException failure = new IOException();
+        willThrow(failure).given(this.handler).send("foo", MediaType.TEXT_PLAIN);
+        assertThatIOException().isThrownBy(() ->
+                this.emitter.send("foo", MediaType.TEXT_PLAIN));
+        verify(this.handler).send("foo", MediaType.TEXT_PLAIN);
+        verifyNoMoreInteractions(this.handler);
+    }
 
-	@Test
-	public void sendWithError() throws Exception {
-		this.emitter.initialize(this.handler);
-		verify(this.handler).onTimeout(any());
-		verify(this.handler).onError(any());
-		verify(this.handler).onCompletion(any());
-		verifyNoMoreInteractions(this.handler);
+    @Test
+    public void onTimeoutBeforeHandlerInitialized() throws Exception {
+        Runnable runnable = mock(Runnable.class);
+        this.emitter.onTimeout(runnable);
+        this.emitter.initialize(this.handler);
 
-		IOException failure = new IOException();
-		willThrow(failure).given(this.handler).send("foo", MediaType.TEXT_PLAIN);
-		assertThatIOException().isThrownBy(() ->
-				this.emitter.send("foo", MediaType.TEXT_PLAIN));
-		verify(this.handler).send("foo", MediaType.TEXT_PLAIN);
-		verifyNoMoreInteractions(this.handler);
-	}
+        ArgumentCaptor<Runnable> captor = ArgumentCaptor.forClass(Runnable.class);
+        verify(this.handler).onTimeout(captor.capture());
+        verify(this.handler).onCompletion(any());
 
-	@Test
-	public void onTimeoutBeforeHandlerInitialized() throws Exception  {
-		Runnable runnable = mock(Runnable.class);
-		this.emitter.onTimeout(runnable);
-		this.emitter.initialize(this.handler);
+        assertThat(captor.getValue()).isNotNull();
+        captor.getValue().run();
+        verify(runnable).run();
+    }
 
-		ArgumentCaptor<Runnable> captor = ArgumentCaptor.forClass(Runnable.class);
-		verify(this.handler).onTimeout(captor.capture());
-		verify(this.handler).onCompletion(any());
+    @Test
+    public void onTimeoutAfterHandlerInitialized() throws Exception {
+        this.emitter.initialize(this.handler);
 
-		assertThat(captor.getValue()).isNotNull();
-		captor.getValue().run();
-		verify(runnable).run();
-	}
+        ArgumentCaptor<Runnable> captor = ArgumentCaptor.forClass(Runnable.class);
+        verify(this.handler).onTimeout(captor.capture());
+        verify(this.handler).onCompletion(any());
 
-	@Test
-	public void onTimeoutAfterHandlerInitialized() throws Exception  {
-		this.emitter.initialize(this.handler);
+        Runnable runnable = mock(Runnable.class);
+        this.emitter.onTimeout(runnable);
 
-		ArgumentCaptor<Runnable> captor = ArgumentCaptor.forClass(Runnable.class);
-		verify(this.handler).onTimeout(captor.capture());
-		verify(this.handler).onCompletion(any());
+        assertThat(captor.getValue()).isNotNull();
+        captor.getValue().run();
+        verify(runnable).run();
+    }
 
-		Runnable runnable = mock(Runnable.class);
-		this.emitter.onTimeout(runnable);
+    @Test
+    public void onCompletionBeforeHandlerInitialized() throws Exception {
+        Runnable runnable = mock(Runnable.class);
+        this.emitter.onCompletion(runnable);
+        this.emitter.initialize(this.handler);
 
-		assertThat(captor.getValue()).isNotNull();
-		captor.getValue().run();
-		verify(runnable).run();
-	}
+        ArgumentCaptor<Runnable> captor = ArgumentCaptor.forClass(Runnable.class);
+        verify(this.handler).onTimeout(any());
+        verify(this.handler).onCompletion(captor.capture());
 
-	@Test
-	public void onCompletionBeforeHandlerInitialized() throws Exception  {
-		Runnable runnable = mock(Runnable.class);
-		this.emitter.onCompletion(runnable);
-		this.emitter.initialize(this.handler);
+        assertThat(captor.getValue()).isNotNull();
+        captor.getValue().run();
+        verify(runnable).run();
+    }
 
-		ArgumentCaptor<Runnable> captor = ArgumentCaptor.forClass(Runnable.class);
-		verify(this.handler).onTimeout(any());
-		verify(this.handler).onCompletion(captor.capture());
+    @Test
+    public void onCompletionAfterHandlerInitialized() throws Exception {
+        this.emitter.initialize(this.handler);
 
-		assertThat(captor.getValue()).isNotNull();
-		captor.getValue().run();
-		verify(runnable).run();
-	}
+        ArgumentCaptor<Runnable> captor = ArgumentCaptor.forClass(Runnable.class);
+        verify(this.handler).onTimeout(any());
+        verify(this.handler).onCompletion(captor.capture());
 
-	@Test
-	public void onCompletionAfterHandlerInitialized() throws Exception  {
-		this.emitter.initialize(this.handler);
+        Runnable runnable = mock(Runnable.class);
+        this.emitter.onCompletion(runnable);
 
-		ArgumentCaptor<Runnable> captor = ArgumentCaptor.forClass(Runnable.class);
-		verify(this.handler).onTimeout(any());
-		verify(this.handler).onCompletion(captor.capture());
-
-		Runnable runnable = mock(Runnable.class);
-		this.emitter.onCompletion(runnable);
-
-		assertThat(captor.getValue()).isNotNull();
-		captor.getValue().run();
-		verify(runnable).run();
-	}
+        assertThat(captor.getValue()).isNotNull();
+        captor.getValue().run();
+        verify(runnable).run();
+    }
 
 }

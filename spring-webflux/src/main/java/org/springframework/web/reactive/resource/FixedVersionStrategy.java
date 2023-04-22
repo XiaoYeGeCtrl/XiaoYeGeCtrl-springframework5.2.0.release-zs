@@ -30,27 +30,28 @@ import org.springframework.core.io.Resource;
  *
  * @author Rossen Stoyanchev
  * @author Brian Clozel
- * @since 5.0
  * @see VersionResourceResolver
+ * @since 5.0
  */
 public class FixedVersionStrategy extends AbstractPrefixVersionStrategy {
 
-	private final Mono<String> versionMono;
+    private final Mono<String> versionMono;
 
 
-	/**
-	 * Create a new FixedVersionStrategy with the given version string.
-	 * @param version the fixed version string to use
-	 */
-	public FixedVersionStrategy(String version) {
-		super(version);
-		this.versionMono = Mono.just(version);
-	}
+    /**
+     * Create a new FixedVersionStrategy with the given version string.
+     *
+     * @param version the fixed version string to use
+     */
+    public FixedVersionStrategy(String version) {
+        super(version);
+        this.versionMono = Mono.just(version);
+    }
 
 
-	@Override
-	public Mono<String> getResourceVersion(Resource resource) {
-		return this.versionMono;
-	}
+    @Override
+    public Mono<String> getResourceVersion(Resource resource) {
+        return this.versionMono;
+    }
 
 }

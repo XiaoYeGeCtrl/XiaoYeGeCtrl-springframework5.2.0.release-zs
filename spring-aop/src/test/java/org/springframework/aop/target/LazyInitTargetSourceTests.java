@@ -36,61 +36,61 @@ import static org.springframework.tests.TestResourceUtils.qualifiedResource;
  */
 public class LazyInitTargetSourceTests {
 
-	private static final Class<?> CLASS = LazyInitTargetSourceTests.class;
+    private static final Class<?> CLASS = LazyInitTargetSourceTests.class;
 
-	private static final Resource SINGLETON_CONTEXT = qualifiedResource(CLASS, "singleton.xml");
-	private static final Resource CUSTOM_TARGET_CONTEXT = qualifiedResource(CLASS, "customTarget.xml");
-	private static final Resource FACTORY_BEAN_CONTEXT = qualifiedResource(CLASS, "factoryBean.xml");
+    private static final Resource SINGLETON_CONTEXT = qualifiedResource(CLASS, "singleton.xml");
+    private static final Resource CUSTOM_TARGET_CONTEXT = qualifiedResource(CLASS, "customTarget.xml");
+    private static final Resource FACTORY_BEAN_CONTEXT = qualifiedResource(CLASS, "factoryBean.xml");
 
-	@Test
-	public void testLazyInitSingletonTargetSource() {
-		DefaultListableBeanFactory bf = new DefaultListableBeanFactory();
-		new XmlBeanDefinitionReader(bf).loadBeanDefinitions(SINGLETON_CONTEXT);
-		bf.preInstantiateSingletons();
+    @Test
+    public void testLazyInitSingletonTargetSource() {
+        DefaultListableBeanFactory bf = new DefaultListableBeanFactory();
+        new XmlBeanDefinitionReader(bf).loadBeanDefinitions(SINGLETON_CONTEXT);
+        bf.preInstantiateSingletons();
 
-		ITestBean tb = (ITestBean) bf.getBean("proxy");
-		assertThat(bf.containsSingleton("target")).isFalse();
-		assertThat(tb.getAge()).isEqualTo(10);
-		assertThat(bf.containsSingleton("target")).isTrue();
-	}
+        ITestBean tb = (ITestBean) bf.getBean("proxy");
+        assertThat(bf.containsSingleton("target")).isFalse();
+        assertThat(tb.getAge()).isEqualTo(10);
+        assertThat(bf.containsSingleton("target")).isTrue();
+    }
 
-	@Test
-	public void testCustomLazyInitSingletonTargetSource() {
-		DefaultListableBeanFactory bf = new DefaultListableBeanFactory();
-		new XmlBeanDefinitionReader(bf).loadBeanDefinitions(CUSTOM_TARGET_CONTEXT);
-		bf.preInstantiateSingletons();
+    @Test
+    public void testCustomLazyInitSingletonTargetSource() {
+        DefaultListableBeanFactory bf = new DefaultListableBeanFactory();
+        new XmlBeanDefinitionReader(bf).loadBeanDefinitions(CUSTOM_TARGET_CONTEXT);
+        bf.preInstantiateSingletons();
 
-		ITestBean tb = (ITestBean) bf.getBean("proxy");
-		assertThat(bf.containsSingleton("target")).isFalse();
-		assertThat(tb.getName()).isEqualTo("Rob Harrop");
-		assertThat(bf.containsSingleton("target")).isTrue();
-	}
+        ITestBean tb = (ITestBean) bf.getBean("proxy");
+        assertThat(bf.containsSingleton("target")).isFalse();
+        assertThat(tb.getName()).isEqualTo("Rob Harrop");
+        assertThat(bf.containsSingleton("target")).isTrue();
+    }
 
-	@Test
-	public void testLazyInitFactoryBeanTargetSource() {
-		DefaultListableBeanFactory bf = new DefaultListableBeanFactory();
-		new XmlBeanDefinitionReader(bf).loadBeanDefinitions(FACTORY_BEAN_CONTEXT);
-		bf.preInstantiateSingletons();
+    @Test
+    public void testLazyInitFactoryBeanTargetSource() {
+        DefaultListableBeanFactory bf = new DefaultListableBeanFactory();
+        new XmlBeanDefinitionReader(bf).loadBeanDefinitions(FACTORY_BEAN_CONTEXT);
+        bf.preInstantiateSingletons();
 
-		Set<?> set1 = (Set<?>) bf.getBean("proxy1");
-		assertThat(bf.containsSingleton("target1")).isFalse();
-		assertThat(set1.contains("10")).isTrue();
-		assertThat(bf.containsSingleton("target1")).isTrue();
+        Set<?> set1 = (Set<?>) bf.getBean("proxy1");
+        assertThat(bf.containsSingleton("target1")).isFalse();
+        assertThat(set1.contains("10")).isTrue();
+        assertThat(bf.containsSingleton("target1")).isTrue();
 
-		Set<?> set2 = (Set<?>) bf.getBean("proxy2");
-		assertThat(bf.containsSingleton("target2")).isFalse();
-		assertThat(set2.contains("20")).isTrue();
-		assertThat(bf.containsSingleton("target2")).isTrue();
-	}
+        Set<?> set2 = (Set<?>) bf.getBean("proxy2");
+        assertThat(bf.containsSingleton("target2")).isFalse();
+        assertThat(set2.contains("20")).isTrue();
+        assertThat(bf.containsSingleton("target2")).isTrue();
+    }
 
 
-	@SuppressWarnings("serial")
-	public static class CustomLazyInitTargetSource extends LazyInitTargetSource {
+    @SuppressWarnings("serial")
+    public static class CustomLazyInitTargetSource extends LazyInitTargetSource {
 
-		@Override
-		protected void postProcessTargetObject(Object targetObject) {
-			((ITestBean) targetObject).setName("Rob Harrop");
-		}
-	}
+        @Override
+        protected void postProcessTargetObject(Object targetObject) {
+            ((ITestBean) targetObject).setName("Rob Harrop");
+        }
+    }
 
 }

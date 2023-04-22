@@ -40,25 +40,25 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 class GroovyControlGroupTests {
 
-	@Test
-	@SuppressWarnings("resource")
-	void verifyScriptUsingGenericGroovyApplicationContext() {
-		ApplicationContext ctx = new GenericGroovyApplicationContext(getClass(), "context.groovy");
+    @Test
+    @SuppressWarnings("resource")
+    void verifyScriptUsingGenericGroovyApplicationContext() {
+        ApplicationContext ctx = new GenericGroovyApplicationContext(getClass(), "context.groovy");
 
-		String foo = ctx.getBean("foo", String.class);
-		assertThat(foo).isEqualTo("Foo");
+        String foo = ctx.getBean("foo", String.class);
+        assertThat(foo).isEqualTo("Foo");
 
-		String bar = ctx.getBean("bar", String.class);
-		assertThat(bar).isEqualTo("Bar");
+        String bar = ctx.getBean("bar", String.class);
+        assertThat(bar).isEqualTo("Bar");
 
-		Pet pet = ctx.getBean(Pet.class);
-		assertThat(pet).as("pet").isNotNull();
-		assertThat(pet.getName()).isEqualTo("Dogbert");
+        Pet pet = ctx.getBean(Pet.class);
+        assertThat(pet).as("pet").isNotNull();
+        assertThat(pet.getName()).isEqualTo("Dogbert");
 
-		Employee employee = ctx.getBean(Employee.class);
-		assertThat(employee).as("employee").isNotNull();
-		assertThat(employee.getName()).isEqualTo("Dilbert");
-		assertThat(employee.getCompany()).isEqualTo("???");
-	}
+        Employee employee = ctx.getBean(Employee.class);
+        assertThat(employee).as("employee").isNotNull();
+        assertThat(employee.getName()).isEqualTo("Dilbert");
+        assertThat(employee.getCompany()).isEqualTo("???");
+    }
 
 }

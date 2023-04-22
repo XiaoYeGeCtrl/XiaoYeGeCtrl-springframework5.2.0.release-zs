@@ -27,14 +27,14 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 public class WebSocketHandlerDecoratorTests {
 
-	@Test
-	public void getLastHandler() {
-		AbstractWebSocketHandler h1 = new AbstractWebSocketHandler() {
-		};
-		WebSocketHandlerDecorator h2 = new WebSocketHandlerDecorator(h1);
-		WebSocketHandlerDecorator h3 = new WebSocketHandlerDecorator(h2);
+    @Test
+    public void getLastHandler() {
+        AbstractWebSocketHandler h1 = new AbstractWebSocketHandler() {
+        };
+        WebSocketHandlerDecorator h2 = new WebSocketHandlerDecorator(h1);
+        WebSocketHandlerDecorator h3 = new WebSocketHandlerDecorator(h2);
 
-		assertThat(h3.getLastHandler()).isSameAs(h1);
-	}
+        assertThat(h3.getLastHandler()).isSameAs(h1);
+    }
 
 }

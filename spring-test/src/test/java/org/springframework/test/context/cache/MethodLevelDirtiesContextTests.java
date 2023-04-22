@@ -50,60 +50,60 @@ import static org.springframework.test.annotation.DirtiesContext.MethodMode.BEFO
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class MethodLevelDirtiesContextTests {
 
-	private static final AtomicInteger contextCount = new AtomicInteger();
+    private static final AtomicInteger contextCount = new AtomicInteger();
 
 
-	@Autowired
-	private ConfigurableApplicationContext context;
+    @Autowired
+    private ConfigurableApplicationContext context;
 
-	@Autowired
-	private Integer count;
-
-
-	@Test
-	@Order(1)
-	void basics() throws Exception {
-		performAssertions(1);
-	}
-
-	@Test
-	@Order(2)
-	@DirtiesContext(methodMode = BEFORE_METHOD)
-	void dirtyContextBeforeTestMethod() throws Exception {
-		performAssertions(2);
-	}
-
-	@Test
-	@Order(3)
-	@DirtiesContext
-	void dirtyContextAfterTestMethod() throws Exception {
-		performAssertions(2);
-	}
-
-	@Test
-	@Order(4)
-	void backToBasics() throws Exception {
-		performAssertions(3);
-	}
-
-	private void performAssertions(int expectedContextCreationCount) throws Exception {
-		assertThat(this.context).as("context must not be null").isNotNull();
-		assertThat(this.context.isActive()).as("context must be active").isTrue();
-
-		assertThat(this.count).as("count must not be null").isNotNull();
-		assertThat(this.count.intValue()).as("count: ").isEqualTo(expectedContextCreationCount);
-
-		assertThat(contextCount.get()).as("context creation count: ").isEqualTo(expectedContextCreationCount);
-	}
+    @Autowired
+    private Integer count;
 
 
-	@Configuration
-	static class Config {
+    @Test
+    @Order(1)
+    void basics() throws Exception {
+        performAssertions(1);
+    }
 
-		@Bean
-		Integer count() {
-			return contextCount.incrementAndGet();
-		}
-	}
+    @Test
+    @Order(2)
+    @DirtiesContext(methodMode = BEFORE_METHOD)
+    void dirtyContextBeforeTestMethod() throws Exception {
+        performAssertions(2);
+    }
+
+    @Test
+    @Order(3)
+    @DirtiesContext
+    void dirtyContextAfterTestMethod() throws Exception {
+        performAssertions(2);
+    }
+
+    @Test
+    @Order(4)
+    void backToBasics() throws Exception {
+        performAssertions(3);
+    }
+
+    private void performAssertions(int expectedContextCreationCount) throws Exception {
+        assertThat(this.context).as("context must not be null").isNotNull();
+        assertThat(this.context.isActive()).as("context must be active").isTrue();
+
+        assertThat(this.count).as("count must not be null").isNotNull();
+        assertThat(this.count.intValue()).as("count: ").isEqualTo(expectedContextCreationCount);
+
+        assertThat(contextCount.get()).as("context creation count: ").isEqualTo(expectedContextCreationCount);
+    }
+
+
+    @Configuration
+    static class Config {
+
+        @Bean
+        Integer count() {
+            return contextCount.incrementAndGet();
+        }
+    }
 
 }

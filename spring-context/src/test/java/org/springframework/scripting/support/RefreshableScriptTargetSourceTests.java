@@ -28,10 +28,10 @@ import static org.mockito.Mockito.mock;
  */
 public class RefreshableScriptTargetSourceTests {
 
-	@Test
-	public void createWithNullScriptSource() throws Exception {
-		assertThatIllegalArgumentException().isThrownBy(() ->
-				new RefreshableScriptTargetSource(mock(BeanFactory.class), "a.bean", null, null, false));
-	}
+    @Test
+    public void createWithNullScriptSource() throws Exception {
+        assertThatIllegalArgumentException().isThrownBy(() ->
+                new RefreshableScriptTargetSource(mock(BeanFactory.class), "a.bean", null, null, false));
+    }
 
 }

@@ -35,35 +35,33 @@ import static org.assertj.core.api.Assertions.assertThat;
  * {@link DelegatingSmartContextLoader}.
  *
  * @author Sam Brannen
- * @since 3.1
  * @see DefaultConfigClassesBaseTests
+ * @since 3.1
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
 public class DefaultLoaderDefaultConfigClassesBaseTests {
 
-	@Configuration
-	static class Config {
+    @Autowired
+    protected Employee employee;
 
-		@Bean
-		public Employee employee() {
-			Employee employee = new Employee();
-			employee.setName("John Smith");
-			employee.setAge(42);
-			employee.setCompany("Acme Widgets, Inc.");
-			return employee;
-		}
-	}
+    @Test
+    public void verifyEmployeeSetFromBaseContextConfig() {
+        assertThat(this.employee).as("The employee field should have been autowired.").isNotNull();
+        assertThat(this.employee.getName()).isEqualTo("John Smith");
+    }
 
+    @Configuration
+    static class Config {
 
-	@Autowired
-	protected Employee employee;
-
-
-	@Test
-	public void verifyEmployeeSetFromBaseContextConfig() {
-		assertThat(this.employee).as("The employee field should have been autowired.").isNotNull();
-		assertThat(this.employee.getName()).isEqualTo("John Smith");
-	}
+        @Bean
+        public Employee employee() {
+            Employee employee = new Employee();
+            employee.setName("John Smith");
+            employee.setAge(42);
+            employee.setCompany("Acme Widgets, Inc.");
+            return employee;
+        }
+    }
 
 }

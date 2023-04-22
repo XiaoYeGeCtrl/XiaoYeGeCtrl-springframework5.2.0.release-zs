@@ -25,42 +25,42 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 public class RequestPredicateTests {
 
-	@Test
-	public void and() {
-		RequestPredicate predicate1 = request -> true;
-		RequestPredicate predicate2 = request -> true;
-		RequestPredicate predicate3 = request -> false;
+    @Test
+    public void and() {
+        RequestPredicate predicate1 = request -> true;
+        RequestPredicate predicate2 = request -> true;
+        RequestPredicate predicate3 = request -> false;
 
-		MockServerRequest request = MockServerRequest.builder().build();
-		assertThat(predicate1.and(predicate2).test(request)).isTrue();
-		assertThat(predicate2.and(predicate1).test(request)).isTrue();
-		assertThat(predicate1.and(predicate3).test(request)).isFalse();
-	}
+        MockServerRequest request = MockServerRequest.builder().build();
+        assertThat(predicate1.and(predicate2).test(request)).isTrue();
+        assertThat(predicate2.and(predicate1).test(request)).isTrue();
+        assertThat(predicate1.and(predicate3).test(request)).isFalse();
+    }
 
-	@Test
-	public void negate() {
-		RequestPredicate predicate = request -> false;
-		RequestPredicate negated = predicate.negate();
+    @Test
+    public void negate() {
+        RequestPredicate predicate = request -> false;
+        RequestPredicate negated = predicate.negate();
 
-		MockServerRequest mockRequest = MockServerRequest.builder().build();
-		assertThat(negated.test(mockRequest)).isTrue();
+        MockServerRequest mockRequest = MockServerRequest.builder().build();
+        assertThat(negated.test(mockRequest)).isTrue();
 
-		predicate = request -> true;
-		negated = predicate.negate();
+        predicate = request -> true;
+        negated = predicate.negate();
 
-		assertThat(negated.test(mockRequest)).isFalse();
-	}
+        assertThat(negated.test(mockRequest)).isFalse();
+    }
 
-	@Test
-	public void or() {
-		RequestPredicate predicate1 = request -> true;
-		RequestPredicate predicate2 = request -> false;
-		RequestPredicate predicate3 = request -> false;
+    @Test
+    public void or() {
+        RequestPredicate predicate1 = request -> true;
+        RequestPredicate predicate2 = request -> false;
+        RequestPredicate predicate3 = request -> false;
 
-		MockServerRequest request = MockServerRequest.builder().build();
-		assertThat(predicate1.or(predicate2).test(request)).isTrue();
-		assertThat(predicate2.or(predicate1).test(request)).isTrue();
-		assertThat(predicate2.or(predicate3).test(request)).isFalse();
-	}
+        MockServerRequest request = MockServerRequest.builder().build();
+        assertThat(predicate1.or(predicate2).test(request)).isTrue();
+        assertThat(predicate2.or(predicate1).test(request)).isTrue();
+        assertThat(predicate2.or(predicate3).test(request)).isFalse();
+    }
 
 }

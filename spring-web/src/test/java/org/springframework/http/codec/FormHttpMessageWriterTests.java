@@ -42,64 +42,64 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 public class FormHttpMessageWriterTests extends AbstractLeakCheckingTests {
 
-	private final FormHttpMessageWriter writer = new FormHttpMessageWriter();
+    private final FormHttpMessageWriter writer = new FormHttpMessageWriter();
 
 
-	@Test
-	public void canWrite() {
-		assertThat(this.writer.canWrite(
-				ResolvableType.forClassWithGenerics(MultiValueMap.class, String.class, String.class),
-				MediaType.APPLICATION_FORM_URLENCODED)).isTrue();
+    @Test
+    public void canWrite() {
+        assertThat(this.writer.canWrite(
+                ResolvableType.forClassWithGenerics(MultiValueMap.class, String.class, String.class),
+                MediaType.APPLICATION_FORM_URLENCODED)).isTrue();
 
-		// No generic information
-		assertThat(this.writer.canWrite(
-				ResolvableType.forInstance(new LinkedMultiValueMap<String, String>()),
-				MediaType.APPLICATION_FORM_URLENCODED)).isTrue();
+        // No generic information
+        assertThat(this.writer.canWrite(
+                ResolvableType.forInstance(new LinkedMultiValueMap<String, String>()),
+                MediaType.APPLICATION_FORM_URLENCODED)).isTrue();
 
-		assertThat(this.writer.canWrite(
-				ResolvableType.forClassWithGenerics(MultiValueMap.class, String.class, Object.class),
-				null)).isFalse();
+        assertThat(this.writer.canWrite(
+                ResolvableType.forClassWithGenerics(MultiValueMap.class, String.class, Object.class),
+                null)).isFalse();
 
-		assertThat(this.writer.canWrite(
-				ResolvableType.forClassWithGenerics(MultiValueMap.class, Object.class, String.class),
-				null)).isFalse();
+        assertThat(this.writer.canWrite(
+                ResolvableType.forClassWithGenerics(MultiValueMap.class, Object.class, String.class),
+                null)).isFalse();
 
-		assertThat(this.writer.canWrite(
-				ResolvableType.forClassWithGenerics(Map.class, String.class, String.class),
-				MediaType.APPLICATION_FORM_URLENCODED)).isFalse();
+        assertThat(this.writer.canWrite(
+                ResolvableType.forClassWithGenerics(Map.class, String.class, String.class),
+                MediaType.APPLICATION_FORM_URLENCODED)).isFalse();
 
-		assertThat(this.writer.canWrite(
-				ResolvableType.forClassWithGenerics(MultiValueMap.class, String.class, String.class),
-				MediaType.MULTIPART_FORM_DATA)).isFalse();
-	}
+        assertThat(this.writer.canWrite(
+                ResolvableType.forClassWithGenerics(MultiValueMap.class, String.class, String.class),
+                MediaType.MULTIPART_FORM_DATA)).isFalse();
+    }
 
-	@Test
-	public void writeForm() {
-		MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
-		body.set("name 1", "value 1");
-		body.add("name 2", "value 2+1");
-		body.add("name 2", "value 2+2");
-		body.add("name 3", null);
-		MockServerHttpResponse response = new MockServerHttpResponse(this.bufferFactory);
-		this.writer.write(Mono.just(body), null, MediaType.APPLICATION_FORM_URLENCODED, response, null).block();
+    @Test
+    public void writeForm() {
+        MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
+        body.set("name 1", "value 1");
+        body.add("name 2", "value 2+1");
+        body.add("name 2", "value 2+2");
+        body.add("name 3", null);
+        MockServerHttpResponse response = new MockServerHttpResponse(this.bufferFactory);
+        this.writer.write(Mono.just(body), null, MediaType.APPLICATION_FORM_URLENCODED, response, null).block();
 
-		String expected = "name+1=value+1&name+2=value+2%2B1&name+2=value+2%2B2&name+3";
-		StepVerifier.create(response.getBody())
-				.consumeNextWith(stringConsumer(expected))
-				.expectComplete()
-				.verify();
-		HttpHeaders headers = response.getHeaders();
-		assertThat(headers.getContentType().toString()).isEqualTo("application/x-www-form-urlencoded;charset=UTF-8");
-		assertThat(headers.getContentLength()).isEqualTo(expected.length());
-	}
+        String expected = "name+1=value+1&name+2=value+2%2B1&name+2=value+2%2B2&name+3";
+        StepVerifier.create(response.getBody())
+                .consumeNextWith(stringConsumer(expected))
+                .expectComplete()
+                .verify();
+        HttpHeaders headers = response.getHeaders();
+        assertThat(headers.getContentType().toString()).isEqualTo("application/x-www-form-urlencoded;charset=UTF-8");
+        assertThat(headers.getContentLength()).isEqualTo(expected.length());
+    }
 
-	private Consumer<DataBuffer> stringConsumer(String expected) {
-		return dataBuffer -> {
-			String value = DataBufferTestUtils.dumpString(dataBuffer, StandardCharsets.UTF_8);
-			DataBufferUtils.release(dataBuffer);
-			assertThat(value).isEqualTo(expected);
-		};
-	}
+    private Consumer<DataBuffer> stringConsumer(String expected) {
+        return dataBuffer -> {
+            String value = DataBufferTestUtils.dumpString(dataBuffer, StandardCharsets.UTF_8);
+            DataBufferUtils.release(dataBuffer);
+            assertThat(value).isEqualTo(expected);
+        };
+    }
 
 
 }

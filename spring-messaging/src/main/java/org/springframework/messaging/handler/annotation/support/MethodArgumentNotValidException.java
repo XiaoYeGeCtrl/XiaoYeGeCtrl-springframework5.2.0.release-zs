@@ -34,45 +34,43 @@ import org.springframework.validation.ObjectError;
 @SuppressWarnings("serial")
 public class MethodArgumentNotValidException extends MethodArgumentResolutionException {
 
-	@Nullable
-	private final BindingResult bindingResult;
+    @Nullable
+    private final BindingResult bindingResult;
 
 
-	/**
-	 * Create a new instance with the invalid {@code MethodParameter}.
-	 */
-	public MethodArgumentNotValidException(Message<?> message, MethodParameter parameter) {
-		super(message, parameter);
-		this.bindingResult = null;
-	}
+    /**
+     * Create a new instance with the invalid {@code MethodParameter}.
+     */
+    public MethodArgumentNotValidException(Message<?> message, MethodParameter parameter) {
+        super(message, parameter);
+        this.bindingResult = null;
+    }
 
-	/**
-	 * Create a new instance with the invalid {@code MethodParameter} and a
-	 * {@link org.springframework.validation.BindingResult}.
-	 */
-	public MethodArgumentNotValidException(Message<?> message, MethodParameter parameter, BindingResult bindingResult) {
-		super(message, parameter, getValidationErrorMessage(bindingResult));
-		this.bindingResult = bindingResult;
-	}
+    /**
+     * Create a new instance with the invalid {@code MethodParameter} and a
+     * {@link org.springframework.validation.BindingResult}.
+     */
+    public MethodArgumentNotValidException(Message<?> message, MethodParameter parameter, BindingResult bindingResult) {
+        super(message, parameter, getValidationErrorMessage(bindingResult));
+        this.bindingResult = bindingResult;
+    }
 
+    private static String getValidationErrorMessage(BindingResult bindingResult) {
+        StringBuilder sb = new StringBuilder();
+        sb.append(bindingResult.getErrorCount()).append(" error(s): ");
+        for (ObjectError error : bindingResult.getAllErrors()) {
+            sb.append("[").append(error).append("] ");
+        }
+        return sb.toString();
+    }
 
-	/**
-	 * Return the BindingResult if the failure is validation-related,
-	 * or {@code null} if none.
-	 */
-	@Nullable
-	public final BindingResult getBindingResult() {
-		return this.bindingResult;
-	}
-
-
-	private static String getValidationErrorMessage(BindingResult bindingResult) {
-		StringBuilder sb = new StringBuilder();
-		sb.append(bindingResult.getErrorCount()).append(" error(s): ");
-		for (ObjectError error : bindingResult.getAllErrors()) {
-			sb.append("[").append(error).append("] ");
-		}
-		return sb.toString();
-	}
+    /**
+     * Return the BindingResult if the failure is validation-related,
+     * or {@code null} if none.
+     */
+    @Nullable
+    public final BindingResult getBindingResult() {
+        return this.bindingResult;
+    }
 
 }

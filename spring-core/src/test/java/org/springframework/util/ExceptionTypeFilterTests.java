@@ -26,11 +26,11 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 class ExceptionTypeFilterTests {
 
-	@Test
-	void subClassMatch() {
-		ExceptionTypeFilter filter = new ExceptionTypeFilter(asList(RuntimeException.class), null, true);
-		assertThat(filter.match(RuntimeException.class)).isTrue();
-		assertThat(filter.match(IllegalStateException.class)).isTrue();
-	}
+    @Test
+    void subClassMatch() {
+        ExceptionTypeFilter filter = new ExceptionTypeFilter(asList(RuntimeException.class), null, true);
+        assertThat(filter.match(RuntimeException.class)).isTrue();
+        assertThat(filter.match(IllegalStateException.class)).isTrue();
+    }
 
 }

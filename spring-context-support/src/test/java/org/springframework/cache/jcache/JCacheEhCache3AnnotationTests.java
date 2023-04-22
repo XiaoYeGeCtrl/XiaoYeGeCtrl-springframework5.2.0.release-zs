@@ -27,9 +27,9 @@ import javax.cache.spi.CachingProvider;
  */
 public class JCacheEhCache3AnnotationTests extends JCacheEhCacheAnnotationTests {
 
-	@Override
-	protected CachingProvider getCachingProvider() {
-		return Caching.getCachingProvider("org.ehcache.jsr107.EhcacheCachingProvider");
-	}
+    @Override
+    protected CachingProvider getCachingProvider() {
+        return Caching.getCachingProvider("org.ehcache.jsr107.EhcacheCachingProvider");
+    }
 
 }

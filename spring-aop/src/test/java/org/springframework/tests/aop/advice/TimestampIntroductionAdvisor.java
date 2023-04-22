@@ -26,8 +26,8 @@ import org.springframework.tests.aop.interceptor.TimestampIntroductionIntercepto
 @SuppressWarnings("serial")
 public class TimestampIntroductionAdvisor extends DefaultIntroductionAdvisor {
 
-	public TimestampIntroductionAdvisor() {
-		super(new DelegatingIntroductionInterceptor(new TimestampIntroductionInterceptor()));
-	}
+    public TimestampIntroductionAdvisor() {
+        super(new DelegatingIntroductionInterceptor(new TimestampIntroductionInterceptor()));
+    }
 
 }

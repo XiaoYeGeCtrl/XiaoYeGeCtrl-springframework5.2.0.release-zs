@@ -33,71 +33,71 @@ import static org.mockito.Mockito.mock;
 public class SimpMessageHeaderAccessorTests {
 
 
-	@Test
-	public void getShortLogMessage() {
-		assertThat(SimpMessageHeaderAccessor.create().getShortLogMessage("p"))
-				.isEqualTo("MESSAGE session=null payload=p");
-	}
+    @Test
+    public void getShortLogMessage() {
+        assertThat(SimpMessageHeaderAccessor.create().getShortLogMessage("p"))
+                .isEqualTo("MESSAGE session=null payload=p");
+    }
 
-	@Test
-	public void getLogMessageWithValuesSet() {
-		SimpMessageHeaderAccessor accessor = SimpMessageHeaderAccessor.create();
-		accessor.setDestination("/destination");
-		accessor.setSubscriptionId("subscription");
-		accessor.setSessionId("session");
-		accessor.setUser(new TestPrincipal("user"));
-		accessor.setSessionAttributes(Collections.<String, Object>singletonMap("key", "value"));
+    @Test
+    public void getLogMessageWithValuesSet() {
+        SimpMessageHeaderAccessor accessor = SimpMessageHeaderAccessor.create();
+        accessor.setDestination("/destination");
+        accessor.setSubscriptionId("subscription");
+        accessor.setSessionId("session");
+        accessor.setUser(new TestPrincipal("user"));
+        accessor.setSessionAttributes(Collections.<String, Object>singletonMap("key", "value"));
 
-		assertThat(accessor.getShortLogMessage("p"))
-				.isEqualTo(("MESSAGE destination=/destination subscriptionId=subscription " +
-						"session=session user=user attributes[1] payload=p"));
-	}
+        assertThat(accessor.getShortLogMessage("p"))
+                .isEqualTo(("MESSAGE destination=/destination subscriptionId=subscription " +
+                        "session=session user=user attributes[1] payload=p"));
+    }
 
-	@Test
-	public void getDetailedLogMessageWithValuesSet() {
-		SimpMessageHeaderAccessor accessor = SimpMessageHeaderAccessor.create();
-		accessor.setDestination("/destination");
-		accessor.setSubscriptionId("subscription");
-		accessor.setSessionId("session");
-		accessor.setUser(new TestPrincipal("user"));
-		accessor.setSessionAttributes(Collections.<String, Object>singletonMap("key", "value"));
-		accessor.setNativeHeader("nativeKey", "nativeValue");
+    @Test
+    public void getDetailedLogMessageWithValuesSet() {
+        SimpMessageHeaderAccessor accessor = SimpMessageHeaderAccessor.create();
+        accessor.setDestination("/destination");
+        accessor.setSubscriptionId("subscription");
+        accessor.setSessionId("session");
+        accessor.setUser(new TestPrincipal("user"));
+        accessor.setSessionAttributes(Collections.<String, Object>singletonMap("key", "value"));
+        accessor.setNativeHeader("nativeKey", "nativeValue");
 
-		assertThat(accessor.getDetailedLogMessage("p"))
-				.isEqualTo(("MESSAGE destination=/destination subscriptionId=subscription " +
-						"session=session user=user attributes={key=value} nativeHeaders=" +
-						"{nativeKey=[nativeValue]} payload=p"));
-	}
+        assertThat(accessor.getDetailedLogMessage("p"))
+                .isEqualTo(("MESSAGE destination=/destination subscriptionId=subscription " +
+                        "session=session user=user attributes={key=value} nativeHeaders=" +
+                        "{nativeKey=[nativeValue]} payload=p"));
+    }
 
-	@Test
-	public void userChangeCallback() {
-		UserCallback userCallback = new UserCallback();
-		SimpMessageHeaderAccessor accessor = SimpMessageHeaderAccessor.create();
-		accessor.setUserChangeCallback(userCallback);
+    @Test
+    public void userChangeCallback() {
+        UserCallback userCallback = new UserCallback();
+        SimpMessageHeaderAccessor accessor = SimpMessageHeaderAccessor.create();
+        accessor.setUserChangeCallback(userCallback);
 
-		Principal user1 = mock(Principal.class);
-		accessor.setUser(user1);
-		assertThat(userCallback.getUser()).isEqualTo(user1);
+        Principal user1 = mock(Principal.class);
+        accessor.setUser(user1);
+        assertThat(userCallback.getUser()).isEqualTo(user1);
 
-		Principal user2 = mock(Principal.class);
-		accessor.setUser(user2);
-		assertThat(userCallback.getUser()).isEqualTo(user2);
-	}
-
-
-	private static class UserCallback implements Consumer<Principal> {
-
-		private Principal user;
+        Principal user2 = mock(Principal.class);
+        accessor.setUser(user2);
+        assertThat(userCallback.getUser()).isEqualTo(user2);
+    }
 
 
-		public Principal getUser() {
-			return this.user;
-		}
+    private static class UserCallback implements Consumer<Principal> {
 
-		@Override
-		public void accept(Principal principal) {
-			this.user = principal;
-		}
-	}
+        private Principal user;
+
+
+        public Principal getUser() {
+            return this.user;
+        }
+
+        @Override
+        public void accept(Principal principal) {
+            this.user = principal;
+        }
+    }
 
 }

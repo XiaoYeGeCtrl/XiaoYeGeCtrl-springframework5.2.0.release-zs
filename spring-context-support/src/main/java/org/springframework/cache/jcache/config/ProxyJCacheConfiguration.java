@@ -32,33 +32,33 @@ import org.springframework.context.annotation.Role;
  *
  * @author Stephane Nicoll
  * @author Juergen Hoeller
- * @since 4.1
  * @see org.springframework.cache.annotation.EnableCaching
  * @see org.springframework.cache.annotation.CachingConfigurationSelector
+ * @since 4.1
  */
 @Configuration
 @Role(BeanDefinition.ROLE_INFRASTRUCTURE)
 public class ProxyJCacheConfiguration extends AbstractJCacheConfiguration {
 
-	@Bean(name = CacheManagementConfigUtils.JCACHE_ADVISOR_BEAN_NAME)
-	@Role(BeanDefinition.ROLE_INFRASTRUCTURE)
-	public BeanFactoryJCacheOperationSourceAdvisor cacheAdvisor() {
-		BeanFactoryJCacheOperationSourceAdvisor advisor =
-				new BeanFactoryJCacheOperationSourceAdvisor();
-		advisor.setCacheOperationSource(cacheOperationSource());
-		advisor.setAdvice(cacheInterceptor());
-		if (this.enableCaching != null) {
-			advisor.setOrder(this.enableCaching.<Integer>getNumber("order"));
-		}
-		return advisor;
-	}
+    @Bean(name = CacheManagementConfigUtils.JCACHE_ADVISOR_BEAN_NAME)
+    @Role(BeanDefinition.ROLE_INFRASTRUCTURE)
+    public BeanFactoryJCacheOperationSourceAdvisor cacheAdvisor() {
+        BeanFactoryJCacheOperationSourceAdvisor advisor =
+                new BeanFactoryJCacheOperationSourceAdvisor();
+        advisor.setCacheOperationSource(cacheOperationSource());
+        advisor.setAdvice(cacheInterceptor());
+        if (this.enableCaching != null) {
+            advisor.setOrder(this.enableCaching.<Integer>getNumber("order"));
+        }
+        return advisor;
+    }
 
-	@Bean(name = "jCacheInterceptor")
-	@Role(BeanDefinition.ROLE_INFRASTRUCTURE)
-	public JCacheInterceptor cacheInterceptor() {
-		JCacheInterceptor interceptor = new JCacheInterceptor(this.errorHandler);
-		interceptor.setCacheOperationSource(cacheOperationSource());
-		return interceptor;
-	}
+    @Bean(name = "jCacheInterceptor")
+    @Role(BeanDefinition.ROLE_INFRASTRUCTURE)
+    public JCacheInterceptor cacheInterceptor() {
+        JCacheInterceptor interceptor = new JCacheInterceptor(this.errorHandler);
+        interceptor.setCacheOperationSource(cacheOperationSource());
+        return interceptor;
+    }
 
 }

@@ -42,83 +42,86 @@ import org.springframework.web.servlet.tags.HtmlEscapingAwareTag;
 @SuppressWarnings("serial")
 public abstract class AbstractFormTag extends HtmlEscapingAwareTag {
 
-	/**
-	 * Evaluate the supplied value for the supplied attribute name.
-	 * <p>The default implementation simply returns the given value as-is.
-	 */
-	@Nullable
-	protected Object evaluate(String attributeName, @Nullable Object value) throws JspException {
-		return value;
-	}
+    /**
+     * Evaluate the supplied value for the supplied attribute name.
+     * <p>The default implementation simply returns the given value as-is.
+     */
+    @Nullable
+    protected Object evaluate(String attributeName, @Nullable Object value) throws JspException {
+        return value;
+    }
 
-	/**
-	 * Optionally writes the supplied value under the supplied attribute name into the supplied
-	 * {@link TagWriter}. In this case, the supplied value is {@link #evaluate evaluated} first
-	 * and then the {@link ObjectUtils#getDisplayString String representation} is written as the
-	 * attribute value. If the resultant {@code String} representation is {@code null}
-	 * or empty, no attribute is written.
-	 * @see TagWriter#writeOptionalAttributeValue(String, String)
-	 */
-	protected final void writeOptionalAttribute(TagWriter tagWriter, String attributeName, @Nullable String value)
-			throws JspException {
+    /**
+     * Optionally writes the supplied value under the supplied attribute name into the supplied
+     * {@link TagWriter}. In this case, the supplied value is {@link #evaluate evaluated} first
+     * and then the {@link ObjectUtils#getDisplayString String representation} is written as the
+     * attribute value. If the resultant {@code String} representation is {@code null}
+     * or empty, no attribute is written.
+     *
+     * @see TagWriter#writeOptionalAttributeValue(String, String)
+     */
+    protected final void writeOptionalAttribute(TagWriter tagWriter, String attributeName, @Nullable String value)
+            throws JspException {
 
-		if (value != null) {
-			tagWriter.writeOptionalAttributeValue(attributeName, getDisplayString(evaluate(attributeName, value)));
-		}
-	}
+        if (value != null) {
+            tagWriter.writeOptionalAttributeValue(attributeName, getDisplayString(evaluate(attributeName, value)));
+        }
+    }
 
-	/**
-	 * Create the {@link TagWriter} which all output will be written to. By default,
-	 * the {@link TagWriter} writes its output to the {@link javax.servlet.jsp.JspWriter}
-	 * for the current {@link javax.servlet.jsp.PageContext}. Subclasses may choose to
-	 * change the {@link java.io.Writer} to which output is actually written.
-	 */
-	protected TagWriter createTagWriter() {
-		return new TagWriter(this.pageContext);
-	}
+    /**
+     * Create the {@link TagWriter} which all output will be written to. By default,
+     * the {@link TagWriter} writes its output to the {@link javax.servlet.jsp.JspWriter}
+     * for the current {@link javax.servlet.jsp.PageContext}. Subclasses may choose to
+     * change the {@link java.io.Writer} to which output is actually written.
+     */
+    protected TagWriter createTagWriter() {
+        return new TagWriter(this.pageContext);
+    }
 
-	/**
-	 * Provide a simple template method that calls {@link #createTagWriter()} and passes
-	 * the created {@link TagWriter} to the {@link #writeTagContent(TagWriter)} method.
-	 * @return the value returned by {@link #writeTagContent(TagWriter)}
-	 */
-	@Override
-	protected final int doStartTagInternal() throws Exception {
-		return writeTagContent(createTagWriter());
-	}
+    /**
+     * Provide a simple template method that calls {@link #createTagWriter()} and passes
+     * the created {@link TagWriter} to the {@link #writeTagContent(TagWriter)} method.
+     *
+     * @return the value returned by {@link #writeTagContent(TagWriter)}
+     */
+    @Override
+    protected final int doStartTagInternal() throws Exception {
+        return writeTagContent(createTagWriter());
+    }
 
-	/**
-	 * Get the display value of the supplied {@code Object}, HTML escaped
-	 * as required. This version is <strong>not</strong> {@link PropertyEditor}-aware.
-	 */
-	protected String getDisplayString(@Nullable Object value) {
-		return ValueFormatter.getDisplayString(value, isHtmlEscape());
-	}
+    /**
+     * Get the display value of the supplied {@code Object}, HTML escaped
+     * as required. This version is <strong>not</strong> {@link PropertyEditor}-aware.
+     */
+    protected String getDisplayString(@Nullable Object value) {
+        return ValueFormatter.getDisplayString(value, isHtmlEscape());
+    }
 
-	/**
-	 * Get the display value of the supplied {@code Object}, HTML escaped
-	 * as required. If the supplied value is not a {@link String} and the supplied
-	 * {@link PropertyEditor} is not null then the {@link PropertyEditor} is used
-	 * to obtain the display value.
-	 */
-	protected String getDisplayString(@Nullable Object value, @Nullable PropertyEditor propertyEditor) {
-		return ValueFormatter.getDisplayString(value, propertyEditor, isHtmlEscape());
-	}
+    /**
+     * Get the display value of the supplied {@code Object}, HTML escaped
+     * as required. If the supplied value is not a {@link String} and the supplied
+     * {@link PropertyEditor} is not null then the {@link PropertyEditor} is used
+     * to obtain the display value.
+     */
+    protected String getDisplayString(@Nullable Object value, @Nullable PropertyEditor propertyEditor) {
+        return ValueFormatter.getDisplayString(value, propertyEditor, isHtmlEscape());
+    }
 
-	/**
-	 * Overridden to default to {@code true} in case of no explicit default given.
-	 */
-	@Override
-	protected boolean isDefaultHtmlEscape() {
-		Boolean defaultHtmlEscape = getRequestContext().getDefaultHtmlEscape();
-		return (defaultHtmlEscape == null || defaultHtmlEscape.booleanValue());
-	}
+    /**
+     * Overridden to default to {@code true} in case of no explicit default given.
+     */
+    @Override
+    protected boolean isDefaultHtmlEscape() {
+        Boolean defaultHtmlEscape = getRequestContext().getDefaultHtmlEscape();
+        return (defaultHtmlEscape == null || defaultHtmlEscape.booleanValue());
+    }
 
 
-	/**
-	 * Subclasses should implement this method to perform tag content rendering.
-	 * @return valid tag render instruction as per {@link javax.servlet.jsp.tagext.Tag#doStartTag()}.
-	 */
-	protected abstract int writeTagContent(TagWriter tagWriter) throws JspException;
+    /**
+     * Subclasses should implement this method to perform tag content rendering.
+     *
+     * @return valid tag render instruction as per {@link javax.servlet.jsp.tagext.Tag#doStartTag()}.
+     */
+    protected abstract int writeTagContent(TagWriter tagWriter) throws JspException;
 
 }

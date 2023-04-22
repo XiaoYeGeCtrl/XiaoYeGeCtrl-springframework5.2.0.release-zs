@@ -43,60 +43,61 @@ import static org.assertj.core.api.Assertions.assertThatIOException;
  */
 public class FreeMarkerConfigurerTests {
 
-	private final FreeMarkerConfigurer freeMarkerConfigurer = new FreeMarkerConfigurer();
+    private final FreeMarkerConfigurer freeMarkerConfigurer = new FreeMarkerConfigurer();
 
-	@Test
-	public void freeMarkerConfigurerDefaultEncoding() throws Exception {
-		freeMarkerConfigurer.afterPropertiesSet();
-		Configuration cfg = freeMarkerConfigurer.getConfiguration();
-		assertThat(cfg.getDefaultEncoding()).isEqualTo("UTF-8");
-	}
+    @Test
+    public void freeMarkerConfigurerDefaultEncoding() throws Exception {
+        freeMarkerConfigurer.afterPropertiesSet();
+        Configuration cfg = freeMarkerConfigurer.getConfiguration();
+        assertThat(cfg.getDefaultEncoding()).isEqualTo("UTF-8");
+    }
 
-	@Test
-	public void freeMarkerConfigurerWithConfigLocation() {
-		freeMarkerConfigurer.setConfigLocation(new FileSystemResource("myprops.properties"));
-		Properties props = new Properties();
-		props.setProperty("myprop", "/mydir");
-		freeMarkerConfigurer.setFreemarkerSettings(props);
-		assertThatIOException().isThrownBy(freeMarkerConfigurer::afterPropertiesSet);
-	}
+    @Test
+    public void freeMarkerConfigurerWithConfigLocation() {
+        freeMarkerConfigurer.setConfigLocation(new FileSystemResource("myprops.properties"));
+        Properties props = new Properties();
+        props.setProperty("myprop", "/mydir");
+        freeMarkerConfigurer.setFreemarkerSettings(props);
+        assertThatIOException().isThrownBy(freeMarkerConfigurer::afterPropertiesSet);
+    }
 
-	@Test
-	public void freeMarkerConfigurerWithResourceLoaderPath() throws Exception {
-		freeMarkerConfigurer.setTemplateLoaderPath("file:/mydir");
-		freeMarkerConfigurer.afterPropertiesSet();
-		Configuration cfg = freeMarkerConfigurer.getConfiguration();
-		assertThat(cfg.getTemplateLoader()).isInstanceOf(MultiTemplateLoader.class);
-		MultiTemplateLoader multiTemplateLoader = (MultiTemplateLoader)cfg.getTemplateLoader();
-		assertThat(multiTemplateLoader.getTemplateLoader(0)).isInstanceOf(SpringTemplateLoader.class);
-		assertThat(multiTemplateLoader.getTemplateLoader(1)).isInstanceOf(ClassTemplateLoader.class);
-	}
+    @Test
+    public void freeMarkerConfigurerWithResourceLoaderPath() throws Exception {
+        freeMarkerConfigurer.setTemplateLoaderPath("file:/mydir");
+        freeMarkerConfigurer.afterPropertiesSet();
+        Configuration cfg = freeMarkerConfigurer.getConfiguration();
+        assertThat(cfg.getTemplateLoader()).isInstanceOf(MultiTemplateLoader.class);
+        MultiTemplateLoader multiTemplateLoader = (MultiTemplateLoader) cfg.getTemplateLoader();
+        assertThat(multiTemplateLoader.getTemplateLoader(0)).isInstanceOf(SpringTemplateLoader.class);
+        assertThat(multiTemplateLoader.getTemplateLoader(1)).isInstanceOf(ClassTemplateLoader.class);
+    }
 
-	@Test
-	@SuppressWarnings("rawtypes")
-	public void freeMarkerConfigurerWithNonFileResourceLoaderPath() throws Exception {
-		freeMarkerConfigurer.setTemplateLoaderPath("file:/mydir");
-		Properties settings = new Properties();
-		settings.setProperty("localized_lookup", "false");
-		freeMarkerConfigurer.setFreemarkerSettings(settings);
-		freeMarkerConfigurer.setResourceLoader(new ResourceLoader() {
-			@Override
-			public Resource getResource(String location) {
-				if (!("file:/mydir".equals(location) || "file:/mydir/test".equals(location))) {
-					throw new IllegalArgumentException(location);
-				}
-				return new ByteArrayResource("test".getBytes(), "test");
-			}
-			@Override
-			public ClassLoader getClassLoader() {
-				return getClass().getClassLoader();
-			}
-		});
-		freeMarkerConfigurer.afterPropertiesSet();
-		assertThat(freeMarkerConfigurer.getConfiguration()).isInstanceOf(Configuration.class);
-		Configuration fc = freeMarkerConfigurer.getConfiguration();
-		Template ft = fc.getTemplate("test");
-		assertThat(FreeMarkerTemplateUtils.processTemplateIntoString(ft, new HashMap())).isEqualTo("test");
-	}
+    @Test
+    @SuppressWarnings("rawtypes")
+    public void freeMarkerConfigurerWithNonFileResourceLoaderPath() throws Exception {
+        freeMarkerConfigurer.setTemplateLoaderPath("file:/mydir");
+        Properties settings = new Properties();
+        settings.setProperty("localized_lookup", "false");
+        freeMarkerConfigurer.setFreemarkerSettings(settings);
+        freeMarkerConfigurer.setResourceLoader(new ResourceLoader() {
+            @Override
+            public Resource getResource(String location) {
+                if (!("file:/mydir".equals(location) || "file:/mydir/test".equals(location))) {
+                    throw new IllegalArgumentException(location);
+                }
+                return new ByteArrayResource("test".getBytes(), "test");
+            }
+
+            @Override
+            public ClassLoader getClassLoader() {
+                return getClass().getClassLoader();
+            }
+        });
+        freeMarkerConfigurer.afterPropertiesSet();
+        assertThat(freeMarkerConfigurer.getConfiguration()).isInstanceOf(Configuration.class);
+        Configuration fc = freeMarkerConfigurer.getConfiguration();
+        Template ft = fc.getTemplate("test");
+        assertThat(FreeMarkerTemplateUtils.processTemplateIntoString(ft, new HashMap())).isEqualTo("test");
+    }
 
 }

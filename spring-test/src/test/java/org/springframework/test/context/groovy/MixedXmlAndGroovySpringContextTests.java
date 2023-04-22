@@ -36,32 +36,32 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @since 4.1
  */
 @ExtendWith(SpringExtension.class)
-@ContextConfiguration({ "contextA.groovy", "contextB.xml" })
+@ContextConfiguration({"contextA.groovy", "contextB.xml"})
 class MixedXmlAndGroovySpringContextTests {
 
-	@Autowired
-	Employee employee;
+    @Autowired
+    Employee employee;
 
-	@Autowired
-	Pet pet;
+    @Autowired
+    Pet pet;
 
-	@Autowired
-	String foo;
+    @Autowired
+    String foo;
 
-	@Autowired
-	String bar;
+    @Autowired
+    String bar;
 
 
-	@Test
-	void verifyAnnotationAutowiredFields() {
-		assertThat(this.employee).as("The employee field should have been autowired.").isNotNull();
-		assertThat(this.employee.getName()).isEqualTo("Dilbert");
+    @Test
+    void verifyAnnotationAutowiredFields() {
+        assertThat(this.employee).as("The employee field should have been autowired.").isNotNull();
+        assertThat(this.employee.getName()).isEqualTo("Dilbert");
 
-		assertThat(this.pet).as("The pet field should have been autowired.").isNotNull();
-		assertThat(this.pet.getName()).isEqualTo("Dogbert");
+        assertThat(this.pet).as("The pet field should have been autowired.").isNotNull();
+        assertThat(this.pet.getName()).isEqualTo("Dogbert");
 
-		assertThat(this.foo).as("The foo field should have been autowired.").isEqualTo("Groovy Foo");
-		assertThat(this.bar).as("The bar field should have been autowired.").isEqualTo("XML Bar");
-	}
+        assertThat(this.foo).as("The foo field should have been autowired.").isEqualTo("Groovy Foo");
+        assertThat(this.bar).as("The bar field should have been autowired.").isEqualTo("XML Bar");
+    }
 
 }

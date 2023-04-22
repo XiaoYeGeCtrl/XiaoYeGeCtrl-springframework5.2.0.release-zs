@@ -27,39 +27,39 @@ import org.springframework.lang.Nullable;
  * See the {@link DateTimeFormatterFactory base class} for configuration details.
  *
  * @author Juergen Hoeller
- * @since 4.0
  * @see #setPattern
  * @see #setIso
  * @see #setDateStyle
  * @see #setTimeStyle
  * @see DateTimeFormatterFactory
+ * @since 4.0
  */
 public class DateTimeFormatterFactoryBean extends DateTimeFormatterFactory
-		implements FactoryBean<DateTimeFormatter>, InitializingBean {
+        implements FactoryBean<DateTimeFormatter>, InitializingBean {
 
-	@Nullable
-	private DateTimeFormatter dateTimeFormatter;
+    @Nullable
+    private DateTimeFormatter dateTimeFormatter;
 
 
-	@Override
-	public void afterPropertiesSet() {
-		this.dateTimeFormatter = createDateTimeFormatter();
-	}
+    @Override
+    public void afterPropertiesSet() {
+        this.dateTimeFormatter = createDateTimeFormatter();
+    }
 
-	@Override
-	@Nullable
-	public DateTimeFormatter getObject() {
-		return this.dateTimeFormatter;
-	}
+    @Override
+    @Nullable
+    public DateTimeFormatter getObject() {
+        return this.dateTimeFormatter;
+    }
 
-	@Override
-	public Class<?> getObjectType() {
-		return DateTimeFormatter.class;
-	}
+    @Override
+    public Class<?> getObjectType() {
+        return DateTimeFormatter.class;
+    }
 
-	@Override
-	public boolean isSingleton() {
-		return true;
-	}
+    @Override
+    public boolean isSingleton() {
+        return true;
+    }
 
 }

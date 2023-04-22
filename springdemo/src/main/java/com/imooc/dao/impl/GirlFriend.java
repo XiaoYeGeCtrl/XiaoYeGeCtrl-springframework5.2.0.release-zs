@@ -6,6 +6,6 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public class GirlFriend {
-	@Autowired
-	private BoyFriend boyFriend;
+    @Autowired
+    private BoyFriend boyFriend;
 }

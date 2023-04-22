@@ -33,182 +33,182 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 public class ThisAndTargetSelectionOnlyPointcutsAtAspectJTests {
 
-	private TestInterface testBean;
+    private TestInterface testBean;
 
-	private TestInterface testAnnotatedClassBean;
+    private TestInterface testAnnotatedClassBean;
 
-	private TestInterface testAnnotatedMethodBean;
+    private TestInterface testAnnotatedMethodBean;
 
-	private Counter counter;
-
-
-	@org.junit.jupiter.api.BeforeEach
-	public void setup() {
-		ClassPathXmlApplicationContext ctx =
-				new ClassPathXmlApplicationContext(getClass().getSimpleName() + ".xml", getClass());
-		testBean = (TestInterface) ctx.getBean("testBean");
-		testAnnotatedClassBean = (TestInterface) ctx.getBean("testAnnotatedClassBean");
-		testAnnotatedMethodBean = (TestInterface) ctx.getBean("testAnnotatedMethodBean");
-		counter = (Counter) ctx.getBean("counter");
-		counter.reset();
-	}
+    private Counter counter;
 
 
-	@Test
-	public void thisAsClassDoesNotMatch() {
-		testBean.doIt();
-		assertThat(counter.thisAsClassCounter).isEqualTo(0);
-	}
-
-	@Test
-	public void thisAsInterfaceMatch() {
-		testBean.doIt();
-		assertThat(counter.thisAsInterfaceCounter).isEqualTo(1);
-	}
-
-	@Test
-	public void targetAsClassDoesMatch() {
-		testBean.doIt();
-		assertThat(counter.targetAsClassCounter).isEqualTo(1);
-	}
-
-	@Test
-	public void targetAsInterfaceMatch() {
-		testBean.doIt();
-		assertThat(counter.targetAsInterfaceCounter).isEqualTo(1);
-	}
-
-	@Test
-	public void thisAsClassAndTargetAsClassCounterNotMatch() {
-		testBean.doIt();
-		assertThat(counter.thisAsClassAndTargetAsClassCounter).isEqualTo(0);
-	}
-
-	@Test
-	public void thisAsInterfaceAndTargetAsInterfaceCounterMatch() {
-		testBean.doIt();
-		assertThat(counter.thisAsInterfaceAndTargetAsInterfaceCounter).isEqualTo(1);
-	}
-
-	@Test
-	public void thisAsInterfaceAndTargetAsClassCounterMatch() {
-		testBean.doIt();
-		assertThat(counter.thisAsInterfaceAndTargetAsInterfaceCounter).isEqualTo(1);
-	}
+    @org.junit.jupiter.api.BeforeEach
+    public void setup() {
+        ClassPathXmlApplicationContext ctx =
+                new ClassPathXmlApplicationContext(getClass().getSimpleName() + ".xml", getClass());
+        testBean = (TestInterface) ctx.getBean("testBean");
+        testAnnotatedClassBean = (TestInterface) ctx.getBean("testAnnotatedClassBean");
+        testAnnotatedMethodBean = (TestInterface) ctx.getBean("testAnnotatedMethodBean");
+        counter = (Counter) ctx.getBean("counter");
+        counter.reset();
+    }
 
 
-	@Test
-	public void atTargetClassAnnotationMatch() {
-		testAnnotatedClassBean.doIt();
-		assertThat(counter.atTargetClassAnnotationCounter).isEqualTo(1);
-	}
+    @Test
+    public void thisAsClassDoesNotMatch() {
+        testBean.doIt();
+        assertThat(counter.thisAsClassCounter).isEqualTo(0);
+    }
 
-	@Test
-	public void atAnnotationMethodAnnotationMatch() {
-		testAnnotatedMethodBean.doIt();
-		assertThat(counter.atAnnotationMethodAnnotationCounter).isEqualTo(1);
-	}
+    @Test
+    public void thisAsInterfaceMatch() {
+        testBean.doIt();
+        assertThat(counter.thisAsInterfaceCounter).isEqualTo(1);
+    }
 
-	public static interface TestInterface {
-		public void doIt();
-	}
+    @Test
+    public void targetAsClassDoesMatch() {
+        testBean.doIt();
+        assertThat(counter.targetAsClassCounter).isEqualTo(1);
+    }
 
-	public static class TestImpl implements TestInterface {
-		@Override
-		public void doIt() {
-		}
-	}
+    @Test
+    public void targetAsInterfaceMatch() {
+        testBean.doIt();
+        assertThat(counter.targetAsInterfaceCounter).isEqualTo(1);
+    }
 
-	@Retention(RetentionPolicy.RUNTIME)
-	public static @interface TestAnnotation {
+    @Test
+    public void thisAsClassAndTargetAsClassCounterNotMatch() {
+        testBean.doIt();
+        assertThat(counter.thisAsClassAndTargetAsClassCounter).isEqualTo(0);
+    }
 
-	}
+    @Test
+    public void thisAsInterfaceAndTargetAsInterfaceCounterMatch() {
+        testBean.doIt();
+        assertThat(counter.thisAsInterfaceAndTargetAsInterfaceCounter).isEqualTo(1);
+    }
 
-	@TestAnnotation
-	public static class AnnotatedClassTestImpl implements TestInterface {
-		@Override
-		public void doIt() {
-		}
-	}
+    @Test
+    public void thisAsInterfaceAndTargetAsClassCounterMatch() {
+        testBean.doIt();
+        assertThat(counter.thisAsInterfaceAndTargetAsInterfaceCounter).isEqualTo(1);
+    }
 
-	public static class AnnotatedMethodTestImpl implements TestInterface {
-		@Override
-		@TestAnnotation
-		public void doIt() {
-		}
-	}
 
-	@Aspect
-	public static class Counter {
-		int thisAsClassCounter;
-		int thisAsInterfaceCounter;
-		int targetAsClassCounter;
-		int targetAsInterfaceCounter;
-		int thisAsClassAndTargetAsClassCounter;
-		int thisAsInterfaceAndTargetAsInterfaceCounter;
-		int thisAsInterfaceAndTargetAsClassCounter;
-		int atTargetClassAnnotationCounter;
-		int atAnnotationMethodAnnotationCounter;
+    @Test
+    public void atTargetClassAnnotationMatch() {
+        testAnnotatedClassBean.doIt();
+        assertThat(counter.atTargetClassAnnotationCounter).isEqualTo(1);
+    }
 
-		public void reset() {
-			thisAsClassCounter = 0;
-			thisAsInterfaceCounter = 0;
-			targetAsClassCounter = 0;
-			targetAsInterfaceCounter = 0;
-			thisAsClassAndTargetAsClassCounter = 0;
-			thisAsInterfaceAndTargetAsInterfaceCounter = 0;
-			thisAsInterfaceAndTargetAsClassCounter = 0;
-			atTargetClassAnnotationCounter = 0;
-			atAnnotationMethodAnnotationCounter = 0;
-		}
+    @Test
+    public void atAnnotationMethodAnnotationMatch() {
+        testAnnotatedMethodBean.doIt();
+        assertThat(counter.atAnnotationMethodAnnotationCounter).isEqualTo(1);
+    }
 
-		@Before("this(org.springframework.aop.aspectj.ThisAndTargetSelectionOnlyPointcutsAtAspectJTests.TestImpl)")
-		public void incrementThisAsClassCounter() {
-			thisAsClassCounter++;
-		}
+    public static interface TestInterface {
+        public void doIt();
+    }
 
-		@Before("this(org.springframework.aop.aspectj.ThisAndTargetSelectionOnlyPointcutsAtAspectJTests.TestInterface)")
-		public void incrementThisAsInterfaceCounter() {
-			thisAsInterfaceCounter++;
-		}
+    @Retention(RetentionPolicy.RUNTIME)
+    public static @interface TestAnnotation {
 
-		@Before("target(org.springframework.aop.aspectj.ThisAndTargetSelectionOnlyPointcutsAtAspectJTests.TestImpl)")
-		public void incrementTargetAsClassCounter() {
-			targetAsClassCounter++;
-		}
+    }
 
-		@Before("target(org.springframework.aop.aspectj.ThisAndTargetSelectionOnlyPointcutsAtAspectJTests.TestInterface)")
-		public void incrementTargetAsInterfaceCounter() {
-			targetAsInterfaceCounter++;
-		}
+    public static class TestImpl implements TestInterface {
+        @Override
+        public void doIt() {
+        }
+    }
 
-		@Before("this(org.springframework.aop.aspectj.ThisAndTargetSelectionOnlyPointcutsAtAspectJTests.TestImpl) " +
-				"&& target(org.springframework.aop.aspectj.ThisAndTargetSelectionOnlyPointcutsAtAspectJTests.TestImpl)")
-		public void incrementThisAsClassAndTargetAsClassCounter() {
-			thisAsClassAndTargetAsClassCounter++;
-		}
+    @TestAnnotation
+    public static class AnnotatedClassTestImpl implements TestInterface {
+        @Override
+        public void doIt() {
+        }
+    }
 
-		@Before("this(org.springframework.aop.aspectj.ThisAndTargetSelectionOnlyPointcutsAtAspectJTests.TestInterface) " +
-				"&& target(org.springframework.aop.aspectj.ThisAndTargetSelectionOnlyPointcutsAtAspectJTests.TestInterface)")
-		public void incrementThisAsInterfaceAndTargetAsInterfaceCounter() {
-			thisAsInterfaceAndTargetAsInterfaceCounter++;
-		}
+    public static class AnnotatedMethodTestImpl implements TestInterface {
+        @Override
+        @TestAnnotation
+        public void doIt() {
+        }
+    }
 
-		@Before("this(org.springframework.aop.aspectj.ThisAndTargetSelectionOnlyPointcutsAtAspectJTests.TestInterface) " +
-				"&& target(org.springframework.aop.aspectj.ThisAndTargetSelectionOnlyPointcutsAtAspectJTests.TestImpl)")
-		public void incrementThisAsInterfaceAndTargetAsClassCounter() {
-			thisAsInterfaceAndTargetAsClassCounter++;
-		}
+    @Aspect
+    public static class Counter {
+        int thisAsClassCounter;
+        int thisAsInterfaceCounter;
+        int targetAsClassCounter;
+        int targetAsInterfaceCounter;
+        int thisAsClassAndTargetAsClassCounter;
+        int thisAsInterfaceAndTargetAsInterfaceCounter;
+        int thisAsInterfaceAndTargetAsClassCounter;
+        int atTargetClassAnnotationCounter;
+        int atAnnotationMethodAnnotationCounter;
 
-		@Before("@target(org.springframework.aop.aspectj.ThisAndTargetSelectionOnlyPointcutsAtAspectJTests.TestAnnotation)")
-		public void incrementAtTargetClassAnnotationCounter() {
-			atTargetClassAnnotationCounter++;
-		}
+        public void reset() {
+            thisAsClassCounter = 0;
+            thisAsInterfaceCounter = 0;
+            targetAsClassCounter = 0;
+            targetAsInterfaceCounter = 0;
+            thisAsClassAndTargetAsClassCounter = 0;
+            thisAsInterfaceAndTargetAsInterfaceCounter = 0;
+            thisAsInterfaceAndTargetAsClassCounter = 0;
+            atTargetClassAnnotationCounter = 0;
+            atAnnotationMethodAnnotationCounter = 0;
+        }
 
-		@Before("@annotation(org.springframework.aop.aspectj.ThisAndTargetSelectionOnlyPointcutsAtAspectJTests.TestAnnotation)")
-		public void incrementAtAnnotationMethodAnnotationCounter() {
-			atAnnotationMethodAnnotationCounter++;
-		}
+        @Before("this(org.springframework.aop.aspectj.ThisAndTargetSelectionOnlyPointcutsAtAspectJTests.TestImpl)")
+        public void incrementThisAsClassCounter() {
+            thisAsClassCounter++;
+        }
 
-	}
+        @Before("this(org.springframework.aop.aspectj.ThisAndTargetSelectionOnlyPointcutsAtAspectJTests.TestInterface)")
+        public void incrementThisAsInterfaceCounter() {
+            thisAsInterfaceCounter++;
+        }
+
+        @Before("target(org.springframework.aop.aspectj.ThisAndTargetSelectionOnlyPointcutsAtAspectJTests.TestImpl)")
+        public void incrementTargetAsClassCounter() {
+            targetAsClassCounter++;
+        }
+
+        @Before("target(org.springframework.aop.aspectj.ThisAndTargetSelectionOnlyPointcutsAtAspectJTests.TestInterface)")
+        public void incrementTargetAsInterfaceCounter() {
+            targetAsInterfaceCounter++;
+        }
+
+        @Before("this(org.springframework.aop.aspectj.ThisAndTargetSelectionOnlyPointcutsAtAspectJTests.TestImpl) " +
+                "&& target(org.springframework.aop.aspectj.ThisAndTargetSelectionOnlyPointcutsAtAspectJTests.TestImpl)")
+        public void incrementThisAsClassAndTargetAsClassCounter() {
+            thisAsClassAndTargetAsClassCounter++;
+        }
+
+        @Before("this(org.springframework.aop.aspectj.ThisAndTargetSelectionOnlyPointcutsAtAspectJTests.TestInterface) " +
+                "&& target(org.springframework.aop.aspectj.ThisAndTargetSelectionOnlyPointcutsAtAspectJTests.TestInterface)")
+        public void incrementThisAsInterfaceAndTargetAsInterfaceCounter() {
+            thisAsInterfaceAndTargetAsInterfaceCounter++;
+        }
+
+        @Before("this(org.springframework.aop.aspectj.ThisAndTargetSelectionOnlyPointcutsAtAspectJTests.TestInterface) " +
+                "&& target(org.springframework.aop.aspectj.ThisAndTargetSelectionOnlyPointcutsAtAspectJTests.TestImpl)")
+        public void incrementThisAsInterfaceAndTargetAsClassCounter() {
+            thisAsInterfaceAndTargetAsClassCounter++;
+        }
+
+        @Before("@target(org.springframework.aop.aspectj.ThisAndTargetSelectionOnlyPointcutsAtAspectJTests.TestAnnotation)")
+        public void incrementAtTargetClassAnnotationCounter() {
+            atTargetClassAnnotationCounter++;
+        }
+
+        @Before("@annotation(org.springframework.aop.aspectj.ThisAndTargetSelectionOnlyPointcutsAtAspectJTests.TestAnnotation)")
+        public void incrementAtAnnotationMethodAnnotationCounter() {
+            atAnnotationMethodAnnotationCounter++;
+        }
+
+    }
 }

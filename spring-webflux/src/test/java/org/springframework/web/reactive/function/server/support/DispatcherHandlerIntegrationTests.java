@@ -43,56 +43,56 @@ import static org.springframework.web.reactive.function.server.RouterFunctions.r
  */
 class DispatcherHandlerIntegrationTests extends AbstractHttpHandlerIntegrationTests {
 
-	private final RestTemplate restTemplate = new RestTemplate();
+    private final RestTemplate restTemplate = new RestTemplate();
 
 
-	@Override
-	protected HttpHandler createHttpHandler() {
-		AnnotationConfigApplicationContext wac = new AnnotationConfigApplicationContext();
-		wac.register(TestConfiguration.class);
-		wac.refresh();
+    @Override
+    protected HttpHandler createHttpHandler() {
+        AnnotationConfigApplicationContext wac = new AnnotationConfigApplicationContext();
+        wac.register(TestConfiguration.class);
+        wac.refresh();
 
-		return WebHttpHandlerBuilder.webHandler(new DispatcherHandler(wac)).build();
-	}
-
-
-	@ParameterizedHttpServerTest
-	void nested(HttpServer httpServer) throws Exception {
-		startServer(httpServer);
-
-		ResponseEntity<String> result = this.restTemplate
-				.getForEntity("http://localhost:" + this.port + "/foo/bar", String.class);
-
-		assertThat(result.getStatusCodeValue()).isEqualTo(200);
-	}
+        return WebHttpHandlerBuilder.webHandler(new DispatcherHandler(wac)).build();
+    }
 
 
-	@Configuration
-	@EnableWebFlux
-	static class TestConfiguration {
+    @ParameterizedHttpServerTest
+    void nested(HttpServer httpServer) throws Exception {
+        startServer(httpServer);
 
-		@Bean
-		public RouterFunction<ServerResponse> router(Handler handler) {
-			return route()
-					.path("/foo", () -> route()
-							.nest(accept(MediaType.APPLICATION_JSON), builder -> builder
-									.GET("/bar", handler::handle))
-							.build())
-					.build();
-		}
+        ResponseEntity<String> result = this.restTemplate
+                .getForEntity("http://localhost:" + this.port + "/foo/bar", String.class);
 
-		@Bean
-		public Handler handler() {
-			return new Handler();
-		}
-	}
+        assertThat(result.getStatusCodeValue()).isEqualTo(200);
+    }
 
 
-	static class Handler {
+    @Configuration
+    @EnableWebFlux
+    static class TestConfiguration {
 
-		public Mono<ServerResponse> handle(ServerRequest request) {
-			return ServerResponse.ok().build();
-		}
-	}
+        @Bean
+        public RouterFunction<ServerResponse> router(Handler handler) {
+            return route()
+                    .path("/foo", () -> route()
+                            .nest(accept(MediaType.APPLICATION_JSON), builder -> builder
+                                    .GET("/bar", handler::handle))
+                            .build())
+                    .build();
+        }
+
+        @Bean
+        public Handler handler() {
+            return new Handler();
+        }
+    }
+
+
+    static class Handler {
+
+        public Mono<ServerResponse> handle(ServerRequest request) {
+            return ServerResponse.ok().build();
+        }
+    }
 
 }

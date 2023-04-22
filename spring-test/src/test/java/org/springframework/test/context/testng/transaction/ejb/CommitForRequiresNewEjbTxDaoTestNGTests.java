@@ -37,6 +37,6 @@ import org.springframework.test.context.transaction.ejb.dao.RequiresNewEjbTxTest
 @Commit
 public class CommitForRequiresNewEjbTxDaoTestNGTests extends AbstractEjbTxDaoTestNGTests {
 
-	/* test methods in superclass */
+    /* test methods in superclass */
 
 }

@@ -36,42 +36,42 @@ import org.springframework.lang.Nullable;
  *
  * @author Costin Leau
  * @author Stephane Nicoll
- * @since 3.1
  * @see CompositeCacheManager
+ * @since 3.1
  */
 public class NoOpCacheManager implements CacheManager {
 
-	private final ConcurrentMap<String, Cache> caches = new ConcurrentHashMap<>(16);
+    private final ConcurrentMap<String, Cache> caches = new ConcurrentHashMap<>(16);
 
-	private final Set<String> cacheNames = new LinkedHashSet<>(16);
+    private final Set<String> cacheNames = new LinkedHashSet<>(16);
 
 
-	/**
-	 * This implementation always returns a {@link Cache} implementation that will not store items.
-	 * Additionally, the request cache will be remembered by the manager for consistency.
-	 */
-	@Override
-	@Nullable
-	public Cache getCache(String name) {
-		Cache cache = this.caches.get(name);
-		if (cache == null) {
-			this.caches.computeIfAbsent(name, key -> new NoOpCache(name));
-			synchronized (this.cacheNames) {
-				this.cacheNames.add(name);
-			}
-		}
+    /**
+     * This implementation always returns a {@link Cache} implementation that will not store items.
+     * Additionally, the request cache will be remembered by the manager for consistency.
+     */
+    @Override
+    @Nullable
+    public Cache getCache(String name) {
+        Cache cache = this.caches.get(name);
+        if (cache == null) {
+            this.caches.computeIfAbsent(name, key -> new NoOpCache(name));
+            synchronized (this.cacheNames) {
+                this.cacheNames.add(name);
+            }
+        }
 
-		return this.caches.get(name);
-	}
+        return this.caches.get(name);
+    }
 
-	/**
-	 * This implementation returns the name of the caches previously requested.
-	 */
-	@Override
-	public Collection<String> getCacheNames() {
-		synchronized (this.cacheNames) {
-			return Collections.unmodifiableSet(this.cacheNames);
-		}
-	}
+    /**
+     * This implementation returns the name of the caches previously requested.
+     */
+    @Override
+    public Collection<String> getCacheNames() {
+        synchronized (this.cacheNames) {
+            return Collections.unmodifiableSet(this.cacheNames);
+        }
+    }
 
 }

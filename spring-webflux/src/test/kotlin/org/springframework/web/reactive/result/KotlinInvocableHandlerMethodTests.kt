@@ -38,115 +38,115 @@ import kotlin.reflect.jvm.javaMethod
 
 class KotlinInvocableHandlerMethodTests {
 
-	private val exchange = MockServerWebExchange.from(get("http://localhost:8080/path"))
+    private val exchange = MockServerWebExchange.from(get("http://localhost:8080/path"))
 
-	private val resolvers = mutableListOf<HandlerMethodArgumentResolver>(ContinuationHandlerMethodArgumentResolver())
+    private val resolvers = mutableListOf<HandlerMethodArgumentResolver>(ContinuationHandlerMethodArgumentResolver())
 
-	@Test
-	fun resolveNoArg() {
-		this.resolvers.add(stubResolver(Mono.empty()))
-		val method = CoroutinesController::singleArg.javaMethod!!
-		val result = invoke(CoroutinesController(), method, null)
-		assertHandlerResultValue(result, "success:null")
-	}
+    @Test
+    fun resolveNoArg() {
+        this.resolvers.add(stubResolver(Mono.empty()))
+        val method = CoroutinesController::singleArg.javaMethod!!
+        val result = invoke(CoroutinesController(), method, null)
+        assertHandlerResultValue(result, "success:null")
+    }
 
-	@Test
-	fun resolveArg() {
-		this.resolvers.add(stubResolver("foo"))
-		val method = CoroutinesController::singleArg.javaMethod!!
-		val result = invoke(CoroutinesController(), method,"foo")
-		assertHandlerResultValue(result, "success:foo")
-	}
+    @Test
+    fun resolveArg() {
+        this.resolvers.add(stubResolver("foo"))
+        val method = CoroutinesController::singleArg.javaMethod!!
+        val result = invoke(CoroutinesController(), method, "foo")
+        assertHandlerResultValue(result, "success:foo")
+    }
 
-	@Test
-	fun resolveNoArgs() {
-		val method = CoroutinesController::noArgs.javaMethod!!
-		val result = invoke(CoroutinesController(), method)
-		assertHandlerResultValue(result, "success")
-	}
+    @Test
+    fun resolveNoArgs() {
+        val method = CoroutinesController::noArgs.javaMethod!!
+        val result = invoke(CoroutinesController(), method)
+        assertHandlerResultValue(result, "success")
+    }
 
-	@Test
-	fun invocationTargetException() {
-		val method = CoroutinesController::exceptionMethod.javaMethod!!
-		val result = invoke(CoroutinesController(), method)
+    @Test
+    fun invocationTargetException() {
+        val method = CoroutinesController::exceptionMethod.javaMethod!!
+        val result = invoke(CoroutinesController(), method)
 
-		StepVerifier.create(result)
-				.consumeNextWith { StepVerifier.create(it.returnValue as Mono<*>).expectError(IllegalStateException::class.java).verify() }
-				.verifyComplete()
-	}
+        StepVerifier.create(result)
+                .consumeNextWith { StepVerifier.create(it.returnValue as Mono<*>).expectError(IllegalStateException::class.java).verify() }
+                .verifyComplete()
+    }
 
-	@Test
-	fun responseStatusAnnotation() {
-		val method = CoroutinesController::created.javaMethod!!
-		val result = invoke(CoroutinesController(), method)
+    @Test
+    fun responseStatusAnnotation() {
+        val method = CoroutinesController::created.javaMethod!!
+        val result = invoke(CoroutinesController(), method)
 
-		assertHandlerResultValue(result, "created")
-		assertThat(this.exchange.response.statusCode).isSameAs(HttpStatus.CREATED)
-	}
+        assertHandlerResultValue(result, "created")
+        assertThat(this.exchange.response.statusCode).isSameAs(HttpStatus.CREATED)
+    }
 
-	@Test
-	fun voidMethodWithResponseArg() {
-		val response = this.exchange.response
-		this.resolvers.add(stubResolver(response))
-		val method = CoroutinesController::response.javaMethod!!
-		val result = invoke(CoroutinesController(), method)
+    @Test
+    fun voidMethodWithResponseArg() {
+        val response = this.exchange.response
+        this.resolvers.add(stubResolver(response))
+        val method = CoroutinesController::response.javaMethod!!
+        val result = invoke(CoroutinesController(), method)
 
-		StepVerifier.create(result)
-				.consumeNextWith { StepVerifier.create(it.returnValue as Mono<*>).verifyComplete() }
-				.verifyComplete()
-		assertThat(this.exchange.response.headers.getFirst("foo")).isEqualTo("bar")
-	}
+        StepVerifier.create(result)
+                .consumeNextWith { StepVerifier.create(it.returnValue as Mono<*>).verifyComplete() }
+                .verifyComplete()
+        assertThat(this.exchange.response.headers.getFirst("foo")).isEqualTo("bar")
+    }
 
-	private fun invoke(handler: Any, method: Method, vararg providedArgs: Any?): Mono<HandlerResult> {
-		val invocable = InvocableHandlerMethod(handler, method)
-		invocable.setArgumentResolvers(this.resolvers)
-		return invocable.invoke(this.exchange, BindingContext(), *providedArgs)
-	}
+    private fun invoke(handler: Any, method: Method, vararg providedArgs: Any?): Mono<HandlerResult> {
+        val invocable = InvocableHandlerMethod(handler, method)
+        invocable.setArgumentResolvers(this.resolvers)
+        return invocable.invoke(this.exchange, BindingContext(), *providedArgs)
+    }
 
-	private fun stubResolver(stubValue: Any?): HandlerMethodArgumentResolver {
-		return stubResolver(Mono.justOrEmpty(stubValue))
-	}
+    private fun stubResolver(stubValue: Any?): HandlerMethodArgumentResolver {
+        return stubResolver(Mono.justOrEmpty(stubValue))
+    }
 
-	private fun stubResolver(stubValue: Mono<Any>): HandlerMethodArgumentResolver {
-		val resolver = mockk<HandlerMethodArgumentResolver>()
-		every { resolver.supportsParameter(any()) } returns true
-		every { resolver.resolveArgument(any(), any(), any()) } returns stubValue
-		return resolver
-	}
+    private fun stubResolver(stubValue: Mono<Any>): HandlerMethodArgumentResolver {
+        val resolver = mockk<HandlerMethodArgumentResolver>()
+        every { resolver.supportsParameter(any()) } returns true
+        every { resolver.resolveArgument(any(), any(), any()) } returns stubValue
+        return resolver
+    }
 
-	private fun assertHandlerResultValue(mono: Mono<HandlerResult>, expected: String) {
-		StepVerifier.create(mono)
-				.consumeNextWith { StepVerifier.create(it.returnValue as Mono<*>).expectNext(expected).verifyComplete() }
-				.verifyComplete()
-	}
+    private fun assertHandlerResultValue(mono: Mono<HandlerResult>, expected: String) {
+        StepVerifier.create(mono)
+                .consumeNextWith { StepVerifier.create(it.returnValue as Mono<*>).expectNext(expected).verifyComplete() }
+                .verifyComplete()
+    }
 
-	class CoroutinesController {
+    class CoroutinesController {
 
-		suspend fun singleArg(q: String?): String {
-			delay(10)
-			return "success:$q"
-		}
+        suspend fun singleArg(q: String?): String {
+            delay(10)
+            return "success:$q"
+        }
 
-		suspend fun noArgs(): String {
-			delay(10)
-			return "success"
-		}
+        suspend fun noArgs(): String {
+            delay(10)
+            return "success"
+        }
 
-		suspend fun exceptionMethod() {
-			throw IllegalStateException("boo")
-		}
+        suspend fun exceptionMethod() {
+            throw IllegalStateException("boo")
+        }
 
-		@ResponseStatus(HttpStatus.CREATED)
-		suspend fun created(): String {
-			delay(10)
-			return "created"
-		}
+        @ResponseStatus(HttpStatus.CREATED)
+        suspend fun created(): String {
+            delay(10)
+            return "created"
+        }
 
-		suspend fun response(response: ServerHttpResponse) {
-			delay(10)
-			response.headers.add("foo", "bar")
-		}
+        suspend fun response(response: ServerHttpResponse) {
+            delay(10)
+            response.headers.add("foo", "bar")
+        }
 
 
-	}
+    }
 }

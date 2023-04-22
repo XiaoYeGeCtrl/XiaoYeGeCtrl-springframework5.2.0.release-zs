@@ -40,175 +40,176 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Unit tests for {@link FilteringWebHandler}.
+ *
  * @author Rossen Stoyanchev
  */
 public class FilteringWebHandlerTests {
 
-	private static Log logger = LogFactory.getLog(FilteringWebHandlerTests.class);
+    private static Log logger = LogFactory.getLog(FilteringWebHandlerTests.class);
 
 
-	@Test
-	public void multipleFilters() throws Exception {
+    @Test
+    public void multipleFilters() throws Exception {
 
-		TestFilter filter1 = new TestFilter();
-		TestFilter filter2 = new TestFilter();
-		TestFilter filter3 = new TestFilter();
-		StubWebHandler targetHandler = new StubWebHandler();
+        TestFilter filter1 = new TestFilter();
+        TestFilter filter2 = new TestFilter();
+        TestFilter filter3 = new TestFilter();
+        StubWebHandler targetHandler = new StubWebHandler();
 
-		new FilteringWebHandler(targetHandler, Arrays.asList(filter1, filter2, filter3))
-				.handle(MockServerWebExchange.from(MockServerHttpRequest.get("/")))
-				.block(Duration.ZERO);
+        new FilteringWebHandler(targetHandler, Arrays.asList(filter1, filter2, filter3))
+                .handle(MockServerWebExchange.from(MockServerHttpRequest.get("/")))
+                .block(Duration.ZERO);
 
-		assertThat(filter1.invoked()).isTrue();
-		assertThat(filter2.invoked()).isTrue();
-		assertThat(filter3.invoked()).isTrue();
-		assertThat(targetHandler.invoked()).isTrue();
-	}
+        assertThat(filter1.invoked()).isTrue();
+        assertThat(filter2.invoked()).isTrue();
+        assertThat(filter3.invoked()).isTrue();
+        assertThat(targetHandler.invoked()).isTrue();
+    }
 
-	@Test
-	public void zeroFilters() throws Exception {
+    @Test
+    public void zeroFilters() throws Exception {
 
-		StubWebHandler targetHandler = new StubWebHandler();
+        StubWebHandler targetHandler = new StubWebHandler();
 
-		new FilteringWebHandler(targetHandler, Collections.emptyList())
-				.handle(MockServerWebExchange.from(MockServerHttpRequest.get("/")))
-				.block(Duration.ZERO);
+        new FilteringWebHandler(targetHandler, Collections.emptyList())
+                .handle(MockServerWebExchange.from(MockServerHttpRequest.get("/")))
+                .block(Duration.ZERO);
 
-		assertThat(targetHandler.invoked()).isTrue();
-	}
+        assertThat(targetHandler.invoked()).isTrue();
+    }
 
-	@Test
-	public void shortcircuitFilter() throws Exception {
+    @Test
+    public void shortcircuitFilter() throws Exception {
 
-		TestFilter filter1 = new TestFilter();
-		ShortcircuitingFilter filter2 = new ShortcircuitingFilter();
-		TestFilter filter3 = new TestFilter();
-		StubWebHandler targetHandler = new StubWebHandler();
+        TestFilter filter1 = new TestFilter();
+        ShortcircuitingFilter filter2 = new ShortcircuitingFilter();
+        TestFilter filter3 = new TestFilter();
+        StubWebHandler targetHandler = new StubWebHandler();
 
-		new FilteringWebHandler(targetHandler, Arrays.asList(filter1, filter2, filter3))
-				.handle(MockServerWebExchange.from(MockServerHttpRequest.get("/")))
-				.block(Duration.ZERO);
+        new FilteringWebHandler(targetHandler, Arrays.asList(filter1, filter2, filter3))
+                .handle(MockServerWebExchange.from(MockServerHttpRequest.get("/")))
+                .block(Duration.ZERO);
 
-		assertThat(filter1.invoked()).isTrue();
-		assertThat(filter2.invoked()).isTrue();
-		assertThat(filter3.invoked()).isFalse();
-		assertThat(targetHandler.invoked()).isFalse();
-	}
+        assertThat(filter1.invoked()).isTrue();
+        assertThat(filter2.invoked()).isTrue();
+        assertThat(filter3.invoked()).isFalse();
+        assertThat(targetHandler.invoked()).isFalse();
+    }
 
-	@Test
-	public void asyncFilter() throws Exception {
+    @Test
+    public void asyncFilter() throws Exception {
 
-		AsyncFilter filter = new AsyncFilter();
-		StubWebHandler targetHandler = new StubWebHandler();
+        AsyncFilter filter = new AsyncFilter();
+        StubWebHandler targetHandler = new StubWebHandler();
 
-		new FilteringWebHandler(targetHandler, Collections.singletonList(filter))
-				.handle(MockServerWebExchange.from(MockServerHttpRequest.get("/")))
-				.block(Duration.ofSeconds(5));
+        new FilteringWebHandler(targetHandler, Collections.singletonList(filter))
+                .handle(MockServerWebExchange.from(MockServerHttpRequest.get("/")))
+                .block(Duration.ofSeconds(5));
 
-		assertThat(filter.invoked()).isTrue();
-		assertThat(targetHandler.invoked()).isTrue();
-	}
+        assertThat(filter.invoked()).isTrue();
+        assertThat(targetHandler.invoked()).isTrue();
+    }
 
-	@Test
-	public void handleErrorFromFilter() throws Exception {
+    @Test
+    public void handleErrorFromFilter() throws Exception {
 
-		MockServerHttpRequest request = MockServerHttpRequest.get("/").build();
-		MockServerHttpResponse response = new MockServerHttpResponse();
+        MockServerHttpRequest request = MockServerHttpRequest.get("/").build();
+        MockServerHttpResponse response = new MockServerHttpResponse();
 
-		TestExceptionHandler exceptionHandler = new TestExceptionHandler();
+        TestExceptionHandler exceptionHandler = new TestExceptionHandler();
 
-		WebHttpHandlerBuilder.webHandler(new StubWebHandler())
-				.filter(new ExceptionFilter())
-				.exceptionHandler(exceptionHandler).build()
-				.handle(request, response)
-				.block();
+        WebHttpHandlerBuilder.webHandler(new StubWebHandler())
+                .filter(new ExceptionFilter())
+                .exceptionHandler(exceptionHandler).build()
+                .handle(request, response)
+                .block();
 
-		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
-		assertThat(exceptionHandler.ex).isNotNull();
-		assertThat(exceptionHandler.ex.getMessage()).isEqualTo("boo");
-	}
-
-
-	private static class TestFilter implements WebFilter {
-
-		private volatile boolean invoked;
-
-		public boolean invoked() {
-			return this.invoked;
-		}
-
-		@Override
-		public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
-			this.invoked = true;
-			return doFilter(exchange, chain);
-		}
-
-		public Mono<Void> doFilter(ServerWebExchange exchange, WebFilterChain chain) {
-			return chain.filter(exchange);
-		}
-	}
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
+        assertThat(exceptionHandler.ex).isNotNull();
+        assertThat(exceptionHandler.ex.getMessage()).isEqualTo("boo");
+    }
 
 
-	private static class ShortcircuitingFilter extends TestFilter {
+    private static class TestFilter implements WebFilter {
 
-		@Override
-		public Mono<Void> doFilter(ServerWebExchange exchange, WebFilterChain chain) {
-			return Mono.empty();
-		}
-	}
+        private volatile boolean invoked;
 
+        public boolean invoked() {
+            return this.invoked;
+        }
 
-	private static class AsyncFilter extends TestFilter {
+        @Override
+        public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
+            this.invoked = true;
+            return doFilter(exchange, chain);
+        }
 
-		@Override
-		public Mono<Void> doFilter(ServerWebExchange exchange, WebFilterChain chain) {
-			return doAsyncWork().flatMap(asyncResult -> {
-				logger.debug("Async result: " + asyncResult);
-				return chain.filter(exchange);
-			});
-		}
-
-		private Mono<String> doAsyncWork() {
-			return Mono.delay(Duration.ofMillis(100L)).map(l -> "123");
-		}
-	}
+        public Mono<Void> doFilter(ServerWebExchange exchange, WebFilterChain chain) {
+            return chain.filter(exchange);
+        }
+    }
 
 
-	private static class ExceptionFilter implements WebFilter {
+    private static class ShortcircuitingFilter extends TestFilter {
 
-		@Override
-		public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
-			return Mono.error(new IllegalStateException("boo"));
-		}
-	}
-
-
-	private static class TestExceptionHandler implements WebExceptionHandler {
-
-		private Throwable ex;
-
-		@Override
-		public Mono<Void> handle(ServerWebExchange exchange, Throwable ex) {
-			this.ex = ex;
-			return Mono.error(ex);
-		}
-	}
+        @Override
+        public Mono<Void> doFilter(ServerWebExchange exchange, WebFilterChain chain) {
+            return Mono.empty();
+        }
+    }
 
 
-	private static class StubWebHandler implements WebHandler {
+    private static class AsyncFilter extends TestFilter {
 
-		private volatile boolean invoked;
+        @Override
+        public Mono<Void> doFilter(ServerWebExchange exchange, WebFilterChain chain) {
+            return doAsyncWork().flatMap(asyncResult -> {
+                logger.debug("Async result: " + asyncResult);
+                return chain.filter(exchange);
+            });
+        }
 
-		public boolean invoked() {
-			return this.invoked;
-		}
+        private Mono<String> doAsyncWork() {
+            return Mono.delay(Duration.ofMillis(100L)).map(l -> "123");
+        }
+    }
 
-		@Override
-		public Mono<Void> handle(ServerWebExchange exchange) {
-			logger.trace("StubHandler invoked.");
-			this.invoked = true;
-			return Mono.empty();
-		}
-	}
+
+    private static class ExceptionFilter implements WebFilter {
+
+        @Override
+        public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
+            return Mono.error(new IllegalStateException("boo"));
+        }
+    }
+
+
+    private static class TestExceptionHandler implements WebExceptionHandler {
+
+        private Throwable ex;
+
+        @Override
+        public Mono<Void> handle(ServerWebExchange exchange, Throwable ex) {
+            this.ex = ex;
+            return Mono.error(ex);
+        }
+    }
+
+
+    private static class StubWebHandler implements WebHandler {
+
+        private volatile boolean invoked;
+
+        public boolean invoked() {
+            return this.invoked;
+        }
+
+        @Override
+        public Mono<Void> handle(ServerWebExchange exchange) {
+            logger.trace("StubHandler invoked.");
+            this.invoked = true;
+            return Mono.empty();
+        }
+    }
 
 }

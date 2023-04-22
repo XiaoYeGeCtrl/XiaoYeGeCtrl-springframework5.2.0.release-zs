@@ -29,44 +29,46 @@ import org.springframework.http.server.reactive.ServerHttpRequest;
 /**
  * A combination of functions that can populate a {@link ReactiveHttpOutputMessage} body.
  *
- * @author Arjen Poutsma
- * @since 5.0
  * @param <T> the type of data to insert
  * @param <M> the type of {@link ReactiveHttpOutputMessage} this inserter can be applied to
+ * @author Arjen Poutsma
  * @see BodyInserters
+ * @since 5.0
  */
 @FunctionalInterface
 public interface BodyInserter<T, M extends ReactiveHttpOutputMessage> {
 
-	/**
-	 * Insert into the given output message.
-	 * @param outputMessage the response to insert into
-	 * @param context the context to use
-	 * @return a {@code Mono} that indicates completion or error
-	 */
-	Mono<Void> insert(M outputMessage, Context context);
+    /**
+     * Insert into the given output message.
+     *
+     * @param outputMessage the response to insert into
+     * @param context       the context to use
+     * @return a {@code Mono} that indicates completion or error
+     */
+    Mono<Void> insert(M outputMessage, Context context);
 
 
-	/**
-	 * Defines the context used during the insertion.
-	 */
-	interface Context {
+    /**
+     * Defines the context used during the insertion.
+     */
+    interface Context {
 
-		/**
-		 * Return the {@link HttpMessageWriter HttpMessageWriters} to be used for response body conversion.
-		 * @return the stream of message writers
-		 */
-		List<HttpMessageWriter<?>> messageWriters();
+        /**
+         * Return the {@link HttpMessageWriter HttpMessageWriters} to be used for response body conversion.
+         *
+         * @return the stream of message writers
+         */
+        List<HttpMessageWriter<?>> messageWriters();
 
-		/**
-		 * Optionally return the {@link ServerHttpRequest}, if present.
-		 */
-		Optional<ServerHttpRequest> serverRequest();
+        /**
+         * Optionally return the {@link ServerHttpRequest}, if present.
+         */
+        Optional<ServerHttpRequest> serverRequest();
 
-		/**
-		 * Return the map of hints to use for response body conversion.
-		 */
-		Map<String, Object> hints();
-	}
+        /**
+         * Return the map of hints to use for response body conversion.
+         */
+        Map<String, Object> hints();
+    }
 
 }

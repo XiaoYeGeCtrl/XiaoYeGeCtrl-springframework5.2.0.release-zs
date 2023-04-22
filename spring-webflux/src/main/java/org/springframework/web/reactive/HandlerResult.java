@@ -34,122 +34,126 @@ import org.springframework.util.Assert;
  */
 public class HandlerResult {
 
-	private final Object handler;
+    private final Object handler;
 
-	@Nullable
-	private final Object returnValue;
+    @Nullable
+    private final Object returnValue;
 
-	private final ResolvableType returnType;
+    private final ResolvableType returnType;
 
-	private final BindingContext bindingContext;
+    private final BindingContext bindingContext;
 
-	@Nullable
-	private Function<Throwable, Mono<HandlerResult>> exceptionHandler;
-
-
-	/**
-	 * Create a new {@code HandlerResult}.
-	 * @param handler the handler that handled the request
-	 * @param returnValue the return value from the handler possibly {@code null}
-	 * @param returnType the return value type
-	 */
-	public HandlerResult(Object handler, @Nullable Object returnValue, MethodParameter returnType) {
-		this(handler, returnValue, returnType, null);
-	}
-
-	/**
-	 * Create a new {@code HandlerResult}.
-	 * @param handler the handler that handled the request
-	 * @param returnValue the return value from the handler possibly {@code null}
-	 * @param returnType the return value type
-	 * @param context the binding context used for request handling
-	 */
-	public HandlerResult(Object handler, @Nullable Object returnValue, MethodParameter returnType,
-			@Nullable BindingContext context) {
-
-		Assert.notNull(handler, "'handler' is required");
-		Assert.notNull(returnType, "'returnType' is required");
-		this.handler = handler;
-		this.returnValue = returnValue;
-		this.returnType = ResolvableType.forMethodParameter(returnType);
-		this.bindingContext = (context != null ? context : new BindingContext());
-	}
+    @Nullable
+    private Function<Throwable, Mono<HandlerResult>> exceptionHandler;
 
 
-	/**
-	 * Return the handler that handled the request.
-	 */
-	public Object getHandler() {
-		return this.handler;
-	}
+    /**
+     * Create a new {@code HandlerResult}.
+     *
+     * @param handler     the handler that handled the request
+     * @param returnValue the return value from the handler possibly {@code null}
+     * @param returnType  the return value type
+     */
+    public HandlerResult(Object handler, @Nullable Object returnValue, MethodParameter returnType) {
+        this(handler, returnValue, returnType, null);
+    }
 
-	/**
-	 * Return the value returned from the handler, if any.
-	 */
-	@Nullable
-	public Object getReturnValue() {
-		return this.returnValue;
-	}
+    /**
+     * Create a new {@code HandlerResult}.
+     *
+     * @param handler     the handler that handled the request
+     * @param returnValue the return value from the handler possibly {@code null}
+     * @param returnType  the return value type
+     * @param context     the binding context used for request handling
+     */
+    public HandlerResult(Object handler, @Nullable Object returnValue, MethodParameter returnType,
+                         @Nullable BindingContext context) {
 
-	/**
-	 * Return the type of the value returned from the handler -- e.g. the return
-	 * type declared on a controller method's signature. Also see
-	 * {@link #getReturnTypeSource()} to obtain the underlying
-	 * {@link MethodParameter} for the return type.
-	 */
-	public ResolvableType getReturnType() {
-		return this.returnType;
-	}
+        Assert.notNull(handler, "'handler' is required");
+        Assert.notNull(returnType, "'returnType' is required");
+        this.handler = handler;
+        this.returnValue = returnValue;
+        this.returnType = ResolvableType.forMethodParameter(returnType);
+        this.bindingContext = (context != null ? context : new BindingContext());
+    }
 
-	/**
-	 * Return the {@link MethodParameter} from which {@link #getReturnType()
-	 * returnType} was created.
-	 */
-	public MethodParameter getReturnTypeSource() {
-		return (MethodParameter) this.returnType.getSource();
-	}
 
-	/**
-	 * Return the BindingContext used for request handling.
-	 */
-	public BindingContext getBindingContext() {
-		return this.bindingContext;
-	}
+    /**
+     * Return the handler that handled the request.
+     */
+    public Object getHandler() {
+        return this.handler;
+    }
 
-	/**
-	 * Return the model used for request handling. This is a shortcut for
-	 * {@code getBindingContext().getModel()}.
-	 */
-	public Model getModel() {
-		return this.bindingContext.getModel();
-	}
+    /**
+     * Return the value returned from the handler, if any.
+     */
+    @Nullable
+    public Object getReturnValue() {
+        return this.returnValue;
+    }
 
-	/**
-	 * Configure an exception handler that may be used to produce an alternative
-	 * result when result handling fails. Especially for an async return value
-	 * errors may occur after the invocation of the handler.
-	 * @param function the error handler
-	 * @return the current instance
-	 */
-	public HandlerResult setExceptionHandler(Function<Throwable, Mono<HandlerResult>> function) {
-		this.exceptionHandler = function;
-		return this;
-	}
+    /**
+     * Return the type of the value returned from the handler -- e.g. the return
+     * type declared on a controller method's signature. Also see
+     * {@link #getReturnTypeSource()} to obtain the underlying
+     * {@link MethodParameter} for the return type.
+     */
+    public ResolvableType getReturnType() {
+        return this.returnType;
+    }
 
-	/**
-	 * Whether there is an exception handler.
-	 */
-	public boolean hasExceptionHandler() {
-		return (this.exceptionHandler != null);
-	}
+    /**
+     * Return the {@link MethodParameter} from which {@link #getReturnType()
+     * returnType} was created.
+     */
+    public MethodParameter getReturnTypeSource() {
+        return (MethodParameter) this.returnType.getSource();
+    }
 
-	/**
-	 * Apply the exception handler and return the alternative result.
-	 * @param failure the exception
-	 * @return the new result or the same error if there is no exception handler
-	 */
-	public Mono<HandlerResult> applyExceptionHandler(Throwable failure) {
-		return (this.exceptionHandler != null ? this.exceptionHandler.apply(failure) : Mono.error(failure));
-	}
+    /**
+     * Return the BindingContext used for request handling.
+     */
+    public BindingContext getBindingContext() {
+        return this.bindingContext;
+    }
+
+    /**
+     * Return the model used for request handling. This is a shortcut for
+     * {@code getBindingContext().getModel()}.
+     */
+    public Model getModel() {
+        return this.bindingContext.getModel();
+    }
+
+    /**
+     * Configure an exception handler that may be used to produce an alternative
+     * result when result handling fails. Especially for an async return value
+     * errors may occur after the invocation of the handler.
+     *
+     * @param function the error handler
+     * @return the current instance
+     */
+    public HandlerResult setExceptionHandler(Function<Throwable, Mono<HandlerResult>> function) {
+        this.exceptionHandler = function;
+        return this;
+    }
+
+    /**
+     * Whether there is an exception handler.
+     */
+    public boolean hasExceptionHandler() {
+        return (this.exceptionHandler != null);
+    }
+
+    /**
+     * Apply the exception handler and return the alternative result.
+     *
+     * @param failure the exception
+     * @return the new result or the same error if there is no exception handler
+     */
+    public Mono<HandlerResult> applyExceptionHandler(Throwable failure) {
+        return (this.exceptionHandler != null ? this.exceptionHandler.apply(failure) : Mono.error(failure));
+    }
 
 }

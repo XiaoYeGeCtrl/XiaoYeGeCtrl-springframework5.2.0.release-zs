@@ -44,44 +44,42 @@ import org.springframework.web.context.WebApplicationContext;
  * (with advanced mapping and interception facilities being available there).
  *
  * @author Juergen Hoeller
- * @since 2.0
  * @see org.springframework.web.HttpRequestHandler
  * @see org.springframework.web.servlet.DispatcherServlet
+ * @since 2.0
  */
 @SuppressWarnings("serial")
 public class HttpRequestHandlerServlet extends HttpServlet {
 
-	@Nullable
-	private HttpRequestHandler target;
+    @Nullable
+    private HttpRequestHandler target;
 
 
-	@Override
-	public void init() throws ServletException {
-		WebApplicationContext wac = WebApplicationContextUtils.getRequiredWebApplicationContext(getServletContext());
-		this.target = wac.getBean(getServletName(), HttpRequestHandler.class);
-	}
+    @Override
+    public void init() throws ServletException {
+        WebApplicationContext wac = WebApplicationContextUtils.getRequiredWebApplicationContext(getServletContext());
+        this.target = wac.getBean(getServletName(), HttpRequestHandler.class);
+    }
 
 
-	@Override
-	protected void service(HttpServletRequest request, HttpServletResponse response)
-			throws ServletException, IOException {
+    @Override
+    protected void service(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
 
-		Assert.state(this.target != null, "No HttpRequestHandler available");
+        Assert.state(this.target != null, "No HttpRequestHandler available");
 
-		LocaleContextHolder.setLocale(request.getLocale());
-		try {
-			this.target.handleRequest(request, response);
-		}
-		catch (HttpRequestMethodNotSupportedException ex) {
-			String[] supportedMethods = ex.getSupportedMethods();
-			if (supportedMethods != null) {
-				response.setHeader("Allow", StringUtils.arrayToDelimitedString(supportedMethods, ", "));
-			}
-			response.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED, ex.getMessage());
-		}
-		finally {
-			LocaleContextHolder.resetLocaleContext();
-		}
-	}
+        LocaleContextHolder.setLocale(request.getLocale());
+        try {
+            this.target.handleRequest(request, response);
+        } catch (HttpRequestMethodNotSupportedException ex) {
+            String[] supportedMethods = ex.getSupportedMethods();
+            if (supportedMethods != null) {
+                response.setHeader("Allow", StringUtils.arrayToDelimitedString(supportedMethods, ", "));
+            }
+            response.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED, ex.getMessage());
+        } finally {
+            LocaleContextHolder.resetLocaleContext();
+        }
+    }
 
 }

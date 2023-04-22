@@ -30,8 +30,8 @@ import java.lang.annotation.Target;
  * <p>As of Spring Framework 4.2.4, this annotation is declared as repeatable.
  *
  * @author Rob Harrop
- * @since 2.0
  * @see org.springframework.jmx.export.metadata.ManagedNotification
+ * @since 2.0
  */
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
@@ -40,10 +40,10 @@ import java.lang.annotation.Target;
 @Repeatable(ManagedNotifications.class)
 public @interface ManagedNotification {
 
-	String name();
+    String name();
 
-	String description() default "";
+    String description() default "";
 
-	String[] notificationTypes();
+    String[] notificationTypes();
 
 }

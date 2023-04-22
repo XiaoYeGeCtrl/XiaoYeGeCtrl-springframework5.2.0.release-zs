@@ -32,7 +32,7 @@ import org.springframework.messaging.Message;
  * convey the destination to use for the reply. In that case, that destination
  * should take precedence.
  *
-* <p>This annotation may be placed class-level in which case it is inherited by
+ * <p>This annotation may be placed class-level in which case it is inherited by
  * methods of the class.
  *
  * @author Rossen Stoyanchev
@@ -44,9 +44,9 @@ import org.springframework.messaging.Message;
 @Documented
 public @interface SendTo {
 
-	/**
-	 * The destination for a message created from the return value of a method.
-	 */
-	String[] value() default {};
+    /**
+     * The destination for a message created from the return value of a method.
+     */
+    String[] value() default {};
 
 }

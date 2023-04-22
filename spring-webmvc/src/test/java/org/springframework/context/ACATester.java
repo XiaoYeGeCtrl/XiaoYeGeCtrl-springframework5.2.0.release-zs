@@ -20,30 +20,29 @@ import java.util.Locale;
 
 public class ACATester implements ApplicationContextAware {
 
-	private ApplicationContext ac;
+    private ApplicationContext ac;
 
-	@Override
-	public void setApplicationContext(ApplicationContext ctx) throws ApplicationContextException {
-		// check reinitialization
-		if (this.ac != null) {
-			throw new IllegalStateException("Already initialized");
-		}
+    public ApplicationContext getApplicationContext() {
+        return ac;
+    }
 
-		// check message source availability
-		if (ctx != null) {
-			try {
-				ctx.getMessage("code1", null, Locale.getDefault());
-			}
-			catch (NoSuchMessageException ex) {
-				// expected
-			}
-		}
+    @Override
+    public void setApplicationContext(ApplicationContext ctx) throws ApplicationContextException {
+        // check reinitialization
+        if (this.ac != null) {
+            throw new IllegalStateException("Already initialized");
+        }
 
-		this.ac = ctx;
-	}
+        // check message source availability
+        if (ctx != null) {
+            try {
+                ctx.getMessage("code1", null, Locale.getDefault());
+            } catch (NoSuchMessageException ex) {
+                // expected
+            }
+        }
 
-	public ApplicationContext getApplicationContext() {
-		return ac;
-	}
+        this.ac = ctx;
+    }
 
 }

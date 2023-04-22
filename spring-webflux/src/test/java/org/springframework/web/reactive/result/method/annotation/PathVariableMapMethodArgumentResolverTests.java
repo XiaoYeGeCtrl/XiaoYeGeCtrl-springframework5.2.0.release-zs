@@ -44,66 +44,64 @@ import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
  */
 public class PathVariableMapMethodArgumentResolverTests {
 
-	private PathVariableMapMethodArgumentResolver resolver;
-
-	private final MockServerWebExchange exchange= MockServerWebExchange.from(MockServerHttpRequest.get("/"));
-
-	private MethodParameter paramMap;
-	private MethodParameter paramNamedMap;
-	private MethodParameter paramMapNoAnnot;
-	private MethodParameter paramMonoMap;
+    private final MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/"));
+    private PathVariableMapMethodArgumentResolver resolver;
+    private MethodParameter paramMap;
+    private MethodParameter paramNamedMap;
+    private MethodParameter paramMapNoAnnot;
+    private MethodParameter paramMonoMap;
 
 
-	@BeforeEach
-	public void setup() throws Exception {
-		this.resolver = new PathVariableMapMethodArgumentResolver(ReactiveAdapterRegistry.getSharedInstance());
+    @BeforeEach
+    public void setup() throws Exception {
+        this.resolver = new PathVariableMapMethodArgumentResolver(ReactiveAdapterRegistry.getSharedInstance());
 
-		Method method = ReflectionUtils.findMethod(getClass(), "handle", (Class<?>[]) null);
-		this.paramMap = new MethodParameter(method, 0);
-		this.paramNamedMap = new MethodParameter(method, 1);
-		this.paramMapNoAnnot = new MethodParameter(method, 2);
-		this.paramMonoMap = new MethodParameter(method, 3);
-	}
-
-
-	@Test
-	public void supportsParameter() {
-		assertThat(resolver.supportsParameter(paramMap)).isTrue();
-		assertThat(resolver.supportsParameter(paramNamedMap)).isFalse();
-		assertThat(resolver.supportsParameter(paramMapNoAnnot)).isFalse();
-		assertThatIllegalStateException().isThrownBy(() ->
-				this.resolver.supportsParameter(this.paramMonoMap))
-			.withMessageStartingWith("PathVariableMapMethodArgumentResolver does not support reactive type wrapper");
-	}
-
-	@Test
-	public void resolveArgument() throws Exception {
-		Map<String, String> uriTemplateVars = new HashMap<>();
-		uriTemplateVars.put("name1", "value1");
-		uriTemplateVars.put("name2", "value2");
-		this.exchange.getAttributes().put(HandlerMapping.URI_TEMPLATE_VARIABLES_ATTRIBUTE, uriTemplateVars);
-
-		Mono<Object> mono = this.resolver.resolveArgument(this.paramMap, new BindingContext(), this.exchange);
-		Object result = mono.block();
-
-		assertThat(result).isEqualTo(uriTemplateVars);
-	}
-
-	@Test
-	public void resolveArgumentNoUriVars() throws Exception {
-		Mono<Object> mono = this.resolver.resolveArgument(this.paramMap, new BindingContext(), this.exchange);
-		Object result = mono.block();
-
-		assertThat(result).isEqualTo(Collections.emptyMap());
-	}
+        Method method = ReflectionUtils.findMethod(getClass(), "handle", (Class<?>[]) null);
+        this.paramMap = new MethodParameter(method, 0);
+        this.paramNamedMap = new MethodParameter(method, 1);
+        this.paramMapNoAnnot = new MethodParameter(method, 2);
+        this.paramMonoMap = new MethodParameter(method, 3);
+    }
 
 
-	@SuppressWarnings("unused")
-	public void handle(
-			@PathVariable Map<String, String> map,
-			@PathVariable(value = "name") Map<String, String> namedMap,
-			Map<String, String> mapWithoutAnnotat,
-			@PathVariable Mono<Map<?, ?>> monoMap) {
-	}
+    @Test
+    public void supportsParameter() {
+        assertThat(resolver.supportsParameter(paramMap)).isTrue();
+        assertThat(resolver.supportsParameter(paramNamedMap)).isFalse();
+        assertThat(resolver.supportsParameter(paramMapNoAnnot)).isFalse();
+        assertThatIllegalStateException().isThrownBy(() ->
+                this.resolver.supportsParameter(this.paramMonoMap))
+                .withMessageStartingWith("PathVariableMapMethodArgumentResolver does not support reactive type wrapper");
+    }
+
+    @Test
+    public void resolveArgument() throws Exception {
+        Map<String, String> uriTemplateVars = new HashMap<>();
+        uriTemplateVars.put("name1", "value1");
+        uriTemplateVars.put("name2", "value2");
+        this.exchange.getAttributes().put(HandlerMapping.URI_TEMPLATE_VARIABLES_ATTRIBUTE, uriTemplateVars);
+
+        Mono<Object> mono = this.resolver.resolveArgument(this.paramMap, new BindingContext(), this.exchange);
+        Object result = mono.block();
+
+        assertThat(result).isEqualTo(uriTemplateVars);
+    }
+
+    @Test
+    public void resolveArgumentNoUriVars() throws Exception {
+        Mono<Object> mono = this.resolver.resolveArgument(this.paramMap, new BindingContext(), this.exchange);
+        Object result = mono.block();
+
+        assertThat(result).isEqualTo(Collections.emptyMap());
+    }
+
+
+    @SuppressWarnings("unused")
+    public void handle(
+            @PathVariable Map<String, String> map,
+            @PathVariable(value = "name") Map<String, String> namedMap,
+            Map<String, String> mapWithoutAnnotat,
+            @PathVariable Mono<Map<?, ?>> monoMap) {
+    }
 
 }

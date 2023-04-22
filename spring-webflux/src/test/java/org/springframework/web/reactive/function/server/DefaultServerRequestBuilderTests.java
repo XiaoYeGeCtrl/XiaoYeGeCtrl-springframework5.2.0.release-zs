@@ -37,39 +37,39 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 public class DefaultServerRequestBuilderTests {
 
-	private final DataBufferFactory dataBufferFactory = new DefaultDataBufferFactory();
+    private final DataBufferFactory dataBufferFactory = new DefaultDataBufferFactory();
 
 
-	@Test
-	public void from() {
-		MockServerHttpRequest request = MockServerHttpRequest.post("https://example.com")
-				.header("foo", "bar")
-				.build();
-		MockServerWebExchange exchange = MockServerWebExchange.from(request);
+    @Test
+    public void from() {
+        MockServerHttpRequest request = MockServerHttpRequest.post("https://example.com")
+                .header("foo", "bar")
+                .build();
+        MockServerWebExchange exchange = MockServerWebExchange.from(request);
 
-		ServerRequest other =
-				ServerRequest.create(exchange, HandlerStrategies.withDefaults().messageReaders());
+        ServerRequest other =
+                ServerRequest.create(exchange, HandlerStrategies.withDefaults().messageReaders());
 
-		Flux<DataBuffer> body = Flux.just("baz")
-				.map(s -> s.getBytes(StandardCharsets.UTF_8))
-				.map(dataBufferFactory::wrap);
+        Flux<DataBuffer> body = Flux.just("baz")
+                .map(s -> s.getBytes(StandardCharsets.UTF_8))
+                .map(dataBufferFactory::wrap);
 
-		ServerRequest result = ServerRequest.from(other)
-				.method(HttpMethod.HEAD)
-				.headers(httpHeaders -> httpHeaders.set("foo", "baar"))
-				.cookies(cookies -> cookies.set("baz", ResponseCookie.from("baz", "quux").build()))
-				.body(body)
-				.build();
+        ServerRequest result = ServerRequest.from(other)
+                .method(HttpMethod.HEAD)
+                .headers(httpHeaders -> httpHeaders.set("foo", "baar"))
+                .cookies(cookies -> cookies.set("baz", ResponseCookie.from("baz", "quux").build()))
+                .body(body)
+                .build();
 
-		assertThat(result.method()).isEqualTo(HttpMethod.HEAD);
-		assertThat(result.headers().asHttpHeaders().size()).isEqualTo(1);
-		assertThat(result.headers().asHttpHeaders().getFirst("foo")).isEqualTo("baar");
-		assertThat(result.cookies().size()).isEqualTo(1);
-		assertThat(result.cookies().getFirst("baz").getValue()).isEqualTo("quux");
+        assertThat(result.method()).isEqualTo(HttpMethod.HEAD);
+        assertThat(result.headers().asHttpHeaders().size()).isEqualTo(1);
+        assertThat(result.headers().asHttpHeaders().getFirst("foo")).isEqualTo("baar");
+        assertThat(result.cookies().size()).isEqualTo(1);
+        assertThat(result.cookies().getFirst("baz").getValue()).isEqualTo("quux");
 
-		StepVerifier.create(result.bodyToFlux(String.class))
-				.expectNext("baz")
-				.verifyComplete();
-	}
+        StepVerifier.create(result.bodyToFlux(String.class))
+                .expectNext("baz")
+                .verifyComplete();
+    }
 
 }

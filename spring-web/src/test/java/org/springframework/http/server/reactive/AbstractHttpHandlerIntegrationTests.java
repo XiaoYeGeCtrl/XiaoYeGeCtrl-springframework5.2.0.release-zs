@@ -42,96 +42,89 @@ import org.springframework.web.client.HttpServerErrorException;
 
 public abstract class AbstractHttpHandlerIntegrationTests {
 
-	/**
-	 * Custom JUnit Jupiter extension that handles exceptions thrown by test methods.
-	 *
-	 * <p>If the test method throws an {@link HttpServerErrorException}, this
-	 * extension will throw an {@link AssertionError} that wraps the
-	 * {@code HttpServerErrorException} using the
-	 * {@link HttpServerErrorException#getResponseBodyAsString() response body}
-	 * as the failure message.
-	 *
-	 * <p>This mechanism provides an actually meaningful failure message if the
-	 * test fails due to an {@code AssertionError} on the server.
-	 */
-	@RegisterExtension
-	TestExecutionExceptionHandler serverErrorToAssertionErrorConverter = (context, throwable) -> {
-		if (throwable instanceof HttpServerErrorException) {
-			HttpServerErrorException ex = (HttpServerErrorException) throwable;
-			String responseBody = ex.getResponseBodyAsString();
-			if (StringUtils.hasText(responseBody)) {
-				String prefix = AssertionError.class.getName() + ": ";
-				if (responseBody.startsWith(prefix)) {
-					responseBody = responseBody.substring(prefix.length());
-				}
-				throw new AssertionError(responseBody, ex);
-			}
-		}
-		// Else throw as-is in order to comply with the contract of TestExecutionExceptionHandler.
-		throw throwable;
-	};
+    protected final Log logger = LogFactory.getLog(getClass());
+    protected HttpServer server;
+    protected int port;
+    /**
+     * Custom JUnit Jupiter extension that handles exceptions thrown by test methods.
+     *
+     * <p>If the test method throws an {@link HttpServerErrorException}, this
+     * extension will throw an {@link AssertionError} that wraps the
+     * {@code HttpServerErrorException} using the
+     * {@link HttpServerErrorException#getResponseBodyAsString() response body}
+     * as the failure message.
+     *
+     * <p>This mechanism provides an actually meaningful failure message if the
+     * test fails due to an {@code AssertionError} on the server.
+     */
+    @RegisterExtension
+    TestExecutionExceptionHandler serverErrorToAssertionErrorConverter = (context, throwable) -> {
+        if (throwable instanceof HttpServerErrorException) {
+            HttpServerErrorException ex = (HttpServerErrorException) throwable;
+            String responseBody = ex.getResponseBodyAsString();
+            if (StringUtils.hasText(responseBody)) {
+                String prefix = AssertionError.class.getName() + ": ";
+                if (responseBody.startsWith(prefix)) {
+                    responseBody = responseBody.substring(prefix.length());
+                }
+                throw new AssertionError(responseBody, ex);
+            }
+        }
+        // Else throw as-is in order to comply with the contract of TestExecutionExceptionHandler.
+        throw throwable;
+    };
 
-	protected final Log logger = LogFactory.getLog(getClass());
+    /**
+     * Return an interval stream of N number of ticks and buffer the emissions
+     * to avoid back pressure failures (e.g. on slow CI server).
+     *
+     * <p>Use this method as follows:
+     * <ul>
+     * <li>Tests that verify N number of items followed by verifyOnComplete()
+     * should set the number of emissions to N.
+     * <li>Tests that verify N number of items followed by thenCancel() should
+     * set the number of buffered to an arbitrary number greater than N.
+     * </ul>
+     */
+    public static Flux<Long> testInterval(Duration period, int count) {
+        return Flux.interval(period).take(count).onBackpressureBuffer(count);
+    }
 
-	protected HttpServer server;
+    static Stream<HttpServer> httpServers() {
+        return Stream.of(
+                new JettyHttpServer(),
+                new ReactorHttpServer(),
+                new TomcatHttpServer(),
+                new UndertowHttpServer()
+        );
+    }
 
-	protected int port;
+    protected void startServer(HttpServer httpServer) throws Exception {
+        this.server = httpServer;
+        this.server.setHandler(createHttpHandler());
+        this.server.afterPropertiesSet();
+        this.server.start();
 
+        // Set dynamically chosen port
+        this.port = this.server.getPort();
+    }
 
-	protected void startServer(HttpServer httpServer) throws Exception {
-		this.server = httpServer;
-		this.server.setHandler(createHttpHandler());
-		this.server.afterPropertiesSet();
-		this.server.start();
+    @AfterEach
+    void stopServer() {
+        if (this.server != null) {
+            this.server.stop();
+            this.port = 0;
+        }
+    }
 
-		// Set dynamically chosen port
-		this.port = this.server.getPort();
-	}
+    protected abstract HttpHandler createHttpHandler();
 
-	@AfterEach
-	void stopServer() {
-		if (this.server != null) {
-			this.server.stop();
-			this.port = 0;
-		}
-	}
-
-
-	protected abstract HttpHandler createHttpHandler();
-
-
-	/**
-	 * Return an interval stream of N number of ticks and buffer the emissions
-	 * to avoid back pressure failures (e.g. on slow CI server).
-	 *
-	 * <p>Use this method as follows:
-	 * <ul>
-	 * <li>Tests that verify N number of items followed by verifyOnComplete()
-	 * should set the number of emissions to N.
-	 * <li>Tests that verify N number of items followed by thenCancel() should
-	 * set the number of buffered to an arbitrary number greater than N.
-	 * </ul>
-	 */
-	public static Flux<Long> testInterval(Duration period, int count) {
-		return Flux.interval(period).take(count).onBackpressureBuffer(count);
-	}
-
-
-	@Retention(RetentionPolicy.RUNTIME)
-	@Target(ElementType.METHOD)
-	@ParameterizedTest(name = "[{index}] {0}")
-	@MethodSource("org.springframework.http.server.reactive.AbstractHttpHandlerIntegrationTests#httpServers()")
-	// public for Kotlin
-	public @interface ParameterizedHttpServerTest {
-	}
-
-	static Stream<HttpServer> httpServers() {
-		return Stream.of(
-				new JettyHttpServer(),
-				new ReactorHttpServer(),
-				new TomcatHttpServer(),
-				new UndertowHttpServer()
-		);
-	}
+    @Retention(RetentionPolicy.RUNTIME)
+    @Target(ElementType.METHOD)
+    @ParameterizedTest(name = "[{index}] {0}")
+    @MethodSource("org.springframework.http.server.reactive.AbstractHttpHandlerIntegrationTests#httpServers()")
+    // public for Kotlin
+    public @interface ParameterizedHttpServerTest {
+    }
 
 }

@@ -41,37 +41,39 @@ import static org.junit.jupiter.api.Assumptions.assumeTrue;
  * @author Rob Winch
  * @author Phillip Webb
  * @author Sam Brannen
- * @since 3.2
  * @see EnabledForTestGroups @EnabledForTestGroups
  * @see #notLogging(Log)
  * @see TestGroup
+ * @since 3.2
  */
 public abstract class Assume {
 
-	static final String TEST_GROUPS_SYSTEM_PROPERTY = "testGroups";
+    static final String TEST_GROUPS_SYSTEM_PROPERTY = "testGroups";
 
 
-	/**
-	 * Assume that a particular {@link TestGroup} is active.
-	 * @param group the group that must be active
-	 * @throws org.opentest4j.TestAbortedException if the assumption fails
-	 * @deprecated as of Spring Framework 5.2 in favor of {@link EnabledForTestGroups}
-	 */
-	@Deprecated
-	public static void group(TestGroup group) {
-		Set<TestGroup> testGroups = TestGroup.loadTestGroups();
-		assumeTrue(testGroups.contains(group),
-			() -> "Requires inactive test group " + group + "; active test groups: " + testGroups);
-	}
+    /**
+     * Assume that a particular {@link TestGroup} is active.
+     *
+     * @param group the group that must be active
+     * @throws org.opentest4j.TestAbortedException if the assumption fails
+     * @deprecated as of Spring Framework 5.2 in favor of {@link EnabledForTestGroups}
+     */
+    @Deprecated
+    public static void group(TestGroup group) {
+        Set<TestGroup> testGroups = TestGroup.loadTestGroups();
+        assumeTrue(testGroups.contains(group),
+                () -> "Requires inactive test group " + group + "; active test groups: " + testGroups);
+    }
 
-	/**
-	 * Assume that the specified log is not set to Trace or Debug.
-	 * @param log the log to test
-	 * @throws org.opentest4j.TestAbortedException if the assumption fails
-	 */
-	public static void notLogging(Log log) {
-		assumeFalse(log.isTraceEnabled());
-		assumeFalse(log.isDebugEnabled());
-	}
+    /**
+     * Assume that the specified log is not set to Trace or Debug.
+     *
+     * @param log the log to test
+     * @throws org.opentest4j.TestAbortedException if the assumption fails
+     */
+    public static void notLogging(Log log) {
+        assumeFalse(log.isTraceEnabled());
+        assumeFalse(log.isDebugEnabled());
+    }
 
 }

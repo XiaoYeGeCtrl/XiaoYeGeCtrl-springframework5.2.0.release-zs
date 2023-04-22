@@ -43,112 +43,112 @@ import static org.springframework.http.RequestEntity.post;
  */
 public abstract class AbstractRequestMappingIntegrationTests extends AbstractHttpHandlerIntegrationTests {
 
-	private RestTemplate restTemplate = new RestTemplate();
+    private RestTemplate restTemplate = new RestTemplate();
 
-	private ApplicationContext applicationContext;
-
-
-	@Override
-	protected HttpHandler createHttpHandler() {
-		this.restTemplate = initRestTemplate();
-		this.applicationContext = initApplicationContext();
-		return WebHttpHandlerBuilder.applicationContext(this.applicationContext).build();
-	}
-
-	protected abstract ApplicationContext initApplicationContext();
-
-	protected RestTemplate initRestTemplate() {
-		return new RestTemplate();
-	}
-
-	protected ApplicationContext getApplicationContext() {
-		return this.applicationContext;
-	}
-
-	protected RestTemplate getRestTemplate() {
-		return this.restTemplate;
-	}
+    private ApplicationContext applicationContext;
 
 
-	<T> ResponseEntity<T> performGet(String url, MediaType out, Class<T> type) throws Exception {
-		HttpHeaders headers = new HttpHeaders();
-		headers.setAccept(Collections.singletonList(out));
-		return getRestTemplate().exchange(prepareGet(url, headers), type);
-	}
+    @Override
+    protected HttpHandler createHttpHandler() {
+        this.restTemplate = initRestTemplate();
+        this.applicationContext = initApplicationContext();
+        return WebHttpHandlerBuilder.applicationContext(this.applicationContext).build();
+    }
 
-	<T> ResponseEntity<T> performGet(String url, HttpHeaders headers, Class<T> type) throws Exception {
-		return getRestTemplate().exchange(prepareGet(url, headers), type);
-	}
+    protected abstract ApplicationContext initApplicationContext();
 
-	<T> ResponseEntity<T> performGet(String url, MediaType out, ParameterizedTypeReference<T> type)
-			throws Exception {
+    protected RestTemplate initRestTemplate() {
+        return new RestTemplate();
+    }
 
-		HttpHeaders headers = new HttpHeaders();
-		headers.setAccept(Collections.singletonList(out));
-		return this.restTemplate.exchange(prepareGet(url, headers), type);
-	}
+    protected ApplicationContext getApplicationContext() {
+        return this.applicationContext;
+    }
 
-	<T> ResponseEntity<T> performOptions(String url, HttpHeaders headers, Class<T> type)
-			throws Exception {
+    protected RestTemplate getRestTemplate() {
+        return this.restTemplate;
+    }
 
-		return getRestTemplate().exchange(prepareOptions(url, headers), type);
-	}
 
-	<T> ResponseEntity<T> performPost(String url, MediaType in, Object body, MediaType out, Class<T> type)
-			throws Exception {
+    <T> ResponseEntity<T> performGet(String url, MediaType out, Class<T> type) throws Exception {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setAccept(Collections.singletonList(out));
+        return getRestTemplate().exchange(prepareGet(url, headers), type);
+    }
 
-		HttpHeaders headers = new HttpHeaders();
-		headers.setContentType(in);
-		if (out != null) {
-			headers.setAccept(Collections.singletonList(out));
-		}
-		return  getRestTemplate().exchange(preparePost(url, headers, body), type);
-	}
+    <T> ResponseEntity<T> performGet(String url, HttpHeaders headers, Class<T> type) throws Exception {
+        return getRestTemplate().exchange(prepareGet(url, headers), type);
+    }
 
-	<T> ResponseEntity<T> performPost(String url, HttpHeaders headers, Object body,
-			Class<T> type) throws Exception {
+    <T> ResponseEntity<T> performGet(String url, MediaType out, ParameterizedTypeReference<T> type)
+            throws Exception {
 
-		return  getRestTemplate().exchange(preparePost(url, headers, body), type);
-	}
+        HttpHeaders headers = new HttpHeaders();
+        headers.setAccept(Collections.singletonList(out));
+        return this.restTemplate.exchange(prepareGet(url, headers), type);
+    }
 
-	<T> ResponseEntity<T> performPost(String url, MediaType in, Object body, MediaType out,
-			ParameterizedTypeReference<T> type) throws Exception {
+    <T> ResponseEntity<T> performOptions(String url, HttpHeaders headers, Class<T> type)
+            throws Exception {
 
-		HttpHeaders headers = new HttpHeaders();
-		headers.setContentType(in);
-		if (out != null) {
-			headers.setAccept(Collections.singletonList(out));
-		}
-		return getRestTemplate().exchange(preparePost(url, headers, body), type);
-	}
+        return getRestTemplate().exchange(prepareOptions(url, headers), type);
+    }
 
-	private RequestEntity<Void> prepareGet(String url, HttpHeaders headers) throws Exception {
-		URI uri = new URI("http://localhost:" + this.port + url);
-		RequestEntity.HeadersBuilder<?> builder = get(uri);
-		addHeaders(builder, headers);
-		return builder.build();
-	}
+    <T> ResponseEntity<T> performPost(String url, MediaType in, Object body, MediaType out, Class<T> type)
+            throws Exception {
 
-	private RequestEntity<Void> prepareOptions(String url, HttpHeaders headers) throws Exception {
-		URI uri = new URI("http://localhost:" + this.port + url);
-		RequestEntity.HeadersBuilder<?> builder = options(uri);
-		addHeaders(builder, headers);
-		return builder.build();
-	}
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(in);
+        if (out != null) {
+            headers.setAccept(Collections.singletonList(out));
+        }
+        return getRestTemplate().exchange(preparePost(url, headers, body), type);
+    }
 
-	private void addHeaders(RequestEntity.HeadersBuilder<?> builder, HttpHeaders headers) {
-		for (Map.Entry<String, List<String>> entry : headers.entrySet()) {
-			for (String value : entry.getValue()) {
-				builder.header(entry.getKey(), value);
-			}
-		}
-	}
+    <T> ResponseEntity<T> performPost(String url, HttpHeaders headers, Object body,
+                                      Class<T> type) throws Exception {
 
-	private RequestEntity<?> preparePost(String url, HttpHeaders headers, Object body) throws Exception {
-		URI uri = new URI("http://localhost:" + this.port + url);
-		RequestEntity.BodyBuilder builder = post(uri);
-		addHeaders(builder, headers);
-		return builder.body(body);
-	}
+        return getRestTemplate().exchange(preparePost(url, headers, body), type);
+    }
+
+    <T> ResponseEntity<T> performPost(String url, MediaType in, Object body, MediaType out,
+                                      ParameterizedTypeReference<T> type) throws Exception {
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(in);
+        if (out != null) {
+            headers.setAccept(Collections.singletonList(out));
+        }
+        return getRestTemplate().exchange(preparePost(url, headers, body), type);
+    }
+
+    private RequestEntity<Void> prepareGet(String url, HttpHeaders headers) throws Exception {
+        URI uri = new URI("http://localhost:" + this.port + url);
+        RequestEntity.HeadersBuilder<?> builder = get(uri);
+        addHeaders(builder, headers);
+        return builder.build();
+    }
+
+    private RequestEntity<Void> prepareOptions(String url, HttpHeaders headers) throws Exception {
+        URI uri = new URI("http://localhost:" + this.port + url);
+        RequestEntity.HeadersBuilder<?> builder = options(uri);
+        addHeaders(builder, headers);
+        return builder.build();
+    }
+
+    private void addHeaders(RequestEntity.HeadersBuilder<?> builder, HttpHeaders headers) {
+        for (Map.Entry<String, List<String>> entry : headers.entrySet()) {
+            for (String value : entry.getValue()) {
+                builder.header(entry.getKey(), value);
+            }
+        }
+    }
+
+    private RequestEntity<?> preparePost(String url, HttpHeaders headers, Object body) throws Exception {
+        URI uri = new URI("http://localhost:" + this.port + url);
+        RequestEntity.BodyBuilder builder = post(uri);
+        addHeaders(builder, headers);
+        return builder.body(body);
+    }
 
 }

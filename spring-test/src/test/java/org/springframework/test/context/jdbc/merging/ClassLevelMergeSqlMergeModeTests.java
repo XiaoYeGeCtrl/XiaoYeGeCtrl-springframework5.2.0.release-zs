@@ -34,26 +34,26 @@ import static org.springframework.test.context.jdbc.SqlMergeMode.MergeMode.OVERR
  * @author Dmitry Semukhin
  * @since 5.2
  */
-@Sql({ "../recreate-schema.sql", "../data-add-catbert.sql" })
+@Sql({"../recreate-schema.sql", "../data-add-catbert.sql"})
 @SqlMergeMode(MERGE)
 class ClassLevelMergeSqlMergeModeTests extends AbstractSqlMergeModeTests {
 
-	@Test
-	void classLevelScripts() {
-		assertUsers("Catbert");
-	}
+    @Test
+    void classLevelScripts() {
+        assertUsers("Catbert");
+    }
 
-	@Test
-	@Sql("../data-add-dogbert.sql")
-	void merged() {
-		assertUsers("Catbert", "Dogbert");
-	}
+    @Test
+    @Sql("../data-add-dogbert.sql")
+    void merged() {
+        assertUsers("Catbert", "Dogbert");
+    }
 
-	@Test
-	@Sql({ "../recreate-schema.sql", "../data.sql", "../data-add-dogbert.sql", "../data-add-catbert.sql" })
-	@SqlMergeMode(OVERRIDE)
-	void overridden() {
-		assertUsers("Dilbert", "Dogbert", "Catbert");
-	}
+    @Test
+    @Sql({"../recreate-schema.sql", "../data.sql", "../data-add-dogbert.sql", "../data-add-catbert.sql"})
+    @SqlMergeMode(OVERRIDE)
+    void overridden() {
+        assertUsers("Dilbert", "Dogbert", "Catbert");
+    }
 
 }

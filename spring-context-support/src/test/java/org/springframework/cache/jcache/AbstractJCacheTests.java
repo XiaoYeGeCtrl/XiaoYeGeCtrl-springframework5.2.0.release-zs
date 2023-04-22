@@ -38,32 +38,26 @@ import org.springframework.cache.support.SimpleCacheManager;
  */
 public abstract class AbstractJCacheTests {
 
-	protected String cacheName;
+    protected final CacheManager cacheManager = createSimpleCacheManager("default", "simpleCache");
+    protected final CacheResolver defaultCacheResolver = new SimpleCacheResolver(cacheManager);
+    protected final CacheResolver defaultExceptionCacheResolver = new SimpleExceptionCacheResolver(cacheManager);
+    protected final KeyGenerator defaultKeyGenerator = new SimpleKeyGenerator();
+    protected String cacheName;
 
+    protected static CacheManager createSimpleCacheManager(String... cacheNames) {
+        SimpleCacheManager result = new SimpleCacheManager();
+        List<Cache> caches = new ArrayList<>();
+        for (String cacheName : cacheNames) {
+            caches.add(new ConcurrentMapCache(cacheName));
+        }
+        result.setCaches(caches);
+        result.afterPropertiesSet();
+        return result;
+    }
 
-	@BeforeEach
-	void trackCacheName(TestInfo testInfo) {
-		this.cacheName = testInfo.getTestMethod().get().getName();
-	}
-
-
-	protected final CacheManager cacheManager = createSimpleCacheManager("default", "simpleCache");
-
-	protected final CacheResolver defaultCacheResolver = new SimpleCacheResolver(cacheManager);
-
-	protected final CacheResolver defaultExceptionCacheResolver = new SimpleExceptionCacheResolver(cacheManager);
-
-	protected final KeyGenerator defaultKeyGenerator = new SimpleKeyGenerator();
-
-	protected static CacheManager createSimpleCacheManager(String... cacheNames) {
-		SimpleCacheManager result = new SimpleCacheManager();
-		List<Cache> caches = new ArrayList<>();
-		for (String cacheName : cacheNames) {
-			caches.add(new ConcurrentMapCache(cacheName));
-		}
-		result.setCaches(caches);
-		result.afterPropertiesSet();
-		return result;
-	}
+    @BeforeEach
+    void trackCacheName(TestInfo testInfo) {
+        this.cacheName = testInfo.getTestMethod().get().getName();
+    }
 
 }

@@ -25,14 +25,14 @@ import org.springframework.orm.ObjectOptimisticLockingFailureException;
  * Converts JPA's OptimisticLockException.
  *
  * @author Juergen Hoeller
- * @since 2.0
  * @see EntityManagerFactoryUtils#convertJpaAccessExceptionIfPossible
+ * @since 2.0
  */
 @SuppressWarnings("serial")
 public class JpaOptimisticLockingFailureException extends ObjectOptimisticLockingFailureException {
 
-	public JpaOptimisticLockingFailureException(OptimisticLockException ex) {
-		super(ex.getMessage(), ex);
-	}
+    public JpaOptimisticLockingFailureException(OptimisticLockException ex) {
+        super(ex.getMessage(), ex);
+    }
 
 }

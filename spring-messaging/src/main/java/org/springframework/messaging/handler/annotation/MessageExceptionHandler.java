@@ -34,10 +34,10 @@ import java.lang.annotation.Target;
 @Documented
 public @interface MessageExceptionHandler {
 
-	/**
-	 * Exceptions handled by the annotated method. If empty, will default to any
-	 * exceptions listed in the method argument list.
-	 */
-	Class<? extends Throwable>[] value() default {};
+    /**
+     * Exceptions handled by the annotated method. If empty, will default to any
+     * exceptions listed in the method argument list.
+     */
+    Class<? extends Throwable>[] value() default {};
 
 }

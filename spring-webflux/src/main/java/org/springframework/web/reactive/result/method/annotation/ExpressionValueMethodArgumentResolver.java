@@ -36,49 +36,50 @@ import org.springframework.web.server.ServerWebExchange;
  */
 public class ExpressionValueMethodArgumentResolver extends AbstractNamedValueSyncArgumentResolver {
 
-	/**
-	 * Create a new {@link ExpressionValueMethodArgumentResolver} instance.
-	 * @param factory a bean factory to use for resolving {@code ${...}}
-	 * placeholder and {@code #{...}} SpEL expressions in default values;
-	 * or {@code null} if default values are not expected to contain expressions
-	 * @param registry for checking reactive type wrappers
-	 */
-	public ExpressionValueMethodArgumentResolver(@Nullable ConfigurableBeanFactory factory,
-			ReactiveAdapterRegistry registry) {
+    /**
+     * Create a new {@link ExpressionValueMethodArgumentResolver} instance.
+     *
+     * @param factory  a bean factory to use for resolving {@code ${...}}
+     *                 placeholder and {@code #{...}} SpEL expressions in default values;
+     *                 or {@code null} if default values are not expected to contain expressions
+     * @param registry for checking reactive type wrappers
+     */
+    public ExpressionValueMethodArgumentResolver(@Nullable ConfigurableBeanFactory factory,
+                                                 ReactiveAdapterRegistry registry) {
 
-		super(factory, registry);
-	}
-
-
-	@Override
-	public boolean supportsParameter(MethodParameter param) {
-		return checkAnnotatedParamNoReactiveWrapper(param, Value.class, (ann, type) -> true);
-	}
-
-	@Override
-	protected NamedValueInfo createNamedValueInfo(MethodParameter parameter) {
-		Value ann = parameter.getParameterAnnotation(Value.class);
-		Assert.state(ann != null, "No Value annotation");
-		return new ExpressionValueNamedValueInfo(ann);
-	}
-
-	@Override
-	protected Object resolveNamedValue(String name, MethodParameter parameter, ServerWebExchange exchange) {
-		// No name to resolve
-		return null;
-	}
-
-	@Override
-	protected void handleMissingValue(String name, MethodParameter parameter) {
-		throw new UnsupportedOperationException("@Value is never required: " + parameter.getMethod());
-	}
+        super(factory, registry);
+    }
 
 
-	private static final class ExpressionValueNamedValueInfo extends NamedValueInfo {
+    @Override
+    public boolean supportsParameter(MethodParameter param) {
+        return checkAnnotatedParamNoReactiveWrapper(param, Value.class, (ann, type) -> true);
+    }
 
-		private ExpressionValueNamedValueInfo(Value annotation) {
-			super("@Value", false, annotation.value());
-		}
-	}
+    @Override
+    protected NamedValueInfo createNamedValueInfo(MethodParameter parameter) {
+        Value ann = parameter.getParameterAnnotation(Value.class);
+        Assert.state(ann != null, "No Value annotation");
+        return new ExpressionValueNamedValueInfo(ann);
+    }
+
+    @Override
+    protected Object resolveNamedValue(String name, MethodParameter parameter, ServerWebExchange exchange) {
+        // No name to resolve
+        return null;
+    }
+
+    @Override
+    protected void handleMissingValue(String name, MethodParameter parameter) {
+        throw new UnsupportedOperationException("@Value is never required: " + parameter.getMethod());
+    }
+
+
+    private static final class ExpressionValueNamedValueInfo extends NamedValueInfo {
+
+        private ExpressionValueNamedValueInfo(Value annotation) {
+            super("@Value", false, annotation.value());
+        }
+    }
 
 }

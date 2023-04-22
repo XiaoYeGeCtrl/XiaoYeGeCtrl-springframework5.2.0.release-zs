@@ -30,19 +30,20 @@ import org.springframework.web.server.ServerWebExchange;
  */
 public interface ResourceTransformerChain {
 
-	/**
-	 * Return the {@code ResourceResolverChain} that was used to resolve the
-	 * {@code Resource} being transformed. This may be needed for resolving
-	 * related resources, e.g. links to other resources.
-	 */
-	ResourceResolverChain getResolverChain();
+    /**
+     * Return the {@code ResourceResolverChain} that was used to resolve the
+     * {@code Resource} being transformed. This may be needed for resolving
+     * related resources, e.g. links to other resources.
+     */
+    ResourceResolverChain getResolverChain();
 
-	/**
-	 * Transform the given resource.
-	 * @param exchange the current exchange
-	 * @param resource the candidate resource to transform
-	 * @return the transformed or the same resource, never empty
-	 */
-	Mono<Resource> transform(ServerWebExchange exchange, Resource resource);
+    /**
+     * Transform the given resource.
+     *
+     * @param exchange the current exchange
+     * @param resource the candidate resource to transform
+     * @return the transformed or the same resource, never empty
+     */
+    Mono<Resource> transform(ServerWebExchange exchange, Resource resource);
 
 }

@@ -31,17 +31,18 @@ import org.springframework.messaging.Message;
 @SuppressWarnings("serial")
 public class SessionConnectedEvent extends AbstractSubProtocolEvent {
 
-	/**
-	 * Create a new SessionConnectedEvent.
-	 * @param source the component that published the event (never {@code null})
-	 * @param message the connected message (never {@code null})
-	 */
-	public SessionConnectedEvent(Object source, Message<byte[]> message) {
-		super(source, message);
-	}
+    /**
+     * Create a new SessionConnectedEvent.
+     *
+     * @param source  the component that published the event (never {@code null})
+     * @param message the connected message (never {@code null})
+     */
+    public SessionConnectedEvent(Object source, Message<byte[]> message) {
+        super(source, message);
+    }
 
-	public SessionConnectedEvent(Object source, Message<byte[]> message, @Nullable Principal user) {
-		super(source, message, user);
-	}
+    public SessionConnectedEvent(Object source, Message<byte[]> message, @Nullable Principal user) {
+        super(source, message, user);
+    }
 
 }

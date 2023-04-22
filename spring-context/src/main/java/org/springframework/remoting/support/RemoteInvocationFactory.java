@@ -26,21 +26,22 @@ import org.aopalliance.intercept.MethodInvocation;
  * and by {@link org.springframework.remoting.httpinvoker.HttpInvokerClientInterceptor}.
  *
  * @author Juergen Hoeller
- * @since 1.1
  * @see DefaultRemoteInvocationFactory
  * @see org.springframework.remoting.rmi.RmiClientInterceptor#setRemoteInvocationFactory
  * @see org.springframework.remoting.httpinvoker.HttpInvokerClientInterceptor#setRemoteInvocationFactory
+ * @since 1.1
  */
 public interface RemoteInvocationFactory {
 
-	/**
-	 * Create a serializable RemoteInvocation object from the given AOP
-	 * MethodInvocation.
-	 * <p>Can be implemented to add custom context information to the
-	 * remote invocation, for example user credentials.
-	 * @param methodInvocation the original AOP MethodInvocation object
-	 * @return the RemoteInvocation object
-	 */
-	RemoteInvocation createRemoteInvocation(MethodInvocation methodInvocation);
+    /**
+     * Create a serializable RemoteInvocation object from the given AOP
+     * MethodInvocation.
+     * <p>Can be implemented to add custom context information to the
+     * remote invocation, for example user credentials.
+     *
+     * @param methodInvocation the original AOP MethodInvocation object
+     * @return the RemoteInvocation object
+     */
+    RemoteInvocation createRemoteInvocation(MethodInvocation methodInvocation);
 
 }

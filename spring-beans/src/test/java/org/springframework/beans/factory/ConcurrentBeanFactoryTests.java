@@ -48,121 +48,111 @@ import static org.springframework.tests.TestResourceUtils.qualifiedResource;
 @EnabledForTestGroups(TestGroup.PERFORMANCE)
 public class ConcurrentBeanFactoryTests {
 
-	private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy/MM/dd");
+    private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy/MM/dd");
 
-	private static final Date DATE_1, DATE_2;
+    private static final Date DATE_1, DATE_2;
+    private static final Log logger = LogFactory.getLog(ConcurrentBeanFactoryTests.class);
 
-	static {
-		try {
-			DATE_1 = DATE_FORMAT.parse("2004/08/08");
-			DATE_2 = DATE_FORMAT.parse("2000/02/02");
-		}
-		catch (ParseException e) {
-			throw new RuntimeException(e);
-		}
-	}
+    static {
+        try {
+            DATE_1 = DATE_FORMAT.parse("2004/08/08");
+            DATE_2 = DATE_FORMAT.parse("2000/02/02");
+        } catch (ParseException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
-
-	private static final Log logger = LogFactory.getLog(ConcurrentBeanFactoryTests.class);
-
-	private BeanFactory factory;
-
-	private final Set<TestRun> set = Collections.synchronizedSet(new HashSet<>());
-
-	private Throwable ex;
+    private final Set<TestRun> set = Collections.synchronizedSet(new HashSet<>());
+    private BeanFactory factory;
+    private Throwable ex;
 
 
-	@BeforeEach
-	public void setup() throws Exception {
-		DefaultListableBeanFactory factory = new DefaultListableBeanFactory();
-		new XmlBeanDefinitionReader(factory).loadBeanDefinitions(
-				qualifiedResource(ConcurrentBeanFactoryTests.class, "context.xml"));
+    @BeforeEach
+    public void setup() throws Exception {
+        DefaultListableBeanFactory factory = new DefaultListableBeanFactory();
+        new XmlBeanDefinitionReader(factory).loadBeanDefinitions(
+                qualifiedResource(ConcurrentBeanFactoryTests.class, "context.xml"));
 
-		factory.addPropertyEditorRegistrar(
-				registry -> registry.registerCustomEditor(Date.class,
-						new CustomDateEditor((DateFormat) DATE_FORMAT.clone(), false)));
+        factory.addPropertyEditorRegistrar(
+                registry -> registry.registerCustomEditor(Date.class,
+                        new CustomDateEditor((DateFormat) DATE_FORMAT.clone(), false)));
 
-		this.factory = factory;
-	}
-
-
-	@Test
-	public void testSingleThread() {
-		for (int i = 0; i < 100; i++) {
-			performTest();
-		}
-	}
-
-	@Test
-	public void testConcurrent() {
-		for (int i = 0; i < 100; i++) {
-			TestRun run = new TestRun();
-			run.setDaemon(true);
-			set.add(run);
-		}
-		for (Iterator<TestRun> it = new HashSet<>(set).iterator(); it.hasNext();) {
-			TestRun run = it.next();
-			run.start();
-		}
-		logger.info("Thread creation over, " + set.size() + " still active.");
-		synchronized (set) {
-			while (!set.isEmpty() && ex == null) {
-				try {
-					set.wait();
-				}
-				catch (InterruptedException e) {
-					logger.info(e.toString());
-				}
-				logger.info(set.size() + " threads still active.");
-			}
-		}
-		if (ex != null) {
-			throw new AssertionError("Unexpected exception", ex);
-		}
-	}
-
-	private void performTest() {
-		ConcurrentBean b1 = (ConcurrentBean) factory.getBean("bean1");
-		ConcurrentBean b2 = (ConcurrentBean) factory.getBean("bean2");
-
-		assertThat(b1.getDate()).isEqualTo(DATE_1);
-		assertThat(b2.getDate()).isEqualTo(DATE_2);
-	}
+        this.factory = factory;
+    }
 
 
-	private class TestRun extends Thread {
+    @Test
+    public void testSingleThread() {
+        for (int i = 0; i < 100; i++) {
+            performTest();
+        }
+    }
 
-		@Override
-		public void run() {
-			try {
-				for (int i = 0; i < 10000; i++) {
-					performTest();
-				}
-			}
-			catch (Throwable e) {
-				ex = e;
-			}
-			finally {
-				synchronized (set) {
-					set.remove(this);
-					set.notifyAll();
-				}
-			}
-		}
-	}
+    @Test
+    public void testConcurrent() {
+        for (int i = 0; i < 100; i++) {
+            TestRun run = new TestRun();
+            run.setDaemon(true);
+            set.add(run);
+        }
+        for (Iterator<TestRun> it = new HashSet<>(set).iterator(); it.hasNext(); ) {
+            TestRun run = it.next();
+            run.start();
+        }
+        logger.info("Thread creation over, " + set.size() + " still active.");
+        synchronized (set) {
+            while (!set.isEmpty() && ex == null) {
+                try {
+                    set.wait();
+                } catch (InterruptedException e) {
+                    logger.info(e.toString());
+                }
+                logger.info(set.size() + " threads still active.");
+            }
+        }
+        if (ex != null) {
+            throw new AssertionError("Unexpected exception", ex);
+        }
+    }
 
+    private void performTest() {
+        ConcurrentBean b1 = (ConcurrentBean) factory.getBean("bean1");
+        ConcurrentBean b2 = (ConcurrentBean) factory.getBean("bean2");
 
-	public static class ConcurrentBean {
+        assertThat(b1.getDate()).isEqualTo(DATE_1);
+        assertThat(b2.getDate()).isEqualTo(DATE_2);
+    }
 
-		private Date date;
+    public static class ConcurrentBean {
 
-		public Date getDate() {
-			return date;
-		}
+        private Date date;
 
-		public void setDate(Date date) {
-			this.date = date;
-		}
-	}
+        public Date getDate() {
+            return date;
+        }
+
+        public void setDate(Date date) {
+            this.date = date;
+        }
+    }
+
+    private class TestRun extends Thread {
+
+        @Override
+        public void run() {
+            try {
+                for (int i = 0; i < 10000; i++) {
+                    performTest();
+                }
+            } catch (Throwable e) {
+                ex = e;
+            } finally {
+                synchronized (set) {
+                    set.remove(this);
+                    set.notifyAll();
+                }
+            }
+        }
+    }
 
 }

@@ -28,28 +28,28 @@ import org.junit.jupiter.api.Test
  */
 class MapSqlParameterSourceExtensionsTests {
 
-	@Test
-	fun `setter with value`() {
-		val source = MapSqlParameterSource()
-		source["foo"] = 2
-		assertThat(source.getValue("foo")).isEqualTo(2)
-	}
+    @Test
+    fun `setter with value`() {
+        val source = MapSqlParameterSource()
+        source["foo"] = 2
+        assertThat(source.getValue("foo")).isEqualTo(2)
+    }
 
-	@Test
-	fun `setter with value and type`() {
-		val source = MapSqlParameterSource()
-		source["foo", JDBCType.INTEGER.vendorTypeNumber] = 2
-		assertThat(source.getValue("foo")).isEqualTo(2)
-		assertThat(source.getSqlType("foo")).isEqualTo(JDBCType.INTEGER.vendorTypeNumber)
-	}
+    @Test
+    fun `setter with value and type`() {
+        val source = MapSqlParameterSource()
+        source["foo", JDBCType.INTEGER.vendorTypeNumber] = 2
+        assertThat(source.getValue("foo")).isEqualTo(2)
+        assertThat(source.getSqlType("foo")).isEqualTo(JDBCType.INTEGER.vendorTypeNumber)
+    }
 
-	@Test
-	fun `setter with value, type and type name`() {
-		val source = MapSqlParameterSource()
-		source["foo", JDBCType.INTEGER.vendorTypeNumber, "INT"] = 2
-		assertThat(source.getValue("foo")).isEqualTo(2)
-		assertThat(source.getSqlType("foo")).isEqualTo(JDBCType.INTEGER.vendorTypeNumber)
-		assertThat(source.getTypeName("foo")).isEqualTo("INT")
-	}
+    @Test
+    fun `setter with value, type and type name`() {
+        val source = MapSqlParameterSource()
+        source["foo", JDBCType.INTEGER.vendorTypeNumber, "INT"] = 2
+        assertThat(source.getValue("foo")).isEqualTo(2)
+        assertThat(source.getSqlType("foo")).isEqualTo(JDBCType.INTEGER.vendorTypeNumber)
+        assertThat(source.getTypeName("foo")).isEqualTo("INT")
+    }
 
 }

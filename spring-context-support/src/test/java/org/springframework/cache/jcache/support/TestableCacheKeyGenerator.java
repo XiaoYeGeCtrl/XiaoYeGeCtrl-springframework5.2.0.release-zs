@@ -33,19 +33,19 @@ import org.springframework.cache.interceptor.SimpleKey;
  */
 public class TestableCacheKeyGenerator implements CacheKeyGenerator {
 
-	@Override
-	public GeneratedCacheKey generateCacheKey(CacheKeyInvocationContext<? extends Annotation> context) {
-		return new SimpleGeneratedCacheKey(context.getKeyParameters()[0]);
-	}
+    @Override
+    public GeneratedCacheKey generateCacheKey(CacheKeyInvocationContext<? extends Annotation> context) {
+        return new SimpleGeneratedCacheKey(context.getKeyParameters()[0]);
+    }
 
 
-	@SuppressWarnings("serial")
-	private static class SimpleGeneratedCacheKey extends SimpleKey implements GeneratedCacheKey {
+    @SuppressWarnings("serial")
+    private static class SimpleGeneratedCacheKey extends SimpleKey implements GeneratedCacheKey {
 
-		public SimpleGeneratedCacheKey(Object... elements) {
-			super(elements);
-		}
+        public SimpleGeneratedCacheKey(Object... elements) {
+            super(elements);
+        }
 
-	}
+    }
 
 }

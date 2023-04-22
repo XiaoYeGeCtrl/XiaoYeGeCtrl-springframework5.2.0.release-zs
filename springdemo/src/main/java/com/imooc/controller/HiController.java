@@ -6,10 +6,11 @@ import org.springframework.stereotype.Controller;
 
 @Controller
 public class HiController {
-	@Autowired
-	private HiService hiService;
-	public void handleRequest(){
-		hiService.sayHi();
-		hiService.justWantToSayHi();
-	}
+    @Autowired
+    private HiService hiService;
+
+    public void handleRequest() {
+        hiService.sayHi();
+        hiService.justWantToSayHi();
+    }
 }

@@ -42,34 +42,35 @@ import org.springframework.util.Assert;
  */
 public class MappingJackson2SmileHttpMessageConverter extends AbstractJackson2HttpMessageConverter {
 
-	/**
-	 * Construct a new {@code MappingJackson2SmileHttpMessageConverter} using default configuration
-	 * provided by {@code Jackson2ObjectMapperBuilder}.
-	 */
-	public MappingJackson2SmileHttpMessageConverter() {
-		this(Jackson2ObjectMapperBuilder.smile().build());
-	}
+    /**
+     * Construct a new {@code MappingJackson2SmileHttpMessageConverter} using default configuration
+     * provided by {@code Jackson2ObjectMapperBuilder}.
+     */
+    public MappingJackson2SmileHttpMessageConverter() {
+        this(Jackson2ObjectMapperBuilder.smile().build());
+    }
 
-	/**
-	 * Construct a new {@code MappingJackson2SmileHttpMessageConverter} with a custom {@link ObjectMapper}
-	 * (must be configured with a {@code SmileFactory} instance).
-	 * You can use {@link Jackson2ObjectMapperBuilder} to build it easily.
-	 * @see Jackson2ObjectMapperBuilder#smile()
-	 */
-	public MappingJackson2SmileHttpMessageConverter(ObjectMapper objectMapper) {
-		super(objectMapper, new MediaType("application", "x-jackson-smile"));
-		Assert.isInstanceOf(SmileFactory.class, objectMapper.getFactory(), "SmileFactory required");
-	}
+    /**
+     * Construct a new {@code MappingJackson2SmileHttpMessageConverter} with a custom {@link ObjectMapper}
+     * (must be configured with a {@code SmileFactory} instance).
+     * You can use {@link Jackson2ObjectMapperBuilder} to build it easily.
+     *
+     * @see Jackson2ObjectMapperBuilder#smile()
+     */
+    public MappingJackson2SmileHttpMessageConverter(ObjectMapper objectMapper) {
+        super(objectMapper, new MediaType("application", "x-jackson-smile"));
+        Assert.isInstanceOf(SmileFactory.class, objectMapper.getFactory(), "SmileFactory required");
+    }
 
 
-	/**
-	 * {@inheritDoc}
-	 * The {@code ObjectMapper} must be configured with a {@code SmileFactory} instance.
-	 */
-	@Override
-	public void setObjectMapper(ObjectMapper objectMapper) {
-		Assert.isInstanceOf(SmileFactory.class, objectMapper.getFactory(), "SmileFactory required");
-		super.setObjectMapper(objectMapper);
-	}
+    /**
+     * {@inheritDoc}
+     * The {@code ObjectMapper} must be configured with a {@code SmileFactory} instance.
+     */
+    @Override
+    public void setObjectMapper(ObjectMapper objectMapper) {
+        Assert.isInstanceOf(SmileFactory.class, objectMapper.getFactory(), "SmileFactory required");
+        super.setObjectMapper(objectMapper);
+    }
 
 }

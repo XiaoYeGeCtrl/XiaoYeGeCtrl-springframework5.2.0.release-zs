@@ -33,15 +33,16 @@ import java.util.List;
 @FunctionalInterface
 public interface MethodFilter {
 
-	/**
-	 * Called by the method resolver to allow the SpEL user to organize the list of
-	 * candidate methods that may be invoked. The filter can remove methods that should
-	 * not be considered candidates and it may sort the results. The resolver will then
-	 * search through the methods as returned from the filter when looking for a suitable
-	 * candidate to invoke.
-	 * @param methods the full list of methods the resolver was going to choose from
-	 * @return a possible subset of input methods that may be sorted by order of relevance
-	 */
-	List<Method> filter(List<Method> methods);
+    /**
+     * Called by the method resolver to allow the SpEL user to organize the list of
+     * candidate methods that may be invoked. The filter can remove methods that should
+     * not be considered candidates and it may sort the results. The resolver will then
+     * search through the methods as returned from the filter when looking for a suitable
+     * candidate to invoke.
+     *
+     * @param methods the full list of methods the resolver was going to choose from
+     * @return a possible subset of input methods that may be sorted by order of relevance
+     */
+    List<Method> filter(List<Method> methods);
 
 }

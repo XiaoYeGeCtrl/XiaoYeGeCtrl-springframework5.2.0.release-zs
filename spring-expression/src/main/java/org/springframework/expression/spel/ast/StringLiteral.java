@@ -30,40 +30,40 @@ import org.springframework.util.StringUtils;
  */
 public class StringLiteral extends Literal {
 
-	private final TypedValue value;
+    private final TypedValue value;
 
 
-	public StringLiteral(String payload, int startPos, int endPos, String value) {
-		super(payload, startPos, endPos);
+    public StringLiteral(String payload, int startPos, int endPos, String value) {
+        super(payload, startPos, endPos);
 
-		String valueWithinQuotes = value.substring(1, value.length() - 1);
-		valueWithinQuotes = StringUtils.replace(valueWithinQuotes, "''", "'");
-		valueWithinQuotes = StringUtils.replace(valueWithinQuotes, "\"\"", "\"");
+        String valueWithinQuotes = value.substring(1, value.length() - 1);
+        valueWithinQuotes = StringUtils.replace(valueWithinQuotes, "''", "'");
+        valueWithinQuotes = StringUtils.replace(valueWithinQuotes, "\"\"", "\"");
 
-		this.value = new TypedValue(valueWithinQuotes);
-		this.exitTypeDescriptor = "Ljava/lang/String";
-	}
+        this.value = new TypedValue(valueWithinQuotes);
+        this.exitTypeDescriptor = "Ljava/lang/String";
+    }
 
 
-	@Override
-	public TypedValue getLiteralValue() {
-		return this.value;
-	}
+    @Override
+    public TypedValue getLiteralValue() {
+        return this.value;
+    }
 
-	@Override
-	public String toString() {
-		return "'" + getLiteralValue().getValue() + "'";
-	}
+    @Override
+    public String toString() {
+        return "'" + getLiteralValue().getValue() + "'";
+    }
 
-	@Override
-	public boolean isCompilable() {
-		return true;
-	}
+    @Override
+    public boolean isCompilable() {
+        return true;
+    }
 
-	@Override
-	public void generateCode(MethodVisitor mv, CodeFlow cf) {
-		mv.visitLdcInsn(this.value.getValue());
-		cf.pushDescriptor(this.exitTypeDescriptor);
-	}
+    @Override
+    public void generateCode(MethodVisitor mv, CodeFlow cf) {
+        mv.visitLdcInsn(this.value.getValue());
+        cf.pushDescriptor(this.exitTypeDescriptor);
+    }
 
 }

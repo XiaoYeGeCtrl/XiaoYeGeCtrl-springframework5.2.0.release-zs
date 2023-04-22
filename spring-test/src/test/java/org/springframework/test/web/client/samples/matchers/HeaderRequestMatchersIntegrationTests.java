@@ -44,48 +44,48 @@ import static org.springframework.test.web.client.response.MockRestResponseCreat
  */
 public class HeaderRequestMatchersIntegrationTests {
 
-	private static final String RESPONSE_BODY = "{\"name\" : \"Ludwig van Beethoven\", \"someDouble\" : \"1.6035\"}";
+    private static final String RESPONSE_BODY = "{\"name\" : \"Ludwig van Beethoven\", \"someDouble\" : \"1.6035\"}";
 
 
-	private MockRestServiceServer mockServer;
+    private MockRestServiceServer mockServer;
 
-	private RestTemplate restTemplate;
-
-
-	@BeforeEach
-	public void setup() {
-		List<HttpMessageConverter<?>> converters = new ArrayList<>();
-		converters.add(new StringHttpMessageConverter());
-		converters.add(new MappingJackson2HttpMessageConverter());
-
-		this.restTemplate = new RestTemplate();
-		this.restTemplate.setMessageConverters(converters);
-
-		this.mockServer = MockRestServiceServer.createServer(this.restTemplate);
-	}
+    private RestTemplate restTemplate;
 
 
-	@Test
-	public void testString() throws Exception {
-		this.mockServer.expect(requestTo("/person/1"))
-			.andExpect(header("Accept", "application/json, application/*+json"))
-			.andRespond(withSuccess(RESPONSE_BODY, MediaType.APPLICATION_JSON));
+    @BeforeEach
+    public void setup() {
+        List<HttpMessageConverter<?>> converters = new ArrayList<>();
+        converters.add(new StringHttpMessageConverter());
+        converters.add(new MappingJackson2HttpMessageConverter());
 
-		executeAndVerify();
-	}
+        this.restTemplate = new RestTemplate();
+        this.restTemplate.setMessageConverters(converters);
 
-	@Test
-	public void testStringContains() throws Exception {
-		this.mockServer.expect(requestTo("/person/1"))
-			.andExpect(header("Accept", containsString("json")))
-			.andRespond(withSuccess(RESPONSE_BODY, MediaType.APPLICATION_JSON));
+        this.mockServer = MockRestServiceServer.createServer(this.restTemplate);
+    }
 
-		executeAndVerify();
-	}
 
-	private void executeAndVerify() throws URISyntaxException {
-		this.restTemplate.getForObject(new URI("/person/1"), Person.class);
-		this.mockServer.verify();
-	}
+    @Test
+    public void testString() throws Exception {
+        this.mockServer.expect(requestTo("/person/1"))
+                .andExpect(header("Accept", "application/json, application/*+json"))
+                .andRespond(withSuccess(RESPONSE_BODY, MediaType.APPLICATION_JSON));
+
+        executeAndVerify();
+    }
+
+    @Test
+    public void testStringContains() throws Exception {
+        this.mockServer.expect(requestTo("/person/1"))
+                .andExpect(header("Accept", containsString("json")))
+                .andRespond(withSuccess(RESPONSE_BODY, MediaType.APPLICATION_JSON));
+
+        executeAndVerify();
+    }
+
+    private void executeAndVerify() throws URISyntaxException {
+        this.restTemplate.getForObject(new URI("/person/1"), Person.class);
+        this.mockServer.verify();
+    }
 
 }

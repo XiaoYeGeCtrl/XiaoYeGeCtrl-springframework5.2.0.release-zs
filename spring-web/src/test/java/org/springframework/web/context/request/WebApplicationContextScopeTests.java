@@ -35,67 +35,65 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 public class WebApplicationContextScopeTests {
 
-	private static final String NAME = "scoped";
+    private static final String NAME = "scoped";
 
 
-	private WebApplicationContext initApplicationContext(String scope) {
-		MockServletContext sc = new MockServletContext();
-		GenericWebApplicationContext ac = new GenericWebApplicationContext(sc);
-		GenericBeanDefinition bd = new GenericBeanDefinition();
-		bd.setBeanClass(DerivedTestBean.class);
-		bd.setScope(scope);
-		ac.registerBeanDefinition(NAME, bd);
-		ac.refresh();
-		return ac;
-	}
+    private WebApplicationContext initApplicationContext(String scope) {
+        MockServletContext sc = new MockServletContext();
+        GenericWebApplicationContext ac = new GenericWebApplicationContext(sc);
+        GenericBeanDefinition bd = new GenericBeanDefinition();
+        bd.setBeanClass(DerivedTestBean.class);
+        bd.setScope(scope);
+        ac.registerBeanDefinition(NAME, bd);
+        ac.refresh();
+        return ac;
+    }
 
-	@Test
-	public void testRequestScope() {
-		WebApplicationContext ac = initApplicationContext(WebApplicationContext.SCOPE_REQUEST);
-		MockHttpServletRequest request = new MockHttpServletRequest();
-		ServletRequestAttributes requestAttributes = new ServletRequestAttributes(request);
-		RequestContextHolder.setRequestAttributes(requestAttributes);
-		try {
-			assertThat(request.getAttribute(NAME)).isNull();
-			DerivedTestBean bean = ac.getBean(NAME, DerivedTestBean.class);
-			assertThat(request.getAttribute(NAME)).isSameAs(bean);
-			assertThat(ac.getBean(NAME)).isSameAs(bean);
-			requestAttributes.requestCompleted();
-			assertThat(bean.wasDestroyed()).isTrue();
-		}
-		finally {
-			RequestContextHolder.setRequestAttributes(null);
-		}
-	}
+    @Test
+    public void testRequestScope() {
+        WebApplicationContext ac = initApplicationContext(WebApplicationContext.SCOPE_REQUEST);
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        ServletRequestAttributes requestAttributes = new ServletRequestAttributes(request);
+        RequestContextHolder.setRequestAttributes(requestAttributes);
+        try {
+            assertThat(request.getAttribute(NAME)).isNull();
+            DerivedTestBean bean = ac.getBean(NAME, DerivedTestBean.class);
+            assertThat(request.getAttribute(NAME)).isSameAs(bean);
+            assertThat(ac.getBean(NAME)).isSameAs(bean);
+            requestAttributes.requestCompleted();
+            assertThat(bean.wasDestroyed()).isTrue();
+        } finally {
+            RequestContextHolder.setRequestAttributes(null);
+        }
+    }
 
-	@Test
-	public void testSessionScope() {
-		WebApplicationContext ac = initApplicationContext(WebApplicationContext.SCOPE_SESSION);
-		MockHttpServletRequest request = new MockHttpServletRequest();
-		ServletRequestAttributes requestAttributes = new ServletRequestAttributes(request);
-		RequestContextHolder.setRequestAttributes(requestAttributes);
-		try {
-			assertThat(request.getSession().getAttribute(NAME)).isNull();
-			DerivedTestBean bean = ac.getBean(NAME, DerivedTestBean.class);
-			assertThat(request.getSession().getAttribute(NAME)).isSameAs(bean);
-			assertThat(ac.getBean(NAME)).isSameAs(bean);
-			request.getSession().invalidate();
-			assertThat(bean.wasDestroyed()).isTrue();
-		}
-		finally {
-			RequestContextHolder.setRequestAttributes(null);
-		}
-	}
+    @Test
+    public void testSessionScope() {
+        WebApplicationContext ac = initApplicationContext(WebApplicationContext.SCOPE_SESSION);
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        ServletRequestAttributes requestAttributes = new ServletRequestAttributes(request);
+        RequestContextHolder.setRequestAttributes(requestAttributes);
+        try {
+            assertThat(request.getSession().getAttribute(NAME)).isNull();
+            DerivedTestBean bean = ac.getBean(NAME, DerivedTestBean.class);
+            assertThat(request.getSession().getAttribute(NAME)).isSameAs(bean);
+            assertThat(ac.getBean(NAME)).isSameAs(bean);
+            request.getSession().invalidate();
+            assertThat(bean.wasDestroyed()).isTrue();
+        } finally {
+            RequestContextHolder.setRequestAttributes(null);
+        }
+    }
 
-	@Test
-	public void testApplicationScope() {
-		WebApplicationContext ac = initApplicationContext(WebApplicationContext.SCOPE_APPLICATION);
-		assertThat(ac.getServletContext().getAttribute(NAME)).isNull();
-		DerivedTestBean bean = ac.getBean(NAME, DerivedTestBean.class);
-		assertThat(ac.getServletContext().getAttribute(NAME)).isSameAs(bean);
-		assertThat(ac.getBean(NAME)).isSameAs(bean);
-		new ContextCleanupListener().contextDestroyed(new ServletContextEvent(ac.getServletContext()));
-		assertThat(bean.wasDestroyed()).isTrue();
-	}
+    @Test
+    public void testApplicationScope() {
+        WebApplicationContext ac = initApplicationContext(WebApplicationContext.SCOPE_APPLICATION);
+        assertThat(ac.getServletContext().getAttribute(NAME)).isNull();
+        DerivedTestBean bean = ac.getBean(NAME, DerivedTestBean.class);
+        assertThat(ac.getServletContext().getAttribute(NAME)).isSameAs(bean);
+        assertThat(ac.getBean(NAME)).isSameAs(bean);
+        new ContextCleanupListener().contextDestroyed(new ServletContextEvent(ac.getServletContext()));
+        assertThat(bean.wasDestroyed()).isTrue();
+    }
 
 }

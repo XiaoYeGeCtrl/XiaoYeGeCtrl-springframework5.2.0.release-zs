@@ -36,25 +36,25 @@ import javax.script.ScriptException;
 @SuppressWarnings("serial")
 public class StandardScriptEvalException extends RuntimeException {
 
-	private final ScriptException scriptException;
+    private final ScriptException scriptException;
 
 
-	/**
-	 * Construct a new script eval exception with the specified original exception.
-	 */
-	public StandardScriptEvalException(ScriptException ex) {
-		super(ex.getMessage());
-		this.scriptException = ex;
-	}
+    /**
+     * Construct a new script eval exception with the specified original exception.
+     */
+    public StandardScriptEvalException(ScriptException ex) {
+        super(ex.getMessage());
+        this.scriptException = ex;
+    }
 
 
-	public final ScriptException getScriptException() {
-		return this.scriptException;
-	}
+    public final ScriptException getScriptException() {
+        return this.scriptException;
+    }
 
-	@Override
-	public synchronized Throwable fillInStackTrace() {
-		return this;
-	}
+    @Override
+    public synchronized Throwable fillInStackTrace() {
+        return this;
+    }
 
 }

@@ -39,20 +39,18 @@ import static org.assertj.core.api.Assertions.assertThat;
 @ActiveProfiles(resolver = ClassNameActiveProfilesResolver.class)
 public class ClassNameActiveProfilesResolverTests {
 
-	@Configuration
-	static class Config {
+    @Autowired
+    private ApplicationContext applicationContext;
 
-	}
+    @Test
+    public void test() {
+        assertThat(Arrays.asList(applicationContext.getEnvironment().getActiveProfiles()).contains(
+                getClass().getSimpleName().toLowerCase())).isTrue();
+    }
 
+    @Configuration
+    static class Config {
 
-	@Autowired
-	private ApplicationContext applicationContext;
-
-
-	@Test
-	public void test() {
-		assertThat(Arrays.asList(applicationContext.getEnvironment().getActiveProfiles()).contains(
-			getClass().getSimpleName().toLowerCase())).isTrue();
-	}
+    }
 
 }

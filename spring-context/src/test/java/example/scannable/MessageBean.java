@@ -23,19 +23,19 @@ package example.scannable;
 @CustomAnnotations.SpecialAnnotation
 public class MessageBean {
 
-	private String message;
+    private String message;
 
-	public MessageBean() {
-		this.message = "DEFAULT MESSAGE";
-	}
+    public MessageBean() {
+        this.message = "DEFAULT MESSAGE";
+    }
 
-	public MessageBean(String message) {
-		this.message = message;
-	}
+    public MessageBean(String message) {
+        this.message = message;
+    }
 
-	@CustomAnnotations.SpecialAnnotation
-	public String getMessage() {
-		return this.message;
-	}
+    @CustomAnnotations.SpecialAnnotation
+    public String getMessage() {
+        return this.message;
+    }
 
 }

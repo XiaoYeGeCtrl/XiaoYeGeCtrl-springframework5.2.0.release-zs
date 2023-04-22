@@ -92,165 +92,167 @@ import org.springframework.util.StringUtils;
 @SuppressWarnings("serial")
 public class DefaultMessageCodesResolver implements MessageCodesResolver, Serializable {
 
-	/**
-	 * The separator that this implementation uses when resolving message codes.
-	 */
-	public static final String CODE_SEPARATOR = ".";
+    /**
+     * The separator that this implementation uses when resolving message codes.
+     */
+    public static final String CODE_SEPARATOR = ".";
 
-	private static final MessageCodeFormatter DEFAULT_FORMATTER = Format.PREFIX_ERROR_CODE;
-
-
-	private String prefix = "";
-
-	private MessageCodeFormatter formatter = DEFAULT_FORMATTER;
+    private static final MessageCodeFormatter DEFAULT_FORMATTER = Format.PREFIX_ERROR_CODE;
 
 
-	/**
-	 * Specify a prefix to be applied to any code built by this resolver.
-	 * <p>Default is none. Specify, for example, "validation." to get
-	 * error codes like "validation.typeMismatch.name".
-	 */
-	public void setPrefix(@Nullable String prefix) {
-		this.prefix = (prefix != null ? prefix : "");
-	}
+    private String prefix = "";
 
-	/**
-	 * Return the prefix to be applied to any code built by this resolver.
-	 * <p>Returns an empty String in case of no prefix.
-	 */
-	protected String getPrefix() {
-		return this.prefix;
-	}
+    private MessageCodeFormatter formatter = DEFAULT_FORMATTER;
 
-	/**
-	 * Specify the format for message codes built by this resolver.
-	 * <p>The default is {@link Format#PREFIX_ERROR_CODE}.
-	 * @since 3.2
-	 * @see Format
-	 */
-	public void setMessageCodeFormatter(@Nullable MessageCodeFormatter formatter) {
-		this.formatter = (formatter != null ? formatter : DEFAULT_FORMATTER);
-	}
+    /**
+     * Return the prefix to be applied to any code built by this resolver.
+     * <p>Returns an empty String in case of no prefix.
+     */
+    protected String getPrefix() {
+        return this.prefix;
+    }
 
+    /**
+     * Specify a prefix to be applied to any code built by this resolver.
+     * <p>Default is none. Specify, for example, "validation." to get
+     * error codes like "validation.typeMismatch.name".
+     */
+    public void setPrefix(@Nullable String prefix) {
+        this.prefix = (prefix != null ? prefix : "");
+    }
 
-	@Override
-	public String[] resolveMessageCodes(String errorCode, String objectName) {
-		return resolveMessageCodes(errorCode, objectName, "", null);
-	}
-
-	/**
-	 * Build the code list for the given code and field: an
-	 * object/field-specific code, a field-specific code, a plain error code.
-	 * <p>Arrays, Lists and Maps are resolved both for specific elements and
-	 * the whole collection.
-	 * <p>See the {@link DefaultMessageCodesResolver class level javadoc} for
-	 * details on the generated codes.
-	 * @return the list of codes
-	 */
-	@Override
-	public String[] resolveMessageCodes(String errorCode, String objectName, String field, @Nullable Class<?> fieldType) {
-		Set<String> codeList = new LinkedHashSet<>();
-		List<String> fieldList = new ArrayList<>();
-		buildFieldList(field, fieldList);
-		addCodes(codeList, errorCode, objectName, fieldList);
-		int dotIndex = field.lastIndexOf('.');
-		if (dotIndex != -1) {
-			buildFieldList(field.substring(dotIndex + 1), fieldList);
-		}
-		addCodes(codeList, errorCode, null, fieldList);
-		if (fieldType != null) {
-			addCode(codeList, errorCode, null, fieldType.getName());
-		}
-		addCode(codeList, errorCode, null, null);
-		return StringUtils.toStringArray(codeList);
-	}
-
-	private void addCodes(Collection<String> codeList, String errorCode, @Nullable String objectName, Iterable<String> fields) {
-		for (String field : fields) {
-			addCode(codeList, errorCode, objectName, field);
-		}
-	}
-
-	private void addCode(Collection<String> codeList, String errorCode, @Nullable String objectName, @Nullable String field) {
-		codeList.add(postProcessMessageCode(this.formatter.format(errorCode, objectName, field)));
-	}
-
-	/**
-	 * Add both keyed and non-keyed entries for the supplied {@code field}
-	 * to the supplied field list.
-	 */
-	protected void buildFieldList(String field, List<String> fieldList) {
-		fieldList.add(field);
-		String plainField = field;
-		int keyIndex = plainField.lastIndexOf('[');
-		while (keyIndex != -1) {
-			int endKeyIndex = plainField.indexOf(']', keyIndex);
-			if (endKeyIndex != -1) {
-				plainField = plainField.substring(0, keyIndex) + plainField.substring(endKeyIndex + 1);
-				fieldList.add(plainField);
-				keyIndex = plainField.lastIndexOf('[');
-			}
-			else {
-				keyIndex = -1;
-			}
-		}
-	}
-
-	/**
-	 * Post-process the given message code, built by this resolver.
-	 * <p>The default implementation applies the specified prefix, if any.
-	 * @param code the message code as built by this resolver
-	 * @return the final message code to be returned
-	 * @see #setPrefix
-	 */
-	protected String postProcessMessageCode(String code) {
-		return getPrefix() + code;
-	}
+    /**
+     * Specify the format for message codes built by this resolver.
+     * <p>The default is {@link Format#PREFIX_ERROR_CODE}.
+     *
+     * @see Format
+     * @since 3.2
+     */
+    public void setMessageCodeFormatter(@Nullable MessageCodeFormatter formatter) {
+        this.formatter = (formatter != null ? formatter : DEFAULT_FORMATTER);
+    }
 
 
-	/**
-	 * Common message code formats.
-	 * @see MessageCodeFormatter
-	 * @see DefaultMessageCodesResolver#setMessageCodeFormatter(MessageCodeFormatter)
-	 */
-	public enum Format implements MessageCodeFormatter {
+    @Override
+    public String[] resolveMessageCodes(String errorCode, String objectName) {
+        return resolveMessageCodes(errorCode, objectName, "", null);
+    }
 
-		/**
-		 * Prefix the error code at the beginning of the generated message code. e.g.:
-		 * {@code errorCode + "." + object name + "." + field}
-		 */
-		PREFIX_ERROR_CODE {
-			@Override
-			public String format(String errorCode, @Nullable String objectName, @Nullable String field) {
-				return toDelimitedString(errorCode, objectName, field);
-			}
-		},
+    /**
+     * Build the code list for the given code and field: an
+     * object/field-specific code, a field-specific code, a plain error code.
+     * <p>Arrays, Lists and Maps are resolved both for specific elements and
+     * the whole collection.
+     * <p>See the {@link DefaultMessageCodesResolver class level javadoc} for
+     * details on the generated codes.
+     *
+     * @return the list of codes
+     */
+    @Override
+    public String[] resolveMessageCodes(String errorCode, String objectName, String field, @Nullable Class<?> fieldType) {
+        Set<String> codeList = new LinkedHashSet<>();
+        List<String> fieldList = new ArrayList<>();
+        buildFieldList(field, fieldList);
+        addCodes(codeList, errorCode, objectName, fieldList);
+        int dotIndex = field.lastIndexOf('.');
+        if (dotIndex != -1) {
+            buildFieldList(field.substring(dotIndex + 1), fieldList);
+        }
+        addCodes(codeList, errorCode, null, fieldList);
+        if (fieldType != null) {
+            addCode(codeList, errorCode, null, fieldType.getName());
+        }
+        addCode(codeList, errorCode, null, null);
+        return StringUtils.toStringArray(codeList);
+    }
 
-		/**
-		 * Postfix the error code at the end of the generated message code. e.g.:
-		 * {@code object name + "." + field + "." + errorCode}
-		 */
-		POSTFIX_ERROR_CODE {
-			@Override
-			public String format(String errorCode, @Nullable String objectName, @Nullable String field) {
-				return toDelimitedString(objectName, field, errorCode);
-			}
-		};
+    private void addCodes(Collection<String> codeList, String errorCode, @Nullable String objectName, Iterable<String> fields) {
+        for (String field : fields) {
+            addCode(codeList, errorCode, objectName, field);
+        }
+    }
 
-		/**
-		 * Concatenate the given elements, delimiting each with
-		 * {@link DefaultMessageCodesResolver#CODE_SEPARATOR}, skipping zero-length or
-		 * null elements altogether.
-		 */
-		public static String toDelimitedString(String... elements) {
-			StringJoiner rtn = new StringJoiner(CODE_SEPARATOR);
-			for (String element : elements) {
-				if (StringUtils.hasLength(element)) {
-					rtn.add(element);
-				}
-			}
-			return rtn.toString();
-		}
-	}
+    private void addCode(Collection<String> codeList, String errorCode, @Nullable String objectName, @Nullable String field) {
+        codeList.add(postProcessMessageCode(this.formatter.format(errorCode, objectName, field)));
+    }
+
+    /**
+     * Add both keyed and non-keyed entries for the supplied {@code field}
+     * to the supplied field list.
+     */
+    protected void buildFieldList(String field, List<String> fieldList) {
+        fieldList.add(field);
+        String plainField = field;
+        int keyIndex = plainField.lastIndexOf('[');
+        while (keyIndex != -1) {
+            int endKeyIndex = plainField.indexOf(']', keyIndex);
+            if (endKeyIndex != -1) {
+                plainField = plainField.substring(0, keyIndex) + plainField.substring(endKeyIndex + 1);
+                fieldList.add(plainField);
+                keyIndex = plainField.lastIndexOf('[');
+            } else {
+                keyIndex = -1;
+            }
+        }
+    }
+
+    /**
+     * Post-process the given message code, built by this resolver.
+     * <p>The default implementation applies the specified prefix, if any.
+     *
+     * @param code the message code as built by this resolver
+     * @return the final message code to be returned
+     * @see #setPrefix
+     */
+    protected String postProcessMessageCode(String code) {
+        return getPrefix() + code;
+    }
+
+
+    /**
+     * Common message code formats.
+     *
+     * @see MessageCodeFormatter
+     * @see DefaultMessageCodesResolver#setMessageCodeFormatter(MessageCodeFormatter)
+     */
+    public enum Format implements MessageCodeFormatter {
+
+        /**
+         * Prefix the error code at the beginning of the generated message code. e.g.:
+         * {@code errorCode + "." + object name + "." + field}
+         */
+        PREFIX_ERROR_CODE {
+            @Override
+            public String format(String errorCode, @Nullable String objectName, @Nullable String field) {
+                return toDelimitedString(errorCode, objectName, field);
+            }
+        },
+
+        /**
+         * Postfix the error code at the end of the generated message code. e.g.:
+         * {@code object name + "." + field + "." + errorCode}
+         */
+        POSTFIX_ERROR_CODE {
+            @Override
+            public String format(String errorCode, @Nullable String objectName, @Nullable String field) {
+                return toDelimitedString(objectName, field, errorCode);
+            }
+        };
+
+        /**
+         * Concatenate the given elements, delimiting each with
+         * {@link DefaultMessageCodesResolver#CODE_SEPARATOR}, skipping zero-length or
+         * null elements altogether.
+         */
+        public static String toDelimitedString(String... elements) {
+            StringJoiner rtn = new StringJoiner(CODE_SEPARATOR);
+            for (String element : elements) {
+                if (StringUtils.hasLength(element)) {
+                    rtn.add(element);
+                }
+            }
+            return rtn.toString();
+        }
+    }
 
 }

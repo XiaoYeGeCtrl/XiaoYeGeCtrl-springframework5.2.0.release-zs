@@ -41,22 +41,22 @@ import static org.assertj.core.api.Assertions.assertThat;
 @SpringJUnitWebConfig
 class WebSocketServletServerContainerFactoryBeanTests {
 
-	@Test
-	void servletServerContainerFactoryBeanSupport(@Autowired ServerContainer serverContainer) {
-		assertThat(serverContainer.getDefaultMaxTextMessageBufferSize()).isEqualTo(42);
-	}
+    @Test
+    void servletServerContainerFactoryBeanSupport(@Autowired ServerContainer serverContainer) {
+        assertThat(serverContainer.getDefaultMaxTextMessageBufferSize()).isEqualTo(42);
+    }
 
 
-	@Configuration
-	@EnableWebSocket
-	static class WebSocketConfig {
+    @Configuration
+    @EnableWebSocket
+    static class WebSocketConfig {
 
-		@Bean
-		ServletServerContainerFactoryBean createWebSocketContainer() {
-			ServletServerContainerFactoryBean container = new ServletServerContainerFactoryBean();
-			container.setMaxTextMessageBufferSize(42);
-			return container;
-		}
-	}
+        @Bean
+        ServletServerContainerFactoryBean createWebSocketContainer() {
+            ServletServerContainerFactoryBean container = new ServletServerContainerFactoryBean();
+            container.setMaxTextMessageBufferSize(42);
+            return container;
+        }
+    }
 
 }

@@ -39,7 +39,6 @@ import org.springframework.web.context.WebApplicationContext;
  * composed annotations.
  *
  * @author Sam Brannen
- * @since 4.3
  * @see RequestScope
  * @see ApplicationScope
  * @see org.springframework.context.annotation.Scope
@@ -47,6 +46,7 @@ import org.springframework.web.context.WebApplicationContext;
  * @see org.springframework.web.context.request.SessionScope
  * @see org.springframework.stereotype.Component
  * @see org.springframework.context.annotation.Bean
+ * @since 4.3
  */
 @Target({ElementType.TYPE, ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
@@ -54,11 +54,11 @@ import org.springframework.web.context.WebApplicationContext;
 @Scope(WebApplicationContext.SCOPE_SESSION)
 public @interface SessionScope {
 
-	/**
-	 * Alias for {@link Scope#proxyMode}.
-	 * <p>Defaults to {@link ScopedProxyMode#TARGET_CLASS}.
-	 */
-	@AliasFor(annotation = Scope.class)
-	ScopedProxyMode proxyMode() default ScopedProxyMode.TARGET_CLASS;
+    /**
+     * Alias for {@link Scope#proxyMode}.
+     * <p>Defaults to {@link ScopedProxyMode#TARGET_CLASS}.
+     */
+    @AliasFor(annotation = Scope.class)
+    ScopedProxyMode proxyMode() default ScopedProxyMode.TARGET_CLASS;
 
 }

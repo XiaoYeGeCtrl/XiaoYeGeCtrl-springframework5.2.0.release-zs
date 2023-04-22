@@ -27,24 +27,25 @@ import org.springframework.util.Assert;
 @Component
 public class ClassWithComplexConstructor {
 
-	private final Dependency dependency;
+    private final Dependency dependency;
 
-	@Autowired ClassWithComplexConstructor selfReference;
+    @Autowired
+    ClassWithComplexConstructor selfReference;
 
-	@Autowired
-	public ClassWithComplexConstructor(Dependency dependency) {
-		Assert.notNull(dependency, "No Dependency bean injected");
-		this.dependency = dependency;
-	}
+    @Autowired
+    public ClassWithComplexConstructor(Dependency dependency) {
+        Assert.notNull(dependency, "No Dependency bean injected");
+        this.dependency = dependency;
+    }
 
-	public Dependency getDependency() {
-		return this.dependency;
-	}
+    public Dependency getDependency() {
+        return this.dependency;
+    }
 
-	public void method() {
-		Assert.state(this.selfReference != this && AopUtils.isCglibProxy(this.selfReference),
-				"Self reference must be a CGLIB proxy");
-		this.dependency.method();
-	}
+    public void method() {
+        Assert.state(this.selfReference != this && AopUtils.isCglibProxy(this.selfReference),
+                "Self reference must be a CGLIB proxy");
+        this.dependency.method();
+    }
 
 }

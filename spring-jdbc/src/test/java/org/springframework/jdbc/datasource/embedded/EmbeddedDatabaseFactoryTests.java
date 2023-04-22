@@ -29,27 +29,27 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 public class EmbeddedDatabaseFactoryTests {
 
-	private EmbeddedDatabaseFactory factory = new EmbeddedDatabaseFactory();
+    private EmbeddedDatabaseFactory factory = new EmbeddedDatabaseFactory();
 
 
-	@Test
-	public void testGetDataSource() {
-		StubDatabasePopulator populator = new StubDatabasePopulator();
-		factory.setDatabasePopulator(populator);
-		EmbeddedDatabase db = factory.getDatabase();
-		assertThat(populator.populateCalled).isTrue();
-		db.shutdown();
-	}
+    @Test
+    public void testGetDataSource() {
+        StubDatabasePopulator populator = new StubDatabasePopulator();
+        factory.setDatabasePopulator(populator);
+        EmbeddedDatabase db = factory.getDatabase();
+        assertThat(populator.populateCalled).isTrue();
+        db.shutdown();
+    }
 
 
-	private static class StubDatabasePopulator implements DatabasePopulator {
+    private static class StubDatabasePopulator implements DatabasePopulator {
 
-		private boolean populateCalled;
+        private boolean populateCalled;
 
-		@Override
-		public void populate(Connection connection) {
-			this.populateCalled = true;
-		}
-	}
+        @Override
+        public void populate(Connection connection) {
+            this.populateCalled = true;
+        }
+    }
 
 }

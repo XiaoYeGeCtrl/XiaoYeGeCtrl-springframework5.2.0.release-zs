@@ -48,26 +48,30 @@ import org.springframework.core.NestedRuntimeException;
  */
 public class RemoteAccessException extends NestedRuntimeException {
 
-	/** Use serialVersionUID from Spring 1.2 for interoperability. */
-	private static final long serialVersionUID = -4906825139312227864L;
+    /**
+     * Use serialVersionUID from Spring 1.2 for interoperability.
+     */
+    private static final long serialVersionUID = -4906825139312227864L;
 
 
-	/**
-	 * Constructor for RemoteAccessException.
-	 * @param msg the detail message
-	 */
-	public RemoteAccessException(String msg) {
-		super(msg);
-	}
+    /**
+     * Constructor for RemoteAccessException.
+     *
+     * @param msg the detail message
+     */
+    public RemoteAccessException(String msg) {
+        super(msg);
+    }
 
-	/**
-	 * Constructor for RemoteAccessException.
-	 * @param msg the detail message
-	 * @param cause the root cause (usually from using an underlying
-	 * remoting API such as RMI)
-	 */
-	public RemoteAccessException(String msg, Throwable cause) {
-		super(msg, cause);
-	}
+    /**
+     * Constructor for RemoteAccessException.
+     *
+     * @param msg   the detail message
+     * @param cause the root cause (usually from using an underlying
+     *              remoting API such as RMI)
+     */
+    public RemoteAccessException(String msg, Throwable cause) {
+        super(msg, cause);
+    }
 
 }

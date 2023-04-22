@@ -34,56 +34,56 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 public class DefaultMultipartHttpServletRequestTests {
 
-	private final MockHttpServletRequest servletRequest = new MockHttpServletRequest();
+    private final MockHttpServletRequest servletRequest = new MockHttpServletRequest();
 
-	private final Map<String, String[]> multipartParams = new LinkedHashMap<>();
+    private final Map<String, String[]> multipartParams = new LinkedHashMap<>();
 
-	private final MultiValueMap<String, String> queryParams = new LinkedMultiValueMap<>();
+    private final MultiValueMap<String, String> queryParams = new LinkedMultiValueMap<>();
 
 
-	@Test // SPR-16590
-	public void parameterValues() {
+    @Test // SPR-16590
+    public void parameterValues() {
 
-		this.multipartParams.put("key", new String[] {"p"});
-		this.queryParams.add("key", "q");
+        this.multipartParams.put("key", new String[]{"p"});
+        this.queryParams.add("key", "q");
 
-		String[] values = createMultipartRequest().getParameterValues("key");
+        String[] values = createMultipartRequest().getParameterValues("key");
 
-		assertThat(values).isEqualTo(new String[] {"p", "q"});
-	}
+        assertThat(values).isEqualTo(new String[]{"p", "q"});
+    }
 
-	@Test // SPR-16590
-	public void parameterMap() {
+    @Test // SPR-16590
+    public void parameterMap() {
 
-		this.multipartParams.put("key1", new String[] {"p1"});
-		this.multipartParams.put("key2", new String[] {"p2"});
+        this.multipartParams.put("key1", new String[]{"p1"});
+        this.multipartParams.put("key2", new String[]{"p2"});
 
-		this.queryParams.add("key1", "q1");
-		this.queryParams.add("key3", "q3");
+        this.queryParams.add("key1", "q1");
+        this.queryParams.add("key3", "q3");
 
-		Map<String, String[]> map = createMultipartRequest().getParameterMap();
+        Map<String, String[]> map = createMultipartRequest().getParameterMap();
 
-		assertThat(map.size()).isEqualTo(3);
-		assertThat(map.get("key1")).isEqualTo(new String[] {"p1", "q1"});
-		assertThat(map.get("key2")).isEqualTo(new String[] {"p2"});
-		assertThat(map.get("key3")).isEqualTo(new String[] {"q3"});
-	}
+        assertThat(map.size()).isEqualTo(3);
+        assertThat(map.get("key1")).isEqualTo(new String[]{"p1", "q1"});
+        assertThat(map.get("key2")).isEqualTo(new String[]{"p2"});
+        assertThat(map.get("key3")).isEqualTo(new String[]{"q3"});
+    }
 
-	private DefaultMultipartHttpServletRequest createMultipartRequest() {
-		insertQueryParams();
-		return new DefaultMultipartHttpServletRequest(this.servletRequest, new LinkedMultiValueMap<>(),
-				this.multipartParams, new HashMap<>());
-	}
+    private DefaultMultipartHttpServletRequest createMultipartRequest() {
+        insertQueryParams();
+        return new DefaultMultipartHttpServletRequest(this.servletRequest, new LinkedMultiValueMap<>(),
+                this.multipartParams, new HashMap<>());
+    }
 
-	private void insertQueryParams() {
-		StringBuilder query = new StringBuilder();
-		for (String key : this.queryParams.keySet()) {
-			for (String value : this.queryParams.get(key)) {
-				this.servletRequest.addParameter(key, value);
-				query.append(query.length() > 0 ? "&" : "").append(key).append("=").append(value);
-			}
-		}
-		this.servletRequest.setQueryString(query.toString());
-	}
+    private void insertQueryParams() {
+        StringBuilder query = new StringBuilder();
+        for (String key : this.queryParams.keySet()) {
+            for (String value : this.queryParams.get(key)) {
+                this.servletRequest.addParameter(key, value);
+                query.append(query.length() > 0 ? "&" : "").append(key).append("=").append(value);
+            }
+        }
+        this.servletRequest.setQueryString(query.toString());
+    }
 
 }

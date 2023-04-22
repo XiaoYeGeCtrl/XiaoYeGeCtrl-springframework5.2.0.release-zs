@@ -41,44 +41,44 @@ import static org.mockito.Mockito.verify;
  */
 public class SimpleJdbcInsertTests {
 
-	private Connection connection;
+    private Connection connection;
 
-	private DatabaseMetaData databaseMetaData;
+    private DatabaseMetaData databaseMetaData;
 
-	private DataSource dataSource;
-
-
-	@BeforeEach
-	public void setUp() throws Exception {
-		connection = mock(Connection.class);
-		databaseMetaData = mock(DatabaseMetaData.class);
-		dataSource = mock(DataSource.class);
-		given(connection.getMetaData()).willReturn(databaseMetaData);
-		given(dataSource.getConnection()).willReturn(connection);
-	}
-
-	@AfterEach
-	public void verifyClosed() throws Exception {
-		verify(connection).close();
-	}
+    private DataSource dataSource;
 
 
-	@Test
-	public void testNoSuchTable() throws Exception {
-		ResultSet resultSet = mock(ResultSet.class);
-		given(resultSet.next()).willReturn(false);
-		given(databaseMetaData.getDatabaseProductName()).willReturn("MyDB");
-		given(databaseMetaData.getDatabaseProductName()).willReturn("MyDB");
-		given(databaseMetaData.getDatabaseProductVersion()).willReturn("1.0");
-		given(databaseMetaData.getUserName()).willReturn("me");
-		given(databaseMetaData.storesLowerCaseIdentifiers()).willReturn(true);
-		given(databaseMetaData.getTables(null, null, "x", null)).willReturn(resultSet);
+    @BeforeEach
+    public void setUp() throws Exception {
+        connection = mock(Connection.class);
+        databaseMetaData = mock(DatabaseMetaData.class);
+        dataSource = mock(DataSource.class);
+        given(connection.getMetaData()).willReturn(databaseMetaData);
+        given(dataSource.getConnection()).willReturn(connection);
+    }
 
-		SimpleJdbcInsert insert = new SimpleJdbcInsert(dataSource).withTableName("x");
-		// Shouldn't succeed in inserting into table which doesn't exist
-		assertThatExceptionOfType(InvalidDataAccessApiUsageException.class).isThrownBy(() ->
-				insert.execute(new HashMap<>()));
-		verify(resultSet).close();
-	}
+    @AfterEach
+    public void verifyClosed() throws Exception {
+        verify(connection).close();
+    }
+
+
+    @Test
+    public void testNoSuchTable() throws Exception {
+        ResultSet resultSet = mock(ResultSet.class);
+        given(resultSet.next()).willReturn(false);
+        given(databaseMetaData.getDatabaseProductName()).willReturn("MyDB");
+        given(databaseMetaData.getDatabaseProductName()).willReturn("MyDB");
+        given(databaseMetaData.getDatabaseProductVersion()).willReturn("1.0");
+        given(databaseMetaData.getUserName()).willReturn("me");
+        given(databaseMetaData.storesLowerCaseIdentifiers()).willReturn(true);
+        given(databaseMetaData.getTables(null, null, "x", null)).willReturn(resultSet);
+
+        SimpleJdbcInsert insert = new SimpleJdbcInsert(dataSource).withTableName("x");
+        // Shouldn't succeed in inserting into table which doesn't exist
+        assertThatExceptionOfType(InvalidDataAccessApiUsageException.class).isThrownBy(() ->
+                insert.execute(new HashMap<>()));
+        verify(resultSet).close();
+    }
 
 }

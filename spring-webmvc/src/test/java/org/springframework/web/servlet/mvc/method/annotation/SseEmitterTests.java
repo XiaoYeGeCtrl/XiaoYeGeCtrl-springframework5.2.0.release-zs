@@ -31,134 +31,135 @@ import static org.springframework.web.servlet.mvc.method.annotation.SseEmitter.e
 
 /**
  * Unit tests for {@link org.springframework.web.servlet.mvc.method.annotation.SseEmitter}.
+ *
  * @author Rossen Stoyanchev
  */
 public class SseEmitterTests {
 
-	private SseEmitter emitter;
+    private SseEmitter emitter;
 
-	private TestHandler handler;
-
-
-	@BeforeEach
-	public void setup() throws IOException {
-		this.handler = new TestHandler();
-		this.emitter = new SseEmitter();
-		this.emitter.initialize(this.handler);
-	}
+    private TestHandler handler;
 
 
-	@Test
-	public void send() throws Exception {
-		this.emitter.send("foo");
-		this.handler.assertSentObjectCount(3);
-		this.handler.assertObject(0, "data:", SseEmitter.TEXT_PLAIN);
-		this.handler.assertObject(1, "foo");
-		this.handler.assertObject(2, "\n\n", SseEmitter.TEXT_PLAIN);
-	}
-
-	@Test
-	public void sendWithMediaType() throws Exception {
-		this.emitter.send("foo", MediaType.TEXT_PLAIN);
-		this.handler.assertSentObjectCount(3);
-		this.handler.assertObject(0, "data:", SseEmitter.TEXT_PLAIN);
-		this.handler.assertObject(1, "foo", MediaType.TEXT_PLAIN);
-		this.handler.assertObject(2, "\n\n", SseEmitter.TEXT_PLAIN);
-	}
-
-	@Test
-	public void sendEventEmpty() throws Exception {
-		this.emitter.send(event());
-		this.handler.assertSentObjectCount(0);
-	}
-
-	@Test
-	public void sendEventWithDataLine() throws Exception {
-		this.emitter.send(event().data("foo"));
-		this.handler.assertSentObjectCount(3);
-		this.handler.assertObject(0, "data:", SseEmitter.TEXT_PLAIN);
-		this.handler.assertObject(1, "foo");
-		this.handler.assertObject(2, "\n\n", SseEmitter.TEXT_PLAIN);
-	}
-
-	@Test
-	public void sendEventWithTwoDataLines() throws Exception {
-		this.emitter.send(event().data("foo").data("bar"));
-		this.handler.assertSentObjectCount(5);
-		this.handler.assertObject(0, "data:", SseEmitter.TEXT_PLAIN);
-		this.handler.assertObject(1, "foo");
-		this.handler.assertObject(2, "\ndata:", SseEmitter.TEXT_PLAIN);
-		this.handler.assertObject(3, "bar");
-		this.handler.assertObject(4, "\n\n", SseEmitter.TEXT_PLAIN);
-	}
-
-	@Test
-	public void sendEventFull() throws Exception {
-		this.emitter.send(event().comment("blah").name("test").reconnectTime(5000L).id("1").data("foo"));
-		this.handler.assertSentObjectCount(3);
-		this.handler.assertObject(0, ":blah\nevent:test\nretry:5000\nid:1\ndata:", SseEmitter.TEXT_PLAIN);
-		this.handler.assertObject(1, "foo");
-		this.handler.assertObject(2, "\n\n", SseEmitter.TEXT_PLAIN);
-	}
-
-	@Test
-	public void sendEventFullWithTwoDataLinesInTheMiddle() throws Exception {
-		this.emitter.send(event().comment("blah").data("foo").data("bar").name("test").reconnectTime(5000L).id("1"));
-		this.handler.assertSentObjectCount(5);
-		this.handler.assertObject(0, ":blah\ndata:", SseEmitter.TEXT_PLAIN);
-		this.handler.assertObject(1, "foo");
-		this.handler.assertObject(2, "\ndata:", SseEmitter.TEXT_PLAIN);
-		this.handler.assertObject(3, "bar");
-		this.handler.assertObject(4, "\nevent:test\nretry:5000\nid:1\n\n", SseEmitter.TEXT_PLAIN);
-	}
+    @BeforeEach
+    public void setup() throws IOException {
+        this.handler = new TestHandler();
+        this.emitter = new SseEmitter();
+        this.emitter.initialize(this.handler);
+    }
 
 
-	private static class TestHandler implements ResponseBodyEmitter.Handler {
+    @Test
+    public void send() throws Exception {
+        this.emitter.send("foo");
+        this.handler.assertSentObjectCount(3);
+        this.handler.assertObject(0, "data:", SseEmitter.TEXT_PLAIN);
+        this.handler.assertObject(1, "foo");
+        this.handler.assertObject(2, "\n\n", SseEmitter.TEXT_PLAIN);
+    }
 
-		private List<Object> objects = new ArrayList<>();
+    @Test
+    public void sendWithMediaType() throws Exception {
+        this.emitter.send("foo", MediaType.TEXT_PLAIN);
+        this.handler.assertSentObjectCount(3);
+        this.handler.assertObject(0, "data:", SseEmitter.TEXT_PLAIN);
+        this.handler.assertObject(1, "foo", MediaType.TEXT_PLAIN);
+        this.handler.assertObject(2, "\n\n", SseEmitter.TEXT_PLAIN);
+    }
 
-		private List<MediaType> mediaTypes = new ArrayList<>();
+    @Test
+    public void sendEventEmpty() throws Exception {
+        this.emitter.send(event());
+        this.handler.assertSentObjectCount(0);
+    }
+
+    @Test
+    public void sendEventWithDataLine() throws Exception {
+        this.emitter.send(event().data("foo"));
+        this.handler.assertSentObjectCount(3);
+        this.handler.assertObject(0, "data:", SseEmitter.TEXT_PLAIN);
+        this.handler.assertObject(1, "foo");
+        this.handler.assertObject(2, "\n\n", SseEmitter.TEXT_PLAIN);
+    }
+
+    @Test
+    public void sendEventWithTwoDataLines() throws Exception {
+        this.emitter.send(event().data("foo").data("bar"));
+        this.handler.assertSentObjectCount(5);
+        this.handler.assertObject(0, "data:", SseEmitter.TEXT_PLAIN);
+        this.handler.assertObject(1, "foo");
+        this.handler.assertObject(2, "\ndata:", SseEmitter.TEXT_PLAIN);
+        this.handler.assertObject(3, "bar");
+        this.handler.assertObject(4, "\n\n", SseEmitter.TEXT_PLAIN);
+    }
+
+    @Test
+    public void sendEventFull() throws Exception {
+        this.emitter.send(event().comment("blah").name("test").reconnectTime(5000L).id("1").data("foo"));
+        this.handler.assertSentObjectCount(3);
+        this.handler.assertObject(0, ":blah\nevent:test\nretry:5000\nid:1\ndata:", SseEmitter.TEXT_PLAIN);
+        this.handler.assertObject(1, "foo");
+        this.handler.assertObject(2, "\n\n", SseEmitter.TEXT_PLAIN);
+    }
+
+    @Test
+    public void sendEventFullWithTwoDataLinesInTheMiddle() throws Exception {
+        this.emitter.send(event().comment("blah").data("foo").data("bar").name("test").reconnectTime(5000L).id("1"));
+        this.handler.assertSentObjectCount(5);
+        this.handler.assertObject(0, ":blah\ndata:", SseEmitter.TEXT_PLAIN);
+        this.handler.assertObject(1, "foo");
+        this.handler.assertObject(2, "\ndata:", SseEmitter.TEXT_PLAIN);
+        this.handler.assertObject(3, "bar");
+        this.handler.assertObject(4, "\nevent:test\nretry:5000\nid:1\n\n", SseEmitter.TEXT_PLAIN);
+    }
 
 
-		public void assertSentObjectCount(int size) {
-			assertThat(this.objects.size()).isEqualTo(size);
-		}
+    private static class TestHandler implements ResponseBodyEmitter.Handler {
 
-		public void assertObject(int index, Object object) {
-			assertObject(index, object, null);
-		}
+        private List<Object> objects = new ArrayList<>();
 
-		public void assertObject(int index, Object object, MediaType mediaType) {
-			assertThat(index <= this.objects.size()).isTrue();
-			assertThat(this.objects.get(index)).isEqualTo(object);
-			assertThat(this.mediaTypes.get(index)).isEqualTo(mediaType);
-		}
+        private List<MediaType> mediaTypes = new ArrayList<>();
 
-		@Override
-		public void send(Object data, MediaType mediaType) throws IOException {
-			this.objects.add(data);
-			this.mediaTypes.add(mediaType);
-		}
 
-		@Override
-		public void complete() {
-		}
+        public void assertSentObjectCount(int size) {
+            assertThat(this.objects.size()).isEqualTo(size);
+        }
 
-		@Override
-		public void completeWithError(Throwable failure) {
-		}
+        public void assertObject(int index, Object object) {
+            assertObject(index, object, null);
+        }
 
-		@Override
-		public void onTimeout(Runnable callback) {
-		}
+        public void assertObject(int index, Object object, MediaType mediaType) {
+            assertThat(index <= this.objects.size()).isTrue();
+            assertThat(this.objects.get(index)).isEqualTo(object);
+            assertThat(this.mediaTypes.get(index)).isEqualTo(mediaType);
+        }
 
-		@Override
-		public void onError(Consumer<Throwable> callback) {
-		}
+        @Override
+        public void send(Object data, MediaType mediaType) throws IOException {
+            this.objects.add(data);
+            this.mediaTypes.add(mediaType);
+        }
 
-		@Override
-		public void onCompletion(Runnable callback) {
-		}
-	}
+        @Override
+        public void complete() {
+        }
+
+        @Override
+        public void completeWithError(Throwable failure) {
+        }
+
+        @Override
+        public void onTimeout(Runnable callback) {
+        }
+
+        @Override
+        public void onError(Consumer<Throwable> callback) {
+        }
+
+        @Override
+        public void onCompletion(Runnable callback) {
+        }
+    }
 
 }

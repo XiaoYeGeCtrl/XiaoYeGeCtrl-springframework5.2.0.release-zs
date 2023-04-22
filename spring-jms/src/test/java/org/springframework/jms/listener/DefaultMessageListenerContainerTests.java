@@ -42,149 +42,147 @@ import static org.mockito.Mockito.verify;
  */
 public class DefaultMessageListenerContainerTests {
 
-	@Test
-	public void applyBackOff() {
-		BackOff backOff = mock(BackOff.class);
-		BackOffExecution execution = mock(BackOffExecution.class);
-		given(execution.nextBackOff()).willReturn(BackOffExecution.STOP);
-		given(backOff.start()).willReturn(execution);
+    @Test
+    public void applyBackOff() {
+        BackOff backOff = mock(BackOff.class);
+        BackOffExecution execution = mock(BackOffExecution.class);
+        given(execution.nextBackOff()).willReturn(BackOffExecution.STOP);
+        given(backOff.start()).willReturn(execution);
 
-		DefaultMessageListenerContainer container = createContainer(createFailingContainerFactory());
-		container.setBackOff(backOff);
-		container.start();
-		assertThat(container.isRunning()).isEqualTo(true);
+        DefaultMessageListenerContainer container = createContainer(createFailingContainerFactory());
+        container.setBackOff(backOff);
+        container.start();
+        assertThat(container.isRunning()).isEqualTo(true);
 
-		container.refreshConnectionUntilSuccessful();
+        container.refreshConnectionUntilSuccessful();
 
-		assertThat(container.isRunning()).isEqualTo(false);
-		verify(backOff).start();
-		verify(execution).nextBackOff();
-	}
+        assertThat(container.isRunning()).isEqualTo(false);
+        verify(backOff).start();
+        verify(execution).nextBackOff();
+    }
 
-	@Test
-	public void applyBackOffRetry() {
-		BackOff backOff = mock(BackOff.class);
-		BackOffExecution execution = mock(BackOffExecution.class);
-		given(execution.nextBackOff()).willReturn(50L, BackOffExecution.STOP);
-		given(backOff.start()).willReturn(execution);
+    @Test
+    public void applyBackOffRetry() {
+        BackOff backOff = mock(BackOff.class);
+        BackOffExecution execution = mock(BackOffExecution.class);
+        given(execution.nextBackOff()).willReturn(50L, BackOffExecution.STOP);
+        given(backOff.start()).willReturn(execution);
 
-		DefaultMessageListenerContainer container = createContainer(createFailingContainerFactory());
-		container.setBackOff(backOff);
-		container.start();
-		container.refreshConnectionUntilSuccessful();
+        DefaultMessageListenerContainer container = createContainer(createFailingContainerFactory());
+        container.setBackOff(backOff);
+        container.start();
+        container.refreshConnectionUntilSuccessful();
 
-		assertThat(container.isRunning()).isEqualTo(false);
-		verify(backOff).start();
-		verify(execution, times(2)).nextBackOff();
-	}
+        assertThat(container.isRunning()).isEqualTo(false);
+        verify(backOff).start();
+        verify(execution, times(2)).nextBackOff();
+    }
 
-	@Test
-	public void recoverResetBackOff() {
-		BackOff backOff = mock(BackOff.class);
-		BackOffExecution execution = mock(BackOffExecution.class);
-		given(execution.nextBackOff()).willReturn(50L, 50L, 50L);  // 3 attempts max
-		given(backOff.start()).willReturn(execution);
+    @Test
+    public void recoverResetBackOff() {
+        BackOff backOff = mock(BackOff.class);
+        BackOffExecution execution = mock(BackOffExecution.class);
+        given(execution.nextBackOff()).willReturn(50L, 50L, 50L);  // 3 attempts max
+        given(backOff.start()).willReturn(execution);
 
-		DefaultMessageListenerContainer container = createContainer(createRecoverableContainerFactory(1));
-		container.setBackOff(backOff);
-		container.start();
-		container.refreshConnectionUntilSuccessful();
+        DefaultMessageListenerContainer container = createContainer(createRecoverableContainerFactory(1));
+        container.setBackOff(backOff);
+        container.start();
+        container.refreshConnectionUntilSuccessful();
 
-		assertThat(container.isRunning()).isEqualTo(true);
-		verify(backOff).start();
-		verify(execution, times(1)).nextBackOff();  // only on attempt as the second one lead to a recovery
-	}
+        assertThat(container.isRunning()).isEqualTo(true);
+        verify(backOff).start();
+        verify(execution, times(1)).nextBackOff();  // only on attempt as the second one lead to a recovery
+    }
 
-	@Test
-	public void runnableIsInvokedEvenIfContainerIsNotRunning() throws InterruptedException {
-		DefaultMessageListenerContainer container = createRunningContainer();
-		container.stop();
+    @Test
+    public void runnableIsInvokedEvenIfContainerIsNotRunning() throws InterruptedException {
+        DefaultMessageListenerContainer container = createRunningContainer();
+        container.stop();
 
-		// container is stopped but should nevertheless invoke the runnable argument
-		TestRunnable runnable2 = new TestRunnable();
-		container.stop(runnable2);
-		runnable2.waitForCompletion();
-	}
-
-
-	private DefaultMessageListenerContainer createRunningContainer() {
-		DefaultMessageListenerContainer container = createContainer(createSuccessfulConnectionFactory());
-		container.afterPropertiesSet();
-		container.start();
-		return container;
-	}
-
-	private DefaultMessageListenerContainer createContainer(ConnectionFactory connectionFactory) {
-		Destination destination = new Destination() {};
-
-		DefaultMessageListenerContainer container = new DefaultMessageListenerContainer();
-		container.setConnectionFactory(connectionFactory);
-		container.setCacheLevel(DefaultMessageListenerContainer.CACHE_NONE);
-		container.setDestination(destination);
-		return container;
-	}
-
-	private ConnectionFactory createFailingContainerFactory() {
-		try {
-			ConnectionFactory connectionFactory = mock(ConnectionFactory.class);
-			given(connectionFactory.createConnection()).will(invocation -> {
-				throw new JMSException("Test exception");
-			});
-			return connectionFactory;
-		}
-		catch (JMSException ex) {
-			throw new IllegalStateException(ex);  // never happen
-		}
-	}
-
-	private ConnectionFactory createRecoverableContainerFactory(final int failingAttempts) {
-		try {
-			ConnectionFactory connectionFactory = mock(ConnectionFactory.class);
-			given(connectionFactory.createConnection()).will(new Answer<Object>() {
-				int currentAttempts = 0;
-				@Override
-				public Object answer(InvocationOnMock invocation) throws Throwable {
-					currentAttempts++;
-					if (currentAttempts <= failingAttempts) {
-						throw new JMSException("Test exception (attempt " + currentAttempts + ")");
-					}
-					else {
-						return mock(Connection.class);
-					}
-				}
-			});
-			return connectionFactory;
-		}
-		catch (JMSException ex) {
-			throw new IllegalStateException(ex);  // never happen
-		}
-	}
-
-	private ConnectionFactory createSuccessfulConnectionFactory() {
-		try {
-			ConnectionFactory connectionFactory = mock(ConnectionFactory.class);
-			given(connectionFactory.createConnection()).willReturn(mock(Connection.class));
-			return connectionFactory;
-		}
-		catch (JMSException ex) {
-			throw new IllegalStateException(ex);  // never happen
-		}
-	}
+        // container is stopped but should nevertheless invoke the runnable argument
+        TestRunnable runnable2 = new TestRunnable();
+        container.stop(runnable2);
+        runnable2.waitForCompletion();
+    }
 
 
-	private static class TestRunnable implements Runnable {
+    private DefaultMessageListenerContainer createRunningContainer() {
+        DefaultMessageListenerContainer container = createContainer(createSuccessfulConnectionFactory());
+        container.afterPropertiesSet();
+        container.start();
+        return container;
+    }
 
-		private final CountDownLatch countDownLatch = new CountDownLatch(1);
+    private DefaultMessageListenerContainer createContainer(ConnectionFactory connectionFactory) {
+        Destination destination = new Destination() {
+        };
 
-		@Override
-		public void run() {
-			this.countDownLatch.countDown();
-		}
+        DefaultMessageListenerContainer container = new DefaultMessageListenerContainer();
+        container.setConnectionFactory(connectionFactory);
+        container.setCacheLevel(DefaultMessageListenerContainer.CACHE_NONE);
+        container.setDestination(destination);
+        return container;
+    }
 
-		public void waitForCompletion() throws InterruptedException {
-			this.countDownLatch.await(2, TimeUnit.SECONDS);
-			assertThat(this.countDownLatch.getCount()).as("callback was not invoked").isEqualTo(0);
-		}
-	}
+    private ConnectionFactory createFailingContainerFactory() {
+        try {
+            ConnectionFactory connectionFactory = mock(ConnectionFactory.class);
+            given(connectionFactory.createConnection()).will(invocation -> {
+                throw new JMSException("Test exception");
+            });
+            return connectionFactory;
+        } catch (JMSException ex) {
+            throw new IllegalStateException(ex);  // never happen
+        }
+    }
+
+    private ConnectionFactory createRecoverableContainerFactory(final int failingAttempts) {
+        try {
+            ConnectionFactory connectionFactory = mock(ConnectionFactory.class);
+            given(connectionFactory.createConnection()).will(new Answer<Object>() {
+                int currentAttempts = 0;
+
+                @Override
+                public Object answer(InvocationOnMock invocation) throws Throwable {
+                    currentAttempts++;
+                    if (currentAttempts <= failingAttempts) {
+                        throw new JMSException("Test exception (attempt " + currentAttempts + ")");
+                    } else {
+                        return mock(Connection.class);
+                    }
+                }
+            });
+            return connectionFactory;
+        } catch (JMSException ex) {
+            throw new IllegalStateException(ex);  // never happen
+        }
+    }
+
+    private ConnectionFactory createSuccessfulConnectionFactory() {
+        try {
+            ConnectionFactory connectionFactory = mock(ConnectionFactory.class);
+            given(connectionFactory.createConnection()).willReturn(mock(Connection.class));
+            return connectionFactory;
+        } catch (JMSException ex) {
+            throw new IllegalStateException(ex);  // never happen
+        }
+    }
+
+
+    private static class TestRunnable implements Runnable {
+
+        private final CountDownLatch countDownLatch = new CountDownLatch(1);
+
+        @Override
+        public void run() {
+            this.countDownLatch.countDown();
+        }
+
+        public void waitForCompletion() throws InterruptedException {
+            this.countDownLatch.await(2, TimeUnit.SECONDS);
+            assertThat(this.countDownLatch.getCount()).as("callback was not invoked").isEqualTo(0);
+        }
+    }
 
 }

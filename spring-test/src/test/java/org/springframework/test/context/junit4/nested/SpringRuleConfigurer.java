@@ -31,10 +31,10 @@ import org.springframework.test.context.junit4.rules.SpringMethodRule;
  */
 public abstract class SpringRuleConfigurer {
 
-	@ClassRule
-	public static final SpringClassRule springClassRule = new SpringClassRule();
+    @ClassRule
+    public static final SpringClassRule springClassRule = new SpringClassRule();
 
-	@Rule
-	public final SpringMethodRule springMethodRule = new SpringMethodRule();
+    @Rule
+    public final SpringMethodRule springMethodRule = new SpringMethodRule();
 
 }

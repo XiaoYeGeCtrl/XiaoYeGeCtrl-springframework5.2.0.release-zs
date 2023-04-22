@@ -35,78 +35,78 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 public class StringHttpMessageConverterTests {
 
-	public static final MediaType TEXT_PLAIN_UTF_8 = new MediaType("text", "plain", StandardCharsets.UTF_8);
+    public static final MediaType TEXT_PLAIN_UTF_8 = new MediaType("text", "plain", StandardCharsets.UTF_8);
 
-	private StringHttpMessageConverter converter;
+    private StringHttpMessageConverter converter;
 
-	private MockHttpOutputMessage outputMessage;
-
-
-	@BeforeEach
-	public void setUp() {
-		this.converter = new StringHttpMessageConverter();
-		this.outputMessage = new MockHttpOutputMessage();
-	}
+    private MockHttpOutputMessage outputMessage;
 
 
-	@Test
-	public void canRead() {
-		assertThat(this.converter.canRead(String.class, MediaType.TEXT_PLAIN)).isTrue();
-	}
+    @BeforeEach
+    public void setUp() {
+        this.converter = new StringHttpMessageConverter();
+        this.outputMessage = new MockHttpOutputMessage();
+    }
 
-	@Test
-	public void canWrite() {
-		assertThat(this.converter.canWrite(String.class, MediaType.TEXT_PLAIN)).isTrue();
-		assertThat(this.converter.canWrite(String.class, MediaType.ALL)).isTrue();
-	}
 
-	@Test
-	public void read() throws IOException {
-		String body = "Hello World";
-		MockHttpInputMessage inputMessage = new MockHttpInputMessage(body.getBytes(StandardCharsets.UTF_8));
-		inputMessage.getHeaders().setContentType(TEXT_PLAIN_UTF_8);
-		String result = this.converter.read(String.class, inputMessage);
+    @Test
+    public void canRead() {
+        assertThat(this.converter.canRead(String.class, MediaType.TEXT_PLAIN)).isTrue();
+    }
 
-		assertThat(result).as("Invalid result").isEqualTo(body);
-	}
+    @Test
+    public void canWrite() {
+        assertThat(this.converter.canWrite(String.class, MediaType.TEXT_PLAIN)).isTrue();
+        assertThat(this.converter.canWrite(String.class, MediaType.ALL)).isTrue();
+    }
 
-	@Test
-	public void writeDefaultCharset() throws IOException {
-		String body = "H\u00e9llo W\u00f6rld";
-		this.converter.write(body, null, this.outputMessage);
+    @Test
+    public void read() throws IOException {
+        String body = "Hello World";
+        MockHttpInputMessage inputMessage = new MockHttpInputMessage(body.getBytes(StandardCharsets.UTF_8));
+        inputMessage.getHeaders().setContentType(TEXT_PLAIN_UTF_8);
+        String result = this.converter.read(String.class, inputMessage);
 
-		HttpHeaders headers = this.outputMessage.getHeaders();
-		assertThat(this.outputMessage.getBodyAsString(StandardCharsets.ISO_8859_1)).isEqualTo(body);
-		assertThat(headers.getContentType()).isEqualTo(new MediaType("text", "plain", StandardCharsets.ISO_8859_1));
-		assertThat(headers.getContentLength()).isEqualTo(body.getBytes(StandardCharsets.ISO_8859_1).length);
-		assertThat(headers.getAcceptCharset().isEmpty()).isTrue();
-	}
+        assertThat(result).as("Invalid result").isEqualTo(body);
+    }
 
-	@Test
-	public void writeUTF8() throws IOException {
-		String body = "H\u00e9llo W\u00f6rld";
-		this.converter.write(body, TEXT_PLAIN_UTF_8, this.outputMessage);
+    @Test
+    public void writeDefaultCharset() throws IOException {
+        String body = "H\u00e9llo W\u00f6rld";
+        this.converter.write(body, null, this.outputMessage);
 
-		HttpHeaders headers = this.outputMessage.getHeaders();
-		assertThat(this.outputMessage.getBodyAsString(StandardCharsets.UTF_8)).isEqualTo(body);
-		assertThat(headers.getContentType()).isEqualTo(TEXT_PLAIN_UTF_8);
-		assertThat(headers.getContentLength()).isEqualTo(body.getBytes(StandardCharsets.UTF_8).length);
-		assertThat(headers.getAcceptCharset().isEmpty()).isTrue();
-	}
+        HttpHeaders headers = this.outputMessage.getHeaders();
+        assertThat(this.outputMessage.getBodyAsString(StandardCharsets.ISO_8859_1)).isEqualTo(body);
+        assertThat(headers.getContentType()).isEqualTo(new MediaType("text", "plain", StandardCharsets.ISO_8859_1));
+        assertThat(headers.getContentLength()).isEqualTo(body.getBytes(StandardCharsets.ISO_8859_1).length);
+        assertThat(headers.getAcceptCharset().isEmpty()).isTrue();
+    }
 
-	@Test  // SPR-8867
-	public void writeOverrideRequestedContentType() throws IOException {
-		String body = "H\u00e9llo W\u00f6rld";
-		MediaType requestedContentType = new MediaType("text", "html");
+    @Test
+    public void writeUTF8() throws IOException {
+        String body = "H\u00e9llo W\u00f6rld";
+        this.converter.write(body, TEXT_PLAIN_UTF_8, this.outputMessage);
 
-		HttpHeaders headers = this.outputMessage.getHeaders();
-		headers.setContentType(TEXT_PLAIN_UTF_8);
-		this.converter.write(body, requestedContentType, this.outputMessage);
+        HttpHeaders headers = this.outputMessage.getHeaders();
+        assertThat(this.outputMessage.getBodyAsString(StandardCharsets.UTF_8)).isEqualTo(body);
+        assertThat(headers.getContentType()).isEqualTo(TEXT_PLAIN_UTF_8);
+        assertThat(headers.getContentLength()).isEqualTo(body.getBytes(StandardCharsets.UTF_8).length);
+        assertThat(headers.getAcceptCharset().isEmpty()).isTrue();
+    }
 
-		assertThat(this.outputMessage.getBodyAsString(StandardCharsets.UTF_8)).isEqualTo(body);
-		assertThat(headers.getContentType()).isEqualTo(TEXT_PLAIN_UTF_8);
-		assertThat(headers.getContentLength()).isEqualTo(body.getBytes(StandardCharsets.UTF_8).length);
-		assertThat(headers.getAcceptCharset().isEmpty()).isTrue();
-	}
+    @Test  // SPR-8867
+    public void writeOverrideRequestedContentType() throws IOException {
+        String body = "H\u00e9llo W\u00f6rld";
+        MediaType requestedContentType = new MediaType("text", "html");
+
+        HttpHeaders headers = this.outputMessage.getHeaders();
+        headers.setContentType(TEXT_PLAIN_UTF_8);
+        this.converter.write(body, requestedContentType, this.outputMessage);
+
+        assertThat(this.outputMessage.getBodyAsString(StandardCharsets.UTF_8)).isEqualTo(body);
+        assertThat(headers.getContentType()).isEqualTo(TEXT_PLAIN_UTF_8);
+        assertThat(headers.getContentLength()).isEqualTo(body.getBytes(StandardCharsets.UTF_8).length);
+        assertThat(headers.getAcceptCharset().isEmpty()).isTrue();
+    }
 
 }

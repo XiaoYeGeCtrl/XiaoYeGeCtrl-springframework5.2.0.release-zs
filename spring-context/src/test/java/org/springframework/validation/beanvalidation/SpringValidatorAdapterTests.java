@@ -63,427 +63,420 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 public class SpringValidatorAdapterTests {
 
-	private final Validator nativeValidator = Validation.buildDefaultValidatorFactory().getValidator();
-
-	private final SpringValidatorAdapter validatorAdapter = new SpringValidatorAdapter(nativeValidator);
-
-	private final StaticMessageSource messageSource = new StaticMessageSource();
-
-
-	@BeforeEach
-	public void setupSpringValidatorAdapter() {
-		messageSource.addMessage("Size", Locale.ENGLISH, "Size of {0} must be between {2} and {1}");
-		messageSource.addMessage("Same", Locale.ENGLISH, "{2} must be same value as {1}");
-		messageSource.addMessage("password", Locale.ENGLISH, "Password");
-		messageSource.addMessage("confirmPassword", Locale.ENGLISH, "Password(Confirm)");
-	}
-
-
-	@Test
-	public void testUnwrap() {
-		Validator nativeValidator = validatorAdapter.unwrap(Validator.class);
-		assertThat(nativeValidator).isSameAs(this.nativeValidator);
-	}
-
-	@Test  // SPR-13406
-	public void testNoStringArgumentValue() throws Exception {
-		TestBean testBean = new TestBean();
-		testBean.setPassword("pass");
-		testBean.setConfirmPassword("pass");
-
-		BeanPropertyBindingResult errors = new BeanPropertyBindingResult(testBean, "testBean");
-		validatorAdapter.validate(testBean, errors);
-
-		assertThat(errors.getFieldErrorCount("password")).isEqualTo(1);
-		assertThat(errors.getFieldValue("password")).isEqualTo("pass");
-		FieldError error = errors.getFieldError("password");
-		assertThat(error).isNotNull();
-		assertThat(messageSource.getMessage(error, Locale.ENGLISH)).isEqualTo("Size of Password must be between 8 and 128");
-		assertThat(error.contains(ConstraintViolation.class)).isTrue();
-		assertThat(error.unwrap(ConstraintViolation.class).getPropertyPath().toString()).isEqualTo("password");
-		assertThat(SerializationTestUtils.serializeAndDeserialize(error.toString())).isEqualTo(error.toString());
-	}
-
-	@Test  // SPR-13406
-	public void testApplyMessageSourceResolvableToStringArgumentValueWithResolvedLogicalFieldName() throws Exception {
-		TestBean testBean = new TestBean();
-		testBean.setPassword("password");
-		testBean.setConfirmPassword("PASSWORD");
-
-		BeanPropertyBindingResult errors = new BeanPropertyBindingResult(testBean, "testBean");
-		validatorAdapter.validate(testBean, errors);
-
-		assertThat(errors.getFieldErrorCount("password")).isEqualTo(1);
-		assertThat(errors.getFieldValue("password")).isEqualTo("password");
-		FieldError error = errors.getFieldError("password");
-		assertThat(error).isNotNull();
-		assertThat(messageSource.getMessage(error, Locale.ENGLISH)).isEqualTo("Password must be same value as Password(Confirm)");
-		assertThat(error.contains(ConstraintViolation.class)).isTrue();
-		assertThat(error.unwrap(ConstraintViolation.class).getPropertyPath().toString()).isEqualTo("password");
-		assertThat(SerializationTestUtils.serializeAndDeserialize(error.toString())).isEqualTo(error.toString());
-	}
-
-	@Test  // SPR-13406
-	public void testApplyMessageSourceResolvableToStringArgumentValueWithUnresolvedLogicalFieldName() {
-		TestBean testBean = new TestBean();
-		testBean.setEmail("test@example.com");
-		testBean.setConfirmEmail("TEST@EXAMPLE.IO");
-
-		BeanPropertyBindingResult errors = new BeanPropertyBindingResult(testBean, "testBean");
-		validatorAdapter.validate(testBean, errors);
-
-		assertThat(errors.getFieldErrorCount("email")).isEqualTo(1);
-		assertThat(errors.getFieldValue("email")).isEqualTo("test@example.com");
-		assertThat(errors.getFieldErrorCount("confirmEmail")).isEqualTo(1);
-		FieldError error1 = errors.getFieldError("email");
-		FieldError error2 = errors.getFieldError("confirmEmail");
-		assertThat(error1).isNotNull();
-		assertThat(error2).isNotNull();
-		assertThat(messageSource.getMessage(error1, Locale.ENGLISH)).isEqualTo("email must be same value as confirmEmail");
-		assertThat(messageSource.getMessage(error2, Locale.ENGLISH)).isEqualTo("Email required");
-		assertThat(error1.contains(ConstraintViolation.class)).isTrue();
-		assertThat(error1.unwrap(ConstraintViolation.class).getPropertyPath().toString()).isEqualTo("email");
-		assertThat(error2.contains(ConstraintViolation.class)).isTrue();
-		assertThat(error2.unwrap(ConstraintViolation.class).getPropertyPath().toString()).isEqualTo("confirmEmail");
-	}
-
-	@Test  // SPR-15123
-	public void testApplyMessageSourceResolvableToStringArgumentValueWithAlwaysUseMessageFormat() {
-		messageSource.setAlwaysUseMessageFormat(true);
-
-		TestBean testBean = new TestBean();
-		testBean.setEmail("test@example.com");
-		testBean.setConfirmEmail("TEST@EXAMPLE.IO");
-
-		BeanPropertyBindingResult errors = new BeanPropertyBindingResult(testBean, "testBean");
-		validatorAdapter.validate(testBean, errors);
-
-		assertThat(errors.getFieldErrorCount("email")).isEqualTo(1);
-		assertThat(errors.getFieldValue("email")).isEqualTo("test@example.com");
-		assertThat(errors.getFieldErrorCount("confirmEmail")).isEqualTo(1);
-		FieldError error1 = errors.getFieldError("email");
-		FieldError error2 = errors.getFieldError("confirmEmail");
-		assertThat(error1).isNotNull();
-		assertThat(error2).isNotNull();
-		assertThat(messageSource.getMessage(error1, Locale.ENGLISH)).isEqualTo("email must be same value as confirmEmail");
-		assertThat(messageSource.getMessage(error2, Locale.ENGLISH)).isEqualTo("Email required");
-		assertThat(error1.contains(ConstraintViolation.class)).isTrue();
-		assertThat(error1.unwrap(ConstraintViolation.class).getPropertyPath().toString()).isEqualTo("email");
-		assertThat(error2.contains(ConstraintViolation.class)).isTrue();
-		assertThat(error2.unwrap(ConstraintViolation.class).getPropertyPath().toString()).isEqualTo("confirmEmail");
-	}
-
-	@Test
-	public void testPatternMessage() {
-		TestBean testBean = new TestBean();
-		testBean.setEmail("X");
-		testBean.setConfirmEmail("X");
-
-		BeanPropertyBindingResult errors = new BeanPropertyBindingResult(testBean, "testBean");
-		validatorAdapter.validate(testBean, errors);
-
-		assertThat(errors.getFieldErrorCount("email")).isEqualTo(1);
-		assertThat(errors.getFieldValue("email")).isEqualTo("X");
-		FieldError error = errors.getFieldError("email");
-		assertThat(error).isNotNull();
-		assertThat(messageSource.getMessage(error, Locale.ENGLISH)).contains("[\\w.'-]{1,}@[\\w.'-]{1,}");
-		assertThat(error.contains(ConstraintViolation.class)).isTrue();
-		assertThat(error.unwrap(ConstraintViolation.class).getPropertyPath().toString()).isEqualTo("email");
-	}
-
-	@Test  // SPR-16177
-	public void testWithList() {
-		Parent parent = new Parent();
-		parent.setName("Parent whit list");
-		parent.getChildList().addAll(createChildren(parent));
+    private final Validator nativeValidator = Validation.buildDefaultValidatorFactory().getValidator();
+
+    private final SpringValidatorAdapter validatorAdapter = new SpringValidatorAdapter(nativeValidator);
+
+    private final StaticMessageSource messageSource = new StaticMessageSource();
+
+
+    @BeforeEach
+    public void setupSpringValidatorAdapter() {
+        messageSource.addMessage("Size", Locale.ENGLISH, "Size of {0} must be between {2} and {1}");
+        messageSource.addMessage("Same", Locale.ENGLISH, "{2} must be same value as {1}");
+        messageSource.addMessage("password", Locale.ENGLISH, "Password");
+        messageSource.addMessage("confirmPassword", Locale.ENGLISH, "Password(Confirm)");
+    }
+
+
+    @Test
+    public void testUnwrap() {
+        Validator nativeValidator = validatorAdapter.unwrap(Validator.class);
+        assertThat(nativeValidator).isSameAs(this.nativeValidator);
+    }
+
+    @Test  // SPR-13406
+    public void testNoStringArgumentValue() throws Exception {
+        TestBean testBean = new TestBean();
+        testBean.setPassword("pass");
+        testBean.setConfirmPassword("pass");
+
+        BeanPropertyBindingResult errors = new BeanPropertyBindingResult(testBean, "testBean");
+        validatorAdapter.validate(testBean, errors);
+
+        assertThat(errors.getFieldErrorCount("password")).isEqualTo(1);
+        assertThat(errors.getFieldValue("password")).isEqualTo("pass");
+        FieldError error = errors.getFieldError("password");
+        assertThat(error).isNotNull();
+        assertThat(messageSource.getMessage(error, Locale.ENGLISH)).isEqualTo("Size of Password must be between 8 and 128");
+        assertThat(error.contains(ConstraintViolation.class)).isTrue();
+        assertThat(error.unwrap(ConstraintViolation.class).getPropertyPath().toString()).isEqualTo("password");
+        assertThat(SerializationTestUtils.serializeAndDeserialize(error.toString())).isEqualTo(error.toString());
+    }
+
+    @Test  // SPR-13406
+    public void testApplyMessageSourceResolvableToStringArgumentValueWithResolvedLogicalFieldName() throws Exception {
+        TestBean testBean = new TestBean();
+        testBean.setPassword("password");
+        testBean.setConfirmPassword("PASSWORD");
+
+        BeanPropertyBindingResult errors = new BeanPropertyBindingResult(testBean, "testBean");
+        validatorAdapter.validate(testBean, errors);
+
+        assertThat(errors.getFieldErrorCount("password")).isEqualTo(1);
+        assertThat(errors.getFieldValue("password")).isEqualTo("password");
+        FieldError error = errors.getFieldError("password");
+        assertThat(error).isNotNull();
+        assertThat(messageSource.getMessage(error, Locale.ENGLISH)).isEqualTo("Password must be same value as Password(Confirm)");
+        assertThat(error.contains(ConstraintViolation.class)).isTrue();
+        assertThat(error.unwrap(ConstraintViolation.class).getPropertyPath().toString()).isEqualTo("password");
+        assertThat(SerializationTestUtils.serializeAndDeserialize(error.toString())).isEqualTo(error.toString());
+    }
+
+    @Test  // SPR-13406
+    public void testApplyMessageSourceResolvableToStringArgumentValueWithUnresolvedLogicalFieldName() {
+        TestBean testBean = new TestBean();
+        testBean.setEmail("test@example.com");
+        testBean.setConfirmEmail("TEST@EXAMPLE.IO");
+
+        BeanPropertyBindingResult errors = new BeanPropertyBindingResult(testBean, "testBean");
+        validatorAdapter.validate(testBean, errors);
+
+        assertThat(errors.getFieldErrorCount("email")).isEqualTo(1);
+        assertThat(errors.getFieldValue("email")).isEqualTo("test@example.com");
+        assertThat(errors.getFieldErrorCount("confirmEmail")).isEqualTo(1);
+        FieldError error1 = errors.getFieldError("email");
+        FieldError error2 = errors.getFieldError("confirmEmail");
+        assertThat(error1).isNotNull();
+        assertThat(error2).isNotNull();
+        assertThat(messageSource.getMessage(error1, Locale.ENGLISH)).isEqualTo("email must be same value as confirmEmail");
+        assertThat(messageSource.getMessage(error2, Locale.ENGLISH)).isEqualTo("Email required");
+        assertThat(error1.contains(ConstraintViolation.class)).isTrue();
+        assertThat(error1.unwrap(ConstraintViolation.class).getPropertyPath().toString()).isEqualTo("email");
+        assertThat(error2.contains(ConstraintViolation.class)).isTrue();
+        assertThat(error2.unwrap(ConstraintViolation.class).getPropertyPath().toString()).isEqualTo("confirmEmail");
+    }
+
+    @Test  // SPR-15123
+    public void testApplyMessageSourceResolvableToStringArgumentValueWithAlwaysUseMessageFormat() {
+        messageSource.setAlwaysUseMessageFormat(true);
+
+        TestBean testBean = new TestBean();
+        testBean.setEmail("test@example.com");
+        testBean.setConfirmEmail("TEST@EXAMPLE.IO");
+
+        BeanPropertyBindingResult errors = new BeanPropertyBindingResult(testBean, "testBean");
+        validatorAdapter.validate(testBean, errors);
+
+        assertThat(errors.getFieldErrorCount("email")).isEqualTo(1);
+        assertThat(errors.getFieldValue("email")).isEqualTo("test@example.com");
+        assertThat(errors.getFieldErrorCount("confirmEmail")).isEqualTo(1);
+        FieldError error1 = errors.getFieldError("email");
+        FieldError error2 = errors.getFieldError("confirmEmail");
+        assertThat(error1).isNotNull();
+        assertThat(error2).isNotNull();
+        assertThat(messageSource.getMessage(error1, Locale.ENGLISH)).isEqualTo("email must be same value as confirmEmail");
+        assertThat(messageSource.getMessage(error2, Locale.ENGLISH)).isEqualTo("Email required");
+        assertThat(error1.contains(ConstraintViolation.class)).isTrue();
+        assertThat(error1.unwrap(ConstraintViolation.class).getPropertyPath().toString()).isEqualTo("email");
+        assertThat(error2.contains(ConstraintViolation.class)).isTrue();
+        assertThat(error2.unwrap(ConstraintViolation.class).getPropertyPath().toString()).isEqualTo("confirmEmail");
+    }
+
+    @Test
+    public void testPatternMessage() {
+        TestBean testBean = new TestBean();
+        testBean.setEmail("X");
+        testBean.setConfirmEmail("X");
 
-		BeanPropertyBindingResult errors = new BeanPropertyBindingResult(parent, "parent");
-		validatorAdapter.validate(parent, errors);
+        BeanPropertyBindingResult errors = new BeanPropertyBindingResult(testBean, "testBean");
+        validatorAdapter.validate(testBean, errors);
 
-		assertThat(errors.getErrorCount() > 0).isTrue();
-	}
-
-	@Test  // SPR-16177
-	public void testWithSet() {
-		Parent parent = new Parent();
-		parent.setName("Parent with set");
-		parent.getChildSet().addAll(createChildren(parent));
-
-		BeanPropertyBindingResult errors = new BeanPropertyBindingResult(parent, "parent");
-		validatorAdapter.validate(parent, errors);
+        assertThat(errors.getFieldErrorCount("email")).isEqualTo(1);
+        assertThat(errors.getFieldValue("email")).isEqualTo("X");
+        FieldError error = errors.getFieldError("email");
+        assertThat(error).isNotNull();
+        assertThat(messageSource.getMessage(error, Locale.ENGLISH)).contains("[\\w.'-]{1,}@[\\w.'-]{1,}");
+        assertThat(error.contains(ConstraintViolation.class)).isTrue();
+        assertThat(error.unwrap(ConstraintViolation.class).getPropertyPath().toString()).isEqualTo("email");
+    }
 
-		assertThat(errors.getErrorCount() > 0).isTrue();
-	}
+    @Test  // SPR-16177
+    public void testWithList() {
+        Parent parent = new Parent();
+        parent.setName("Parent whit list");
+        parent.getChildList().addAll(createChildren(parent));
 
-	private List<Child> createChildren(Parent parent) {
-		Child child1 = new Child();
-		child1.setName("Child1");
-		child1.setAge(null);
-		child1.setParent(parent);
+        BeanPropertyBindingResult errors = new BeanPropertyBindingResult(parent, "parent");
+        validatorAdapter.validate(parent, errors);
 
-		Child child2 = new Child();
-		child2.setName(null);
-		child2.setAge(17);
-		child2.setParent(parent);
+        assertThat(errors.getErrorCount() > 0).isTrue();
+    }
 
-		return Arrays.asList(child1, child2);
-	}
+    @Test  // SPR-16177
+    public void testWithSet() {
+        Parent parent = new Parent();
+        parent.setName("Parent with set");
+        parent.getChildSet().addAll(createChildren(parent));
 
+        BeanPropertyBindingResult errors = new BeanPropertyBindingResult(parent, "parent");
+        validatorAdapter.validate(parent, errors);
 
-	@Same(field = "password", comparingField = "confirmPassword")
-	@Same(field = "email", comparingField = "confirmEmail")
-	static class TestBean {
+        assertThat(errors.getErrorCount() > 0).isTrue();
+    }
 
-		@Size(min = 8, max = 128)
-		private String password;
+    private List<Child> createChildren(Parent parent) {
+        Child child1 = new Child();
+        child1.setName("Child1");
+        child1.setAge(null);
+        child1.setParent(parent);
 
-		private String confirmPassword;
+        Child child2 = new Child();
+        child2.setName(null);
+        child2.setAge(17);
+        child2.setParent(parent);
 
-		@Pattern(regexp = "[\\w.'-]{1,}@[\\w.'-]{1,}")
-		private String email;
-
-		@Pattern(regexp = "[\\p{L} -]*", message = "Email required")
-		private String confirmEmail;
-
-		public String getPassword() {
-			return password;
-		}
-
-		public void setPassword(String password) {
-			this.password = password;
-		}
-
-		public String getConfirmPassword() {
-			return confirmPassword;
-		}
-
-		public void setConfirmPassword(String confirmPassword) {
-			this.confirmPassword = confirmPassword;
-		}
+        return Arrays.asList(child1, child2);
+    }
 
-		public String getEmail() {
-			return email;
-		}
 
-		public void setEmail(String email) {
-			this.email = email;
-		}
+    @Documented
+    @Constraint(validatedBy = {SameValidator.class})
+    @Target({ElementType.TYPE, ElementType.ANNOTATION_TYPE})
+    @Retention(RetentionPolicy.RUNTIME)
+    @Repeatable(SameGroup.class)
+    @interface Same {
 
-		public String getConfirmEmail() {
-			return confirmEmail;
-		}
+        String message() default "{org.springframework.validation.beanvalidation.Same.message}";
 
-		public void setConfirmEmail(String confirmEmail) {
-			this.confirmEmail = confirmEmail;
-		}
-	}
+        Class<?>[] groups() default {};
 
+        Class<? extends Payload>[] payload() default {};
 
-	@Documented
-	@Constraint(validatedBy = {SameValidator.class})
-	@Target({ElementType.TYPE, ElementType.ANNOTATION_TYPE})
-	@Retention(RetentionPolicy.RUNTIME)
-	@Repeatable(SameGroup.class)
-	@interface Same {
+        String field();
 
-		String message() default "{org.springframework.validation.beanvalidation.Same.message}";
+        String comparingField();
 
-		Class<?>[] groups() default {};
+        @Target({ElementType.TYPE, ElementType.ANNOTATION_TYPE})
+        @Retention(RetentionPolicy.RUNTIME)
+        @Documented
+        @interface List {
+            Same[] value();
+        }
+    }
+
+
+    @Documented
+    @Inherited
+    @Target({ElementType.TYPE, ElementType.ANNOTATION_TYPE})
+    @Retention(RetentionPolicy.RUNTIME)
+    @interface SameGroup {
+
+        Same[] value();
+    }
+
 
-		Class<? extends Payload>[] payload() default {};
+    @Constraint(validatedBy = AnythingValidator.class)
+    @Retention(RetentionPolicy.RUNTIME)
+    public @interface AnythingValid {
 
-		String field();
+        String message() default "{AnythingValid.message}";
 
-		String comparingField();
+        Class<?>[] groups() default {};
 
-		@Target({ElementType.TYPE, ElementType.ANNOTATION_TYPE})
-		@Retention(RetentionPolicy.RUNTIME)
-		@Documented
-		@interface List {
-			Same[] value();
-		}
-	}
+        Class<? extends Payload>[] payload() default {};
+    }
 
+    @Same(field = "password", comparingField = "confirmPassword")
+    @Same(field = "email", comparingField = "confirmEmail")
+    static class TestBean {
 
-	@Documented
-	@Inherited
-	@Target({ElementType.TYPE, ElementType.ANNOTATION_TYPE})
-	@Retention(RetentionPolicy.RUNTIME)
-	@interface SameGroup {
+        @Size(min = 8, max = 128)
+        private String password;
 
-		Same[] value();
-	}
+        private String confirmPassword;
 
+        @Pattern(regexp = "[\\w.'-]{1,}@[\\w.'-]{1,}")
+        private String email;
 
-	public static class SameValidator implements ConstraintValidator<Same, Object> {
+        @Pattern(regexp = "[\\p{L} -]*", message = "Email required")
+        private String confirmEmail;
 
-		private String field;
+        public String getPassword() {
+            return password;
+        }
 
-		private String comparingField;
+        public void setPassword(String password) {
+            this.password = password;
+        }
 
-		private String message;
+        public String getConfirmPassword() {
+            return confirmPassword;
+        }
 
-		@Override
-		public void initialize(Same constraintAnnotation) {
-			field = constraintAnnotation.field();
-			comparingField = constraintAnnotation.comparingField();
-			message = constraintAnnotation.message();
-		}
+        public void setConfirmPassword(String confirmPassword) {
+            this.confirmPassword = confirmPassword;
+        }
 
-		@Override
-		public boolean isValid(Object value, ConstraintValidatorContext context) {
-			BeanWrapper beanWrapper = new BeanWrapperImpl(value);
-			Object fieldValue = beanWrapper.getPropertyValue(field);
-			Object comparingFieldValue = beanWrapper.getPropertyValue(comparingField);
-			boolean matched = ObjectUtils.nullSafeEquals(fieldValue, comparingFieldValue);
-			if (matched) {
-				return true;
-			}
-			else {
-				context.disableDefaultConstraintViolation();
-				context.buildConstraintViolationWithTemplate(message)
-						.addPropertyNode(field)
-						.addConstraintViolation();
-				return false;
-			}
-		}
-	}
+        public String getEmail() {
+            return email;
+        }
 
+        public void setEmail(String email) {
+            this.email = email;
+        }
 
-	public static class Parent {
+        public String getConfirmEmail() {
+            return confirmEmail;
+        }
 
-		private Integer id;
+        public void setConfirmEmail(String confirmEmail) {
+            this.confirmEmail = confirmEmail;
+        }
+    }
 
-		@NotNull
-		private String name;
+    public static class SameValidator implements ConstraintValidator<Same, Object> {
 
-		@Valid
-		private Set<Child> childSet = new LinkedHashSet<>();
+        private String field;
 
-		@Valid
-		private List<Child> childList = new LinkedList<>();
+        private String comparingField;
 
-		public Integer getId() {
-			return id;
-		}
+        private String message;
 
-		public void setId(Integer id) {
-			this.id = id;
-		}
+        @Override
+        public void initialize(Same constraintAnnotation) {
+            field = constraintAnnotation.field();
+            comparingField = constraintAnnotation.comparingField();
+            message = constraintAnnotation.message();
+        }
 
-		public String getName() {
-			return name;
-		}
+        @Override
+        public boolean isValid(Object value, ConstraintValidatorContext context) {
+            BeanWrapper beanWrapper = new BeanWrapperImpl(value);
+            Object fieldValue = beanWrapper.getPropertyValue(field);
+            Object comparingFieldValue = beanWrapper.getPropertyValue(comparingField);
+            boolean matched = ObjectUtils.nullSafeEquals(fieldValue, comparingFieldValue);
+            if (matched) {
+                return true;
+            } else {
+                context.disableDefaultConstraintViolation();
+                context.buildConstraintViolationWithTemplate(message)
+                        .addPropertyNode(field)
+                        .addConstraintViolation();
+                return false;
+            }
+        }
+    }
 
-		public void setName(String name) {
-			this.name = name;
-		}
+    public static class Parent {
 
-		public Set<Child> getChildSet() {
-			return childSet;
-		}
+        private Integer id;
 
-		public void setChildSet(Set<Child> childSet) {
-			this.childSet = childSet;
-		}
+        @NotNull
+        private String name;
 
-		public List<Child> getChildList() {
-			return childList;
-		}
+        @Valid
+        private Set<Child> childSet = new LinkedHashSet<>();
 
-		public void setChildList(List<Child> childList) {
-			this.childList = childList;
-		}
-	}
+        @Valid
+        private List<Child> childList = new LinkedList<>();
 
-
-	@AnythingValid
-	public static class Child {
-
-		private Integer id;
-
-		@NotNull
-		private String name;
-
-		@NotNull
-		private Integer age;
-
-		@NotNull
-		private Parent parent;
-
-		public Integer getId() {
-			return id;
-		}
-
-		public void setId(Integer id) {
-			this.id = id;
-		}
-
-		public String getName() {
-			return name;
-		}
-
-		public void setName(String name) {
-			this.name = name;
-		}
-
-		public Integer getAge() {
-			return age;
-		}
-
-		public void setAge(Integer age) {
-			this.age = age;
-		}
-
-		public Parent getParent() {
-			return parent;
-		}
-
-		public void setParent(Parent parent) {
-			this.parent = parent;
-		}
-	}
-
-
-	@Constraint(validatedBy = AnythingValidator.class)
-	@Retention(RetentionPolicy.RUNTIME)
-	public @interface AnythingValid {
-
-		String message() default "{AnythingValid.message}";
-
-		Class<?>[] groups() default {};
-
-		Class<? extends Payload>[] payload() default {};
-	}
-
-
-	public static class AnythingValidator implements ConstraintValidator<AnythingValid, Object> {
-
-		private static final String ID = "id";
-
-		@Override
-		public void initialize(AnythingValid constraintAnnotation) {
-		}
-
-		@Override
-		public boolean isValid(Object value, ConstraintValidatorContext context) {
-			List<Field> fieldsErrors = new ArrayList<>();
-			Arrays.asList(value.getClass().getDeclaredFields()).forEach(field -> {
-				field.setAccessible(true);
-				try {
-					if (!field.getName().equals(ID) && field.get(value) == null) {
-						fieldsErrors.add(field);
-						context.buildConstraintViolationWithTemplate(context.getDefaultConstraintMessageTemplate())
-								.addPropertyNode(field.getName())
-								.addConstraintViolation();
-					}
-				}
-				catch (IllegalAccessException ex) {
-					throw new IllegalStateException(ex);
-				}
-			});
-			return fieldsErrors.isEmpty();
-		}
-	}
+        public Integer getId() {
+            return id;
+        }
+
+        public void setId(Integer id) {
+            this.id = id;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public void setName(String name) {
+            this.name = name;
+        }
+
+        public Set<Child> getChildSet() {
+            return childSet;
+        }
+
+        public void setChildSet(Set<Child> childSet) {
+            this.childSet = childSet;
+        }
+
+        public List<Child> getChildList() {
+            return childList;
+        }
+
+        public void setChildList(List<Child> childList) {
+            this.childList = childList;
+        }
+    }
+
+    @AnythingValid
+    public static class Child {
+
+        private Integer id;
+
+        @NotNull
+        private String name;
+
+        @NotNull
+        private Integer age;
+
+        @NotNull
+        private Parent parent;
+
+        public Integer getId() {
+            return id;
+        }
+
+        public void setId(Integer id) {
+            this.id = id;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public void setName(String name) {
+            this.name = name;
+        }
+
+        public Integer getAge() {
+            return age;
+        }
+
+        public void setAge(Integer age) {
+            this.age = age;
+        }
+
+        public Parent getParent() {
+            return parent;
+        }
+
+        public void setParent(Parent parent) {
+            this.parent = parent;
+        }
+    }
+
+    public static class AnythingValidator implements ConstraintValidator<AnythingValid, Object> {
+
+        private static final String ID = "id";
+
+        @Override
+        public void initialize(AnythingValid constraintAnnotation) {
+        }
+
+        @Override
+        public boolean isValid(Object value, ConstraintValidatorContext context) {
+            List<Field> fieldsErrors = new ArrayList<>();
+            Arrays.asList(value.getClass().getDeclaredFields()).forEach(field -> {
+                field.setAccessible(true);
+                try {
+                    if (!field.getName().equals(ID) && field.get(value) == null) {
+                        fieldsErrors.add(field);
+                        context.buildConstraintViolationWithTemplate(context.getDefaultConstraintMessageTemplate())
+                                .addPropertyNode(field.getName())
+                                .addConstraintViolation();
+                    }
+                } catch (IllegalAccessException ex) {
+                    throw new IllegalStateException(ex);
+                }
+            });
+            return fieldsErrors.isEmpty();
+        }
+    }
 
 }

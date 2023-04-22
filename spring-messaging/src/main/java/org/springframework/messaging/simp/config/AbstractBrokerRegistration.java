@@ -35,40 +35,40 @@ import org.springframework.util.Assert;
  */
 public abstract class AbstractBrokerRegistration {
 
-	private final SubscribableChannel clientInboundChannel;
+    private final SubscribableChannel clientInboundChannel;
 
-	private final MessageChannel clientOutboundChannel;
+    private final MessageChannel clientOutboundChannel;
 
-	private final List<String> destinationPrefixes;
-
-
-	public AbstractBrokerRegistration(SubscribableChannel clientInboundChannel,
-			MessageChannel clientOutboundChannel, @Nullable String[] destinationPrefixes) {
-
-		Assert.notNull(clientOutboundChannel, "'clientInboundChannel' must not be null");
-		Assert.notNull(clientOutboundChannel, "'clientOutboundChannel' must not be null");
-
-		this.clientInboundChannel = clientInboundChannel;
-		this.clientOutboundChannel = clientOutboundChannel;
-
-		this.destinationPrefixes = (destinationPrefixes != null ?
-				Arrays.asList(destinationPrefixes) : Collections.emptyList());
-	}
+    private final List<String> destinationPrefixes;
 
 
-	protected SubscribableChannel getClientInboundChannel() {
-		return this.clientInboundChannel;
-	}
+    public AbstractBrokerRegistration(SubscribableChannel clientInboundChannel,
+                                      MessageChannel clientOutboundChannel, @Nullable String[] destinationPrefixes) {
 
-	protected MessageChannel getClientOutboundChannel() {
-		return this.clientOutboundChannel;
-	}
+        Assert.notNull(clientOutboundChannel, "'clientInboundChannel' must not be null");
+        Assert.notNull(clientOutboundChannel, "'clientOutboundChannel' must not be null");
 
-	protected Collection<String> getDestinationPrefixes() {
-		return this.destinationPrefixes;
-	}
+        this.clientInboundChannel = clientInboundChannel;
+        this.clientOutboundChannel = clientOutboundChannel;
+
+        this.destinationPrefixes = (destinationPrefixes != null ?
+                Arrays.asList(destinationPrefixes) : Collections.emptyList());
+    }
 
 
-	protected abstract AbstractBrokerMessageHandler getMessageHandler(SubscribableChannel brokerChannel);
+    protected SubscribableChannel getClientInboundChannel() {
+        return this.clientInboundChannel;
+    }
+
+    protected MessageChannel getClientOutboundChannel() {
+        return this.clientOutboundChannel;
+    }
+
+    protected Collection<String> getDestinationPrefixes() {
+        return this.destinationPrefixes;
+    }
+
+
+    protected abstract AbstractBrokerMessageHandler getMessageHandler(SubscribableChannel brokerChannel);
 
 }

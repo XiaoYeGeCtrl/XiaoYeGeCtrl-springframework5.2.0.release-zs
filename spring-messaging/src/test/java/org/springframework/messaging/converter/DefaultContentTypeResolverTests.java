@@ -38,63 +38,63 @@ import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException
  */
 public class DefaultContentTypeResolverTests {
 
-	private DefaultContentTypeResolver resolver;
+    private DefaultContentTypeResolver resolver;
 
 
-	@BeforeEach
-	public void setup() {
-		this.resolver = new DefaultContentTypeResolver();
-	}
+    @BeforeEach
+    public void setup() {
+        this.resolver = new DefaultContentTypeResolver();
+    }
 
-	@Test
-	public void resolve() {
-		Map<String, Object> map = new HashMap<>();
-		map.put(MessageHeaders.CONTENT_TYPE, MimeTypeUtils.APPLICATION_JSON);
-		MessageHeaders headers = new MessageHeaders(map);
+    @Test
+    public void resolve() {
+        Map<String, Object> map = new HashMap<>();
+        map.put(MessageHeaders.CONTENT_TYPE, MimeTypeUtils.APPLICATION_JSON);
+        MessageHeaders headers = new MessageHeaders(map);
 
-		assertThat(this.resolver.resolve(headers)).isEqualTo(MimeTypeUtils.APPLICATION_JSON);
-	}
+        assertThat(this.resolver.resolve(headers)).isEqualTo(MimeTypeUtils.APPLICATION_JSON);
+    }
 
-	@Test
-	public void resolveStringContentType() {
-		Map<String, Object> map = new HashMap<>();
-		map.put(MessageHeaders.CONTENT_TYPE, MimeTypeUtils.APPLICATION_JSON_VALUE);
-		MessageHeaders headers = new MessageHeaders(map);
+    @Test
+    public void resolveStringContentType() {
+        Map<String, Object> map = new HashMap<>();
+        map.put(MessageHeaders.CONTENT_TYPE, MimeTypeUtils.APPLICATION_JSON_VALUE);
+        MessageHeaders headers = new MessageHeaders(map);
 
-		assertThat(this.resolver.resolve(headers)).isEqualTo(MimeTypeUtils.APPLICATION_JSON);
-	}
+        assertThat(this.resolver.resolve(headers)).isEqualTo(MimeTypeUtils.APPLICATION_JSON);
+    }
 
-	@Test
-	public void resolveInvalidStringContentType() {
-		Map<String, Object> map = new HashMap<>();
-		map.put(MessageHeaders.CONTENT_TYPE, "invalidContentType");
-		MessageHeaders headers = new MessageHeaders(map);
-		assertThatExceptionOfType(InvalidMimeTypeException.class).isThrownBy(() ->
-				this.resolver.resolve(headers));
-	}
+    @Test
+    public void resolveInvalidStringContentType() {
+        Map<String, Object> map = new HashMap<>();
+        map.put(MessageHeaders.CONTENT_TYPE, "invalidContentType");
+        MessageHeaders headers = new MessageHeaders(map);
+        assertThatExceptionOfType(InvalidMimeTypeException.class).isThrownBy(() ->
+                this.resolver.resolve(headers));
+    }
 
-	@Test
-	public void resolveUnknownHeaderType() {
-		Map<String, Object> map = new HashMap<>();
-		map.put(MessageHeaders.CONTENT_TYPE, new Integer(1));
-		MessageHeaders headers = new MessageHeaders(map);
-		assertThatIllegalArgumentException().isThrownBy(() ->
-				this.resolver.resolve(headers));
-	}
+    @Test
+    public void resolveUnknownHeaderType() {
+        Map<String, Object> map = new HashMap<>();
+        map.put(MessageHeaders.CONTENT_TYPE, new Integer(1));
+        MessageHeaders headers = new MessageHeaders(map);
+        assertThatIllegalArgumentException().isThrownBy(() ->
+                this.resolver.resolve(headers));
+    }
 
-	@Test
-	public void resolveNoContentTypeHeader() {
-		MessageHeaders headers = new MessageHeaders(Collections.<String, Object>emptyMap());
+    @Test
+    public void resolveNoContentTypeHeader() {
+        MessageHeaders headers = new MessageHeaders(Collections.<String, Object>emptyMap());
 
-		assertThat(this.resolver.resolve(headers)).isNull();
-	}
+        assertThat(this.resolver.resolve(headers)).isNull();
+    }
 
-	@Test
-	public void resolveDefaultMimeType() {
-		this.resolver.setDefaultMimeType(MimeTypeUtils.APPLICATION_JSON);
-		MessageHeaders headers = new MessageHeaders(Collections.<String, Object>emptyMap());
+    @Test
+    public void resolveDefaultMimeType() {
+        this.resolver.setDefaultMimeType(MimeTypeUtils.APPLICATION_JSON);
+        MessageHeaders headers = new MessageHeaders(Collections.<String, Object>emptyMap());
 
-		assertThat(this.resolver.resolve(headers)).isEqualTo(MimeTypeUtils.APPLICATION_JSON);
-	}
+        assertThat(this.resolver.resolve(headers)).isEqualTo(MimeTypeUtils.APPLICATION_JSON);
+    }
 
 }

@@ -36,35 +36,35 @@ import static org.assertj.core.api.Assertions.assertThat;
  * or {@link SpringMethodRule} to be redeclared on subclasses.
  *
  * @author Sam Brannen
- * @since 4.2
  * @see Subclass1AppCtxRuleTests
  * @see Subclass2AppCtxRuleTests
+ * @since 4.2
  */
 @ContextConfiguration
 public class BaseAppCtxRuleTests {
 
-	@ClassRule
-	public static final SpringClassRule springClassRule = new SpringClassRule();
+    @ClassRule
+    public static final SpringClassRule springClassRule = new SpringClassRule();
 
-	@Rule
-	public final SpringMethodRule springMethodRule = new SpringMethodRule();
+    @Rule
+    public final SpringMethodRule springMethodRule = new SpringMethodRule();
 
-	@Autowired
-	private String foo;
-
-
-	@Test
-	public void foo() {
-		assertThat(foo).isEqualTo("foo");
-	}
+    @Autowired
+    private String foo;
 
 
-	@Configuration
-	static class Config {
+    @Test
+    public void foo() {
+        assertThat(foo).isEqualTo("foo");
+    }
 
-		@Bean
-		public String foo() {
-			return "foo";
-		}
-	}
+
+    @Configuration
+    static class Config {
+
+        @Bean
+        public String foo() {
+            return "foo";
+        }
+    }
 }

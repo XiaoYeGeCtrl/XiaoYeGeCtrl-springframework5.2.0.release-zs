@@ -29,24 +29,24 @@ import org.springframework.stereotype.Component;
  */
 public class AspectJTypeFilterTestsTypes {
 
-	public interface SomeInterface {
-	}
+    public interface SomeInterface {
+    }
 
-	public static class SomeClass {
-	}
+    public static class SomeClass {
+    }
 
-	public static class SomeClassExtendingSomeClass extends SomeClass {
-	}
+    public static class SomeClassExtendingSomeClass extends SomeClass {
+    }
 
-	public static class SomeClassImplementingSomeInterface implements SomeInterface {
-	}
+    public static class SomeClassImplementingSomeInterface implements SomeInterface {
+    }
 
-	public static class SomeClassExtendingSomeClassExtendingSomeClassAndImplementingSomeInterface
-			extends SomeClassExtendingSomeClass implements SomeInterface {
-	}
+    public static class SomeClassExtendingSomeClassExtendingSomeClassAndImplementingSomeInterface
+            extends SomeClassExtendingSomeClass implements SomeInterface {
+    }
 
-	@Component
-	public static class SomeClassAnnotatedWithComponent {
-	}
+    @Component
+    public static class SomeClassAnnotatedWithComponent {
+    }
 
 }

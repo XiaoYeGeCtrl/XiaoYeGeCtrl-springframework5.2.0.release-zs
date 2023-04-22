@@ -39,79 +39,80 @@ import static org.mockito.Mockito.verify;
 
 /**
  * Unit tests for {@link RSocketStrategies}.
+ *
  * @author Rossen Stoyanchev
  * @since 5.2
  */
 class DefaultRSocketStrategiesTests {
 
-	@Test
-	void defaultSettings() {
-		RSocketStrategies strategies = RSocketStrategies.create();
+    @Test
+    void defaultSettings() {
+        RSocketStrategies strategies = RSocketStrategies.create();
 
-		assertThat(strategies.encoders()).hasSize(4).hasOnlyElementsOfTypes(
-				CharSequenceEncoder.class,
-				ByteArrayEncoder.class,
-				ByteBufferEncoder.class,
-				DataBufferEncoder.class);
+        assertThat(strategies.encoders()).hasSize(4).hasOnlyElementsOfTypes(
+                CharSequenceEncoder.class,
+                ByteArrayEncoder.class,
+                ByteBufferEncoder.class,
+                DataBufferEncoder.class);
 
-		assertThat(strategies.decoders()).hasSize(4).hasOnlyElementsOfTypes(
-				StringDecoder.class,
-				ByteArrayDecoder.class,
-				ByteBufferDecoder.class,
-				DataBufferDecoder.class);
+        assertThat(strategies.decoders()).hasSize(4).hasOnlyElementsOfTypes(
+                StringDecoder.class,
+                ByteArrayDecoder.class,
+                ByteBufferDecoder.class,
+                DataBufferDecoder.class);
 
-		assertThat(strategies.routeMatcher()).isNotNull();
-		assertThat(strategies.metadataExtractor()).isNotNull();
-		assertThat(strategies.reactiveAdapterRegistry()).isNotNull();
+        assertThat(strategies.routeMatcher()).isNotNull();
+        assertThat(strategies.metadataExtractor()).isNotNull();
+        assertThat(strategies.reactiveAdapterRegistry()).isNotNull();
 
-		assertThat(((DefaultMetadataExtractor) strategies.metadataExtractor()).getDecoders()).hasSize(4);
-	}
+        assertThat(((DefaultMetadataExtractor) strategies.metadataExtractor()).getDecoders()).hasSize(4);
+    }
 
-	@Test
-	void explicitValues() {
-		SimpleRouteMatcher matcher = new SimpleRouteMatcher(new AntPathMatcher());
-		DefaultMetadataExtractor extractor = new DefaultMetadataExtractor();
-		ReactiveAdapterRegistry registry = new ReactiveAdapterRegistry();
+    @Test
+    void explicitValues() {
+        SimpleRouteMatcher matcher = new SimpleRouteMatcher(new AntPathMatcher());
+        DefaultMetadataExtractor extractor = new DefaultMetadataExtractor();
+        ReactiveAdapterRegistry registry = new ReactiveAdapterRegistry();
 
-		RSocketStrategies strategies = RSocketStrategies.builder()
-				.encoders(encoders -> {
-					encoders.clear();
-					encoders.add(new ByteArrayEncoder());
-				})
-				.decoders(decoders -> {
-					decoders.clear();
-					decoders.add(new ByteArrayDecoder());
-				})
-				.routeMatcher(matcher)
-				.metadataExtractor(extractor)
-				.reactiveAdapterStrategy(registry)
-				.build();
+        RSocketStrategies strategies = RSocketStrategies.builder()
+                .encoders(encoders -> {
+                    encoders.clear();
+                    encoders.add(new ByteArrayEncoder());
+                })
+                .decoders(decoders -> {
+                    decoders.clear();
+                    decoders.add(new ByteArrayDecoder());
+                })
+                .routeMatcher(matcher)
+                .metadataExtractor(extractor)
+                .reactiveAdapterStrategy(registry)
+                .build();
 
-		assertThat(strategies.encoders()).hasSize(1);
-		assertThat(strategies.decoders()).hasSize(1);
-		assertThat(strategies.routeMatcher()).isSameAs(matcher);
-		assertThat(strategies.metadataExtractor()).isSameAs(extractor);
-		assertThat(strategies.reactiveAdapterRegistry()).isSameAs(registry);
-	}
+        assertThat(strategies.encoders()).hasSize(1);
+        assertThat(strategies.decoders()).hasSize(1);
+        assertThat(strategies.routeMatcher()).isSameAs(matcher);
+        assertThat(strategies.metadataExtractor()).isSameAs(extractor);
+        assertThat(strategies.reactiveAdapterRegistry()).isSameAs(registry);
+    }
 
-	@Test
-	void copyConstructor() {
-		RSocketStrategies strategies1 = RSocketStrategies.create();
-		RSocketStrategies strategies2 = strategies1.mutate().build();
+    @Test
+    void copyConstructor() {
+        RSocketStrategies strategies1 = RSocketStrategies.create();
+        RSocketStrategies strategies2 = strategies1.mutate().build();
 
-		assertThat(strategies1.encoders()).hasSameElementsAs(strategies2.encoders());
-		assertThat(strategies1.decoders()).hasSameElementsAs(strategies2.decoders());
-		assertThat(strategies1.routeMatcher()).isSameAs(strategies2.routeMatcher());
-		assertThat(strategies1.metadataExtractor()).isSameAs(strategies2.metadataExtractor());
-		assertThat(strategies1.reactiveAdapterRegistry()).isSameAs(strategies2.reactiveAdapterRegistry());
-	}
+        assertThat(strategies1.encoders()).hasSameElementsAs(strategies2.encoders());
+        assertThat(strategies1.decoders()).hasSameElementsAs(strategies2.decoders());
+        assertThat(strategies1.routeMatcher()).isSameAs(strategies2.routeMatcher());
+        assertThat(strategies1.metadataExtractor()).isSameAs(strategies2.metadataExtractor());
+        assertThat(strategies1.reactiveAdapterRegistry()).isSameAs(strategies2.reactiveAdapterRegistry());
+    }
 
-	@Test
-	@SuppressWarnings("unchecked")
-	void applyMetadataExtractors() {
-		Consumer<MetadataExtractorRegistry> consumer = (Consumer<MetadataExtractorRegistry>) mock(Consumer.class);
-		RSocketStrategies strategies = RSocketStrategies.builder().metadataExtractorRegistry(consumer).build();
-		verify(consumer, times(1)).accept(any());
-	}
+    @Test
+    @SuppressWarnings("unchecked")
+    void applyMetadataExtractors() {
+        Consumer<MetadataExtractorRegistry> consumer = (Consumer<MetadataExtractorRegistry>) mock(Consumer.class);
+        RSocketStrategies strategies = RSocketStrategies.builder().metadataExtractorRegistry(consumer).build();
+        verify(consumer, times(1)).accept(any());
+    }
 
 }

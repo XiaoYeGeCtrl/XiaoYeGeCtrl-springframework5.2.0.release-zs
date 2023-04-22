@@ -54,173 +54,172 @@ import org.springframework.validation.annotation.Validated;
  */
 public class PayloadMethodArgumentResolver implements HandlerMethodArgumentResolver {
 
-	private final MessageConverter converter;
+    private final MessageConverter converter;
 
-	@Nullable
-	private final Validator validator;
+    @Nullable
+    private final Validator validator;
 
-	private final boolean useDefaultResolution;
-
-
-	/**
-	 * Create a new {@code PayloadArgumentResolver} with the given
-	 * {@link MessageConverter}.
-	 * @param messageConverter the MessageConverter to use (required)
-	 */
-	public PayloadMethodArgumentResolver(MessageConverter messageConverter) {
-		this(messageConverter, null);
-	}
-
-	/**
-	 * Create a new {@code PayloadArgumentResolver} with the given
-	 * {@link MessageConverter} and {@link Validator}.
-	 * @param messageConverter the MessageConverter to use (required)
-	 * @param validator the Validator to use (optional)
-	 */
-	public PayloadMethodArgumentResolver(MessageConverter messageConverter, @Nullable Validator validator) {
-		this(messageConverter, validator, true);
-	}
-
-	/**
-	 * Create a new {@code PayloadArgumentResolver} with the given
-	 * {@link MessageConverter} and {@link Validator}.
-	 * @param messageConverter the MessageConverter to use (required)
-	 * @param validator the Validator to use (optional)
-	 * @param useDefaultResolution if "true" (the default) this resolver supports
-	 * all parameters; if "false" then only arguments with the {@code @Payload}
-	 * annotation are supported.
-	 */
-	public PayloadMethodArgumentResolver(MessageConverter messageConverter, @Nullable Validator validator,
-			boolean useDefaultResolution) {
-
-		Assert.notNull(messageConverter, "MessageConverter must not be null");
-		this.converter = messageConverter;
-		this.validator = validator;
-		this.useDefaultResolution = useDefaultResolution;
-	}
+    private final boolean useDefaultResolution;
 
 
-	@Override
-	public boolean supportsParameter(MethodParameter parameter) {
-		return (parameter.hasParameterAnnotation(Payload.class) || this.useDefaultResolution);
-	}
+    /**
+     * Create a new {@code PayloadArgumentResolver} with the given
+     * {@link MessageConverter}.
+     *
+     * @param messageConverter the MessageConverter to use (required)
+     */
+    public PayloadMethodArgumentResolver(MessageConverter messageConverter) {
+        this(messageConverter, null);
+    }
 
-	@Override
-	@Nullable
-	public Object resolveArgument(MethodParameter parameter, Message<?> message) throws Exception {
-		Payload ann = parameter.getParameterAnnotation(Payload.class);
-		if (ann != null && StringUtils.hasText(ann.expression())) {
-			throw new IllegalStateException("@Payload SpEL expressions not supported by this resolver");
-		}
+    /**
+     * Create a new {@code PayloadArgumentResolver} with the given
+     * {@link MessageConverter} and {@link Validator}.
+     *
+     * @param messageConverter the MessageConverter to use (required)
+     * @param validator        the Validator to use (optional)
+     */
+    public PayloadMethodArgumentResolver(MessageConverter messageConverter, @Nullable Validator validator) {
+        this(messageConverter, validator, true);
+    }
 
-		Object payload = message.getPayload();
-		if (isEmptyPayload(payload)) {
-			if (ann == null || ann.required()) {
-				String paramName = getParameterName(parameter);
-				BindingResult bindingResult = new BeanPropertyBindingResult(payload, paramName);
-				bindingResult.addError(new ObjectError(paramName, "Payload value must not be empty"));
-				throw new MethodArgumentNotValidException(message, parameter, bindingResult);
-			}
-			else {
-				return null;
-			}
-		}
+    /**
+     * Create a new {@code PayloadArgumentResolver} with the given
+     * {@link MessageConverter} and {@link Validator}.
+     *
+     * @param messageConverter     the MessageConverter to use (required)
+     * @param validator            the Validator to use (optional)
+     * @param useDefaultResolution if "true" (the default) this resolver supports
+     *                             all parameters; if "false" then only arguments with the {@code @Payload}
+     *                             annotation are supported.
+     */
+    public PayloadMethodArgumentResolver(MessageConverter messageConverter, @Nullable Validator validator,
+                                         boolean useDefaultResolution) {
 
-		Class<?> targetClass = resolveTargetClass(parameter, message);
-		Class<?> payloadClass = payload.getClass();
-		if (ClassUtils.isAssignable(targetClass, payloadClass)) {
-			validate(message, parameter, payload);
-			return payload;
-		}
-		else {
-			if (this.converter instanceof SmartMessageConverter) {
-				SmartMessageConverter smartConverter = (SmartMessageConverter) this.converter;
-				payload = smartConverter.fromMessage(message, targetClass, parameter);
-			}
-			else {
-				payload = this.converter.fromMessage(message, targetClass);
-			}
-			if (payload == null) {
-				throw new MessageConversionException(message, "Cannot convert from [" +
-						payloadClass.getName() + "] to [" + targetClass.getName() + "] for " + message);
-			}
-			validate(message, parameter, payload);
-			return payload;
-		}
-	}
+        Assert.notNull(messageConverter, "MessageConverter must not be null");
+        this.converter = messageConverter;
+        this.validator = validator;
+        this.useDefaultResolution = useDefaultResolution;
+    }
 
-	private String getParameterName(MethodParameter param) {
-		String paramName = param.getParameterName();
-		return (paramName != null ? paramName : "Arg " + param.getParameterIndex());
-	}
 
-	/**
-	 * Specify if the given {@code payload} is empty.
-	 * @param payload the payload to check (can be {@code null})
-	 */
-	protected boolean isEmptyPayload(@Nullable Object payload) {
-		if (payload == null) {
-			return true;
-		}
-		else if (payload instanceof byte[]) {
-			return ((byte[]) payload).length == 0;
-		}
-		else if (payload instanceof String) {
-			return !StringUtils.hasText((String) payload);
-		}
-		else {
-			return false;
-		}
-	}
+    @Override
+    public boolean supportsParameter(MethodParameter parameter) {
+        return (parameter.hasParameterAnnotation(Payload.class) || this.useDefaultResolution);
+    }
 
-	/**
-	 * Resolve the target class to convert the payload to.
-	 * <p>By default this is simply {@link MethodParameter#getParameterType()}
-	 * but that can be overridden to select a more specific target type after
-	 * also taking into account the "Content-Type", e.g. return {@code String}
-	 * if target type is {@code Object} and {@code "Content-Type:text/**"}.
-	 * @param parameter the target method parameter
-	 * @param message the message being processed
-	 * @return the target type to use
-	 * @since 5.2
-	 */
-	protected Class<?> resolveTargetClass(MethodParameter parameter, Message<?> message) {
-		return parameter.getParameterType();
-	}
+    @Override
+    @Nullable
+    public Object resolveArgument(MethodParameter parameter, Message<?> message) throws Exception {
+        Payload ann = parameter.getParameterAnnotation(Payload.class);
+        if (ann != null && StringUtils.hasText(ann.expression())) {
+            throw new IllegalStateException("@Payload SpEL expressions not supported by this resolver");
+        }
 
-	/**
-	 * Validate the payload if applicable.
-	 * <p>The default implementation checks for {@code @javax.validation.Valid},
-	 * Spring's {@link Validated},
-	 * and custom annotations whose name starts with "Valid".
-	 * @param message the currently processed message
-	 * @param parameter the method parameter
-	 * @param target the target payload object
-	 * @throws MethodArgumentNotValidException in case of binding errors
-	 */
-	protected void validate(Message<?> message, MethodParameter parameter, Object target) {
-		if (this.validator == null) {
-			return;
-		}
-		for (Annotation ann : parameter.getParameterAnnotations()) {
-			Validated validatedAnn = AnnotationUtils.getAnnotation(ann, Validated.class);
-			if (validatedAnn != null || ann.annotationType().getSimpleName().startsWith("Valid")) {
-				Object hints = (validatedAnn != null ? validatedAnn.value() : AnnotationUtils.getValue(ann));
-				Object[] validationHints = (hints instanceof Object[] ? (Object[]) hints : new Object[] {hints});
-				BeanPropertyBindingResult bindingResult =
-						new BeanPropertyBindingResult(target, getParameterName(parameter));
-				if (!ObjectUtils.isEmpty(validationHints) && this.validator instanceof SmartValidator) {
-					((SmartValidator) this.validator).validate(target, bindingResult, validationHints);
-				}
-				else {
-					this.validator.validate(target, bindingResult);
-				}
-				if (bindingResult.hasErrors()) {
-					throw new MethodArgumentNotValidException(message, parameter, bindingResult);
-				}
-				break;
-			}
-		}
-	}
+        Object payload = message.getPayload();
+        if (isEmptyPayload(payload)) {
+            if (ann == null || ann.required()) {
+                String paramName = getParameterName(parameter);
+                BindingResult bindingResult = new BeanPropertyBindingResult(payload, paramName);
+                bindingResult.addError(new ObjectError(paramName, "Payload value must not be empty"));
+                throw new MethodArgumentNotValidException(message, parameter, bindingResult);
+            } else {
+                return null;
+            }
+        }
+
+        Class<?> targetClass = resolveTargetClass(parameter, message);
+        Class<?> payloadClass = payload.getClass();
+        if (ClassUtils.isAssignable(targetClass, payloadClass)) {
+            validate(message, parameter, payload);
+            return payload;
+        } else {
+            if (this.converter instanceof SmartMessageConverter) {
+                SmartMessageConverter smartConverter = (SmartMessageConverter) this.converter;
+                payload = smartConverter.fromMessage(message, targetClass, parameter);
+            } else {
+                payload = this.converter.fromMessage(message, targetClass);
+            }
+            if (payload == null) {
+                throw new MessageConversionException(message, "Cannot convert from [" +
+                        payloadClass.getName() + "] to [" + targetClass.getName() + "] for " + message);
+            }
+            validate(message, parameter, payload);
+            return payload;
+        }
+    }
+
+    private String getParameterName(MethodParameter param) {
+        String paramName = param.getParameterName();
+        return (paramName != null ? paramName : "Arg " + param.getParameterIndex());
+    }
+
+    /**
+     * Specify if the given {@code payload} is empty.
+     *
+     * @param payload the payload to check (can be {@code null})
+     */
+    protected boolean isEmptyPayload(@Nullable Object payload) {
+        if (payload == null) {
+            return true;
+        } else if (payload instanceof byte[]) {
+            return ((byte[]) payload).length == 0;
+        } else if (payload instanceof String) {
+            return !StringUtils.hasText((String) payload);
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * Resolve the target class to convert the payload to.
+     * <p>By default this is simply {@link MethodParameter#getParameterType()}
+     * but that can be overridden to select a more specific target type after
+     * also taking into account the "Content-Type", e.g. return {@code String}
+     * if target type is {@code Object} and {@code "Content-Type:text/**"}.
+     *
+     * @param parameter the target method parameter
+     * @param message   the message being processed
+     * @return the target type to use
+     * @since 5.2
+     */
+    protected Class<?> resolveTargetClass(MethodParameter parameter, Message<?> message) {
+        return parameter.getParameterType();
+    }
+
+    /**
+     * Validate the payload if applicable.
+     * <p>The default implementation checks for {@code @javax.validation.Valid},
+     * Spring's {@link Validated},
+     * and custom annotations whose name starts with "Valid".
+     *
+     * @param message   the currently processed message
+     * @param parameter the method parameter
+     * @param target    the target payload object
+     * @throws MethodArgumentNotValidException in case of binding errors
+     */
+    protected void validate(Message<?> message, MethodParameter parameter, Object target) {
+        if (this.validator == null) {
+            return;
+        }
+        for (Annotation ann : parameter.getParameterAnnotations()) {
+            Validated validatedAnn = AnnotationUtils.getAnnotation(ann, Validated.class);
+            if (validatedAnn != null || ann.annotationType().getSimpleName().startsWith("Valid")) {
+                Object hints = (validatedAnn != null ? validatedAnn.value() : AnnotationUtils.getValue(ann));
+                Object[] validationHints = (hints instanceof Object[] ? (Object[]) hints : new Object[]{hints});
+                BeanPropertyBindingResult bindingResult =
+                        new BeanPropertyBindingResult(target, getParameterName(parameter));
+                if (!ObjectUtils.isEmpty(validationHints) && this.validator instanceof SmartValidator) {
+                    ((SmartValidator) this.validator).validate(target, bindingResult, validationHints);
+                } else {
+                    this.validator.validate(target, bindingResult);
+                }
+                if (bindingResult.hasErrors()) {
+                    throw new MethodArgumentNotValidException(message, parameter, bindingResult);
+                }
+                break;
+            }
+        }
+    }
 
 }

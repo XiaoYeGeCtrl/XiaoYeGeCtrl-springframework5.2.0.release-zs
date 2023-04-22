@@ -34,82 +34,83 @@ import org.springframework.http.server.PathContainer;
  */
 public class PathPatternParser {
 
-	private boolean matchOptionalTrailingSeparator = true;
+    private boolean matchOptionalTrailingSeparator = true;
 
-	private boolean caseSensitive = true;
+    private boolean caseSensitive = true;
 
-	private PathContainer.Options pathOptions = PathContainer.Options.HTTP_PATH;
+    private PathContainer.Options pathOptions = PathContainer.Options.HTTP_PATH;
 
+    /**
+     * Whether optional trailing slashing match is enabled.
+     */
+    public boolean isMatchOptionalTrailingSeparator() {
+        return this.matchOptionalTrailingSeparator;
+    }
 
-	/**
-	 * Whether a {@link PathPattern} produced by this parser should should
-	 * automatically match request paths with a trailing slash.
-	 *
-	 * <p>If set to {@code true} a {@code PathPattern} without a trailing slash
-	 * will also match request paths with a trailing slash. If set to
-	 * {@code false} a {@code PathPattern} will only match request paths with
-	 * a trailing slash.
-	 *
-	 * <p>The default is {@code true}.
-	 */
-	public void setMatchOptionalTrailingSeparator(boolean matchOptionalTrailingSeparator) {
-		this.matchOptionalTrailingSeparator = matchOptionalTrailingSeparator;
-	}
+    /**
+     * Whether a {@link PathPattern} produced by this parser should should
+     * automatically match request paths with a trailing slash.
+     *
+     * <p>If set to {@code true} a {@code PathPattern} without a trailing slash
+     * will also match request paths with a trailing slash. If set to
+     * {@code false} a {@code PathPattern} will only match request paths with
+     * a trailing slash.
+     *
+     * <p>The default is {@code true}.
+     */
+    public void setMatchOptionalTrailingSeparator(boolean matchOptionalTrailingSeparator) {
+        this.matchOptionalTrailingSeparator = matchOptionalTrailingSeparator;
+    }
 
-	/**
-	 * Whether optional trailing slashing match is enabled.
-	 */
-	public boolean isMatchOptionalTrailingSeparator() {
-		return this.matchOptionalTrailingSeparator;
-	}
+    /**
+     * Whether case-sensitive pattern matching is enabled.
+     */
+    public boolean isCaseSensitive() {
+        return this.caseSensitive;
+    }
 
-	/**
-	 * Whether path pattern matching should be case-sensitive.
-	 * <p>The default is {@code true}.
-	 */
-	public void setCaseSensitive(boolean caseSensitive) {
-		this.caseSensitive = caseSensitive;
-	}
+    /**
+     * Whether path pattern matching should be case-sensitive.
+     * <p>The default is {@code true}.
+     */
+    public void setCaseSensitive(boolean caseSensitive) {
+        this.caseSensitive = caseSensitive;
+    }
 
-	/**
-	 * Whether case-sensitive pattern matching is enabled.
-	 */
-	public boolean isCaseSensitive() {
-		return this.caseSensitive;
-	}
+    /**
+     * Return the {@link #setPathOptions configured} pattern parsing options.
+     *
+     * @since 5.2
+     */
+    public PathContainer.Options getPathOptions() {
+        return this.pathOptions;
+    }
 
-	/**
-	 * Set options for parsing patterns. These should be the same as the
-	 * options used to parse input paths.
-	 * <p>{@link org.springframework.http.server.PathContainer.Options#HTTP_PATH}
-	 * is used by default.
-	 * @since 5.2
-	 */
-	public void setPathOptions(PathContainer.Options pathOptions) {
-		this.pathOptions = pathOptions;
-	}
+    /**
+     * Set options for parsing patterns. These should be the same as the
+     * options used to parse input paths.
+     * <p>{@link org.springframework.http.server.PathContainer.Options#HTTP_PATH}
+     * is used by default.
+     *
+     * @since 5.2
+     */
+    public void setPathOptions(PathContainer.Options pathOptions) {
+        this.pathOptions = pathOptions;
+    }
 
-	/**
-	 * Return the {@link #setPathOptions configured} pattern parsing options.
-	 * @since 5.2
-	 */
-	public PathContainer.Options getPathOptions() {
-		return this.pathOptions;
-	}
-
-
-	/**
-	 * Process the path pattern content, a character at a time, breaking it into
-	 * path elements around separator boundaries and verifying the structure at each
-	 * stage. Produces a PathPattern object that can be used for fast matching
-	 * against paths. Each invocation of this method delegates to a new instance of
-	 * the {@link InternalPathPatternParser} because that class is not thread-safe.
-	 * @param pathPattern the input path pattern, e.g. /foo/{bar}
-	 * @return a PathPattern for quickly matching paths against request paths
-	 * @throws PatternParseException in case of parse errors
-	 */
-	public PathPattern parse(String pathPattern) throws PatternParseException {
-		return new InternalPathPatternParser(this).parse(pathPattern);
-	}
+    /**
+     * Process the path pattern content, a character at a time, breaking it into
+     * path elements around separator boundaries and verifying the structure at each
+     * stage. Produces a PathPattern object that can be used for fast matching
+     * against paths. Each invocation of this method delegates to a new instance of
+     * the {@link InternalPathPatternParser} because that class is not thread-safe.
+     *
+     * @param pathPattern the input path pattern, e.g. /foo/{bar}
+     * @return a PathPattern for quickly matching paths against request paths
+     * @throws PatternParseException in case of parse errors
+     */
+    public PathPattern parse(String pathPattern) throws PatternParseException {
+        return new InternalPathPatternParser(this).parse(pathPattern);
+    }
 
 }

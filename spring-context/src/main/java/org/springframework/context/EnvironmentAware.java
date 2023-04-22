@@ -24,14 +24,14 @@ import org.springframework.core.env.Environment;
  * of the {@link Environment} that it runs in.
  *
  * @author Chris Beams
- * @since 3.1
  * @see org.springframework.core.env.EnvironmentCapable
+ * @since 3.1
  */
 public interface EnvironmentAware extends Aware {
 
-	/**
-	 * Set the {@code Environment} that this component runs in.
-	 */
-	void setEnvironment(Environment environment);
+    /**
+     * Set the {@code Environment} that this component runs in.
+     */
+    void setEnvironment(Environment environment);
 
 }

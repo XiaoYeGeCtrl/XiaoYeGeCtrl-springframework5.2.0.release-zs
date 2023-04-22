@@ -30,7 +30,6 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 import static org.assertj.core.api.Assertions.assertThat;
 
 
-
 /**
  * Abstract base class for integration tests involving database initialization.
  *
@@ -39,48 +38,48 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 public abstract class AbstractDatabaseInitializationTests {
 
-	private final ClassRelativeResourceLoader resourceLoader = new ClassRelativeResourceLoader(getClass());
+    private final ClassRelativeResourceLoader resourceLoader = new ClassRelativeResourceLoader(getClass());
 
-	EmbeddedDatabase db;
+    EmbeddedDatabase db;
 
-	JdbcTemplate jdbcTemplate;
+    JdbcTemplate jdbcTemplate;
 
 
-	@BeforeEach
-	public void setUp() {
-		db = new EmbeddedDatabaseBuilder().setType(getEmbeddedDatabaseType()).build();
-		jdbcTemplate = new JdbcTemplate(db);
-	}
+    @BeforeEach
+    public void setUp() {
+        db = new EmbeddedDatabaseBuilder().setType(getEmbeddedDatabaseType()).build();
+        jdbcTemplate = new JdbcTemplate(db);
+    }
 
-	@AfterEach
-	public void shutDown() {
-		if (TransactionSynchronizationManager.isSynchronizationActive()) {
-			TransactionSynchronizationManager.clear();
-			TransactionSynchronizationManager.unbindResource(db);
-		}
-		db.shutdown();
-	}
+    @AfterEach
+    public void shutDown() {
+        if (TransactionSynchronizationManager.isSynchronizationActive()) {
+            TransactionSynchronizationManager.clear();
+            TransactionSynchronizationManager.unbindResource(db);
+        }
+        db.shutdown();
+    }
 
-	abstract EmbeddedDatabaseType getEmbeddedDatabaseType();
+    abstract EmbeddedDatabaseType getEmbeddedDatabaseType();
 
-	Resource resource(String path) {
-		return resourceLoader.getResource(path);
-	}
+    Resource resource(String path) {
+        return resourceLoader.getResource(path);
+    }
 
-	Resource defaultSchema() {
-		return resource("db-schema.sql");
-	}
+    Resource defaultSchema() {
+        return resource("db-schema.sql");
+    }
 
-	Resource usersSchema() {
-		return resource("users-schema.sql");
-	}
+    Resource usersSchema() {
+        return resource("users-schema.sql");
+    }
 
-	void assertUsersDatabaseCreated(String... lastNames) {
-		for (String lastName : lastNames) {
-			String sql = "select count(0) from users where last_name = ?";
-			Integer result = jdbcTemplate.queryForObject(sql, Integer.class, lastName);
-			assertThat(result).as("user with last name [" + lastName + "]").isEqualTo(1);
-		}
-	}
+    void assertUsersDatabaseCreated(String... lastNames) {
+        for (String lastName : lastNames) {
+            String sql = "select count(0) from users where last_name = ?";
+            Integer result = jdbcTemplate.queryForObject(sql, Integer.class, lastName);
+            assertThat(result).as("user with last name [" + lastName + "]").isEqualTo(1);
+        }
+    }
 
 }

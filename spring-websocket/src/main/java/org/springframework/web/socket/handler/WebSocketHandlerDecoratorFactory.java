@@ -31,12 +31,13 @@ import org.springframework.web.socket.WebSocketHandler;
  */
 public interface WebSocketHandlerDecoratorFactory {
 
-	/**
-	 * Decorate the given WebSocketHandler.
-	 * @param handler the handler to be decorated.
-	 * @return the same handler or the handler wrapped with a sub-class of
-	 * {@code WebSocketHandlerDecorator}.
-	 */
-	WebSocketHandler decorate(WebSocketHandler handler);
+    /**
+     * Decorate the given WebSocketHandler.
+     *
+     * @param handler the handler to be decorated.
+     * @return the same handler or the handler wrapped with a sub-class of
+     * {@code WebSocketHandlerDecorator}.
+     */
+    WebSocketHandler decorate(WebSocketHandler handler);
 
 }

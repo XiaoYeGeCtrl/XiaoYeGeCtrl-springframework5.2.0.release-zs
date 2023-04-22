@@ -33,22 +33,22 @@ import org.springframework.context.annotation.Role;
  * {@code @EnableSpringConfigured}'s javadoc for complete usage details.
  *
  * @author Chris Beams
- * @since 3.1
  * @see EnableSpringConfigured
+ * @since 3.1
  */
 @Configuration
 public class SpringConfiguredConfiguration {
 
-	/**
-	 * The bean name used for the configurer aspect.
-	 */
-	public static final String BEAN_CONFIGURER_ASPECT_BEAN_NAME =
-			"org.springframework.context.config.internalBeanConfigurerAspect";
+    /**
+     * The bean name used for the configurer aspect.
+     */
+    public static final String BEAN_CONFIGURER_ASPECT_BEAN_NAME =
+            "org.springframework.context.config.internalBeanConfigurerAspect";
 
-	@Bean(name = BEAN_CONFIGURER_ASPECT_BEAN_NAME)
-	@Role(BeanDefinition.ROLE_INFRASTRUCTURE)
-	public AnnotationBeanConfigurerAspect beanConfigurerAspect() {
-		return AnnotationBeanConfigurerAspect.aspectOf();
-	}
+    @Bean(name = BEAN_CONFIGURER_ASPECT_BEAN_NAME)
+    @Role(BeanDefinition.ROLE_INFRASTRUCTURE)
+    public AnnotationBeanConfigurerAspect beanConfigurerAspect() {
+        return AnnotationBeanConfigurerAspect.aspectOf();
+    }
 
 }

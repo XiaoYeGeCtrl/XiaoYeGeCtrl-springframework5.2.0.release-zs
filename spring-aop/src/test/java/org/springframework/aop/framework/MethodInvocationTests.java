@@ -34,37 +34,37 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 class MethodInvocationTests {
 
-	@Test
-	void testValidInvocation() throws Throwable {
-		Method method = Object.class.getMethod("hashCode");
-		Object proxy = new Object();
-		Object returnValue = new Object();
-		List<Object> interceptors = Collections.singletonList((MethodInterceptor) invocation -> returnValue);
-		ReflectiveMethodInvocation invocation = new ReflectiveMethodInvocation(proxy, null, method, null, null, interceptors);
-		Object rv = invocation.proceed();
-		assertThat(rv).as("correct response").isSameAs(returnValue);
-	}
+    @Test
+    void testValidInvocation() throws Throwable {
+        Method method = Object.class.getMethod("hashCode");
+        Object proxy = new Object();
+        Object returnValue = new Object();
+        List<Object> interceptors = Collections.singletonList((MethodInterceptor) invocation -> returnValue);
+        ReflectiveMethodInvocation invocation = new ReflectiveMethodInvocation(proxy, null, method, null, null, interceptors);
+        Object rv = invocation.proceed();
+        assertThat(rv).as("correct response").isSameAs(returnValue);
+    }
 
-	/**
-	 * toString on target can cause failure.
-	 */
-	@Test
-	void testToStringDoesntHitTarget() throws Throwable {
-		Object target = new TestBean() {
-			@Override
-			public String toString() {
-				throw new UnsupportedOperationException("toString");
-			}
-		};
-		List<Object> interceptors = Collections.emptyList();
+    /**
+     * toString on target can cause failure.
+     */
+    @Test
+    void testToStringDoesntHitTarget() throws Throwable {
+        Object target = new TestBean() {
+            @Override
+            public String toString() {
+                throw new UnsupportedOperationException("toString");
+            }
+        };
+        List<Object> interceptors = Collections.emptyList();
 
-		Method m = Object.class.getMethod("hashCode");
-		Object proxy = new Object();
-		ReflectiveMethodInvocation invocation = new ReflectiveMethodInvocation(proxy, target, m, null, null, interceptors);
+        Method m = Object.class.getMethod("hashCode");
+        Object proxy = new Object();
+        ReflectiveMethodInvocation invocation = new ReflectiveMethodInvocation(proxy, target, m, null, null, interceptors);
 
-		// If it hits target, the test will fail with the UnsupportedOpException
-		// in the inner class above.
-		invocation.toString();
-	}
+        // If it hits target, the test will fail with the UnsupportedOpException
+        // in the inner class above.
+        invocation.toString();
+    }
 
 }

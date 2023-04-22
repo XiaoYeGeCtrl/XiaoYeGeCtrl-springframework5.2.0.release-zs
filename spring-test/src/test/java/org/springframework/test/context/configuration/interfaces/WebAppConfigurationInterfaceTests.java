@@ -32,13 +32,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 @ExtendWith(SpringExtension.class)
 class WebAppConfigurationInterfaceTests implements WebAppConfigurationTestInterface {
 
-	@Autowired
-	WebApplicationContext wac;
+    @Autowired
+    WebApplicationContext wac;
 
 
-	@Test
-	void wacLoaded() {
-		assertThat(wac).isNotNull();
-	}
+    @Test
+    void wacLoaded() {
+        assertThat(wac).isNotNull();
+    }
 
 }

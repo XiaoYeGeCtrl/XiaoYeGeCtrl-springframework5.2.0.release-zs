@@ -31,15 +31,15 @@ import org.springframework.messaging.Message;
  */
 public abstract class AbstractAsyncReturnValueHandler implements AsyncHandlerMethodReturnValueHandler {
 
-	@Override
-	public boolean isAsyncReturnValue(Object returnValue, MethodParameter returnType) {
-		return true;
-	}
+    @Override
+    public boolean isAsyncReturnValue(Object returnValue, MethodParameter returnType) {
+        return true;
+    }
 
-	@Override
-	public void handleReturnValue(@Nullable Object returnValue, MethodParameter returnType, Message<?> message) {
-		// Should never be called since we return "true" from isAsyncReturnValue
-		throw new IllegalStateException("Unexpected invocation");
-	}
+    @Override
+    public void handleReturnValue(@Nullable Object returnValue, MethodParameter returnType, Message<?> message) {
+        // Should never be called since we return "true" from isAsyncReturnValue
+        throw new IllegalStateException("Unexpected invocation");
+    }
 
 }

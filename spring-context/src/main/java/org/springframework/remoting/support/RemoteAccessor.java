@@ -32,32 +32,31 @@ import org.springframework.util.Assert;
  * does not declare {@code java.rmi.RemoteException}.
  *
  * @author Juergen Hoeller
- * @since 13.05.2003
  * @see org.springframework.remoting.RemoteAccessException
  * @see java.rmi.RemoteException
+ * @since 13.05.2003
  */
 public abstract class RemoteAccessor extends RemotingSupport {
 
-	private Class<?> serviceInterface;
+    private Class<?> serviceInterface;
 
+    /**
+     * Return the interface of the service to access.
+     */
+    public Class<?> getServiceInterface() {
+        return this.serviceInterface;
+    }
 
-	/**
-	 * Set the interface of the service to access.
-	 * The interface must be suitable for the particular service and remoting strategy.
-	 * <p>Typically required to be able to create a suitable service proxy,
-	 * but can also be optional if the lookup returns a typed proxy.
-	 */
-	public void setServiceInterface(Class<?> serviceInterface) {
-		Assert.notNull(serviceInterface, "'serviceInterface' must not be null");
-		Assert.isTrue(serviceInterface.isInterface(), "'serviceInterface' must be an interface");
-		this.serviceInterface = serviceInterface;
-	}
-
-	/**
-	 * Return the interface of the service to access.
-	 */
-	public Class<?> getServiceInterface() {
-		return this.serviceInterface;
-	}
+    /**
+     * Set the interface of the service to access.
+     * The interface must be suitable for the particular service and remoting strategy.
+     * <p>Typically required to be able to create a suitable service proxy,
+     * but can also be optional if the lookup returns a typed proxy.
+     */
+    public void setServiceInterface(Class<?> serviceInterface) {
+        Assert.notNull(serviceInterface, "'serviceInterface' must not be null");
+        Assert.isTrue(serviceInterface.isInterface(), "'serviceInterface' must be an interface");
+        this.serviceInterface = serviceInterface;
+    }
 
 }

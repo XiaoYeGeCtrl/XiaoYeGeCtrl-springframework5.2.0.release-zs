@@ -31,25 +31,25 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 public class DirectFieldAccessorTests extends AbstractPropertyAccessorTests {
 
-	@Override
-	protected DirectFieldAccessor createAccessor(Object target) {
-		return new DirectFieldAccessor(target);
-	}
+    @Override
+    protected DirectFieldAccessor createAccessor(Object target) {
+        return new DirectFieldAccessor(target);
+    }
 
 
-	@Test
-	public void withShadowedField() {
-		final StringBuilder sb = new StringBuilder();
+    @Test
+    public void withShadowedField() {
+        final StringBuilder sb = new StringBuilder();
 
-		@SuppressWarnings("serial")
-		TestBean target = new TestBean() {
-			@SuppressWarnings("unused")
-			StringBuilder name = sb;
-		};
+        @SuppressWarnings("serial")
+        TestBean target = new TestBean() {
+            @SuppressWarnings("unused")
+            StringBuilder name = sb;
+        };
 
-		DirectFieldAccessor dfa = createAccessor(target);
-		assertThat(dfa.getPropertyType("name")).isEqualTo(StringBuilder.class);
-		assertThat(dfa.getPropertyValue("name")).isEqualTo(sb);
-	}
+        DirectFieldAccessor dfa = createAccessor(target);
+        assertThat(dfa.getPropertyType("name")).isEqualTo(StringBuilder.class);
+        assertThat(dfa.getPropertyValue("name")).isEqualTo(sb);
+    }
 
 }

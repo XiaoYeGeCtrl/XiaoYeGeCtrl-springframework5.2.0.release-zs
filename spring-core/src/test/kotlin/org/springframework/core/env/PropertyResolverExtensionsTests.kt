@@ -28,27 +28,27 @@ import org.junit.jupiter.api.Test
  */
 class PropertyResolverExtensionsTests {
 
-	val propertyResolver = mockk<PropertyResolver>()
+    val propertyResolver = mockk<PropertyResolver>()
 
-	@Test
-	fun `get operator`() {
-		every { propertyResolver.getProperty("name") } returns "foo"
-		propertyResolver["name"]
-		verify { propertyResolver.getProperty("name") }
-	}
+    @Test
+    fun `get operator`() {
+        every { propertyResolver.getProperty("name") } returns "foo"
+        propertyResolver["name"]
+        verify { propertyResolver.getProperty("name") }
+    }
 
-	@Test
-	fun `getProperty extension`() {
-		every { propertyResolver.getProperty("name", String::class.java) } returns "foo"
-		propertyResolver.getProperty<String>("name")
-		verify { propertyResolver.getProperty("name", String::class.java) }
-	}
+    @Test
+    fun `getProperty extension`() {
+        every { propertyResolver.getProperty("name", String::class.java) } returns "foo"
+        propertyResolver.getProperty<String>("name")
+        verify { propertyResolver.getProperty("name", String::class.java) }
+    }
 
-	@Test
-	fun `getRequiredProperty extension`() {
-		every { propertyResolver.getRequiredProperty("name", String::class.java) } returns "foo"
-		propertyResolver.getRequiredProperty<String>("name")
-		verify { propertyResolver.getRequiredProperty("name", String::class.java) }
-	}
+    @Test
+    fun `getRequiredProperty extension`() {
+        every { propertyResolver.getRequiredProperty("name", String::class.java) } returns "foo"
+        propertyResolver.getRequiredProperty<String>("name")
+        verify { propertyResolver.getRequiredProperty("name", String::class.java) }
+    }
 
 }

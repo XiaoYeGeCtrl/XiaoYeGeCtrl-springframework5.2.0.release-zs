@@ -10,28 +10,36 @@ import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Controller;
 
+
+/**
+ * 使用自定义注解@Controller,然后被加载进容器
+ */
 @Controller
 public class WelcomeController implements ApplicationContextAware, BeanNameAware {
-	private String myName;
-	private ApplicationContext myContainer;
-	@Autowired
-	private WelcomeService welcomeService;
-	public void handleRequest(){
-		welcomeService.sayHello("来自Controller的问候");
-		System.out.println("我是谁：" + myName);
-		String[] beanDefinitionNames = myContainer.getBeanDefinitionNames();
-		for(String beanDefinitionName : beanDefinitionNames) {
-			System.out.println("召唤容器神兽，通过神兽获得：" + beanDefinitionName);
-		}
-	}
 
-	@Override
-	public void setBeanName(String name) {
-		this.myName = name;
-	}
 
-	@Override
-	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-		this.myContainer = applicationContext;
-	}
+    private String myName;
+    private ApplicationContext myContainer;
+    @Autowired
+    private WelcomeService welcomeService;
+
+    public void handleRequest() {
+        welcomeService.sayHello("来自Controller的问候");
+        System.out.println("我是谁：" + myName);
+        String[] beanDefinitionNames = myContainer.getBeanDefinitionNames();
+        for (String beanDefinitionName : beanDefinitionNames) {
+            System.out.println("召唤容器神兽，通过神兽获得：" + beanDefinitionName);
+        }
+    }
+
+
+    @Override
+    public void setBeanName(String name) {
+        this.myName = name;
+    }
+
+    @Override
+    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+        this.myContainer = applicationContext;
+    }
 }

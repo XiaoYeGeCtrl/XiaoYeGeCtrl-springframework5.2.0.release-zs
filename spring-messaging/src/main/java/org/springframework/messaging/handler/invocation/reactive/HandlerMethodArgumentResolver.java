@@ -30,24 +30,26 @@ import org.springframework.messaging.Message;
  */
 public interface HandlerMethodArgumentResolver {
 
-	/**
-	 * Whether the given {@linkplain MethodParameter method parameter} is
-	 * supported by this resolver.
-	 * @param parameter the method parameter to check
-	 * @return {@code true} if this resolver supports the supplied parameter;
-	 * {@code false} otherwise
-	 */
-	boolean supportsParameter(MethodParameter parameter);
+    /**
+     * Whether the given {@linkplain MethodParameter method parameter} is
+     * supported by this resolver.
+     *
+     * @param parameter the method parameter to check
+     * @return {@code true} if this resolver supports the supplied parameter;
+     * {@code false} otherwise
+     */
+    boolean supportsParameter(MethodParameter parameter);
 
-	/**
-	 * Resolves a method parameter into an argument value from a given message.
-	 * @param parameter the method parameter to resolve.
-	 * This parameter must have previously been passed to
-	 * {@link #supportsParameter(org.springframework.core.MethodParameter)}
-	 * which must have returned {@code true}.
-	 * @param message the currently processed message
-	 * @return {@code Mono} for the argument value, possibly empty
-	 */
-	Mono<Object> resolveArgument(MethodParameter parameter, Message<?> message);
+    /**
+     * Resolves a method parameter into an argument value from a given message.
+     *
+     * @param parameter the method parameter to resolve.
+     *                  This parameter must have previously been passed to
+     *                  {@link #supportsParameter(org.springframework.core.MethodParameter)}
+     *                  which must have returned {@code true}.
+     * @param message   the currently processed message
+     * @return {@code Mono} for the argument value, possibly empty
+     */
+    Mono<Object> resolveArgument(MethodParameter parameter, Message<?> message);
 
 }

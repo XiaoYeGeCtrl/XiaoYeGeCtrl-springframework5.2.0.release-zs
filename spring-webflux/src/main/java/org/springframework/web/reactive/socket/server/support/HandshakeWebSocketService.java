@@ -57,229 +57,216 @@ import org.springframework.web.server.ServerWebInputException;
  */
 public class HandshakeWebSocketService implements WebSocketService, Lifecycle {
 
-	private static final String SEC_WEBSOCKET_KEY = "Sec-WebSocket-Key";
+    protected static final Log logger = LogFactory.getLog(HandshakeWebSocketService.class);
+    private static final String SEC_WEBSOCKET_KEY = "Sec-WebSocket-Key";
+    private static final String SEC_WEBSOCKET_PROTOCOL = "Sec-WebSocket-Protocol";
+    private static final Mono<Map<String, Object>> EMPTY_ATTRIBUTES = Mono.just(Collections.emptyMap());
+    private static final boolean tomcatPresent;
+    private static final boolean jettyPresent;
+    private static final boolean undertowPresent;
+    private static final boolean reactorNettyPresent;
 
-	private static final String SEC_WEBSOCKET_PROTOCOL = "Sec-WebSocket-Protocol";
+    static {
+        ClassLoader classLoader = HandshakeWebSocketService.class.getClassLoader();
+        tomcatPresent = ClassUtils.isPresent("org.apache.tomcat.websocket.server.WsHttpUpgradeHandler", classLoader);
+        jettyPresent = ClassUtils.isPresent("org.eclipse.jetty.websocket.server.WebSocketServerFactory", classLoader);
+        undertowPresent = ClassUtils.isPresent("io.undertow.websockets.WebSocketProtocolHandshakeHandler", classLoader);
+        reactorNettyPresent = ClassUtils.isPresent("reactor.netty.http.server.HttpServerResponse", classLoader);
+    }
 
-	private static final Mono<Map<String, Object>> EMPTY_ATTRIBUTES = Mono.just(Collections.emptyMap());
+    private final RequestUpgradeStrategy upgradeStrategy;
 
+    @Nullable
+    private Predicate<String> sessionAttributePredicate;
 
-	private static final boolean tomcatPresent;
-
-	private static final boolean jettyPresent;
-
-	private static final boolean undertowPresent;
-
-	private static final boolean reactorNettyPresent;
-
-	static {
-		ClassLoader classLoader = HandshakeWebSocketService.class.getClassLoader();
-		tomcatPresent = ClassUtils.isPresent("org.apache.tomcat.websocket.server.WsHttpUpgradeHandler", classLoader);
-		jettyPresent = ClassUtils.isPresent("org.eclipse.jetty.websocket.server.WebSocketServerFactory", classLoader);
-		undertowPresent = ClassUtils.isPresent("io.undertow.websockets.WebSocketProtocolHandshakeHandler", classLoader);
-		reactorNettyPresent = ClassUtils.isPresent("reactor.netty.http.server.HttpServerResponse", classLoader);
-	}
-
-
-	protected static final Log logger = LogFactory.getLog(HandshakeWebSocketService.class);
+    private volatile boolean running = false;
 
 
-	private final RequestUpgradeStrategy upgradeStrategy;
+    /**
+     * Default constructor automatic, classpath detection based discovery of the
+     * {@link RequestUpgradeStrategy} to use.
+     */
+    public HandshakeWebSocketService() {
+        this(initUpgradeStrategy());
+    }
 
-	@Nullable
-	private Predicate<String> sessionAttributePredicate;
+    /**
+     * Alternative constructor with the {@link RequestUpgradeStrategy} to use.
+     *
+     * @param upgradeStrategy the strategy to use
+     */
+    public HandshakeWebSocketService(RequestUpgradeStrategy upgradeStrategy) {
+        Assert.notNull(upgradeStrategy, "RequestUpgradeStrategy is required");
+        this.upgradeStrategy = upgradeStrategy;
+    }
 
-	private volatile boolean running = false;
+    private static RequestUpgradeStrategy initUpgradeStrategy() {
+        String className;
+        if (tomcatPresent) {
+            className = "TomcatRequestUpgradeStrategy";
+        } else if (jettyPresent) {
+            className = "JettyRequestUpgradeStrategy";
+        } else if (undertowPresent) {
+            className = "UndertowRequestUpgradeStrategy";
+        } else if (reactorNettyPresent) {
+            // As late as possible (Reactor Netty commonly used for WebClient)
+            className = "ReactorNettyRequestUpgradeStrategy";
+        } else {
+            throw new IllegalStateException("No suitable default RequestUpgradeStrategy found");
+        }
 
-
-	/**
-	 * Default constructor automatic, classpath detection based discovery of the
-	 * {@link RequestUpgradeStrategy} to use.
-	 */
-	public HandshakeWebSocketService() {
-		this(initUpgradeStrategy());
-	}
-
-	/**
-	 * Alternative constructor with the {@link RequestUpgradeStrategy} to use.
-	 * @param upgradeStrategy the strategy to use
-	 */
-	public HandshakeWebSocketService(RequestUpgradeStrategy upgradeStrategy) {
-		Assert.notNull(upgradeStrategy, "RequestUpgradeStrategy is required");
-		this.upgradeStrategy = upgradeStrategy;
-	}
-
-	private static RequestUpgradeStrategy initUpgradeStrategy() {
-		String className;
-		if (tomcatPresent) {
-			className = "TomcatRequestUpgradeStrategy";
-		}
-		else if (jettyPresent) {
-			className = "JettyRequestUpgradeStrategy";
-		}
-		else if (undertowPresent) {
-			className = "UndertowRequestUpgradeStrategy";
-		}
-		else if (reactorNettyPresent) {
-			// As late as possible (Reactor Netty commonly used for WebClient)
-			className = "ReactorNettyRequestUpgradeStrategy";
-		}
-		else {
-			throw new IllegalStateException("No suitable default RequestUpgradeStrategy found");
-		}
-
-		try {
-			className = "org.springframework.web.reactive.socket.server.upgrade." + className;
-			Class<?> clazz = ClassUtils.forName(className, HandshakeWebSocketService.class.getClassLoader());
-			return (RequestUpgradeStrategy) ReflectionUtils.accessibleConstructor(clazz).newInstance();
-		}
-		catch (Throwable ex) {
-			throw new IllegalStateException(
-					"Failed to instantiate RequestUpgradeStrategy: " + className, ex);
-		}
-	}
+        try {
+            className = "org.springframework.web.reactive.socket.server.upgrade." + className;
+            Class<?> clazz = ClassUtils.forName(className, HandshakeWebSocketService.class.getClassLoader());
+            return (RequestUpgradeStrategy) ReflectionUtils.accessibleConstructor(clazz).newInstance();
+        } catch (Throwable ex) {
+            throw new IllegalStateException(
+                    "Failed to instantiate RequestUpgradeStrategy: " + className, ex);
+        }
+    }
 
 
-	/**
-	 * Return the {@link RequestUpgradeStrategy} for WebSocket requests.
-	 */
-	public RequestUpgradeStrategy getUpgradeStrategy() {
-		return this.upgradeStrategy;
-	}
+    /**
+     * Return the {@link RequestUpgradeStrategy} for WebSocket requests.
+     */
+    public RequestUpgradeStrategy getUpgradeStrategy() {
+        return this.upgradeStrategy;
+    }
 
-	/**
-	 * Configure a predicate to use to extract
-	 * {@link org.springframework.web.server.WebSession WebSession} attributes
-	 * and use them to initialize the WebSocket session with.
-	 * <p>By default this is not set in which case no attributes are passed.
-	 * @param predicate the predicate
-	 * @since 5.1
-	 */
-	public void setSessionAttributePredicate(@Nullable Predicate<String> predicate) {
-		this.sessionAttributePredicate = predicate;
-	}
+    /**
+     * Return the configured predicate for initialization WebSocket session
+     * attributes from {@code WebSession} attributes.
+     *
+     * @since 5.1
+     */
+    @Nullable
+    public Predicate<String> getSessionAttributePredicate() {
+        return this.sessionAttributePredicate;
+    }
 
-	/**
-	 * Return the configured predicate for initialization WebSocket session
-	 * attributes from {@code WebSession} attributes.
-	 * @since 5.1
-	 */
-	@Nullable
-	public Predicate<String> getSessionAttributePredicate() {
-		return this.sessionAttributePredicate;
-	}
+    /**
+     * Configure a predicate to use to extract
+     * {@link org.springframework.web.server.WebSession WebSession} attributes
+     * and use them to initialize the WebSocket session with.
+     * <p>By default this is not set in which case no attributes are passed.
+     *
+     * @param predicate the predicate
+     * @since 5.1
+     */
+    public void setSessionAttributePredicate(@Nullable Predicate<String> predicate) {
+        this.sessionAttributePredicate = predicate;
+    }
+
+    @Override
+    public void start() {
+        if (!isRunning()) {
+            this.running = true;
+            doStart();
+        }
+    }
+
+    protected void doStart() {
+        if (getUpgradeStrategy() instanceof Lifecycle) {
+            ((Lifecycle) getUpgradeStrategy()).start();
+        }
+    }
+
+    @Override
+    public void stop() {
+        if (isRunning()) {
+            this.running = false;
+            doStop();
+        }
+    }
+
+    protected void doStop() {
+        if (getUpgradeStrategy() instanceof Lifecycle) {
+            ((Lifecycle) getUpgradeStrategy()).stop();
+        }
+    }
+
+    @Override
+    public boolean isRunning() {
+        return this.running;
+    }
 
 
-	@Override
-	public void start() {
-		if (!isRunning()) {
-			this.running = true;
-			doStart();
-		}
-	}
+    @Override
+    public Mono<Void> handleRequest(ServerWebExchange exchange, WebSocketHandler handler) {
+        ServerHttpRequest request = exchange.getRequest();
+        HttpMethod method = request.getMethod();
+        HttpHeaders headers = request.getHeaders();
 
-	protected void doStart() {
-		if (getUpgradeStrategy() instanceof Lifecycle) {
-			((Lifecycle) getUpgradeStrategy()).start();
-		}
-	}
+        if (HttpMethod.GET != method) {
+            return Mono.error(new MethodNotAllowedException(
+                    request.getMethodValue(), Collections.singleton(HttpMethod.GET)));
+        }
 
-	@Override
-	public void stop() {
-		if (isRunning()) {
-			this.running = false;
-			doStop();
-		}
-	}
+        if (!"WebSocket".equalsIgnoreCase(headers.getUpgrade())) {
+            return handleBadRequest(exchange, "Invalid 'Upgrade' header: " + headers);
+        }
 
-	protected void doStop() {
-		if (getUpgradeStrategy() instanceof Lifecycle) {
-			((Lifecycle) getUpgradeStrategy()).stop();
-		}
-	}
+        List<String> connectionValue = headers.getConnection();
+        if (!connectionValue.contains("Upgrade") && !connectionValue.contains("upgrade")) {
+            return handleBadRequest(exchange, "Invalid 'Connection' header: " + headers);
+        }
 
-	@Override
-	public boolean isRunning() {
-		return this.running;
-	}
+        String key = headers.getFirst(SEC_WEBSOCKET_KEY);
+        if (key == null) {
+            return handleBadRequest(exchange, "Missing \"Sec-WebSocket-Key\" header");
+        }
 
+        String protocol = selectProtocol(headers, handler);
 
-	@Override
-	public Mono<Void> handleRequest(ServerWebExchange exchange, WebSocketHandler handler) {
-		ServerHttpRequest request = exchange.getRequest();
-		HttpMethod method = request.getMethod();
-		HttpHeaders headers = request.getHeaders();
+        return initAttributes(exchange).flatMap(attributes ->
+                this.upgradeStrategy.upgrade(exchange, handler, protocol,
+                        () -> createHandshakeInfo(exchange, request, protocol, attributes))
+        );
+    }
 
-		if (HttpMethod.GET != method) {
-			return Mono.error(new MethodNotAllowedException(
-					request.getMethodValue(), Collections.singleton(HttpMethod.GET)));
-		}
+    private Mono<Void> handleBadRequest(ServerWebExchange exchange, String reason) {
+        if (logger.isDebugEnabled()) {
+            logger.debug(exchange.getLogPrefix() + reason);
+        }
+        return Mono.error(new ServerWebInputException(reason));
+    }
 
-		if (!"WebSocket".equalsIgnoreCase(headers.getUpgrade())) {
-			return handleBadRequest(exchange, "Invalid 'Upgrade' header: " + headers);
-		}
+    @Nullable
+    private String selectProtocol(HttpHeaders headers, WebSocketHandler handler) {
+        String protocolHeader = headers.getFirst(SEC_WEBSOCKET_PROTOCOL);
+        if (protocolHeader != null) {
+            List<String> supportedProtocols = handler.getSubProtocols();
+            for (String protocol : StringUtils.commaDelimitedListToStringArray(protocolHeader)) {
+                if (supportedProtocols.contains(protocol)) {
+                    return protocol;
+                }
+            }
+        }
+        return null;
+    }
 
-		List<String> connectionValue = headers.getConnection();
-		if (!connectionValue.contains("Upgrade") && !connectionValue.contains("upgrade")) {
-			return handleBadRequest(exchange, "Invalid 'Connection' header: " + headers);
-		}
+    private Mono<Map<String, Object>> initAttributes(ServerWebExchange exchange) {
+        if (this.sessionAttributePredicate == null) {
+            return EMPTY_ATTRIBUTES;
+        }
+        return exchange.getSession().map(session ->
+                session.getAttributes().entrySet().stream()
+                        .filter(entry -> this.sessionAttributePredicate.test(entry.getKey()))
+                        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
+    }
 
-		String key = headers.getFirst(SEC_WEBSOCKET_KEY);
-		if (key == null) {
-			return handleBadRequest(exchange, "Missing \"Sec-WebSocket-Key\" header");
-		}
+    private HandshakeInfo createHandshakeInfo(ServerWebExchange exchange, ServerHttpRequest request,
+                                              @Nullable String protocol, Map<String, Object> attributes) {
 
-		String protocol = selectProtocol(headers, handler);
-
-		return initAttributes(exchange).flatMap(attributes ->
-				this.upgradeStrategy.upgrade(exchange, handler, protocol,
-						() -> createHandshakeInfo(exchange, request, protocol, attributes))
-		);
-	}
-
-	private Mono<Void> handleBadRequest(ServerWebExchange exchange, String reason) {
-		if (logger.isDebugEnabled()) {
-			logger.debug(exchange.getLogPrefix() + reason);
-		}
-		return Mono.error(new ServerWebInputException(reason));
-	}
-
-	@Nullable
-	private String selectProtocol(HttpHeaders headers, WebSocketHandler handler) {
-		String protocolHeader = headers.getFirst(SEC_WEBSOCKET_PROTOCOL);
-		if (protocolHeader != null) {
-			List<String> supportedProtocols = handler.getSubProtocols();
-			for (String protocol : StringUtils.commaDelimitedListToStringArray(protocolHeader)) {
-				if (supportedProtocols.contains(protocol)) {
-					return protocol;
-				}
-			}
-		}
-		return null;
-	}
-
-	private Mono<Map<String, Object>> initAttributes(ServerWebExchange exchange) {
-		if (this.sessionAttributePredicate == null) {
-			return EMPTY_ATTRIBUTES;
-		}
-		return exchange.getSession().map(session ->
-				session.getAttributes().entrySet().stream()
-						.filter(entry -> this.sessionAttributePredicate.test(entry.getKey()))
-						.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
-	}
-
-	private HandshakeInfo createHandshakeInfo(ServerWebExchange exchange, ServerHttpRequest request,
-			@Nullable String protocol, Map<String, Object> attributes) {
-
-		URI uri = request.getURI();
-		// Copy request headers, as they might be pooled and recycled by
-		// the server implementation once the handshake HTTP exchange is done.
-		HttpHeaders headers = new HttpHeaders();
-		headers.addAll(request.getHeaders());
-		Mono<Principal> principal = exchange.getPrincipal();
-		String logPrefix = exchange.getLogPrefix();
-		InetSocketAddress remoteAddress = request.getRemoteAddress();
-		return new HandshakeInfo(uri, headers, principal, protocol, remoteAddress, attributes, logPrefix);
-	}
+        URI uri = request.getURI();
+        // Copy request headers, as they might be pooled and recycled by
+        // the server implementation once the handshake HTTP exchange is done.
+        HttpHeaders headers = new HttpHeaders();
+        headers.addAll(request.getHeaders());
+        Mono<Principal> principal = exchange.getPrincipal();
+        String logPrefix = exchange.getLogPrefix();
+        InetSocketAddress remoteAddress = request.getRemoteAddress();
+        return new HandshakeInfo(uri, headers, principal, protocol, remoteAddress, attributes, logPrefix);
+    }
 
 }

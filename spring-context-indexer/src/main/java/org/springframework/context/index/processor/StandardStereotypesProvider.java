@@ -32,28 +32,28 @@ import javax.lang.model.element.ElementKind;
  */
 class StandardStereotypesProvider implements StereotypesProvider {
 
-	private final TypeHelper typeHelper;
+    private final TypeHelper typeHelper;
 
 
-	StandardStereotypesProvider(TypeHelper typeHelper) {
-		this.typeHelper = typeHelper;
-	}
+    StandardStereotypesProvider(TypeHelper typeHelper) {
+        this.typeHelper = typeHelper;
+    }
 
 
-	@Override
-	public Set<String> getStereotypes(Element element) {
-		Set<String> stereotypes = new LinkedHashSet<>();
-		ElementKind kind = element.getKind();
-		if (kind != ElementKind.CLASS && kind != ElementKind.INTERFACE) {
-			return stereotypes;
-		}
-		for (AnnotationMirror annotation : this.typeHelper.getAllAnnotationMirrors(element)) {
-			String type = this.typeHelper.getType(annotation);
-			if (type.startsWith("javax.")) {
-				stereotypes.add(type);
-			}
-		}
-		return stereotypes;
-	}
+    @Override
+    public Set<String> getStereotypes(Element element) {
+        Set<String> stereotypes = new LinkedHashSet<>();
+        ElementKind kind = element.getKind();
+        if (kind != ElementKind.CLASS && kind != ElementKind.INTERFACE) {
+            return stereotypes;
+        }
+        for (AnnotationMirror annotation : this.typeHelper.getAllAnnotationMirrors(element)) {
+            String type = this.typeHelper.getType(annotation);
+            if (type.startsWith("javax.")) {
+                stereotypes.add(type);
+            }
+        }
+        return stereotypes;
+    }
 
 }

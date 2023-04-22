@@ -43,19 +43,19 @@ import static org.assertj.core.api.Assertions.assertThat;
 @SpringJUnitConfig(TestConfig.class)
 interface GenericComicCharactersInterfaceDefaultMethodsTests<C extends Character> {
 
-	@Test
-	default void autowiredParameterWithParameterizedList(@Autowired List<C> characters) {
-		assertThat(characters).as("Number of characters in context").size().isEqualTo(getExpectedNumCharacters());
-	}
+    @Test
+    default void autowiredParameterWithParameterizedList(@Autowired List<C> characters) {
+        assertThat(characters).as("Number of characters in context").size().isEqualTo(getExpectedNumCharacters());
+    }
 
-	@Test
-	default void autowiredParameterWithGenericBean(@Autowired C character) {
-		assertThat(character).as("Character should have been @Autowired by Spring").isNotNull();
-		assertThat(character).as("character's name").extracting(Character::getName).isEqualTo(getExpectedName());
-	}
+    @Test
+    default void autowiredParameterWithGenericBean(@Autowired C character) {
+        assertThat(character).as("Character should have been @Autowired by Spring").isNotNull();
+        assertThat(character).as("character's name").extracting(Character::getName).isEqualTo(getExpectedName());
+    }
 
-	int getExpectedNumCharacters();
+    int getExpectedNumCharacters();
 
-	String getExpectedName();
+    String getExpectedName();
 
 }

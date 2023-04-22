@@ -31,38 +31,39 @@ import org.springframework.util.Assert;
  * <p>Does not support transaction names; simply ignores any specified name.
  *
  * @author Juergen Hoeller
- * @since 2.5
  * @see javax.transaction.TransactionManager#setTransactionTimeout(int)
  * @see javax.transaction.TransactionManager#begin()
  * @see javax.transaction.TransactionManager#getTransaction()
+ * @since 2.5
  */
 public class SimpleTransactionFactory implements TransactionFactory {
 
-	private final TransactionManager transactionManager;
+    private final TransactionManager transactionManager;
 
 
-	/**
-	 * Create a new SimpleTransactionFactory for the given TransactionManager.
-	 * @param transactionManager the JTA TransactionManager to wrap
-	 */
-	public SimpleTransactionFactory(TransactionManager transactionManager) {
-		Assert.notNull(transactionManager, "TransactionManager must not be null");
-		this.transactionManager = transactionManager;
-	}
+    /**
+     * Create a new SimpleTransactionFactory for the given TransactionManager.
+     *
+     * @param transactionManager the JTA TransactionManager to wrap
+     */
+    public SimpleTransactionFactory(TransactionManager transactionManager) {
+        Assert.notNull(transactionManager, "TransactionManager must not be null");
+        this.transactionManager = transactionManager;
+    }
 
 
-	@Override
-	public Transaction createTransaction(@Nullable String name, int timeout) throws NotSupportedException, SystemException {
-		if (timeout >= 0) {
-			this.transactionManager.setTransactionTimeout(timeout);
-		}
-		this.transactionManager.begin();
-		return new ManagedTransactionAdapter(this.transactionManager);
-	}
+    @Override
+    public Transaction createTransaction(@Nullable String name, int timeout) throws NotSupportedException, SystemException {
+        if (timeout >= 0) {
+            this.transactionManager.setTransactionTimeout(timeout);
+        }
+        this.transactionManager.begin();
+        return new ManagedTransactionAdapter(this.transactionManager);
+    }
 
-	@Override
-	public boolean supportsResourceAdapterManagedTransactions() {
-		return false;
-	}
+    @Override
+    public boolean supportsResourceAdapterManagedTransactions() {
+        return false;
+    }
 
 }

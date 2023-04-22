@@ -25,8 +25,8 @@ import org.springframework.aop.ThrowsAdvice;
  */
 public class NoOpAdvice implements ThrowsAdvice {
 
-	public void afterThrowing(Exception ex) throws Throwable {
-		// no-op
-	}
+    public void afterThrowing(Exception ex) throws Throwable {
+        // no-op
+    }
 
 }

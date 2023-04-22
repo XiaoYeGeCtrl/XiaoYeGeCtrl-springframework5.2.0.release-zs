@@ -35,22 +35,22 @@ import org.springframework.util.ClassUtils;
  */
 public class SimpleMessageConverter implements MessageConverter {
 
-	@Override
-	@Nullable
-	public Object fromMessage(Message<?> message, Class<?> targetClass) {
-		Object payload = message.getPayload();
-		return (ClassUtils.isAssignableValue(targetClass, payload) ? payload : null);
-	}
+    @Override
+    @Nullable
+    public Object fromMessage(Message<?> message, Class<?> targetClass) {
+        Object payload = message.getPayload();
+        return (ClassUtils.isAssignableValue(targetClass, payload) ? payload : null);
+    }
 
-	@Override
-	public Message<?> toMessage(Object payload, @Nullable MessageHeaders headers) {
-		if (headers != null) {
-			MessageHeaderAccessor accessor = MessageHeaderAccessor.getAccessor(headers, MessageHeaderAccessor.class);
-			if (accessor != null && accessor.isMutable()) {
-				return MessageBuilder.createMessage(payload, accessor.getMessageHeaders());
-			}
-		}
-		return MessageBuilder.withPayload(payload).copyHeaders(headers).build();
-	}
+    @Override
+    public Message<?> toMessage(Object payload, @Nullable MessageHeaders headers) {
+        if (headers != null) {
+            MessageHeaderAccessor accessor = MessageHeaderAccessor.getAccessor(headers, MessageHeaderAccessor.class);
+            if (accessor != null && accessor.isMutable()) {
+                return MessageBuilder.createMessage(payload, accessor.getMessageHeaders());
+            }
+        }
+        return MessageBuilder.withPayload(payload).copyHeaders(headers).build();
+    }
 
 }

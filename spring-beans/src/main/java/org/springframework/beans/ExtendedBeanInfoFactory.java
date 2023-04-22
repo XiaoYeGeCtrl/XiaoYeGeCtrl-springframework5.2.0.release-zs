@@ -33,37 +33,37 @@ import org.springframework.lang.Nullable;
  * {@link BeanInfoFactory} types to take precedence.
  *
  * @author Chris Beams
- * @since 3.2
  * @see BeanInfoFactory
  * @see CachedIntrospectionResults
+ * @since 3.2
  */
 public class ExtendedBeanInfoFactory implements BeanInfoFactory, Ordered {
 
-	/**
-	 * Return an {@link ExtendedBeanInfo} for the given bean class, if applicable.
-	 */
-	@Override
-	@Nullable
-	public BeanInfo getBeanInfo(Class<?> beanClass) throws IntrospectionException {
-		return (supports(beanClass) ? new ExtendedBeanInfo(Introspector.getBeanInfo(beanClass)) : null);
-	}
+    /**
+     * Return an {@link ExtendedBeanInfo} for the given bean class, if applicable.
+     */
+    @Override
+    @Nullable
+    public BeanInfo getBeanInfo(Class<?> beanClass) throws IntrospectionException {
+        return (supports(beanClass) ? new ExtendedBeanInfo(Introspector.getBeanInfo(beanClass)) : null);
+    }
 
-	/**
-	 * Return whether the given bean class declares or inherits any non-void
-	 * returning bean property or indexed property setter methods.
-	 */
-	private boolean supports(Class<?> beanClass) {
-		for (Method method : beanClass.getMethods()) {
-			if (ExtendedBeanInfo.isCandidateWriteMethod(method)) {
-				return true;
-			}
-		}
-		return false;
-	}
+    /**
+     * Return whether the given bean class declares or inherits any non-void
+     * returning bean property or indexed property setter methods.
+     */
+    private boolean supports(Class<?> beanClass) {
+        for (Method method : beanClass.getMethods()) {
+            if (ExtendedBeanInfo.isCandidateWriteMethod(method)) {
+                return true;
+            }
+        }
+        return false;
+    }
 
-	@Override
-	public int getOrder() {
-		return Ordered.LOWEST_PRECEDENCE;
-	}
+    @Override
+    public int getOrder() {
+        return Ordered.LOWEST_PRECEDENCE;
+    }
 
 }

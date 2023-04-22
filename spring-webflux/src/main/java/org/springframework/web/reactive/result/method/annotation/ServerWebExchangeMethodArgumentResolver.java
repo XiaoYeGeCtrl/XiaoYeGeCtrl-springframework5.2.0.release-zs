@@ -54,79 +54,71 @@ import org.springframework.web.util.UriComponentsBuilder;
  * and for the {@code Principal} see {@link PrincipalMethodArgumentResolver}.
  *
  * @author Rossen Stoyanchev
- * @since 5.2
  * @see WebSessionMethodArgumentResolver
  * @see PrincipalMethodArgumentResolver
+ * @since 5.2
  */
 public class ServerWebExchangeMethodArgumentResolver extends HandlerMethodArgumentResolverSupport
-		implements SyncHandlerMethodArgumentResolver {
+        implements SyncHandlerMethodArgumentResolver {
 
-	public ServerWebExchangeMethodArgumentResolver(ReactiveAdapterRegistry adapterRegistry) {
-		super(adapterRegistry);
-	}
+    public ServerWebExchangeMethodArgumentResolver(ReactiveAdapterRegistry adapterRegistry) {
+        super(adapterRegistry);
+    }
 
 
-	@Override
-	public boolean supportsParameter(MethodParameter parameter) {
-		return checkParameterTypeNoReactiveWrapper(parameter,
-				type -> ServerWebExchange.class.isAssignableFrom(type) ||
-						ServerHttpRequest.class.isAssignableFrom(type) ||
-						ServerHttpResponse.class.isAssignableFrom(type) ||
-						HttpMethod.class == type ||
-						Locale.class == type ||
-						TimeZone.class == type ||
-						ZoneId.class == type ||
-						UriBuilder.class == type || UriComponentsBuilder.class == type);
-	}
+    @Override
+    public boolean supportsParameter(MethodParameter parameter) {
+        return checkParameterTypeNoReactiveWrapper(parameter,
+                type -> ServerWebExchange.class.isAssignableFrom(type) ||
+                        ServerHttpRequest.class.isAssignableFrom(type) ||
+                        ServerHttpResponse.class.isAssignableFrom(type) ||
+                        HttpMethod.class == type ||
+                        Locale.class == type ||
+                        TimeZone.class == type ||
+                        ZoneId.class == type ||
+                        UriBuilder.class == type || UriComponentsBuilder.class == type);
+    }
 
-	@Override
-	public Object resolveArgumentValue(
-			MethodParameter methodParameter, BindingContext context, ServerWebExchange exchange) {
+    @Override
+    public Object resolveArgumentValue(
+            MethodParameter methodParameter, BindingContext context, ServerWebExchange exchange) {
 
-		Class<?> paramType = methodParameter.getParameterType();
-		if (ServerWebExchange.class.isAssignableFrom(paramType)) {
-			return exchange;
-		}
-		else if (ServerHttpRequest.class.isAssignableFrom(paramType)) {
-			return exchange.getRequest();
-		}
-		else if (ServerHttpResponse.class.isAssignableFrom(paramType)) {
-			return exchange.getResponse();
-		}
-		else if (HttpMethod.class == paramType) {
-			return exchange.getRequest().getMethod();
-		}
-		else if (Locale.class == paramType) {
-			return exchange.getLocaleContext().getLocale();
-		}
-		else if (TimeZone.class == paramType) {
-			LocaleContext localeContext = exchange.getLocaleContext();
-			TimeZone timeZone = getTimeZone(localeContext);
-			return (timeZone != null ? timeZone : TimeZone.getDefault());
-		}
-		else if (ZoneId.class == paramType) {
-			LocaleContext localeContext = exchange.getLocaleContext();
-			TimeZone timeZone = getTimeZone(localeContext);
-			return (timeZone != null ? timeZone.toZoneId() : ZoneId.systemDefault());
-		}
-		else if (UriBuilder.class == paramType || UriComponentsBuilder.class == paramType) {
-			URI uri = exchange.getRequest().getURI();
-			return UriComponentsBuilder.fromUri(uri).replacePath(null).replaceQuery(null);
-		}
-		else {
-			// should never happen...
-			throw new IllegalArgumentException("Unknown parameter type: " +
-					paramType + " in method: " + methodParameter.getMethod());
-		}
-	}
+        Class<?> paramType = methodParameter.getParameterType();
+        if (ServerWebExchange.class.isAssignableFrom(paramType)) {
+            return exchange;
+        } else if (ServerHttpRequest.class.isAssignableFrom(paramType)) {
+            return exchange.getRequest();
+        } else if (ServerHttpResponse.class.isAssignableFrom(paramType)) {
+            return exchange.getResponse();
+        } else if (HttpMethod.class == paramType) {
+            return exchange.getRequest().getMethod();
+        } else if (Locale.class == paramType) {
+            return exchange.getLocaleContext().getLocale();
+        } else if (TimeZone.class == paramType) {
+            LocaleContext localeContext = exchange.getLocaleContext();
+            TimeZone timeZone = getTimeZone(localeContext);
+            return (timeZone != null ? timeZone : TimeZone.getDefault());
+        } else if (ZoneId.class == paramType) {
+            LocaleContext localeContext = exchange.getLocaleContext();
+            TimeZone timeZone = getTimeZone(localeContext);
+            return (timeZone != null ? timeZone.toZoneId() : ZoneId.systemDefault());
+        } else if (UriBuilder.class == paramType || UriComponentsBuilder.class == paramType) {
+            URI uri = exchange.getRequest().getURI();
+            return UriComponentsBuilder.fromUri(uri).replacePath(null).replaceQuery(null);
+        } else {
+            // should never happen...
+            throw new IllegalArgumentException("Unknown parameter type: " +
+                    paramType + " in method: " + methodParameter.getMethod());
+        }
+    }
 
-	@Nullable
-	private TimeZone getTimeZone(LocaleContext localeContext) {
-		TimeZone timeZone = null;
-		if (localeContext instanceof TimeZoneAwareLocaleContext) {
-			timeZone = ((TimeZoneAwareLocaleContext) localeContext).getTimeZone();
-		}
-		return timeZone;
-	}
+    @Nullable
+    private TimeZone getTimeZone(LocaleContext localeContext) {
+        TimeZone timeZone = null;
+        if (localeContext instanceof TimeZoneAwareLocaleContext) {
+            timeZone = ((TimeZoneAwareLocaleContext) localeContext).getTimeZone();
+        }
+        return timeZone;
+    }
 
 }

@@ -31,34 +31,36 @@ import org.springframework.messaging.MessageHeaders;
  */
 public interface MessageConverter {
 
-	/**
-	 * Convert the payload of a {@link Message} from a serialized form to a typed Object
-	 * of the specified target class. The {@link MessageHeaders#CONTENT_TYPE} header
-	 * should indicate the MIME type to convert from.
-	 * <p>If the converter does not support the specified media type or cannot perform
-	 * the conversion, it should return {@code null}.
-	 * @param message the input message
-	 * @param targetClass the target class for the conversion
-	 * @return the result of the conversion, or {@code null} if the converter cannot
-	 * perform the conversion
-	 */
-	@Nullable
-	Object fromMessage(Message<?> message, Class<?> targetClass);
+    /**
+     * Convert the payload of a {@link Message} from a serialized form to a typed Object
+     * of the specified target class. The {@link MessageHeaders#CONTENT_TYPE} header
+     * should indicate the MIME type to convert from.
+     * <p>If the converter does not support the specified media type or cannot perform
+     * the conversion, it should return {@code null}.
+     *
+     * @param message     the input message
+     * @param targetClass the target class for the conversion
+     * @return the result of the conversion, or {@code null} if the converter cannot
+     * perform the conversion
+     */
+    @Nullable
+    Object fromMessage(Message<?> message, Class<?> targetClass);
 
-	/**
-	 * Create a {@link Message} whose payload is the result of converting the given
-	 * payload Object to serialized form. The optional {@link MessageHeaders} parameter
-	 * may contain a {@link MessageHeaders#CONTENT_TYPE} header to specify the target
-	 * media type for the conversion and it may contain additional headers to be added
-	 * to the message.
-	 * <p>If the converter does not support the specified media type or cannot perform
-	 * the conversion, it should return {@code null}.
-	 * @param payload the Object to convert
-	 * @param headers optional headers for the message (may be {@code null})
-	 * @return the new message, or {@code null} if the converter does not support the
-	 * Object type or the target media type
-	 */
-	@Nullable
-	Message<?> toMessage(Object payload, @Nullable MessageHeaders headers);
+    /**
+     * Create a {@link Message} whose payload is the result of converting the given
+     * payload Object to serialized form. The optional {@link MessageHeaders} parameter
+     * may contain a {@link MessageHeaders#CONTENT_TYPE} header to specify the target
+     * media type for the conversion and it may contain additional headers to be added
+     * to the message.
+     * <p>If the converter does not support the specified media type or cannot perform
+     * the conversion, it should return {@code null}.
+     *
+     * @param payload the Object to convert
+     * @param headers optional headers for the message (may be {@code null})
+     * @return the new message, or {@code null} if the converter does not support the
+     * Object type or the target media type
+     */
+    @Nullable
+    Message<?> toMessage(Object payload, @Nullable MessageHeaders headers);
 
 }

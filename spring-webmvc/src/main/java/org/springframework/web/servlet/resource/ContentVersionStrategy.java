@@ -29,24 +29,23 @@ import org.springframework.util.FileCopyUtils;
  *
  * @author Brian Clozel
  * @author Rossen Stoyanchev
- * @since 4.1
  * @see VersionResourceResolver
+ * @since 4.1
  */
 public class ContentVersionStrategy extends AbstractVersionStrategy {
 
-	public ContentVersionStrategy() {
-		super(new FileNameVersionPathStrategy());
-	}
+    public ContentVersionStrategy() {
+        super(new FileNameVersionPathStrategy());
+    }
 
-	@Override
-	public String getResourceVersion(Resource resource) {
-		try {
-			byte[] content = FileCopyUtils.copyToByteArray(resource.getInputStream());
-			return DigestUtils.md5DigestAsHex(content);
-		}
-		catch (IOException ex) {
-			throw new IllegalStateException("Failed to calculate hash for " + resource, ex);
-		}
-	}
+    @Override
+    public String getResourceVersion(Resource resource) {
+        try {
+            byte[] content = FileCopyUtils.copyToByteArray(resource.getInputStream());
+            return DigestUtils.md5DigestAsHex(content);
+        } catch (IOException ex) {
+            throw new IllegalStateException("Failed to calculate hash for " + resource, ex);
+        }
+    }
 
 }

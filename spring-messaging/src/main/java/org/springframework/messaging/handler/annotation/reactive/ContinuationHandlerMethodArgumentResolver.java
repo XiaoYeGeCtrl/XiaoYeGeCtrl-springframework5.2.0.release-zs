@@ -30,13 +30,13 @@ import org.springframework.messaging.handler.invocation.reactive.HandlerMethodAr
  */
 public class ContinuationHandlerMethodArgumentResolver implements HandlerMethodArgumentResolver {
 
-	@Override
-	public boolean supportsParameter(MethodParameter parameter) {
-		return "kotlin.coroutines.Continuation".equals(parameter.getParameterType().getName());
-	}
+    @Override
+    public boolean supportsParameter(MethodParameter parameter) {
+        return "kotlin.coroutines.Continuation".equals(parameter.getParameterType().getName());
+    }
 
-	@Override
-	public Mono<Object> resolveArgument(MethodParameter parameter, Message<?> message) {
-		return Mono.empty();
-	}
+    @Override
+    public Mono<Object> resolveArgument(MethodParameter parameter, Message<?> message) {
+        return Mono.empty();
+    }
 }

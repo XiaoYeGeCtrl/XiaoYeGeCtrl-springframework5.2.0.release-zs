@@ -33,26 +33,26 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 public class ThreadPoolExecutorFactoryBeanTests {
 
-	@Test
-	public void defaultExecutor() throws Exception {
-		ConfigurableApplicationContext context = new AnnotationConfigApplicationContext(ExecutorConfig.class);
-		ExecutorService executor = context.getBean(ExecutorService.class);
+    @Test
+    public void defaultExecutor() throws Exception {
+        ConfigurableApplicationContext context = new AnnotationConfigApplicationContext(ExecutorConfig.class);
+        ExecutorService executor = context.getBean(ExecutorService.class);
 
-		FutureTask<String> task = new FutureTask<>(() -> "foo");
-		executor.execute(task);
-		assertThat(task.get()).isEqualTo("foo");
-		context.close();
-	}
+        FutureTask<String> task = new FutureTask<>(() -> "foo");
+        executor.execute(task);
+        assertThat(task.get()).isEqualTo("foo");
+        context.close();
+    }
 
 
-	@Configuration
-	public static class ExecutorConfig {
+    @Configuration
+    public static class ExecutorConfig {
 
-		@Bean
-		public ThreadPoolExecutorFactoryBean executor() {
-			return new ThreadPoolExecutorFactoryBean();
-		}
+        @Bean
+        public ThreadPoolExecutorFactoryBean executor() {
+            return new ThreadPoolExecutorFactoryBean();
+        }
 
-	}
+    }
 
 }

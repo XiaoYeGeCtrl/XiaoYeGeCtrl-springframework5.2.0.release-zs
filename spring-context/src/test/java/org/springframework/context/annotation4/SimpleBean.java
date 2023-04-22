@@ -27,10 +27,10 @@ import org.springframework.tests.sample.beans.TestBean;
  */
 public class SimpleBean {
 
-	// This should *not* recognized as a bean since it does not reside inside an @Component
-	@Bean
-	public TestBean getPublicInstance() {
-		return new TestBean("publicInstance");
-	}
+    // This should *not* recognized as a bean since it does not reside inside an @Component
+    @Bean
+    public TestBean getPublicInstance() {
+        return new TestBean("publicInstance");
+    }
 
 }

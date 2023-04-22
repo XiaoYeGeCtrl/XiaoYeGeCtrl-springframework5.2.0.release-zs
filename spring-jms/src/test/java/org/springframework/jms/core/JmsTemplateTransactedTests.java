@@ -30,30 +30,30 @@ import static org.mockito.Mockito.mock;
  */
 class JmsTemplateTransactedTests extends JmsTemplateTests {
 
-	private Session localSession;
+    private Session localSession;
 
 
-	@Override
-	@BeforeEach
-	void setupMocks() throws Exception {
-		super.setupMocks();
-		this.localSession = mock(Session.class);
-		given(this.connection.createSession(false, Session.AUTO_ACKNOWLEDGE)).willReturn(this.localSession);
-	}
+    @Override
+    @BeforeEach
+    void setupMocks() throws Exception {
+        super.setupMocks();
+        this.localSession = mock(Session.class);
+        given(this.connection.createSession(false, Session.AUTO_ACKNOWLEDGE)).willReturn(this.localSession);
+    }
 
-	@Override
-	protected Session getLocalSession() {
-		return this.localSession;
-	}
+    @Override
+    protected Session getLocalSession() {
+        return this.localSession;
+    }
 
-	@Override
-	protected boolean useTransactedSession() {
-		return true;
-	}
+    @Override
+    protected boolean useTransactedSession() {
+        return true;
+    }
 
-	@Override
-	protected boolean useTransactedTemplate() {
-		return true;
-	}
+    @Override
+    protected boolean useTransactedTemplate() {
+        return true;
+    }
 
 }

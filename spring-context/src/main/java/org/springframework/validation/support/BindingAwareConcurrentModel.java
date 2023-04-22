@@ -34,26 +34,26 @@ import org.springframework.validation.BindingResult;
  * likely a {@code java.util.ConcurrentMap}, for a pre-determined model.
  *
  * @author Rossen Stoyanchev
- * @since 5.0
  * @see BindingResult
+ * @since 5.0
  */
 @SuppressWarnings("serial")
 public class BindingAwareConcurrentModel extends ConcurrentModel {
 
-	@Override
-	public Object put(String key, Object value) {
-		removeBindingResultIfNecessary(key, value);
-		return super.put(key, value);
-	}
+    @Override
+    public Object put(String key, Object value) {
+        removeBindingResultIfNecessary(key, value);
+        return super.put(key, value);
+    }
 
-	private void removeBindingResultIfNecessary(String key, Object value) {
-		if (!key.startsWith(BindingResult.MODEL_KEY_PREFIX)) {
-			String resultKey = BindingResult.MODEL_KEY_PREFIX + key;
-			BindingResult result = (BindingResult) get(resultKey);
-			if (result != null && result.getTarget() != value) {
-				remove(resultKey);
-			}
-		}
-	}
+    private void removeBindingResultIfNecessary(String key, Object value) {
+        if (!key.startsWith(BindingResult.MODEL_KEY_PREFIX)) {
+            String resultKey = BindingResult.MODEL_KEY_PREFIX + key;
+            BindingResult result = (BindingResult) get(resultKey);
+            if (result != null && result.getTarget() != value) {
+                remove(resultKey);
+            }
+        }
+    }
 
 }

@@ -36,62 +36,62 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
  */
 public class RequestAndSessionScopedBeanTests {
 
-	@Test
-	@SuppressWarnings("resource")
-	public void testPutBeanInRequest() throws Exception {
-		String targetBeanName = "target";
+    @Test
+    @SuppressWarnings("resource")
+    public void testPutBeanInRequest() throws Exception {
+        String targetBeanName = "target";
 
-		StaticWebApplicationContext wac = new StaticWebApplicationContext();
-		RootBeanDefinition bd = new RootBeanDefinition(TestBean.class);
-		bd.setScope(WebApplicationContext.SCOPE_REQUEST);
-		bd.getPropertyValues().add("name", "abc");
-		wac.registerBeanDefinition(targetBeanName, bd);
-		wac.refresh();
+        StaticWebApplicationContext wac = new StaticWebApplicationContext();
+        RootBeanDefinition bd = new RootBeanDefinition(TestBean.class);
+        bd.setScope(WebApplicationContext.SCOPE_REQUEST);
+        bd.getPropertyValues().add("name", "abc");
+        wac.registerBeanDefinition(targetBeanName, bd);
+        wac.refresh();
 
-		HttpServletRequest request = new MockHttpServletRequest();
-		RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(request));
-		TestBean target = (TestBean) wac.getBean(targetBeanName);
-		assertThat(target.getName()).isEqualTo("abc");
-		assertThat(request.getAttribute(targetBeanName)).isSameAs(target);
+        HttpServletRequest request = new MockHttpServletRequest();
+        RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(request));
+        TestBean target = (TestBean) wac.getBean(targetBeanName);
+        assertThat(target.getName()).isEqualTo("abc");
+        assertThat(request.getAttribute(targetBeanName)).isSameAs(target);
 
-		TestBean target2 = (TestBean) wac.getBean(targetBeanName);
-		assertThat(target2.getName()).isEqualTo("abc");
-		assertThat(target).isSameAs(target2);
-		assertThat(request.getAttribute(targetBeanName)).isSameAs(target2);
+        TestBean target2 = (TestBean) wac.getBean(targetBeanName);
+        assertThat(target2.getName()).isEqualTo("abc");
+        assertThat(target).isSameAs(target2);
+        assertThat(request.getAttribute(targetBeanName)).isSameAs(target2);
 
-		request = new MockHttpServletRequest();
-		RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(request));
-		TestBean target3 = (TestBean) wac.getBean(targetBeanName);
-		assertThat(target3.getName()).isEqualTo("abc");
-		assertThat(request.getAttribute(targetBeanName)).isSameAs(target3);
-		assertThat(target).isNotSameAs(target3);
+        request = new MockHttpServletRequest();
+        RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(request));
+        TestBean target3 = (TestBean) wac.getBean(targetBeanName);
+        assertThat(target3.getName()).isEqualTo("abc");
+        assertThat(request.getAttribute(targetBeanName)).isSameAs(target3);
+        assertThat(target).isNotSameAs(target3);
 
-		RequestContextHolder.setRequestAttributes(null);
-		assertThatExceptionOfType(BeanCreationException.class).isThrownBy(() ->
-				wac.getBean(targetBeanName));
-	}
+        RequestContextHolder.setRequestAttributes(null);
+        assertThatExceptionOfType(BeanCreationException.class).isThrownBy(() ->
+                wac.getBean(targetBeanName));
+    }
 
-	@Test
-	@SuppressWarnings("resource")
-	public void testPutBeanInSession() throws Exception {
-		String targetBeanName = "target";
-		HttpServletRequest request = new MockHttpServletRequest();
-		RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(request));
+    @Test
+    @SuppressWarnings("resource")
+    public void testPutBeanInSession() throws Exception {
+        String targetBeanName = "target";
+        HttpServletRequest request = new MockHttpServletRequest();
+        RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(request));
 
-		StaticWebApplicationContext wac = new StaticWebApplicationContext();
-		RootBeanDefinition bd = new RootBeanDefinition(TestBean.class);
-		bd.setScope(WebApplicationContext.SCOPE_SESSION);
-		bd.getPropertyValues().add("name", "abc");
-		wac.registerBeanDefinition(targetBeanName, bd);
-		wac.refresh();
+        StaticWebApplicationContext wac = new StaticWebApplicationContext();
+        RootBeanDefinition bd = new RootBeanDefinition(TestBean.class);
+        bd.setScope(WebApplicationContext.SCOPE_SESSION);
+        bd.getPropertyValues().add("name", "abc");
+        wac.registerBeanDefinition(targetBeanName, bd);
+        wac.refresh();
 
-		TestBean target = (TestBean) wac.getBean(targetBeanName);
-		assertThat(target.getName()).isEqualTo("abc");
-		assertThat(request.getSession().getAttribute(targetBeanName)).isSameAs(target);
+        TestBean target = (TestBean) wac.getBean(targetBeanName);
+        assertThat(target.getName()).isEqualTo("abc");
+        assertThat(request.getSession().getAttribute(targetBeanName)).isSameAs(target);
 
-		RequestContextHolder.setRequestAttributes(null);
-		assertThatExceptionOfType(BeanCreationException.class).isThrownBy(() ->
-				wac.getBean(targetBeanName));
-	}
+        RequestContextHolder.setRequestAttributes(null);
+        assertThatExceptionOfType(BeanCreationException.class).isThrownBy(() ->
+                wac.getBean(targetBeanName));
+    }
 
 }

@@ -47,64 +47,64 @@ import static org.mockito.Mockito.verify;
  */
 public class CallMetaDataContextTests {
 
-	private DataSource dataSource;
+    private DataSource dataSource;
 
-	private Connection connection;
+    private Connection connection;
 
-	private DatabaseMetaData databaseMetaData;
+    private DatabaseMetaData databaseMetaData;
 
-	private CallMetaDataContext context = new CallMetaDataContext();
-
-
-	@BeforeEach
-	public void setUp() throws Exception {
-		connection = mock(Connection.class);
-		databaseMetaData = mock(DatabaseMetaData.class);
-		given(connection.getMetaData()).willReturn(databaseMetaData);
-		dataSource = mock(DataSource.class);
-		given(dataSource.getConnection()).willReturn(connection);
-	}
-
-	@AfterEach
-	public void verifyClosed() throws Exception {
-		verify(connection).close();
-	}
+    private CallMetaDataContext context = new CallMetaDataContext();
 
 
-	@Test
-	public void testMatchParameterValuesAndSqlInOutParameters() throws Exception {
-		final String TABLE = "customers";
-		final String USER = "me";
-		given(databaseMetaData.getDatabaseProductName()).willReturn("MyDB");
-		given(databaseMetaData.getUserName()).willReturn(USER);
-		given(databaseMetaData.storesLowerCaseIdentifiers()).willReturn(true);
+    @BeforeEach
+    public void setUp() throws Exception {
+        connection = mock(Connection.class);
+        databaseMetaData = mock(DatabaseMetaData.class);
+        given(connection.getMetaData()).willReturn(databaseMetaData);
+        dataSource = mock(DataSource.class);
+        given(dataSource.getConnection()).willReturn(connection);
+    }
 
-		List<SqlParameter> parameters = new ArrayList<>();
-		parameters.add(new SqlParameter("id", Types.NUMERIC));
-		parameters.add(new SqlInOutParameter("name", Types.NUMERIC));
-		parameters.add(new SqlOutParameter("customer_no", Types.NUMERIC));
+    @AfterEach
+    public void verifyClosed() throws Exception {
+        verify(connection).close();
+    }
 
-		MapSqlParameterSource parameterSource = new MapSqlParameterSource();
-		parameterSource.addValue("id", 1);
-		parameterSource.addValue("name", "Sven");
-		parameterSource.addValue("customer_no", "12345XYZ");
 
-		context.setProcedureName(TABLE);
-		context.initializeMetaData(dataSource);
-		context.processParameters(parameters);
+    @Test
+    public void testMatchParameterValuesAndSqlInOutParameters() throws Exception {
+        final String TABLE = "customers";
+        final String USER = "me";
+        given(databaseMetaData.getDatabaseProductName()).willReturn("MyDB");
+        given(databaseMetaData.getUserName()).willReturn(USER);
+        given(databaseMetaData.storesLowerCaseIdentifiers()).willReturn(true);
 
-		Map<String, Object> inParameters = context.matchInParameterValuesWithCallParameters(parameterSource);
-		assertThat(inParameters.size()).as("Wrong number of matched in parameter values").isEqualTo(2);
-		assertThat(inParameters.containsKey("id")).as("in parameter value missing").isTrue();
-		assertThat(inParameters.containsKey("name")).as("in out parameter value missing").isTrue();
-		boolean condition = !inParameters.containsKey("customer_no");
-		assertThat(condition).as("out parameter value matched").isTrue();
+        List<SqlParameter> parameters = new ArrayList<>();
+        parameters.add(new SqlParameter("id", Types.NUMERIC));
+        parameters.add(new SqlInOutParameter("name", Types.NUMERIC));
+        parameters.add(new SqlOutParameter("customer_no", Types.NUMERIC));
 
-		List<String> names = context.getOutParameterNames();
-		assertThat(names.size()).as("Wrong number of out parameters").isEqualTo(2);
+        MapSqlParameterSource parameterSource = new MapSqlParameterSource();
+        parameterSource.addValue("id", 1);
+        parameterSource.addValue("name", "Sven");
+        parameterSource.addValue("customer_no", "12345XYZ");
 
-		List<SqlParameter> callParameters = context.getCallParameters();
-		assertThat(callParameters.size()).as("Wrong number of call parameters").isEqualTo(3);
-	}
+        context.setProcedureName(TABLE);
+        context.initializeMetaData(dataSource);
+        context.processParameters(parameters);
+
+        Map<String, Object> inParameters = context.matchInParameterValuesWithCallParameters(parameterSource);
+        assertThat(inParameters.size()).as("Wrong number of matched in parameter values").isEqualTo(2);
+        assertThat(inParameters.containsKey("id")).as("in parameter value missing").isTrue();
+        assertThat(inParameters.containsKey("name")).as("in out parameter value missing").isTrue();
+        boolean condition = !inParameters.containsKey("customer_no");
+        assertThat(condition).as("out parameter value matched").isTrue();
+
+        List<String> names = context.getOutParameterNames();
+        assertThat(names.size()).as("Wrong number of out parameters").isEqualTo(2);
+
+        List<SqlParameter> callParameters = context.getCallParameters();
+        assertThat(callParameters.size()).as("Wrong number of call parameters").isEqualTo(3);
+    }
 
 }

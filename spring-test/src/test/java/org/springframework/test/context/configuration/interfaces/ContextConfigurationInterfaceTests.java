@@ -32,14 +32,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 @ExtendWith(SpringExtension.class)
 class ContextConfigurationInterfaceTests implements ContextConfigurationTestInterface {
 
-	@Autowired
-	Employee employee;
+    @Autowired
+    Employee employee;
 
 
-	@Test
-	void profileFromTestInterface() {
-		assertThat(employee).isNotNull();
-		assertThat(employee.getName()).isEqualTo("Dilbert");
-	}
+    @Test
+    void profileFromTestInterface() {
+        assertThat(employee).isNotNull();
+        assertThat(employee.getName()).isEqualTo("Dilbert");
+    }
 
 }

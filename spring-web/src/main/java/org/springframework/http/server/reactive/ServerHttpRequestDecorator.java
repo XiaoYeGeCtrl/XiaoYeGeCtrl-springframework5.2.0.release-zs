@@ -39,83 +39,83 @@ import org.springframework.util.MultiValueMap;
  */
 public class ServerHttpRequestDecorator implements ServerHttpRequest {
 
-	private final ServerHttpRequest delegate;
+    private final ServerHttpRequest delegate;
 
 
-	public ServerHttpRequestDecorator(ServerHttpRequest delegate) {
-		Assert.notNull(delegate, "Delegate is required");
-		this.delegate = delegate;
-	}
+    public ServerHttpRequestDecorator(ServerHttpRequest delegate) {
+        Assert.notNull(delegate, "Delegate is required");
+        this.delegate = delegate;
+    }
 
 
-	public ServerHttpRequest getDelegate() {
-		return this.delegate;
-	}
+    public ServerHttpRequest getDelegate() {
+        return this.delegate;
+    }
 
 
-	// ServerHttpRequest delegation methods...
+    // ServerHttpRequest delegation methods...
 
-	@Override
-	public String getId() {
-		return getDelegate().getId();
-	}
+    @Override
+    public String getId() {
+        return getDelegate().getId();
+    }
 
-	@Override
-	@Nullable
-	public HttpMethod getMethod() {
-		return getDelegate().getMethod();
-	}
+    @Override
+    @Nullable
+    public HttpMethod getMethod() {
+        return getDelegate().getMethod();
+    }
 
-	@Override
-	public String getMethodValue() {
-		return getDelegate().getMethodValue();
-	}
+    @Override
+    public String getMethodValue() {
+        return getDelegate().getMethodValue();
+    }
 
-	@Override
-	public URI getURI() {
-		return getDelegate().getURI();
-	}
+    @Override
+    public URI getURI() {
+        return getDelegate().getURI();
+    }
 
-	@Override
-	public RequestPath getPath() {
-		return getDelegate().getPath();
-	}
+    @Override
+    public RequestPath getPath() {
+        return getDelegate().getPath();
+    }
 
-	@Override
-	public MultiValueMap<String, String> getQueryParams() {
-		return getDelegate().getQueryParams();
-	}
+    @Override
+    public MultiValueMap<String, String> getQueryParams() {
+        return getDelegate().getQueryParams();
+    }
 
-	@Override
-	public HttpHeaders getHeaders() {
-		return getDelegate().getHeaders();
-	}
+    @Override
+    public HttpHeaders getHeaders() {
+        return getDelegate().getHeaders();
+    }
 
-	@Override
-	public MultiValueMap<String, HttpCookie> getCookies() {
-		return getDelegate().getCookies();
-	}
+    @Override
+    public MultiValueMap<String, HttpCookie> getCookies() {
+        return getDelegate().getCookies();
+    }
 
-	@Override
-	public InetSocketAddress getRemoteAddress() {
-		return getDelegate().getRemoteAddress();
-	}
+    @Override
+    public InetSocketAddress getRemoteAddress() {
+        return getDelegate().getRemoteAddress();
+    }
 
-	@Nullable
-	@Override
-	public SslInfo getSslInfo() {
-		return getDelegate().getSslInfo();
-	}
+    @Nullable
+    @Override
+    public SslInfo getSslInfo() {
+        return getDelegate().getSslInfo();
+    }
 
-	@Override
-	public Flux<DataBuffer> getBody() {
-		return getDelegate().getBody();
-	}
+    @Override
+    public Flux<DataBuffer> getBody() {
+        return getDelegate().getBody();
+    }
 
 
-	@Override
-	public String toString() {
-		return getClass().getSimpleName() + " [delegate=" + getDelegate() + "]";
-	}
+    @Override
+    public String toString() {
+        return getClass().getSimpleName() + " [delegate=" + getDelegate() + "]";
+    }
 
 }

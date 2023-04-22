@@ -32,10 +32,10 @@ import org.springframework.messaging.support.HeaderMapper;
  */
 public interface JmsHeaderMapper extends HeaderMapper<Message> {
 
-	/**
-	 * The JMS-compliant {@code content_type} property.
-	 */
-	String CONTENT_TYPE_PROPERTY = "content_type";
+    /**
+     * The JMS-compliant {@code content_type} property.
+     */
+    String CONTENT_TYPE_PROPERTY = "content_type";
 
 }
 

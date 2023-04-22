@@ -32,34 +32,35 @@ import org.springframework.util.Assert;
  * for declarative use in a web application, e.g. with JAX-RS or JAX-WS.
  *
  * @author Juergen Hoeller
- * @since 3.0
  * @see org.springframework.beans.factory.config.AutowireCapableBeanFactory#createBean(Class)
  * @see org.springframework.context.ApplicationContext#getAutowireCapableBeanFactory()
+ * @since 3.0
  */
 public class SpringConstraintValidatorFactory implements ConstraintValidatorFactory {
 
-	private final AutowireCapableBeanFactory beanFactory;
+    private final AutowireCapableBeanFactory beanFactory;
 
 
-	/**
-	 * Create a new SpringConstraintValidatorFactory for the given BeanFactory.
-	 * @param beanFactory the target BeanFactory
-	 */
-	public SpringConstraintValidatorFactory(AutowireCapableBeanFactory beanFactory) {
-		Assert.notNull(beanFactory, "BeanFactory must not be null");
-		this.beanFactory = beanFactory;
-	}
+    /**
+     * Create a new SpringConstraintValidatorFactory for the given BeanFactory.
+     *
+     * @param beanFactory the target BeanFactory
+     */
+    public SpringConstraintValidatorFactory(AutowireCapableBeanFactory beanFactory) {
+        Assert.notNull(beanFactory, "BeanFactory must not be null");
+        this.beanFactory = beanFactory;
+    }
 
 
-	@Override
-	public <T extends ConstraintValidator<?, ?>> T getInstance(Class<T> key) {
-		return this.beanFactory.createBean(key);
-	}
+    @Override
+    public <T extends ConstraintValidator<?, ?>> T getInstance(Class<T> key) {
+        return this.beanFactory.createBean(key);
+    }
 
-	// Bean Validation 1.1 releaseInstance method
-	@Override
-	public void releaseInstance(ConstraintValidator<?, ?> instance) {
-		this.beanFactory.destroyBean(instance);
-	}
+    // Bean Validation 1.1 releaseInstance method
+    @Override
+    public void releaseInstance(ConstraintValidator<?, ?> instance) {
+        this.beanFactory.destroyBean(instance);
+    }
 
 }

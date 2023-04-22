@@ -52,283 +52,284 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Scott Andrews
  * @author Jeremy Grelle
  */
-@SuppressWarnings({ "rawtypes", "unchecked" })
+@SuppressWarnings({"rawtypes", "unchecked"})
 public class OptionsTagTests extends AbstractHtmlElementTagTests {
 
-	private static final String COMMAND_NAME = "testBean";
+    private static final String COMMAND_NAME = "testBean";
 
-	private SelectTag selectTag;
-	private OptionsTag tag;
+    private SelectTag selectTag;
+    private OptionsTag tag;
 
-	@Override
-	@SuppressWarnings("serial")
-	protected void onSetUp() {
-		this.tag = new OptionsTag() {
-			@Override
-			protected TagWriter createTagWriter() {
-				return new TagWriter(getWriter());
-			}
-		};
-		selectTag = new SelectTag() {
-			@Override
-			protected TagWriter createTagWriter() {
-				return new TagWriter(getWriter());
-			}
-			@Override
-			public String getName() {
-				// Should not be used other than to delegate to
-				// RequestDataValueDataProcessor
-				return "testName";
-			}
-		};
-		selectTag.setPageContext(getPageContext());
-		this.tag.setParent(selectTag);
-		this.tag.setPageContext(getPageContext());
-	}
+    @Override
+    @SuppressWarnings("serial")
+    protected void onSetUp() {
+        this.tag = new OptionsTag() {
+            @Override
+            protected TagWriter createTagWriter() {
+                return new TagWriter(getWriter());
+            }
+        };
+        selectTag = new SelectTag() {
+            @Override
+            protected TagWriter createTagWriter() {
+                return new TagWriter(getWriter());
+            }
 
-	@Test
-	public void withCollection() throws Exception {
-		getPageContext().setAttribute(
-				SelectTag.LIST_VALUE_PAGE_ATTRIBUTE, new BindStatus(getRequestContext(), "testBean.country", false));
+            @Override
+            public String getName() {
+                // Should not be used other than to delegate to
+                // RequestDataValueDataProcessor
+                return "testName";
+            }
+        };
+        selectTag.setPageContext(getPageContext());
+        this.tag.setParent(selectTag);
+        this.tag.setPageContext(getPageContext());
+    }
 
-		this.tag.setItems(Country.getCountries());
-		this.tag.setItemValue("isoCode");
-		this.tag.setItemLabel("name");
-		this.tag.setId("myOption");
-		this.tag.setCssClass("myClass");
-		this.tag.setOnclick("CLICK");
-		int result = this.tag.doStartTag();
-		assertThat(result).isEqualTo(Tag.SKIP_BODY);
-		String output = getOutput();
-		output = "<doc>" + output + "</doc>";
+    @Test
+    public void withCollection() throws Exception {
+        getPageContext().setAttribute(
+                SelectTag.LIST_VALUE_PAGE_ATTRIBUTE, new BindStatus(getRequestContext(), "testBean.country", false));
 
-		SAXReader reader = new SAXReader();
-		Document document = reader.read(new StringReader(output));
-		Element rootElement = document.getRootElement();
+        this.tag.setItems(Country.getCountries());
+        this.tag.setItemValue("isoCode");
+        this.tag.setItemLabel("name");
+        this.tag.setId("myOption");
+        this.tag.setCssClass("myClass");
+        this.tag.setOnclick("CLICK");
+        int result = this.tag.doStartTag();
+        assertThat(result).isEqualTo(Tag.SKIP_BODY);
+        String output = getOutput();
+        output = "<doc>" + output + "</doc>";
 
-		List children = rootElement.elements();
-		assertThat(children.size()).as("Incorrect number of children").isEqualTo(4);
+        SAXReader reader = new SAXReader();
+        Document document = reader.read(new StringReader(output));
+        Element rootElement = document.getRootElement();
 
-		Element element = (Element) rootElement.selectSingleNode("option[@value = 'UK']");
-		assertThat(element.attribute("selected").getValue()).as("UK node not selected").isEqualTo("selected");
-		assertThat(element.attribute("id").getValue()).isEqualTo("myOption3");
-		assertThat(element.attribute("class").getValue()).isEqualTo("myClass");
-		assertThat(element.attribute("onclick").getValue()).isEqualTo("CLICK");
-	}
+        List children = rootElement.elements();
+        assertThat(children.size()).as("Incorrect number of children").isEqualTo(4);
 
-	@Test
-	public void withCollectionAndDynamicAttributes() throws Exception {
-		String dynamicAttribute1 = "attr1";
-		String dynamicAttribute2 = "attr2";
+        Element element = (Element) rootElement.selectSingleNode("option[@value = 'UK']");
+        assertThat(element.attribute("selected").getValue()).as("UK node not selected").isEqualTo("selected");
+        assertThat(element.attribute("id").getValue()).isEqualTo("myOption3");
+        assertThat(element.attribute("class").getValue()).isEqualTo("myClass");
+        assertThat(element.attribute("onclick").getValue()).isEqualTo("CLICK");
+    }
 
-		getPageContext().setAttribute(
-				SelectTag.LIST_VALUE_PAGE_ATTRIBUTE, new BindStatus(getRequestContext(), "testBean.country", false));
+    @Test
+    public void withCollectionAndDynamicAttributes() throws Exception {
+        String dynamicAttribute1 = "attr1";
+        String dynamicAttribute2 = "attr2";
 
-		this.tag.setItems(Country.getCountries());
-		this.tag.setItemValue("isoCode");
-		this.tag.setItemLabel("name");
-		this.tag.setId("myOption");
-		this.tag.setCssClass("myClass");
-		this.tag.setOnclick("CLICK");
-		this.tag.setDynamicAttribute(null, dynamicAttribute1, dynamicAttribute1);
-		this.tag.setDynamicAttribute(null, dynamicAttribute2, dynamicAttribute2);
+        getPageContext().setAttribute(
+                SelectTag.LIST_VALUE_PAGE_ATTRIBUTE, new BindStatus(getRequestContext(), "testBean.country", false));
 
-		int result = this.tag.doStartTag();
-		assertThat(result).isEqualTo(Tag.SKIP_BODY);
-		String output = getOutput();
-		output = "<doc>" + output + "</doc>";
+        this.tag.setItems(Country.getCountries());
+        this.tag.setItemValue("isoCode");
+        this.tag.setItemLabel("name");
+        this.tag.setId("myOption");
+        this.tag.setCssClass("myClass");
+        this.tag.setOnclick("CLICK");
+        this.tag.setDynamicAttribute(null, dynamicAttribute1, dynamicAttribute1);
+        this.tag.setDynamicAttribute(null, dynamicAttribute2, dynamicAttribute2);
 
-		SAXReader reader = new SAXReader();
-		Document document = reader.read(new StringReader(output));
-		Element rootElement = document.getRootElement();
+        int result = this.tag.doStartTag();
+        assertThat(result).isEqualTo(Tag.SKIP_BODY);
+        String output = getOutput();
+        output = "<doc>" + output + "</doc>";
 
-		List children = rootElement.elements();
-		assertThat(children.size()).as("Incorrect number of children").isEqualTo(4);
+        SAXReader reader = new SAXReader();
+        Document document = reader.read(new StringReader(output));
+        Element rootElement = document.getRootElement();
 
-		Element element = (Element) rootElement.selectSingleNode("option[@value = 'UK']");
-		assertThat(element.attribute("selected").getValue()).as("UK node not selected").isEqualTo("selected");
-		assertThat(element.attribute("id").getValue()).isEqualTo("myOption3");
-		assertThat(element.attribute("class").getValue()).isEqualTo("myClass");
-		assertThat(element.attribute("onclick").getValue()).isEqualTo("CLICK");
-		assertThat(element.attribute(dynamicAttribute1).getValue()).isEqualTo(dynamicAttribute1);
-		assertThat(element.attribute(dynamicAttribute2).getValue()).isEqualTo(dynamicAttribute2);
-	}
+        List children = rootElement.elements();
+        assertThat(children.size()).as("Incorrect number of children").isEqualTo(4);
 
-	@Test
-	public void withCollectionAndCustomEditor() throws Exception {
-		PropertyEditor propertyEditor = new SimpleFloatEditor();
+        Element element = (Element) rootElement.selectSingleNode("option[@value = 'UK']");
+        assertThat(element.attribute("selected").getValue()).as("UK node not selected").isEqualTo("selected");
+        assertThat(element.attribute("id").getValue()).isEqualTo("myOption3");
+        assertThat(element.attribute("class").getValue()).isEqualTo("myClass");
+        assertThat(element.attribute("onclick").getValue()).isEqualTo("CLICK");
+        assertThat(element.attribute(dynamicAttribute1).getValue()).isEqualTo(dynamicAttribute1);
+        assertThat(element.attribute(dynamicAttribute2).getValue()).isEqualTo(dynamicAttribute2);
+    }
 
-		TestBean target = new TestBean();
-		target.setMyFloat(new Float("12.34"));
+    @Test
+    public void withCollectionAndCustomEditor() throws Exception {
+        PropertyEditor propertyEditor = new SimpleFloatEditor();
 
-		BeanPropertyBindingResult errors = new BeanPropertyBindingResult(target, COMMAND_NAME);
-		errors.getPropertyAccessor().registerCustomEditor(Float.class, propertyEditor);
-		exposeBindingResult(errors);
+        TestBean target = new TestBean();
+        target.setMyFloat(new Float("12.34"));
 
-		getPageContext().setAttribute(
-				SelectTag.LIST_VALUE_PAGE_ATTRIBUTE, new BindStatus(getRequestContext(), "testBean.myFloat", false));
+        BeanPropertyBindingResult errors = new BeanPropertyBindingResult(target, COMMAND_NAME);
+        errors.getPropertyAccessor().registerCustomEditor(Float.class, propertyEditor);
+        exposeBindingResult(errors);
 
-		List<Float> floats = new ArrayList<>();
-		floats.add(new Float("12.30"));
-		floats.add(new Float("12.31"));
-		floats.add(new Float("12.32"));
-		floats.add(new Float("12.33"));
-		floats.add(new Float("12.34"));
-		floats.add(new Float("12.35"));
+        getPageContext().setAttribute(
+                SelectTag.LIST_VALUE_PAGE_ATTRIBUTE, new BindStatus(getRequestContext(), "testBean.myFloat", false));
 
-		this.tag.setItems(floats);
-		int result = this.tag.doStartTag();
-		assertThat(result).isEqualTo(Tag.SKIP_BODY);
-		String output = getOutput();
-		output = "<doc>" + output + "</doc>";
+        List<Float> floats = new ArrayList<>();
+        floats.add(new Float("12.30"));
+        floats.add(new Float("12.31"));
+        floats.add(new Float("12.32"));
+        floats.add(new Float("12.33"));
+        floats.add(new Float("12.34"));
+        floats.add(new Float("12.35"));
 
-		SAXReader reader = new SAXReader();
-		Document document = reader.read(new StringReader(output));
-		Element rootElement = document.getRootElement();
+        this.tag.setItems(floats);
+        int result = this.tag.doStartTag();
+        assertThat(result).isEqualTo(Tag.SKIP_BODY);
+        String output = getOutput();
+        output = "<doc>" + output + "</doc>";
 
-		List children = rootElement.elements();
-		assertThat(children.size()).as("Incorrect number of children").isEqualTo(6);
+        SAXReader reader = new SAXReader();
+        Document document = reader.read(new StringReader(output));
+        Element rootElement = document.getRootElement();
 
-		Element element = (Element) rootElement.selectSingleNode("option[text() = '12.34f']");
-		assertThat(element).as("Option node should not be null").isNotNull();
-		assertThat(element.attribute("selected").getValue()).as("12.34 node not selected").isEqualTo("selected");
-		assertThat(element.attribute("id")).as("No id rendered").isNull();
+        List children = rootElement.elements();
+        assertThat(children.size()).as("Incorrect number of children").isEqualTo(6);
 
-		element = (Element) rootElement.selectSingleNode("option[text() = '12.35f']");
-		assertThat(element).as("Option node should not be null").isNotNull();
-		assertThat(element.attribute("selected")).as("12.35 node incorrectly selected").isNull();
-		assertThat(element.attribute("id")).as("No id rendered").isNull();
-	}
+        Element element = (Element) rootElement.selectSingleNode("option[text() = '12.34f']");
+        assertThat(element).as("Option node should not be null").isNotNull();
+        assertThat(element.attribute("selected").getValue()).as("12.34 node not selected").isEqualTo("selected");
+        assertThat(element.attribute("id")).as("No id rendered").isNull();
 
-	@Test
-	public void withItemsNullReference() throws Exception {
-		getPageContext().setAttribute(
-				SelectTag.LIST_VALUE_PAGE_ATTRIBUTE, new BindStatus(getRequestContext(), "testBean.country", false));
+        element = (Element) rootElement.selectSingleNode("option[text() = '12.35f']");
+        assertThat(element).as("Option node should not be null").isNotNull();
+        assertThat(element.attribute("selected")).as("12.35 node incorrectly selected").isNull();
+        assertThat(element.attribute("id")).as("No id rendered").isNull();
+    }
 
-		this.tag.setItems(Collections.emptyList());
-		this.tag.setItemValue("isoCode");
-		this.tag.setItemLabel("name");
-		int result = this.tag.doStartTag();
-		assertThat(result).isEqualTo(Tag.SKIP_BODY);
-		String output = getOutput();
-		output = "<doc>" + output + "</doc>";
+    @Test
+    public void withItemsNullReference() throws Exception {
+        getPageContext().setAttribute(
+                SelectTag.LIST_VALUE_PAGE_ATTRIBUTE, new BindStatus(getRequestContext(), "testBean.country", false));
 
-		SAXReader reader = new SAXReader();
-		Document document = reader.read(new StringReader(output));
-		Element rootElement = document.getRootElement();
+        this.tag.setItems(Collections.emptyList());
+        this.tag.setItemValue("isoCode");
+        this.tag.setItemLabel("name");
+        int result = this.tag.doStartTag();
+        assertThat(result).isEqualTo(Tag.SKIP_BODY);
+        String output = getOutput();
+        output = "<doc>" + output + "</doc>";
 
-		List children = rootElement.elements();
-		assertThat(children.size()).as("Incorrect number of children").isEqualTo(0);
-	}
+        SAXReader reader = new SAXReader();
+        Document document = reader.read(new StringReader(output));
+        Element rootElement = document.getRootElement();
 
-	@Test
-	public void withoutItems() throws Exception {
-		this.tag.setItemValue("isoCode");
-		this.tag.setItemLabel("name");
-		this.selectTag.setPath("testBean");
+        List children = rootElement.elements();
+        assertThat(children.size()).as("Incorrect number of children").isEqualTo(0);
+    }
 
-		this.selectTag.doStartTag();
-		int result = this.tag.doStartTag();
-		assertThat(result).isEqualTo(Tag.SKIP_BODY);
-		this.tag.doEndTag();
-		this.selectTag.doEndTag();
+    @Test
+    public void withoutItems() throws Exception {
+        this.tag.setItemValue("isoCode");
+        this.tag.setItemLabel("name");
+        this.selectTag.setPath("testBean");
 
-		String output = getOutput();
-		SAXReader reader = new SAXReader();
-		Document document = reader.read(new StringReader(output));
-		Element rootElement = document.getRootElement();
+        this.selectTag.doStartTag();
+        int result = this.tag.doStartTag();
+        assertThat(result).isEqualTo(Tag.SKIP_BODY);
+        this.tag.doEndTag();
+        this.selectTag.doEndTag();
 
-		List children = rootElement.elements();
-		assertThat(children.size()).as("Incorrect number of children").isEqualTo(0);
-	}
+        String output = getOutput();
+        SAXReader reader = new SAXReader();
+        Document document = reader.read(new StringReader(output));
+        Element rootElement = document.getRootElement();
 
-	@Test
-	public void withoutItemsEnumParent() throws Exception {
-		BeanWithEnum testBean = new BeanWithEnum();
-		testBean.setTestEnum(TestEnum.VALUE_2);
-		getPageContext().getRequest().setAttribute("testBean", testBean);
+        List children = rootElement.elements();
+        assertThat(children.size()).as("Incorrect number of children").isEqualTo(0);
+    }
 
-		this.selectTag.setPath("testBean.testEnum");
+    @Test
+    public void withoutItemsEnumParent() throws Exception {
+        BeanWithEnum testBean = new BeanWithEnum();
+        testBean.setTestEnum(TestEnum.VALUE_2);
+        getPageContext().getRequest().setAttribute("testBean", testBean);
 
-		this.selectTag.doStartTag();
-		int result = this.tag.doStartTag();
-		assertThat(result).isEqualTo(BodyTag.SKIP_BODY);
-		result = this.tag.doEndTag();
-		assertThat(result).isEqualTo(Tag.EVAL_PAGE);
-		this.selectTag.doEndTag();
+        this.selectTag.setPath("testBean.testEnum");
 
-		String output = getWriter().toString();
-		SAXReader reader = new SAXReader();
-		Document document = reader.read(new StringReader(output));
-		Element rootElement = document.getRootElement();
+        this.selectTag.doStartTag();
+        int result = this.tag.doStartTag();
+        assertThat(result).isEqualTo(BodyTag.SKIP_BODY);
+        result = this.tag.doEndTag();
+        assertThat(result).isEqualTo(Tag.EVAL_PAGE);
+        this.selectTag.doEndTag();
 
-		assertThat(rootElement.elements().size()).isEqualTo(2);
-		Node value1 = rootElement.selectSingleNode("option[@value = 'VALUE_1']");
-		Node value2 = rootElement.selectSingleNode("option[@value = 'VALUE_2']");
-		assertThat(value1.getText()).isEqualTo("TestEnum: VALUE_1");
-		assertThat(value2.getText()).isEqualTo("TestEnum: VALUE_2");
-		assertThat(rootElement.selectSingleNode("option[@selected]")).isEqualTo(value2);
-	}
+        String output = getWriter().toString();
+        SAXReader reader = new SAXReader();
+        Document document = reader.read(new StringReader(output));
+        Element rootElement = document.getRootElement();
 
-	@Test
-	public void withoutItemsEnumParentWithExplicitLabelsAndValues() throws Exception {
-		BeanWithEnum testBean = new BeanWithEnum();
-		testBean.setTestEnum(TestEnum.VALUE_2);
-		getPageContext().getRequest().setAttribute("testBean", testBean);
+        assertThat(rootElement.elements().size()).isEqualTo(2);
+        Node value1 = rootElement.selectSingleNode("option[@value = 'VALUE_1']");
+        Node value2 = rootElement.selectSingleNode("option[@value = 'VALUE_2']");
+        assertThat(value1.getText()).isEqualTo("TestEnum: VALUE_1");
+        assertThat(value2.getText()).isEqualTo("TestEnum: VALUE_2");
+        assertThat(rootElement.selectSingleNode("option[@selected]")).isEqualTo(value2);
+    }
 
-		this.selectTag.setPath("testBean.testEnum");
-		this.tag.setItemLabel("enumLabel");
-		this.tag.setItemValue("enumValue");
+    @Test
+    public void withoutItemsEnumParentWithExplicitLabelsAndValues() throws Exception {
+        BeanWithEnum testBean = new BeanWithEnum();
+        testBean.setTestEnum(TestEnum.VALUE_2);
+        getPageContext().getRequest().setAttribute("testBean", testBean);
 
-		this.selectTag.doStartTag();
-		int result = this.tag.doStartTag();
-		assertThat(result).isEqualTo(BodyTag.SKIP_BODY);
-		result = this.tag.doEndTag();
-		assertThat(result).isEqualTo(Tag.EVAL_PAGE);
-		this.selectTag.doEndTag();
+        this.selectTag.setPath("testBean.testEnum");
+        this.tag.setItemLabel("enumLabel");
+        this.tag.setItemValue("enumValue");
 
-		String output = getWriter().toString();
-		SAXReader reader = new SAXReader();
-		Document document = reader.read(new StringReader(output));
-		Element rootElement = document.getRootElement();
+        this.selectTag.doStartTag();
+        int result = this.tag.doStartTag();
+        assertThat(result).isEqualTo(BodyTag.SKIP_BODY);
+        result = this.tag.doEndTag();
+        assertThat(result).isEqualTo(Tag.EVAL_PAGE);
+        this.selectTag.doEndTag();
 
-		assertThat(rootElement.elements().size()).isEqualTo(2);
-		Node value1 = rootElement.selectSingleNode("option[@value = 'Value: VALUE_1']");
-		Node value2 = rootElement.selectSingleNode("option[@value = 'Value: VALUE_2']");
-		assertThat(value1.getText()).isEqualTo("Label: VALUE_1");
-		assertThat(value2.getText()).isEqualTo("Label: VALUE_2");
-		assertThat(rootElement.selectSingleNode("option[@selected]")).isEqualTo(value2);
-	}
+        String output = getWriter().toString();
+        SAXReader reader = new SAXReader();
+        Document document = reader.read(new StringReader(output));
+        Element rootElement = document.getRootElement();
 
-	@Override
-	protected void extendRequest(MockHttpServletRequest request) {
-		TestBean bean = new TestBean();
-		bean.setName("foo");
-		bean.setCountry("UK");
-		bean.setMyFloat(new Float("12.34"));
-		request.setAttribute(COMMAND_NAME, bean);
+        assertThat(rootElement.elements().size()).isEqualTo(2);
+        Node value1 = rootElement.selectSingleNode("option[@value = 'Value: VALUE_1']");
+        Node value2 = rootElement.selectSingleNode("option[@value = 'Value: VALUE_2']");
+        assertThat(value1.getText()).isEqualTo("Label: VALUE_1");
+        assertThat(value2.getText()).isEqualTo("Label: VALUE_2");
+        assertThat(rootElement.selectSingleNode("option[@selected]")).isEqualTo(value2);
+    }
 
-		List floats = new ArrayList();
-		floats.add(new Float("12.30"));
-		floats.add(new Float("12.31"));
-		floats.add(new Float("12.32"));
-		floats.add(new Float("12.33"));
-		floats.add(new Float("12.34"));
-		floats.add(new Float("12.35"));
+    @Override
+    protected void extendRequest(MockHttpServletRequest request) {
+        TestBean bean = new TestBean();
+        bean.setName("foo");
+        bean.setCountry("UK");
+        bean.setMyFloat(new Float("12.34"));
+        request.setAttribute(COMMAND_NAME, bean);
 
-		request.setAttribute("floats", floats);
-	}
+        List floats = new ArrayList();
+        floats.add(new Float("12.30"));
+        floats.add(new Float("12.31"));
+        floats.add(new Float("12.32"));
+        floats.add(new Float("12.33"));
+        floats.add(new Float("12.34"));
+        floats.add(new Float("12.35"));
 
-	@Override
-	protected void exposeBindingResult(Errors errors) {
-		// wrap errors in a Model
-		Map model = new HashMap();
-		model.put(BindingResult.MODEL_KEY_PREFIX + COMMAND_NAME, errors);
+        request.setAttribute("floats", floats);
+    }
 
-		// replace the request context with one containing the errors
-		MockPageContext pageContext = getPageContext();
-		RequestContext context = new RequestContext((HttpServletRequest) pageContext.getRequest(), model);
-		pageContext.setAttribute(RequestContextAwareTag.REQUEST_CONTEXT_PAGE_ATTRIBUTE, context);
-	}
+    @Override
+    protected void exposeBindingResult(Errors errors) {
+        // wrap errors in a Model
+        Map model = new HashMap();
+        model.put(BindingResult.MODEL_KEY_PREFIX + COMMAND_NAME, errors);
+
+        // replace the request context with one containing the errors
+        MockPageContext pageContext = getPageContext();
+        RequestContext context = new RequestContext((HttpServletRequest) pageContext.getRequest(), model);
+        pageContext.setAttribute(RequestContextAwareTag.REQUEST_CONTEXT_PAGE_ATTRIBUTE, context);
+    }
 
 }

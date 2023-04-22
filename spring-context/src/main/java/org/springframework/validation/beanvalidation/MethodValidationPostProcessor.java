@@ -53,77 +53,78 @@ import org.springframework.validation.annotation.Validated;
  * <p>As of Spring 5.0, this functionality requires a Bean Validation 1.1 provider.
  *
  * @author Juergen Hoeller
- * @since 3.1
  * @see MethodValidationInterceptor
  * @see javax.validation.executable.ExecutableValidator
+ * @since 3.1
  */
 @SuppressWarnings("serial")
 public class MethodValidationPostProcessor extends AbstractBeanFactoryAwareAdvisingPostProcessor
-		implements InitializingBean {
+        implements InitializingBean {
 
-	private Class<? extends Annotation> validatedAnnotationType = Validated.class;
+    private Class<? extends Annotation> validatedAnnotationType = Validated.class;
 
-	@Nullable
-	private Validator validator;
-
-
-	/**
-	 * Set the 'validated' annotation type.
-	 * The default validated annotation type is the {@link Validated} annotation.
-	 * <p>This setter property exists so that developers can provide their own
-	 * (non-Spring-specific) annotation type to indicate that a class is supposed
-	 * to be validated in the sense of applying method validation.
-	 * @param validatedAnnotationType the desired annotation type
-	 */
-	public void setValidatedAnnotationType(Class<? extends Annotation> validatedAnnotationType) {
-		Assert.notNull(validatedAnnotationType, "'validatedAnnotationType' must not be null");
-		this.validatedAnnotationType = validatedAnnotationType;
-	}
-
-	/**
-	 * Set the JSR-303 Validator to delegate to for validating methods.
-	 * <p>Default is the default ValidatorFactory's default Validator.
-	 */
-	public void setValidator(Validator validator) {
-		// Unwrap to the native Validator with forExecutables support
-		if (validator instanceof LocalValidatorFactoryBean) {
-			this.validator = ((LocalValidatorFactoryBean) validator).getValidator();
-		}
-		else if (validator instanceof SpringValidatorAdapter) {
-			this.validator = validator.unwrap(Validator.class);
-		}
-		else {
-			this.validator = validator;
-		}
-	}
-
-	/**
-	 * Set the JSR-303 ValidatorFactory to delegate to for validating methods,
-	 * using its default Validator.
-	 * <p>Default is the default ValidatorFactory's default Validator.
-	 * @see javax.validation.ValidatorFactory#getValidator()
-	 */
-	public void setValidatorFactory(ValidatorFactory validatorFactory) {
-		this.validator = validatorFactory.getValidator();
-	}
+    @Nullable
+    private Validator validator;
 
 
-	@Override
-	public void afterPropertiesSet() {
-		Pointcut pointcut = new AnnotationMatchingPointcut(this.validatedAnnotationType, true);
-		this.advisor = new DefaultPointcutAdvisor(pointcut, createMethodValidationAdvice(this.validator));
-	}
+    /**
+     * Set the 'validated' annotation type.
+     * The default validated annotation type is the {@link Validated} annotation.
+     * <p>This setter property exists so that developers can provide their own
+     * (non-Spring-specific) annotation type to indicate that a class is supposed
+     * to be validated in the sense of applying method validation.
+     *
+     * @param validatedAnnotationType the desired annotation type
+     */
+    public void setValidatedAnnotationType(Class<? extends Annotation> validatedAnnotationType) {
+        Assert.notNull(validatedAnnotationType, "'validatedAnnotationType' must not be null");
+        this.validatedAnnotationType = validatedAnnotationType;
+    }
 
-	/**
-	 * Create AOP advice for method validation purposes, to be applied
-	 * with a pointcut for the specified 'validated' annotation.
-	 * @param validator the JSR-303 Validator to delegate to
-	 * @return the interceptor to use (typically, but not necessarily,
-	 * a {@link MethodValidationInterceptor} or subclass thereof)
-	 * @since 4.2
-	 */
-	protected Advice createMethodValidationAdvice(@Nullable Validator validator) {
-		return (validator != null ? new MethodValidationInterceptor(validator) : new MethodValidationInterceptor());
-	}
+    /**
+     * Set the JSR-303 Validator to delegate to for validating methods.
+     * <p>Default is the default ValidatorFactory's default Validator.
+     */
+    public void setValidator(Validator validator) {
+        // Unwrap to the native Validator with forExecutables support
+        if (validator instanceof LocalValidatorFactoryBean) {
+            this.validator = ((LocalValidatorFactoryBean) validator).getValidator();
+        } else if (validator instanceof SpringValidatorAdapter) {
+            this.validator = validator.unwrap(Validator.class);
+        } else {
+            this.validator = validator;
+        }
+    }
+
+    /**
+     * Set the JSR-303 ValidatorFactory to delegate to for validating methods,
+     * using its default Validator.
+     * <p>Default is the default ValidatorFactory's default Validator.
+     *
+     * @see javax.validation.ValidatorFactory#getValidator()
+     */
+    public void setValidatorFactory(ValidatorFactory validatorFactory) {
+        this.validator = validatorFactory.getValidator();
+    }
+
+
+    @Override
+    public void afterPropertiesSet() {
+        Pointcut pointcut = new AnnotationMatchingPointcut(this.validatedAnnotationType, true);
+        this.advisor = new DefaultPointcutAdvisor(pointcut, createMethodValidationAdvice(this.validator));
+    }
+
+    /**
+     * Create AOP advice for method validation purposes, to be applied
+     * with a pointcut for the specified 'validated' annotation.
+     *
+     * @param validator the JSR-303 Validator to delegate to
+     * @return the interceptor to use (typically, but not necessarily,
+     * a {@link MethodValidationInterceptor} or subclass thereof)
+     * @since 4.2
+     */
+    protected Advice createMethodValidationAdvice(@Nullable Validator validator) {
+        return (validator != null ? new MethodValidationInterceptor(validator) : new MethodValidationInterceptor());
+    }
 
 }

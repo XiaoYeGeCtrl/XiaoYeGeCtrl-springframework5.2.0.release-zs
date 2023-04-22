@@ -42,63 +42,61 @@ import org.springframework.web.server.ServerWebExchange;
  */
 public class ReactorNettyRequestUpgradeStrategy implements RequestUpgradeStrategy {
 
-	private int maxFramePayloadLength = NettyWebSocketSessionSupport.DEFAULT_FRAME_MAX_SIZE;
+    private int maxFramePayloadLength = NettyWebSocketSessionSupport.DEFAULT_FRAME_MAX_SIZE;
 
+    private static HttpServerResponse getNativeResponse(ServerHttpResponse response) {
+        if (response instanceof AbstractServerHttpResponse) {
+            return ((AbstractServerHttpResponse) response).getNativeResponse();
+        } else if (response instanceof ServerHttpResponseDecorator) {
+            return getNativeResponse(((ServerHttpResponseDecorator) response).getDelegate());
+        } else {
+            throw new IllegalArgumentException(
+                    "Couldn't find native response in " + response.getClass().getName());
+        }
+    }
 
-	/**
-	 * Configure the maximum allowable frame payload length. Setting this value
-	 * to your application's requirement may reduce denial of service attacks
-	 * using long data frames.
-	 * <p>Corresponds to the argument with the same name in the constructor of
-	 * {@link io.netty.handler.codec.http.websocketx.WebSocketServerHandshakerFactory
-	 * WebSocketServerHandshakerFactory} in Netty.
-	 * <p>By default set to 65536 (64K).
-	 * @param maxFramePayloadLength the max length for frames.
-	 * @since 5.1
-	 */
-	public void setMaxFramePayloadLength(Integer maxFramePayloadLength) {
-		this.maxFramePayloadLength = maxFramePayloadLength;
-	}
+    /**
+     * Return the configured max length for frames.
+     *
+     * @since 5.1
+     */
+    public int getMaxFramePayloadLength() {
+        return this.maxFramePayloadLength;
+    }
 
-	/**
-	 * Return the configured max length for frames.
-	 * @since 5.1
-	 */
-	public int getMaxFramePayloadLength() {
-		return this.maxFramePayloadLength;
-	}
+    /**
+     * Configure the maximum allowable frame payload length. Setting this value
+     * to your application's requirement may reduce denial of service attacks
+     * using long data frames.
+     * <p>Corresponds to the argument with the same name in the constructor of
+     * {@link io.netty.handler.codec.http.websocketx.WebSocketServerHandshakerFactory
+     * WebSocketServerHandshakerFactory} in Netty.
+     * <p>By default set to 65536 (64K).
+     *
+     * @param maxFramePayloadLength the max length for frames.
+     * @since 5.1
+     */
+    public void setMaxFramePayloadLength(Integer maxFramePayloadLength) {
+        this.maxFramePayloadLength = maxFramePayloadLength;
+    }
 
+    @Override
+    public Mono<Void> upgrade(ServerWebExchange exchange, WebSocketHandler handler,
+                              @Nullable String subProtocol, Supplier<HandshakeInfo> handshakeInfoFactory) {
 
-	@Override
-	public Mono<Void> upgrade(ServerWebExchange exchange, WebSocketHandler handler,
-			@Nullable String subProtocol, Supplier<HandshakeInfo> handshakeInfoFactory) {
+        ServerHttpResponse response = exchange.getResponse();
+        HttpServerResponse reactorResponse = getNativeResponse(response);
+        HandshakeInfo handshakeInfo = handshakeInfoFactory.get();
+        NettyDataBufferFactory bufferFactory = (NettyDataBufferFactory) response.bufferFactory();
 
-		ServerHttpResponse response = exchange.getResponse();
-		HttpServerResponse reactorResponse = getNativeResponse(response);
-		HandshakeInfo handshakeInfo = handshakeInfoFactory.get();
-		NettyDataBufferFactory bufferFactory = (NettyDataBufferFactory) response.bufferFactory();
-
-		return reactorResponse.sendWebsocket(subProtocol, this.maxFramePayloadLength,
-				(in, out) -> {
-					ReactorNettyWebSocketSession session =
-							new ReactorNettyWebSocketSession(
-									in, out, handshakeInfo, bufferFactory, this.maxFramePayloadLength);
-					URI uri = exchange.getRequest().getURI();
-					return handler.handle(session).checkpoint(uri + " [ReactorNettyRequestUpgradeStrategy]");
-				});
-	}
-
-	private static HttpServerResponse getNativeResponse(ServerHttpResponse response) {
-		if (response instanceof AbstractServerHttpResponse) {
-			return ((AbstractServerHttpResponse) response).getNativeResponse();
-		}
-		else if (response instanceof ServerHttpResponseDecorator) {
-			return getNativeResponse(((ServerHttpResponseDecorator) response).getDelegate());
-		}
-		else {
-			throw new IllegalArgumentException(
-					"Couldn't find native response in " + response.getClass().getName());
-		}
-	}
+        return reactorResponse.sendWebsocket(subProtocol, this.maxFramePayloadLength,
+                (in, out) -> {
+                    ReactorNettyWebSocketSession session =
+                            new ReactorNettyWebSocketSession(
+                                    in, out, handshakeInfo, bufferFactory, this.maxFramePayloadLength);
+                    URI uri = exchange.getRequest().getURI();
+                    return handler.handle(session).checkpoint(uri + " [ReactorNettyRequestUpgradeStrategy]");
+                });
+    }
 
 }

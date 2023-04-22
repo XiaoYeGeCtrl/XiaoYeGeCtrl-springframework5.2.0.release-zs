@@ -28,26 +28,27 @@ import org.springframework.lang.Nullable;
  */
 public class SimpleValueWrapper implements ValueWrapper {
 
-	@Nullable
-	private final Object value;
+    @Nullable
+    private final Object value;
 
 
-	/**
-	 * Create a new SimpleValueWrapper instance for exposing the given value.
-	 * @param value the value to expose (may be {@code null})
-	 */
-	public SimpleValueWrapper(@Nullable Object value) {
-		this.value = value;
-	}
+    /**
+     * Create a new SimpleValueWrapper instance for exposing the given value.
+     *
+     * @param value the value to expose (may be {@code null})
+     */
+    public SimpleValueWrapper(@Nullable Object value) {
+        this.value = value;
+    }
 
 
-	/**
-	 * Simply returns the value as given at construction time.
-	 */
-	@Override
-	@Nullable
-	public Object get() {
-		return this.value;
-	}
+    /**
+     * Simply returns the value as given at construction time.
+     */
+    @Override
+    @Nullable
+    public Object get() {
+        return this.value;
+    }
 
 }

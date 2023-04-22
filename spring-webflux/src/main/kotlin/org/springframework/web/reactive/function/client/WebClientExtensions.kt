@@ -35,7 +35,7 @@ import reactor.core.publisher.Mono
  * @since 5.0
  */
 inline fun <reified T : Any, S : Publisher<T>> RequestBodySpec.body(publisher: S): RequestHeadersSpec<*> =
-		body(publisher, object : ParameterizedTypeReference<T>() {})
+        body(publisher, object : ParameterizedTypeReference<T>() {})
 
 /**
  * Extension for [WebClient.RequestBodySpec.body] providing a `body(Flow<T>)` variant
@@ -47,7 +47,7 @@ inline fun <reified T : Any, S : Publisher<T>> RequestBodySpec.body(publisher: S
  * @since 5.2
  */
 inline fun <reified T : Any> RequestBodySpec.body(flow: Flow<T>): RequestHeadersSpec<*> =
-		body(flow, object : ParameterizedTypeReference<T>() {})
+        body(flow, object : ParameterizedTypeReference<T>() {})
 
 /**
  * Extension for [WebClient.RequestBodySpec.body] providing a `body<T>(Any)` variant
@@ -61,7 +61,7 @@ inline fun <reified T : Any> RequestBodySpec.body(flow: Flow<T>): RequestHeaders
  * @since 5.2
  */
 inline fun <reified T : Any> RequestBodySpec.body(producer: Any): RequestHeadersSpec<*> =
-		body(producer, object : ParameterizedTypeReference<T>() {})
+        body(producer, object : ParameterizedTypeReference<T>() {})
 
 /**
  * Coroutines variant of [WebClient.RequestHeadersSpec.exchange].
@@ -70,7 +70,7 @@ inline fun <reified T : Any> RequestBodySpec.body(producer: Any): RequestHeaders
  * @since 5.2
  */
 suspend fun RequestHeadersSpec<out RequestHeadersSpec<*>>.awaitExchange(): ClientResponse =
-		exchange().awaitSingle()
+        exchange().awaitSingle()
 
 
 /**
@@ -82,7 +82,7 @@ suspend fun RequestHeadersSpec<out RequestHeadersSpec<*>>.awaitExchange(): Clien
  * @since 5.0
  */
 inline fun <reified T : Any> WebClient.ResponseSpec.bodyToMono(): Mono<T> =
-		bodyToMono(object : ParameterizedTypeReference<T>() {})
+        bodyToMono(object : ParameterizedTypeReference<T>() {})
 
 
 /**
@@ -94,7 +94,7 @@ inline fun <reified T : Any> WebClient.ResponseSpec.bodyToMono(): Mono<T> =
  * @since 5.0
  */
 inline fun <reified T : Any> WebClient.ResponseSpec.bodyToFlux(): Flux<T> =
-		bodyToFlux(object : ParameterizedTypeReference<T>() {})
+        bodyToFlux(object : ParameterizedTypeReference<T>() {})
 
 /**
  * Coroutines [kotlinx.coroutines.flow.Flow] based variant of [WebClient.ResponseSpec.bodyToFlux].
@@ -103,7 +103,7 @@ inline fun <reified T : Any> WebClient.ResponseSpec.bodyToFlux(): Flux<T> =
  * @since 5.2
  */
 inline fun <reified T : Any> WebClient.ResponseSpec.bodyToFlow(): Flow<T> =
-		bodyToFlux<T>().asFlow()
+        bodyToFlux<T>().asFlow()
 
 /**
  * Coroutines variant of [WebClient.ResponseSpec.bodyToMono].
@@ -111,5 +111,5 @@ inline fun <reified T : Any> WebClient.ResponseSpec.bodyToFlow(): Flow<T> =
  * @author Sebastien Deleuze
  * @since 5.2
  */
-suspend inline fun <reified T : Any> WebClient.ResponseSpec.awaitBody() : T =
-		bodyToMono<T>().awaitSingle()
+suspend inline fun <reified T : Any> WebClient.ResponseSpec.awaitBody(): T =
+        bodyToMono<T>().awaitSingle()

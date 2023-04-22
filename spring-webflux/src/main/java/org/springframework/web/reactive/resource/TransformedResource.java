@@ -32,34 +32,33 @@ import org.springframework.lang.Nullable;
  */
 public class TransformedResource extends ByteArrayResource {
 
-	@Nullable
-	private final String filename;
+    @Nullable
+    private final String filename;
 
-	private final long lastModified;
-
-
-	public TransformedResource(Resource original, byte[] transformedContent) {
-		super(transformedContent);
-		this.filename = original.getFilename();
-		try {
-			this.lastModified = original.lastModified();
-		}
-		catch (IOException ex) {
-			// should never happen
-			throw new IllegalArgumentException(ex);
-		}
-	}
+    private final long lastModified;
 
 
-	@Override
-	@Nullable
-	public String getFilename() {
-		return this.filename;
-	}
+    public TransformedResource(Resource original, byte[] transformedContent) {
+        super(transformedContent);
+        this.filename = original.getFilename();
+        try {
+            this.lastModified = original.lastModified();
+        } catch (IOException ex) {
+            // should never happen
+            throw new IllegalArgumentException(ex);
+        }
+    }
 
-	@Override
-	public long lastModified() {
-		return this.lastModified;
-	}
+
+    @Override
+    @Nullable
+    public String getFilename() {
+        return this.filename;
+    }
+
+    @Override
+    public long lastModified() {
+        return this.lastModified;
+    }
 
 }

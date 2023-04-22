@@ -33,52 +33,52 @@ import org.springframework.web.context.ServletContextAware;
  * expression to access a specific parameter by name.
  *
  * @author Juergen Hoeller
- * @since 1.2.4
  * @see org.springframework.web.context.WebApplicationContext#CONTEXT_PARAMETERS_BEAN_NAME
  * @see ServletContextAttributeFactoryBean
+ * @since 1.2.4
  */
 public class ServletContextParameterFactoryBean implements FactoryBean<String>, ServletContextAware {
 
-	@Nullable
-	private String initParamName;
+    @Nullable
+    private String initParamName;
 
-	@Nullable
-	private String paramValue;
-
-
-	/**
-	 * Set the name of the ServletContext init parameter to expose.
-	 */
-	public void setInitParamName(String initParamName) {
-		this.initParamName = initParamName;
-	}
-
-	@Override
-	public void setServletContext(ServletContext servletContext) {
-		if (this.initParamName == null) {
-			throw new IllegalArgumentException("initParamName is required");
-		}
-		this.paramValue = servletContext.getInitParameter(this.initParamName);
-		if (this.paramValue == null) {
-			throw new IllegalStateException("No ServletContext init parameter '" + this.initParamName + "' found");
-		}
-	}
+    @Nullable
+    private String paramValue;
 
 
-	@Override
-	@Nullable
-	public String getObject() {
-		return this.paramValue;
-	}
+    /**
+     * Set the name of the ServletContext init parameter to expose.
+     */
+    public void setInitParamName(String initParamName) {
+        this.initParamName = initParamName;
+    }
 
-	@Override
-	public Class<String> getObjectType() {
-		return String.class;
-	}
+    @Override
+    public void setServletContext(ServletContext servletContext) {
+        if (this.initParamName == null) {
+            throw new IllegalArgumentException("initParamName is required");
+        }
+        this.paramValue = servletContext.getInitParameter(this.initParamName);
+        if (this.paramValue == null) {
+            throw new IllegalStateException("No ServletContext init parameter '" + this.initParamName + "' found");
+        }
+    }
 
-	@Override
-	public boolean isSingleton() {
-		return true;
-	}
+
+    @Override
+    @Nullable
+    public String getObject() {
+        return this.paramValue;
+    }
+
+    @Override
+    public Class<String> getObjectType() {
+        return String.class;
+    }
+
+    @Override
+    public boolean isSingleton() {
+        return true;
+    }
 
 }

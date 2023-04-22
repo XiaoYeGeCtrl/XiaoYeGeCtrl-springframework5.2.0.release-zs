@@ -29,40 +29,40 @@ import org.springframework.lang.Nullable;
  * through a {@link AutowireCapableBeanFactory#resolveDependency} step.
  *
  * @author Juergen Hoeller
- * @since 5.2
  * @see AutowireCapableBeanFactory#resolveDependency
  * @see BeanDefinition#getPropertyValues()
  * @see org.springframework.beans.factory.support.BeanDefinitionBuilder#addAutowiredProperty
+ * @since 5.2
  */
 public final class AutowiredPropertyMarker implements Serializable {
 
-	/**
-	 * The canonical instance for the autowired marker value.
-	 */
-	public static final Object INSTANCE = new AutowiredPropertyMarker();
+    /**
+     * The canonical instance for the autowired marker value.
+     */
+    public static final Object INSTANCE = new AutowiredPropertyMarker();
 
 
-	private AutowiredPropertyMarker() {
-	}
+    private AutowiredPropertyMarker() {
+    }
 
-	private Object readResolve() {
-		return INSTANCE;
-	}
+    private Object readResolve() {
+        return INSTANCE;
+    }
 
 
-	@Override
-	public boolean equals(@Nullable Object obj) {
-		return (this == obj);
-	}
+    @Override
+    public boolean equals(@Nullable Object obj) {
+        return (this == obj);
+    }
 
-	@Override
-	public int hashCode() {
-		return AutowiredPropertyMarker.class.hashCode();
-	}
+    @Override
+    public int hashCode() {
+        return AutowiredPropertyMarker.class.hashCode();
+    }
 
-	@Override
-	public String toString() {
-		return "(autowired)";
-	}
+    @Override
+    public String toString() {
+        return "(autowired)";
+    }
 
 }

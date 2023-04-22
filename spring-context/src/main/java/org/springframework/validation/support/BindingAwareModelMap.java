@@ -32,35 +32,35 @@ import org.springframework.validation.BindingResult;
  * a regular {@link Map} with String keys will be good enough to return a user model.
  *
  * @author Juergen Hoeller
- * @since 2.5.6
  * @see org.springframework.validation.BindingResult
+ * @since 2.5.6
  */
 @SuppressWarnings("serial")
 public class BindingAwareModelMap extends ExtendedModelMap {
 
-	@Override
-	public Object put(String key, Object value) {
-		removeBindingResultIfNecessary(key, value);
-		return super.put(key, value);
-	}
+    @Override
+    public Object put(String key, Object value) {
+        removeBindingResultIfNecessary(key, value);
+        return super.put(key, value);
+    }
 
-	@Override
-	public void putAll(Map<? extends String, ?> map) {
-		map.forEach(this::removeBindingResultIfNecessary);
-		super.putAll(map);
-	}
+    @Override
+    public void putAll(Map<? extends String, ?> map) {
+        map.forEach(this::removeBindingResultIfNecessary);
+        super.putAll(map);
+    }
 
-	private void removeBindingResultIfNecessary(Object key, Object value) {
-		if (key instanceof String) {
-			String attributeName = (String) key;
-			if (!attributeName.startsWith(BindingResult.MODEL_KEY_PREFIX)) {
-				String bindingResultKey = BindingResult.MODEL_KEY_PREFIX + attributeName;
-				BindingResult bindingResult = (BindingResult) get(bindingResultKey);
-				if (bindingResult != null && bindingResult.getTarget() != value) {
-					remove(bindingResultKey);
-				}
-			}
-		}
-	}
+    private void removeBindingResultIfNecessary(Object key, Object value) {
+        if (key instanceof String) {
+            String attributeName = (String) key;
+            if (!attributeName.startsWith(BindingResult.MODEL_KEY_PREFIX)) {
+                String bindingResultKey = BindingResult.MODEL_KEY_PREFIX + attributeName;
+                BindingResult bindingResult = (BindingResult) get(bindingResultKey);
+                if (bindingResult != null && bindingResult.getTarget() != value) {
+                    remove(bindingResultKey);
+                }
+            }
+        }
+    }
 
 }

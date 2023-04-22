@@ -30,27 +30,27 @@ import static org.mockito.Mockito.mock;
  */
 public class JmsDestinationAccessorTests {
 
-	@Test
-	public void testChokesIfDestinationResolverIsetToNullExplicitly() throws Exception {
-		ConnectionFactory connectionFactory = mock(ConnectionFactory.class);
+    @Test
+    public void testChokesIfDestinationResolverIsetToNullExplicitly() throws Exception {
+        ConnectionFactory connectionFactory = mock(ConnectionFactory.class);
 
-		JmsDestinationAccessor accessor = new StubJmsDestinationAccessor();
-		accessor.setConnectionFactory(connectionFactory);
-		assertThatIllegalArgumentException().isThrownBy(() ->
-				accessor.setDestinationResolver(null));
-	}
+        JmsDestinationAccessor accessor = new StubJmsDestinationAccessor();
+        accessor.setConnectionFactory(connectionFactory);
+        assertThatIllegalArgumentException().isThrownBy(() ->
+                accessor.setDestinationResolver(null));
+    }
 
-	@Test
-	public void testSessionTransactedModeReallyDoesDefaultToFalse() throws Exception {
-		JmsDestinationAccessor accessor = new StubJmsDestinationAccessor();
-		assertThat(accessor.isPubSubDomain()).as("The [pubSubDomain] property of JmsDestinationAccessor must default to " +
-				"false (i.e. Queues are used by default). Change this test (and the " +
-				"attendant Javadoc) if you have changed the default.").isFalse();
-	}
+    @Test
+    public void testSessionTransactedModeReallyDoesDefaultToFalse() throws Exception {
+        JmsDestinationAccessor accessor = new StubJmsDestinationAccessor();
+        assertThat(accessor.isPubSubDomain()).as("The [pubSubDomain] property of JmsDestinationAccessor must default to " +
+                "false (i.e. Queues are used by default). Change this test (and the " +
+                "attendant Javadoc) if you have changed the default.").isFalse();
+    }
 
 
-	private static class StubJmsDestinationAccessor extends JmsDestinationAccessor {
+    private static class StubJmsDestinationAccessor extends JmsDestinationAccessor {
 
-	}
+    }
 
 }

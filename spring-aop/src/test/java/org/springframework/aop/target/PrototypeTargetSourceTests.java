@@ -32,36 +32,38 @@ import static org.springframework.tests.TestResourceUtils.qualifiedResource;
  */
 public class PrototypeTargetSourceTests {
 
-	/** Initial count value set in bean factory XML */
-	private static final int INITIAL_COUNT = 10;
+    /**
+     * Initial count value set in bean factory XML
+     */
+    private static final int INITIAL_COUNT = 10;
 
-	private DefaultListableBeanFactory beanFactory;
-
-
-	@BeforeEach
-	public void setup() {
-		this.beanFactory = new DefaultListableBeanFactory();
-		new XmlBeanDefinitionReader(this.beanFactory).loadBeanDefinitions(
-				qualifiedResource(PrototypeTargetSourceTests.class, "context.xml"));
-	}
+    private DefaultListableBeanFactory beanFactory;
 
 
-	/**
-	 * Test that multiple invocations of the prototype bean will result
-	 * in no change to visible state, as a new instance is used.
-	 * With the singleton, there will be change.
-	 */
-	@Test
-	public void testPrototypeAndSingletonBehaveDifferently() {
-		SideEffectBean singleton = (SideEffectBean) beanFactory.getBean("singleton");
-		assertThat(singleton.getCount()).isEqualTo(INITIAL_COUNT);
-		singleton.doWork();
-		assertThat(singleton.getCount()).isEqualTo((INITIAL_COUNT + 1));
+    @BeforeEach
+    public void setup() {
+        this.beanFactory = new DefaultListableBeanFactory();
+        new XmlBeanDefinitionReader(this.beanFactory).loadBeanDefinitions(
+                qualifiedResource(PrototypeTargetSourceTests.class, "context.xml"));
+    }
 
-		SideEffectBean prototype = (SideEffectBean) beanFactory.getBean("prototype");
-		assertThat(prototype.getCount()).isEqualTo(INITIAL_COUNT);
-		prototype.doWork();
-		assertThat(prototype.getCount()).isEqualTo(INITIAL_COUNT);
-	}
+
+    /**
+     * Test that multiple invocations of the prototype bean will result
+     * in no change to visible state, as a new instance is used.
+     * With the singleton, there will be change.
+     */
+    @Test
+    public void testPrototypeAndSingletonBehaveDifferently() {
+        SideEffectBean singleton = (SideEffectBean) beanFactory.getBean("singleton");
+        assertThat(singleton.getCount()).isEqualTo(INITIAL_COUNT);
+        singleton.doWork();
+        assertThat(singleton.getCount()).isEqualTo((INITIAL_COUNT + 1));
+
+        SideEffectBean prototype = (SideEffectBean) beanFactory.getBean("prototype");
+        assertThat(prototype.getCount()).isEqualTo(INITIAL_COUNT);
+        prototype.doWork();
+        assertThat(prototype.getCount()).isEqualTo(INITIAL_COUNT);
+    }
 
 }

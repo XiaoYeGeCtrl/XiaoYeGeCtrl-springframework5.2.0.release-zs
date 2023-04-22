@@ -33,50 +33,50 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class PerConnectionWebSocketHandlerTests {
 
 
-	@Test
-	public void afterConnectionEstablished() throws Exception {
+    @Test
+    public void afterConnectionEstablished() throws Exception {
 
-		@SuppressWarnings("resource")
-		AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext();
-		context.refresh();
+        @SuppressWarnings("resource")
+        AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext();
+        context.refresh();
 
-		EchoHandler.reset();
-		PerConnectionWebSocketHandler handler = new PerConnectionWebSocketHandler(EchoHandler.class);
-		handler.setBeanFactory(context.getBeanFactory());
+        EchoHandler.reset();
+        PerConnectionWebSocketHandler handler = new PerConnectionWebSocketHandler(EchoHandler.class);
+        handler.setBeanFactory(context.getBeanFactory());
 
-		WebSocketSession session = new TestWebSocketSession();
-		handler.afterConnectionEstablished(session);
+        WebSocketSession session = new TestWebSocketSession();
+        handler.afterConnectionEstablished(session);
 
-		assertThat(EchoHandler.initCount).isEqualTo(1);
-		assertThat(EchoHandler.destroyCount).isEqualTo(0);
+        assertThat(EchoHandler.initCount).isEqualTo(1);
+        assertThat(EchoHandler.destroyCount).isEqualTo(0);
 
-		handler.afterConnectionClosed(session, CloseStatus.NORMAL);
+        handler.afterConnectionClosed(session, CloseStatus.NORMAL);
 
-		assertThat(EchoHandler.initCount).isEqualTo(1);
-		assertThat(EchoHandler.destroyCount).isEqualTo(1);
-	}
-
-
-	public static class EchoHandler extends AbstractWebSocketHandler implements DisposableBean {
-
-		private static int initCount;
-
-		private static int destroyCount;
+        assertThat(EchoHandler.initCount).isEqualTo(1);
+        assertThat(EchoHandler.destroyCount).isEqualTo(1);
+    }
 
 
-		public EchoHandler() {
-			initCount++;
-		}
+    public static class EchoHandler extends AbstractWebSocketHandler implements DisposableBean {
 
-		@Override
-		public void destroy() throws Exception {
-			destroyCount++;
-		}
+        private static int initCount;
 
-		public static void reset() {
-			initCount = 0;
-			destroyCount = 0;
-		}
-	}
+        private static int destroyCount;
+
+
+        public EchoHandler() {
+            initCount++;
+        }
+
+        public static void reset() {
+            initCount = 0;
+            destroyCount = 0;
+        }
+
+        @Override
+        public void destroy() throws Exception {
+            destroyCount++;
+        }
+    }
 
 }

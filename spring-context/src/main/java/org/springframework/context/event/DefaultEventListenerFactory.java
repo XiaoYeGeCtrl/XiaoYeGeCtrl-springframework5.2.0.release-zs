@@ -32,27 +32,25 @@ import org.springframework.core.Ordered;
  */
 public class DefaultEventListenerFactory implements EventListenerFactory, Ordered {
 
-	private int order = LOWEST_PRECEDENCE;
+    private int order = LOWEST_PRECEDENCE;
 
+    @Override
+    public int getOrder() {
+        return this.order;
+    }
 
-	public void setOrder(int order) {
-		this.order = order;
-	}
+    public void setOrder(int order) {
+        this.order = order;
+    }
 
-	@Override
-	public int getOrder() {
-		return this.order;
-	}
+    @Override
+    public boolean supportsMethod(Method method) {
+        return true;
+    }
 
-
-	@Override
-	public boolean supportsMethod(Method method) {
-		return true;
-	}
-
-	@Override
-	public ApplicationListener<?> createApplicationListener(String beanName, Class<?> type, Method method) {
-		return new ApplicationListenerMethodAdapter(beanName, type, method);
-	}
+    @Override
+    public ApplicationListener<?> createApplicationListener(String beanName, Class<?> type, Method method) {
+        return new ApplicationListenerMethodAdapter(beanName, type, method);
+    }
 
 }

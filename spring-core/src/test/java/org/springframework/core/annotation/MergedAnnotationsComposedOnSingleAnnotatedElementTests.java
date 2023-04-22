@@ -43,264 +43,271 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 class MergedAnnotationsComposedOnSingleAnnotatedElementTests {
 
-	// See SPR-13486
+    // See SPR-13486
 
-	@Test
-	void inheritedStrategyMultipleComposedAnnotationsOnClass() {
-		assertInheritedStrategyBehavior(MultipleComposedCachesClass.class);
-	}
+    @Test
+    void inheritedStrategyMultipleComposedAnnotationsOnClass() {
+        assertInheritedStrategyBehavior(MultipleComposedCachesClass.class);
+    }
 
-	@Test
-	void inheritedStrategyMultipleInheritedComposedAnnotationsOnSuperclass() {
-		assertInheritedStrategyBehavior(SubMultipleComposedCachesClass.class);
-	}
+    @Test
+    void inheritedStrategyMultipleInheritedComposedAnnotationsOnSuperclass() {
+        assertInheritedStrategyBehavior(SubMultipleComposedCachesClass.class);
+    }
 
-	@Test
-	void inheritedStrategyMultipleNoninheritedComposedAnnotationsOnClass() {
-		MergedAnnotations annotations = MergedAnnotations.from(
-				MultipleNoninheritedComposedCachesClass.class,
-				SearchStrategy.INHERITED_ANNOTATIONS);
-		assertThat(stream(annotations, "value")).containsExactly("noninheritedCache1",
-				"noninheritedCache2");
-	}
+    @Test
+    void inheritedStrategyMultipleNoninheritedComposedAnnotationsOnClass() {
+        MergedAnnotations annotations = MergedAnnotations.from(
+                MultipleNoninheritedComposedCachesClass.class,
+                SearchStrategy.INHERITED_ANNOTATIONS);
+        assertThat(stream(annotations, "value")).containsExactly("noninheritedCache1",
+                "noninheritedCache2");
+    }
 
-	@Test
-	void inheritedStrategyMultipleNoninheritedComposedAnnotationsOnSuperclass() {
-		MergedAnnotations annotations = MergedAnnotations.from(
-				SubMultipleNoninheritedComposedCachesClass.class,
-				SearchStrategy.INHERITED_ANNOTATIONS);
-		assertThat(annotations.stream(Cacheable.class)).isEmpty();
-	}
+    @Test
+    void inheritedStrategyMultipleNoninheritedComposedAnnotationsOnSuperclass() {
+        MergedAnnotations annotations = MergedAnnotations.from(
+                SubMultipleNoninheritedComposedCachesClass.class,
+                SearchStrategy.INHERITED_ANNOTATIONS);
+        assertThat(annotations.stream(Cacheable.class)).isEmpty();
+    }
 
-	@Test
-	void inheritedStrategyComposedPlusLocalAnnotationsOnClass() {
-		assertInheritedStrategyBehavior(ComposedPlusLocalCachesClass.class);
-	}
+    @Test
+    void inheritedStrategyComposedPlusLocalAnnotationsOnClass() {
+        assertInheritedStrategyBehavior(ComposedPlusLocalCachesClass.class);
+    }
 
-	@Test
-	void inheritedStrategyMultipleComposedAnnotationsOnInterface() {
-		MergedAnnotations annotations = MergedAnnotations.from(
-				MultipleComposedCachesOnInterfaceClass.class,
-				SearchStrategy.INHERITED_ANNOTATIONS);
-		assertThat(annotations.stream(Cacheable.class)).isEmpty();
-	}
+    @Test
+    void inheritedStrategyMultipleComposedAnnotationsOnInterface() {
+        MergedAnnotations annotations = MergedAnnotations.from(
+                MultipleComposedCachesOnInterfaceClass.class,
+                SearchStrategy.INHERITED_ANNOTATIONS);
+        assertThat(annotations.stream(Cacheable.class)).isEmpty();
+    }
 
-	@Test
-	void inheritedStrategyMultipleComposedAnnotationsOnMethod() throws Exception {
-		assertInheritedStrategyBehavior(
-				getClass().getDeclaredMethod("multipleComposedCachesMethod"));
-	}
+    @Test
+    void inheritedStrategyMultipleComposedAnnotationsOnMethod() throws Exception {
+        assertInheritedStrategyBehavior(
+                getClass().getDeclaredMethod("multipleComposedCachesMethod"));
+    }
 
-	@Test
-	void inheritedStrategyComposedPlusLocalAnnotationsOnMethod() throws Exception {
-		assertInheritedStrategyBehavior(
-				getClass().getDeclaredMethod("composedPlusLocalCachesMethod"));
-	}
+    @Test
+    void inheritedStrategyComposedPlusLocalAnnotationsOnMethod() throws Exception {
+        assertInheritedStrategyBehavior(
+                getClass().getDeclaredMethod("composedPlusLocalCachesMethod"));
+    }
 
-	private void assertInheritedStrategyBehavior(AnnotatedElement element) {
-		MergedAnnotations annotations = MergedAnnotations.from(element,
-				SearchStrategy.INHERITED_ANNOTATIONS);
-		assertThat(stream(annotations, "key")).containsExactly("fooKey", "barKey");
-		assertThat(stream(annotations, "value")).containsExactly("fooCache", "barCache");
-	}
+    private void assertInheritedStrategyBehavior(AnnotatedElement element) {
+        MergedAnnotations annotations = MergedAnnotations.from(element,
+                SearchStrategy.INHERITED_ANNOTATIONS);
+        assertThat(stream(annotations, "key")).containsExactly("fooKey", "barKey");
+        assertThat(stream(annotations, "value")).containsExactly("fooCache", "barCache");
+    }
 
-	@Test
-	void typeHierarchyStrategyMultipleComposedAnnotationsOnClass() {
-		assertTypeHierarchyStrategyBehavior(MultipleComposedCachesClass.class);
-	}
+    @Test
+    void typeHierarchyStrategyMultipleComposedAnnotationsOnClass() {
+        assertTypeHierarchyStrategyBehavior(MultipleComposedCachesClass.class);
+    }
 
-	@Test
-	void typeHierarchyStrategyMultipleInheritedComposedAnnotationsOnSuperclass() {
-		assertTypeHierarchyStrategyBehavior(SubMultipleComposedCachesClass.class);
-	}
+    @Test
+    void typeHierarchyStrategyMultipleInheritedComposedAnnotationsOnSuperclass() {
+        assertTypeHierarchyStrategyBehavior(SubMultipleComposedCachesClass.class);
+    }
 
-	@Test
-	void typeHierarchyStrategyMultipleNoninheritedComposedAnnotationsOnClass() {
-		MergedAnnotations annotations = MergedAnnotations.from(
-				MultipleNoninheritedComposedCachesClass.class, SearchStrategy.TYPE_HIERARCHY);
-		assertThat(stream(annotations, "value")).containsExactly("noninheritedCache1",
-				"noninheritedCache2");
-	}
+    @Test
+    void typeHierarchyStrategyMultipleNoninheritedComposedAnnotationsOnClass() {
+        MergedAnnotations annotations = MergedAnnotations.from(
+                MultipleNoninheritedComposedCachesClass.class, SearchStrategy.TYPE_HIERARCHY);
+        assertThat(stream(annotations, "value")).containsExactly("noninheritedCache1",
+                "noninheritedCache2");
+    }
 
-	@Test
-	void typeHierarchyStrategyMultipleNoninheritedComposedAnnotationsOnSuperclass() {
-		MergedAnnotations annotations = MergedAnnotations.from(
-				SubMultipleNoninheritedComposedCachesClass.class,
-				SearchStrategy.TYPE_HIERARCHY);
-		assertThat(stream(annotations, "value")).containsExactly("noninheritedCache1",
-				"noninheritedCache2");
-	}
+    @Test
+    void typeHierarchyStrategyMultipleNoninheritedComposedAnnotationsOnSuperclass() {
+        MergedAnnotations annotations = MergedAnnotations.from(
+                SubMultipleNoninheritedComposedCachesClass.class,
+                SearchStrategy.TYPE_HIERARCHY);
+        assertThat(stream(annotations, "value")).containsExactly("noninheritedCache1",
+                "noninheritedCache2");
+    }
 
-	@Test
-	void typeHierarchyStrategyComposedPlusLocalAnnotationsOnClass() {
-		assertTypeHierarchyStrategyBehavior(ComposedPlusLocalCachesClass.class);
-	}
+    @Test
+    void typeHierarchyStrategyComposedPlusLocalAnnotationsOnClass() {
+        assertTypeHierarchyStrategyBehavior(ComposedPlusLocalCachesClass.class);
+    }
 
-	@Test
-	void typeHierarchyStrategyMultipleComposedAnnotationsOnInterface() {
-		assertTypeHierarchyStrategyBehavior(MultipleComposedCachesOnInterfaceClass.class);
-	}
+    @Test
+    void typeHierarchyStrategyMultipleComposedAnnotationsOnInterface() {
+        assertTypeHierarchyStrategyBehavior(MultipleComposedCachesOnInterfaceClass.class);
+    }
 
-	@Test
-	void typeHierarchyStrategyComposedCacheOnInterfaceAndLocalCacheOnClass() {
-		assertTypeHierarchyStrategyBehavior(
-				ComposedCacheOnInterfaceAndLocalCacheClass.class);
-	}
+    @Test
+    void typeHierarchyStrategyComposedCacheOnInterfaceAndLocalCacheOnClass() {
+        assertTypeHierarchyStrategyBehavior(
+                ComposedCacheOnInterfaceAndLocalCacheClass.class);
+    }
 
-	@Test
-	void typeHierarchyStrategyMultipleComposedAnnotationsOnMethod() throws Exception {
-		assertTypeHierarchyStrategyBehavior(
-				getClass().getDeclaredMethod("multipleComposedCachesMethod"));
-	}
+    @Test
+    void typeHierarchyStrategyMultipleComposedAnnotationsOnMethod() throws Exception {
+        assertTypeHierarchyStrategyBehavior(
+                getClass().getDeclaredMethod("multipleComposedCachesMethod"));
+    }
 
-	@Test
-	void typeHierarchyStrategyComposedPlusLocalAnnotationsOnMethod()
-			throws Exception {
-		assertTypeHierarchyStrategyBehavior(
-				getClass().getDeclaredMethod("composedPlusLocalCachesMethod"));
-	}
+    @Test
+    void typeHierarchyStrategyComposedPlusLocalAnnotationsOnMethod()
+            throws Exception {
+        assertTypeHierarchyStrategyBehavior(
+                getClass().getDeclaredMethod("composedPlusLocalCachesMethod"));
+    }
 
-	@Test
-	void typeHierarchyStrategyMultipleComposedAnnotationsOnBridgeMethod()
-			throws Exception {
-		assertTypeHierarchyStrategyBehavior(getBridgeMethod());
-	}
+    @Test
+    void typeHierarchyStrategyMultipleComposedAnnotationsOnBridgeMethod()
+            throws Exception {
+        assertTypeHierarchyStrategyBehavior(getBridgeMethod());
+    }
 
-	private void assertTypeHierarchyStrategyBehavior(AnnotatedElement element) {
-		MergedAnnotations annotations = MergedAnnotations.from(element,
-				SearchStrategy.TYPE_HIERARCHY);
-		assertThat(stream(annotations, "key")).containsExactly("fooKey", "barKey");
-		assertThat(stream(annotations, "value")).containsExactly("fooCache", "barCache");
-	}
+    private void assertTypeHierarchyStrategyBehavior(AnnotatedElement element) {
+        MergedAnnotations annotations = MergedAnnotations.from(element,
+                SearchStrategy.TYPE_HIERARCHY);
+        assertThat(stream(annotations, "key")).containsExactly("fooKey", "barKey");
+        assertThat(stream(annotations, "value")).containsExactly("fooCache", "barCache");
+    }
 
-	Method getBridgeMethod() throws NoSuchMethodException {
-		List<Method> methods = new ArrayList<>();
-		ReflectionUtils.doWithLocalMethods(StringGenericParameter.class, method -> {
-			if ("getFor".equals(method.getName())) {
-				methods.add(method);
-			}
-		});
-		Method bridgeMethod = methods.get(0).getReturnType().equals(Object.class)
-				? methods.get(0)
-				: methods.get(1);
-		assertThat(bridgeMethod.isBridge()).isTrue();
-		return bridgeMethod;
-	}
+    Method getBridgeMethod() throws NoSuchMethodException {
+        List<Method> methods = new ArrayList<>();
+        ReflectionUtils.doWithLocalMethods(StringGenericParameter.class, method -> {
+            if ("getFor".equals(method.getName())) {
+                methods.add(method);
+            }
+        });
+        Method bridgeMethod = methods.get(0).getReturnType().equals(Object.class)
+                ? methods.get(0)
+                : methods.get(1);
+        assertThat(bridgeMethod.isBridge()).isTrue();
+        return bridgeMethod;
+    }
 
-	private Stream<String> stream(MergedAnnotations annotations, String attributeName) {
-		return annotations.stream(Cacheable.class).map(
-				annotation -> annotation.getString(attributeName));
-	}
+    private Stream<String> stream(MergedAnnotations annotations, String attributeName) {
+        return annotations.stream(Cacheable.class).map(
+                annotation -> annotation.getString(attributeName));
+    }
 
-	// @formatter:off
+    // @formatter:off
 
-	@Target({ ElementType.METHOD, ElementType.TYPE })
-	@Retention(RetentionPolicy.RUNTIME)
-	@Inherited
-	@interface Cacheable {
-		@AliasFor("cacheName")
-		String value() default "";
-		@AliasFor("value")
-		String cacheName() default "";
-		String key() default "";
-	}
+    @FooCache(key = "fooKey")
+    @BarCache(key = "barKey")
+    private void multipleComposedCachesMethod() {
+    }
 
-	@Cacheable("fooCache")
-	@Target({ ElementType.METHOD, ElementType.TYPE })
-	@Retention(RetentionPolicy.RUNTIME)
-	@Inherited
-	@interface FooCache {
-		@AliasFor(annotation = Cacheable.class)
-		String key() default "";
-	}
+    @Cacheable(cacheName = "fooCache", key = "fooKey")
+    @BarCache(key = "barKey")
+    private void composedPlusLocalCachesMethod() {
+    }
 
-	@Cacheable("barCache")
-	@Target({ ElementType.METHOD, ElementType.TYPE })
-	@Retention(RetentionPolicy.RUNTIME)
-	@Inherited
-	@interface BarCache {
-		@AliasFor(annotation = Cacheable.class)
-		String key();
-	}
+    @Target({ElementType.METHOD, ElementType.TYPE})
+    @Retention(RetentionPolicy.RUNTIME)
+    @Inherited
+    @interface Cacheable {
+        @AliasFor("cacheName")
+        String value() default "";
 
-	@Cacheable("noninheritedCache1")
-	@Target({ ElementType.METHOD, ElementType.TYPE })
-	@Retention(RetentionPolicy.RUNTIME)
-	@interface NoninheritedCache1 {
-		@AliasFor(annotation = Cacheable.class)
-		String key() default "";
-	}
+        @AliasFor("value")
+        String cacheName() default "";
 
-	@Cacheable("noninheritedCache2")
-	@Target({ ElementType.METHOD, ElementType.TYPE })
-	@Retention(RetentionPolicy.RUNTIME)
-	@interface NoninheritedCache2 {
-		@AliasFor(annotation = Cacheable.class)
-		String key() default "";
-	}
+        String key() default "";
+    }
 
-	@FooCache(key = "fooKey")
-	@BarCache(key = "barKey")
-	private static class MultipleComposedCachesClass {
-	}
+    @Cacheable("fooCache")
+    @Target({ElementType.METHOD, ElementType.TYPE})
+    @Retention(RetentionPolicy.RUNTIME)
+    @Inherited
+    @interface FooCache {
+        @AliasFor(annotation = Cacheable.class)
+        String key() default "";
+    }
 
-	private static class SubMultipleComposedCachesClass
-			extends MultipleComposedCachesClass {
-	}
+    @Cacheable("barCache")
+    @Target({ElementType.METHOD, ElementType.TYPE})
+    @Retention(RetentionPolicy.RUNTIME)
+    @Inherited
+    @interface BarCache {
+        @AliasFor(annotation = Cacheable.class)
+        String key();
+    }
 
-	@NoninheritedCache1
-	@NoninheritedCache2
-	private static class MultipleNoninheritedComposedCachesClass {
-	}
+    @Cacheable("noninheritedCache1")
+    @Target({ElementType.METHOD, ElementType.TYPE})
+    @Retention(RetentionPolicy.RUNTIME)
+    @interface NoninheritedCache1 {
+        @AliasFor(annotation = Cacheable.class)
+        String key() default "";
+    }
 
-	private static class SubMultipleNoninheritedComposedCachesClass
-			extends MultipleNoninheritedComposedCachesClass {
-	}
+    @Cacheable("noninheritedCache2")
+    @Target({ElementType.METHOD, ElementType.TYPE})
+    @Retention(RetentionPolicy.RUNTIME)
+    @interface NoninheritedCache2 {
+        @AliasFor(annotation = Cacheable.class)
+        String key() default "";
+    }
 
-	@Cacheable(cacheName = "fooCache", key = "fooKey")
-	@BarCache(key = "barKey")
-	private static class ComposedPlusLocalCachesClass {
-	}
+    @FooCache(key = "fooKey")
+    @BarCache(key = "barKey")
+    private interface MultipleComposedCachesInterface {
+    }
 
-	@FooCache(key = "fooKey")
-	@BarCache(key = "barKey")
-	private interface MultipleComposedCachesInterface {
-	}
+    @BarCache(key = "barKey")
+    private interface ComposedCacheInterface {
+    }
 
-	private static class MultipleComposedCachesOnInterfaceClass implements MultipleComposedCachesInterface {
-	}
+    public interface GenericParameter<T> {
+        T getFor(Class<T> cls);
+    }
 
-	@BarCache(key = "barKey")
-	private interface ComposedCacheInterface {
-	}
+    @FooCache(key = "fooKey")
+    @BarCache(key = "barKey")
+    private static class MultipleComposedCachesClass {
+    }
 
-	@Cacheable(cacheName = "fooCache", key = "fooKey")
-	private static class ComposedCacheOnInterfaceAndLocalCacheClass implements ComposedCacheInterface {
-	}
+    private static class SubMultipleComposedCachesClass
+            extends MultipleComposedCachesClass {
+    }
 
-	@FooCache(key = "fooKey")
-	@BarCache(key = "barKey")
-	private void multipleComposedCachesMethod() {
-	}
+    @NoninheritedCache1
+    @NoninheritedCache2
+    private static class MultipleNoninheritedComposedCachesClass {
+    }
 
-	@Cacheable(cacheName = "fooCache", key = "fooKey")
-	@BarCache(key = "barKey")
-	private void composedPlusLocalCachesMethod() {
-	}
+    private static class SubMultipleNoninheritedComposedCachesClass
+            extends MultipleNoninheritedComposedCachesClass {
+    }
 
-	public interface GenericParameter<T> {
-		T getFor(Class<T> cls);
-	}
+    @Cacheable(cacheName = "fooCache", key = "fooKey")
+    @BarCache(key = "barKey")
+    private static class ComposedPlusLocalCachesClass {
+    }
 
-	@SuppressWarnings("unused")
-	private static class StringGenericParameter implements GenericParameter<String> {
-		@FooCache(key = "fooKey")
-		@BarCache(key = "barKey")
-		@Override
-		public String getFor(Class<String> cls) { return "foo"; }
-		public String getFor(Integer integer) { return "foo"; }
-	}
+    private static class MultipleComposedCachesOnInterfaceClass implements MultipleComposedCachesInterface {
+    }
 
-	// @formatter:on
+    @Cacheable(cacheName = "fooCache", key = "fooKey")
+    private static class ComposedCacheOnInterfaceAndLocalCacheClass implements ComposedCacheInterface {
+    }
+
+    @SuppressWarnings("unused")
+    private static class StringGenericParameter implements GenericParameter<String> {
+        @FooCache(key = "fooKey")
+        @BarCache(key = "barKey")
+        @Override
+        public String getFor(Class<String> cls) {
+            return "foo";
+        }
+
+        public String getFor(Integer integer) {
+            return "foo";
+        }
+    }
+
+    // @formatter:on
 
 }

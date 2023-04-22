@@ -24,10 +24,10 @@ import org.springframework.context.support.GenericXmlApplicationContext;
  */
 public class JCacheStandaloneConfigTests extends AbstractJCacheAnnotationTests {
 
-	@Override
-	protected ApplicationContext getApplicationContext() {
-		return new GenericXmlApplicationContext(
-				"/org/springframework/cache/jcache/config/jCacheStandaloneConfig.xml");
-	}
+    @Override
+    protected ApplicationContext getApplicationContext() {
+        return new GenericXmlApplicationContext(
+                "/org/springframework/cache/jcache/config/jCacheStandaloneConfig.xml");
+    }
 
 }

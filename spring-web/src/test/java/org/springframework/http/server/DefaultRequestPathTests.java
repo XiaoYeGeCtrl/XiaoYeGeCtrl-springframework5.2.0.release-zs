@@ -23,56 +23,57 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Unit tests for {@link DefaultRequestPath}.
+ *
  * @author Rossen Stoyanchev
  */
 public class DefaultRequestPathTests {
 
-	@Test
-	public void requestPath() throws Exception {
-		// basic
-		testRequestPath("/app/a/b/c", "/app", "/a/b/c");
+    @Test
+    public void requestPath() throws Exception {
+        // basic
+        testRequestPath("/app/a/b/c", "/app", "/a/b/c");
 
-		// no context path
-		testRequestPath("/a/b/c", "", "/a/b/c");
+        // no context path
+        testRequestPath("/a/b/c", "", "/a/b/c");
 
-		// context path only
-		testRequestPath("/a/b", "/a/b", "");
+        // context path only
+        testRequestPath("/a/b", "/a/b", "");
 
-		// root path
-		testRequestPath("/", "", "/");
+        // root path
+        testRequestPath("/", "", "/");
 
-		// empty path
-		testRequestPath("", "", "");
-		testRequestPath("", "/", "");
+        // empty path
+        testRequestPath("", "", "");
+        testRequestPath("", "/", "");
 
-		// trailing slash
-		testRequestPath("/app/a/", "/app", "/a/");
-		testRequestPath("/app/a//", "/app", "/a//");
-	}
+        // trailing slash
+        testRequestPath("/app/a/", "/app", "/a/");
+        testRequestPath("/app/a//", "/app", "/a//");
+    }
 
-	private void testRequestPath(String fullPath, String contextPath, String pathWithinApplication) {
+    private void testRequestPath(String fullPath, String contextPath, String pathWithinApplication) {
 
-		URI uri = URI.create("http://localhost:8080" + fullPath);
-		RequestPath requestPath = RequestPath.parse(uri, contextPath);
+        URI uri = URI.create("http://localhost:8080" + fullPath);
+        RequestPath requestPath = RequestPath.parse(uri, contextPath);
 
-		Object expected = contextPath.equals("/") ? "" : contextPath;
-		assertThat(requestPath.contextPath().value()).isEqualTo(expected);
-		assertThat(requestPath.pathWithinApplication().value()).isEqualTo(pathWithinApplication);
-	}
+        Object expected = contextPath.equals("/") ? "" : contextPath;
+        assertThat(requestPath.contextPath().value()).isEqualTo(expected);
+        assertThat(requestPath.pathWithinApplication().value()).isEqualTo(pathWithinApplication);
+    }
 
-	@Test
-	public void updateRequestPath() throws Exception {
+    @Test
+    public void updateRequestPath() throws Exception {
 
-		URI uri = URI.create("http://localhost:8080/aA/bB/cC");
-		RequestPath requestPath = RequestPath.parse(uri, null);
+        URI uri = URI.create("http://localhost:8080/aA/bB/cC");
+        RequestPath requestPath = RequestPath.parse(uri, null);
 
-		assertThat(requestPath.contextPath().value()).isEqualTo("");
-		assertThat(requestPath.pathWithinApplication().value()).isEqualTo("/aA/bB/cC");
+        assertThat(requestPath.contextPath().value()).isEqualTo("");
+        assertThat(requestPath.pathWithinApplication().value()).isEqualTo("/aA/bB/cC");
 
-		requestPath = requestPath.modifyContextPath("/aA");
+        requestPath = requestPath.modifyContextPath("/aA");
 
-		assertThat(requestPath.contextPath().value()).isEqualTo("/aA");
-		assertThat(requestPath.pathWithinApplication().value()).isEqualTo("/bB/cC");
-	}
+        assertThat(requestPath.contextPath().value()).isEqualTo("/aA");
+        assertThat(requestPath.pathWithinApplication().value()).isEqualTo("/bB/cC");
+    }
 
 }

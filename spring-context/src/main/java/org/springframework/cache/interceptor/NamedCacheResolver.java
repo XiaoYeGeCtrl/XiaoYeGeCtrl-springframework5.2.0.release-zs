@@ -32,29 +32,29 @@ import org.springframework.lang.Nullable;
  */
 public class NamedCacheResolver extends AbstractCacheResolver {
 
-	@Nullable
-	private Collection<String> cacheNames;
+    @Nullable
+    private Collection<String> cacheNames;
 
 
-	public NamedCacheResolver() {
-	}
+    public NamedCacheResolver() {
+    }
 
-	public NamedCacheResolver(CacheManager cacheManager, String... cacheNames) {
-		super(cacheManager);
-		this.cacheNames = new ArrayList<>(Arrays.asList(cacheNames));
-	}
+    public NamedCacheResolver(CacheManager cacheManager, String... cacheNames) {
+        super(cacheManager);
+        this.cacheNames = new ArrayList<>(Arrays.asList(cacheNames));
+    }
 
 
-	/**
-	 * Set the cache name(s) that this resolver should use.
-	 */
-	public void setCacheNames(Collection<String> cacheNames) {
-		this.cacheNames = cacheNames;
-	}
+    /**
+     * Set the cache name(s) that this resolver should use.
+     */
+    public void setCacheNames(Collection<String> cacheNames) {
+        this.cacheNames = cacheNames;
+    }
 
-	@Override
-	protected Collection<String> getCacheNames(CacheOperationInvocationContext<?> context) {
-		return this.cacheNames;
-	}
+    @Override
+    protected Collection<String> getCacheNames(CacheOperationInvocationContext<?> context) {
+        return this.cacheNames;
+    }
 
 }

@@ -26,9 +26,9 @@ import org.springframework.jca.StubActivationSpec;
  */
 public class StubJmsActivationSpecFactory implements JmsActivationSpecFactory {
 
-	@Override
-	public ActivationSpec createActivationSpec(ResourceAdapter adapter, JmsActivationSpecConfig config) {
-		return new StubActivationSpec();
-	}
+    @Override
+    public ActivationSpec createActivationSpec(ResourceAdapter adapter, JmsActivationSpecConfig config) {
+        return new StubActivationSpec();
+    }
 
 }

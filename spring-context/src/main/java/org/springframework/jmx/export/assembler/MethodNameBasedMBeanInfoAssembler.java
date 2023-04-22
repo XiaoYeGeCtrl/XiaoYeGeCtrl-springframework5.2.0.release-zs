@@ -45,80 +45,82 @@ import org.springframework.util.StringUtils;
  * method names defined by {@code managedMethods}.
  *
  * @author Juergen Hoeller
- * @since 1.2
  * @see #setManagedMethods
  * @see #setMethodMappings
  * @see InterfaceBasedMBeanInfoAssembler
  * @see SimpleReflectiveMBeanInfoAssembler
  * @see MethodExclusionMBeanInfoAssembler
  * @see org.springframework.jmx.export.MBeanExporter
+ * @since 1.2
  */
 public class MethodNameBasedMBeanInfoAssembler extends AbstractConfigurableMBeanInfoAssembler {
 
-	/**
-	 * Stores the set of method names to use for creating the management interface.
-	 */
-	@Nullable
-	private Set<String> managedMethods;
+    /**
+     * Stores the set of method names to use for creating the management interface.
+     */
+    @Nullable
+    private Set<String> managedMethods;
 
-	/**
-	 * Stores the mappings of bean keys to an array of method names.
-	 */
-	@Nullable
-	private Map<String, Set<String>> methodMappings;
-
-
-	/**
-	 * Set the array of method names to use for creating the management info.
-	 * These method names will be used for a bean if no entry corresponding to
-	 * that bean is found in the {@code methodMappings} property.
-	 * @param methodNames an array of method names indicating the methods to use
-	 * @see #setMethodMappings
-	 */
-	public void setManagedMethods(String... methodNames) {
-		this.managedMethods = new HashSet<>(Arrays.asList(methodNames));
-	}
-
-	/**
-	 * Set the mappings of bean keys to a comma-separated list of method names.
-	 * The property key should match the bean key and the property value should match
-	 * the list of method names. When searching for method names for a bean, Spring
-	 * will check these mappings first.
-	 * @param mappings the mappings of bean keys to method names
-	 */
-	public void setMethodMappings(Properties mappings) {
-		this.methodMappings = new HashMap<>();
-		for (Enumeration<?> en = mappings.keys(); en.hasMoreElements();) {
-			String beanKey = (String) en.nextElement();
-			String[] methodNames = StringUtils.commaDelimitedListToStringArray(mappings.getProperty(beanKey));
-			this.methodMappings.put(beanKey, new HashSet<>(Arrays.asList(methodNames)));
-		}
-	}
+    /**
+     * Stores the mappings of bean keys to an array of method names.
+     */
+    @Nullable
+    private Map<String, Set<String>> methodMappings;
 
 
-	@Override
-	protected boolean includeReadAttribute(Method method, String beanKey) {
-		return isMatch(method, beanKey);
-	}
+    /**
+     * Set the array of method names to use for creating the management info.
+     * These method names will be used for a bean if no entry corresponding to
+     * that bean is found in the {@code methodMappings} property.
+     *
+     * @param methodNames an array of method names indicating the methods to use
+     * @see #setMethodMappings
+     */
+    public void setManagedMethods(String... methodNames) {
+        this.managedMethods = new HashSet<>(Arrays.asList(methodNames));
+    }
 
-	@Override
-	protected boolean includeWriteAttribute(Method method, String beanKey) {
-		return isMatch(method, beanKey);
-	}
+    /**
+     * Set the mappings of bean keys to a comma-separated list of method names.
+     * The property key should match the bean key and the property value should match
+     * the list of method names. When searching for method names for a bean, Spring
+     * will check these mappings first.
+     *
+     * @param mappings the mappings of bean keys to method names
+     */
+    public void setMethodMappings(Properties mappings) {
+        this.methodMappings = new HashMap<>();
+        for (Enumeration<?> en = mappings.keys(); en.hasMoreElements(); ) {
+            String beanKey = (String) en.nextElement();
+            String[] methodNames = StringUtils.commaDelimitedListToStringArray(mappings.getProperty(beanKey));
+            this.methodMappings.put(beanKey, new HashSet<>(Arrays.asList(methodNames)));
+        }
+    }
 
-	@Override
-	protected boolean includeOperation(Method method, String beanKey) {
-		return isMatch(method, beanKey);
-	}
 
-	protected boolean isMatch(Method method, String beanKey) {
-		if (this.methodMappings != null) {
-			Set<String> methodNames = this.methodMappings.get(beanKey);
-			if (methodNames != null) {
-				return methodNames.contains(method.getName());
-			}
-		}
-		return (this.managedMethods != null && this.managedMethods.contains(method.getName()));
-	}
+    @Override
+    protected boolean includeReadAttribute(Method method, String beanKey) {
+        return isMatch(method, beanKey);
+    }
+
+    @Override
+    protected boolean includeWriteAttribute(Method method, String beanKey) {
+        return isMatch(method, beanKey);
+    }
+
+    @Override
+    protected boolean includeOperation(Method method, String beanKey) {
+        return isMatch(method, beanKey);
+    }
+
+    protected boolean isMatch(Method method, String beanKey) {
+        if (this.methodMappings != null) {
+            Set<String> methodNames = this.methodMappings.get(beanKey);
+            if (methodNames != null) {
+                return methodNames.contains(method.getName());
+            }
+        }
+        return (this.managedMethods != null && this.managedMethods.contains(method.getName()));
+    }
 
 }

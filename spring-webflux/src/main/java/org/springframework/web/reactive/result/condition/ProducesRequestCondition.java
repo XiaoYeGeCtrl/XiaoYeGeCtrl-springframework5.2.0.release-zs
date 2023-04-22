@@ -47,324 +47,322 @@ import org.springframework.web.server.UnsupportedMediaTypeStatusException;
  */
 public final class ProducesRequestCondition extends AbstractRequestCondition<ProducesRequestCondition> {
 
-	private static final RequestedContentTypeResolver DEFAULT_CONTENT_TYPE_RESOLVER =
-			new RequestedContentTypeResolverBuilder().build();
+    private static final RequestedContentTypeResolver DEFAULT_CONTENT_TYPE_RESOLVER =
+            new RequestedContentTypeResolverBuilder().build();
 
-	private static final ProducesRequestCondition EMPTY_CONDITION = new ProducesRequestCondition();
+    private static final ProducesRequestCondition EMPTY_CONDITION = new ProducesRequestCondition();
 
-	private static final String MEDIA_TYPES_ATTRIBUTE = ProducesRequestCondition.class.getName() + ".MEDIA_TYPES";
-
-
-	private final List<ProduceMediaTypeExpression> mediaTypeAllList =
-			Collections.singletonList(new ProduceMediaTypeExpression(MediaType.ALL_VALUE));
-
-	private final List<ProduceMediaTypeExpression> expressions;
-
-	private final RequestedContentTypeResolver contentTypeResolver;
+    private static final String MEDIA_TYPES_ATTRIBUTE = ProducesRequestCondition.class.getName() + ".MEDIA_TYPES";
 
 
-	/**
-	 * Creates a new instance from "produces" expressions. If 0 expressions
-	 * are provided in total, this condition will match to any request.
-	 * @param produces expressions with syntax defined by {@link RequestMapping#produces()}
-	 */
-	public ProducesRequestCondition(String... produces) {
-		this(produces, null);
-	}
+    private final List<ProduceMediaTypeExpression> mediaTypeAllList =
+            Collections.singletonList(new ProduceMediaTypeExpression(MediaType.ALL_VALUE));
 
-	/**
-	 * Creates a new instance with "produces" and "header" expressions. "Header"
-	 * expressions where the header name is not 'Accept' or have no header value
-	 * defined are ignored. If 0 expressions are provided in total, this condition
-	 * will match to any request.
-	 * @param produces expressions with syntax defined by {@link RequestMapping#produces()}
-	 * @param headers expressions with syntax defined by {@link RequestMapping#headers()}
-	 */
-	public ProducesRequestCondition(String[] produces, String[] headers) {
-		this(produces, headers, null);
-	}
+    private final List<ProduceMediaTypeExpression> expressions;
 
-	/**
-	 * Same as {@link #ProducesRequestCondition(String[], String[])} but also
-	 * accepting a {@link ContentNegotiationManager}.
-	 * @param produces expressions with syntax defined by {@link RequestMapping#produces()}
-	 * @param headers expressions with syntax defined by {@link RequestMapping#headers()}
-	 * @param resolver used to determine requested content type
-	 */
-	public ProducesRequestCondition(String[] produces, String[] headers, RequestedContentTypeResolver resolver) {
-		this.expressions = new ArrayList<>(parseExpressions(produces, headers));
-		Collections.sort(this.expressions);
-		this.contentTypeResolver = resolver != null ? resolver : DEFAULT_CONTENT_TYPE_RESOLVER;
-	}
-
-	/**
-	 * Private constructor for internal use to create matching conditions.
-	 * Note the expressions List is neither sorted, nor deep copied.
-	 */
-	private ProducesRequestCondition(List<ProduceMediaTypeExpression> expressions, ProducesRequestCondition other) {
-		this.expressions = expressions;
-		this.contentTypeResolver = other.contentTypeResolver;
-	}
+    private final RequestedContentTypeResolver contentTypeResolver;
 
 
-	private Set<ProduceMediaTypeExpression> parseExpressions(String[] produces, String[] headers) {
-		Set<ProduceMediaTypeExpression> result = new LinkedHashSet<>();
-		if (headers != null) {
-			for (String header : headers) {
-				HeadersRequestCondition.HeaderExpression expr = new HeadersRequestCondition.HeaderExpression(header);
-				if ("Accept".equalsIgnoreCase(expr.name)) {
-					for (MediaType mediaType : MediaType.parseMediaTypes(expr.value)) {
-						result.add(new ProduceMediaTypeExpression(mediaType, expr.isNegated));
-					}
-				}
-			}
-		}
-		if (produces != null) {
-			for (String produce : produces) {
-				result.add(new ProduceMediaTypeExpression(produce));
-			}
-		}
-		return result;
-	}
+    /**
+     * Creates a new instance from "produces" expressions. If 0 expressions
+     * are provided in total, this condition will match to any request.
+     *
+     * @param produces expressions with syntax defined by {@link RequestMapping#produces()}
+     */
+    public ProducesRequestCondition(String... produces) {
+        this(produces, null);
+    }
 
-	/**
-	 * Return the contained "produces" expressions.
-	 */
-	public Set<MediaTypeExpression> getExpressions() {
-		return new LinkedHashSet<>(this.expressions);
-	}
+    /**
+     * Creates a new instance with "produces" and "header" expressions. "Header"
+     * expressions where the header name is not 'Accept' or have no header value
+     * defined are ignored. If 0 expressions are provided in total, this condition
+     * will match to any request.
+     *
+     * @param produces expressions with syntax defined by {@link RequestMapping#produces()}
+     * @param headers  expressions with syntax defined by {@link RequestMapping#headers()}
+     */
+    public ProducesRequestCondition(String[] produces, String[] headers) {
+        this(produces, headers, null);
+    }
 
-	/**
-	 * Return the contained producible media types excluding negated expressions.
-	 */
-	public Set<MediaType> getProducibleMediaTypes() {
-		Set<MediaType> result = new LinkedHashSet<>();
-		for (ProduceMediaTypeExpression expression : this.expressions) {
-			if (!expression.isNegated()) {
-				result.add(expression.getMediaType());
-			}
-		}
-		return result;
-	}
+    /**
+     * Same as {@link #ProducesRequestCondition(String[], String[])} but also
+     * accepting a {@link ContentNegotiationManager}.
+     *
+     * @param produces expressions with syntax defined by {@link RequestMapping#produces()}
+     * @param headers  expressions with syntax defined by {@link RequestMapping#headers()}
+     * @param resolver used to determine requested content type
+     */
+    public ProducesRequestCondition(String[] produces, String[] headers, RequestedContentTypeResolver resolver) {
+        this.expressions = new ArrayList<>(parseExpressions(produces, headers));
+        Collections.sort(this.expressions);
+        this.contentTypeResolver = resolver != null ? resolver : DEFAULT_CONTENT_TYPE_RESOLVER;
+    }
 
-	/**
-	 * Whether the condition has any media type expressions.
-	 */
-	@Override
-	public boolean isEmpty() {
-		return this.expressions.isEmpty();
-	}
+    /**
+     * Private constructor for internal use to create matching conditions.
+     * Note the expressions List is neither sorted, nor deep copied.
+     */
+    private ProducesRequestCondition(List<ProduceMediaTypeExpression> expressions, ProducesRequestCondition other) {
+        this.expressions = expressions;
+        this.contentTypeResolver = other.contentTypeResolver;
+    }
 
-	@Override
-	protected List<ProduceMediaTypeExpression> getContent() {
-		return this.expressions;
-	}
+    /**
+     * Use this to clear {@link #MEDIA_TYPES_ATTRIBUTE} that contains the parsed,
+     * requested media types.
+     *
+     * @param exchange the current exchange
+     * @since 5.2
+     */
+    public static void clearMediaTypesAttribute(ServerWebExchange exchange) {
+        exchange.getAttributes().remove(MEDIA_TYPES_ATTRIBUTE);
+    }
 
-	@Override
-	protected String getToStringInfix() {
-		return " || ";
-	}
+    private Set<ProduceMediaTypeExpression> parseExpressions(String[] produces, String[] headers) {
+        Set<ProduceMediaTypeExpression> result = new LinkedHashSet<>();
+        if (headers != null) {
+            for (String header : headers) {
+                HeadersRequestCondition.HeaderExpression expr = new HeadersRequestCondition.HeaderExpression(header);
+                if ("Accept".equalsIgnoreCase(expr.name)) {
+                    for (MediaType mediaType : MediaType.parseMediaTypes(expr.value)) {
+                        result.add(new ProduceMediaTypeExpression(mediaType, expr.isNegated));
+                    }
+                }
+            }
+        }
+        if (produces != null) {
+            for (String produce : produces) {
+                result.add(new ProduceMediaTypeExpression(produce));
+            }
+        }
+        return result;
+    }
 
-	/**
-	 * Returns the "other" instance if it has any expressions; returns "this"
-	 * instance otherwise. Practically that means a method-level "produces"
-	 * overrides a type-level "produces" condition.
-	 */
-	@Override
-	public ProducesRequestCondition combine(ProducesRequestCondition other) {
-		return (!other.expressions.isEmpty() ? other : this);
-	}
+    /**
+     * Return the contained "produces" expressions.
+     */
+    public Set<MediaTypeExpression> getExpressions() {
+        return new LinkedHashSet<>(this.expressions);
+    }
 
-	/**
-	 * Checks if any of the contained media type expressions match the given
-	 * request 'Content-Type' header and returns an instance that is guaranteed
-	 * to contain matching expressions only. The match is performed via
-	 * {@link MediaType#isCompatibleWith(MediaType)}.
-	 * @param exchange the current exchange
-	 * @return the same instance if there are no expressions;
-	 * or a new condition with matching expressions;
-	 * or {@code null} if no expressions match.
-	 */
-	@Override
-	@Nullable
-	public ProducesRequestCondition getMatchingCondition(ServerWebExchange exchange) {
-		if (CorsUtils.isPreFlightRequest(exchange.getRequest())) {
-			return EMPTY_CONDITION;
-		}
-		if (isEmpty()) {
-			return this;
-		}
-		List<ProduceMediaTypeExpression> result = getMatchingExpressions(exchange);
-		if (!CollectionUtils.isEmpty(result)) {
-			return new ProducesRequestCondition(result, this);
-		}
-		else {
-			try {
-				if (MediaType.ALL.isPresentIn(getAcceptedMediaTypes(exchange))) {
-					return EMPTY_CONDITION;
-				}
-			}
-			catch (NotAcceptableStatusException | UnsupportedMediaTypeStatusException ex) {
-				// Ignore
-			}
-		}
-		return null;
-	}
+    /**
+     * Return the contained producible media types excluding negated expressions.
+     */
+    public Set<MediaType> getProducibleMediaTypes() {
+        Set<MediaType> result = new LinkedHashSet<>();
+        for (ProduceMediaTypeExpression expression : this.expressions) {
+            if (!expression.isNegated()) {
+                result.add(expression.getMediaType());
+            }
+        }
+        return result;
+    }
 
-	@Nullable
-	private List<ProduceMediaTypeExpression> getMatchingExpressions(ServerWebExchange exchange) {
-		List<ProduceMediaTypeExpression> result = null;
-		for (ProduceMediaTypeExpression expression : this.expressions) {
-			if (expression.match(exchange)) {
-				result = result != null ? result : new ArrayList<>();
-				result.add(expression);
-			}
-		}
-		return result;
-	}
+    /**
+     * Whether the condition has any media type expressions.
+     */
+    @Override
+    public boolean isEmpty() {
+        return this.expressions.isEmpty();
+    }
 
-	/**
-	 * Compares this and another "produces" condition as follows:
-	 * <ol>
-	 * <li>Sort 'Accept' header media types by quality value via
-	 * {@link MediaType#sortByQualityValue(List)} and iterate the list.
-	 * <li>Get the first index of matching media types in each "produces"
-	 * condition first matching with {@link MediaType#equals(Object)} and
-	 * then with {@link MediaType#includes(MediaType)}.
-	 * <li>If a lower index is found, the condition at that index wins.
-	 * <li>If both indexes are equal, the media types at the index are
-	 * compared further with {@link MediaType#SPECIFICITY_COMPARATOR}.
-	 * </ol>
-	 * <p>It is assumed that both instances have been obtained via
-	 * {@link #getMatchingCondition(ServerWebExchange)} and each instance
-	 * contains the matching producible media type expression only or
-	 * is otherwise empty.
-	 */
-	@Override
-	public int compareTo(ProducesRequestCondition other, ServerWebExchange exchange) {
-		try {
-			List<MediaType> acceptedMediaTypes = getAcceptedMediaTypes(exchange);
-			for (MediaType acceptedMediaType : acceptedMediaTypes) {
-				int thisIndex = this.indexOfEqualMediaType(acceptedMediaType);
-				int otherIndex = other.indexOfEqualMediaType(acceptedMediaType);
-				int result = compareMatchingMediaTypes(this, thisIndex, other, otherIndex);
-				if (result != 0) {
-					return result;
-				}
-				thisIndex = this.indexOfIncludedMediaType(acceptedMediaType);
-				otherIndex = other.indexOfIncludedMediaType(acceptedMediaType);
-				result = compareMatchingMediaTypes(this, thisIndex, other, otherIndex);
-				if (result != 0) {
-					return result;
-				}
-			}
-			return 0;
-		}
-		catch (NotAcceptableStatusException ex) {
-			// should never happen
-			throw new IllegalStateException("Cannot compare without having any requested media types", ex);
-		}
-	}
+    @Override
+    protected List<ProduceMediaTypeExpression> getContent() {
+        return this.expressions;
+    }
 
-	private List<MediaType> getAcceptedMediaTypes(ServerWebExchange exchange) throws NotAcceptableStatusException {
-		List<MediaType> result = exchange.getAttribute(MEDIA_TYPES_ATTRIBUTE);
-		if (result == null) {
-			result = this.contentTypeResolver.resolveMediaTypes(exchange);
-			exchange.getAttributes().put(MEDIA_TYPES_ATTRIBUTE, result);
-		}
-		return result;
-	}
+    @Override
+    protected String getToStringInfix() {
+        return " || ";
+    }
 
-	private int indexOfEqualMediaType(MediaType mediaType) {
-		for (int i = 0; i < getExpressionsToCompare().size(); i++) {
-			MediaType currentMediaType = getExpressionsToCompare().get(i).getMediaType();
-			if (mediaType.getType().equalsIgnoreCase(currentMediaType.getType()) &&
-					mediaType.getSubtype().equalsIgnoreCase(currentMediaType.getSubtype())) {
-				return i;
-			}
-		}
-		return -1;
-	}
+    /**
+     * Returns the "other" instance if it has any expressions; returns "this"
+     * instance otherwise. Practically that means a method-level "produces"
+     * overrides a type-level "produces" condition.
+     */
+    @Override
+    public ProducesRequestCondition combine(ProducesRequestCondition other) {
+        return (!other.expressions.isEmpty() ? other : this);
+    }
 
-	private int indexOfIncludedMediaType(MediaType mediaType) {
-		for (int i = 0; i < getExpressionsToCompare().size(); i++) {
-			if (mediaType.includes(getExpressionsToCompare().get(i).getMediaType())) {
-				return i;
-			}
-		}
-		return -1;
-	}
+    /**
+     * Checks if any of the contained media type expressions match the given
+     * request 'Content-Type' header and returns an instance that is guaranteed
+     * to contain matching expressions only. The match is performed via
+     * {@link MediaType#isCompatibleWith(MediaType)}.
+     *
+     * @param exchange the current exchange
+     * @return the same instance if there are no expressions;
+     * or a new condition with matching expressions;
+     * or {@code null} if no expressions match.
+     */
+    @Override
+    @Nullable
+    public ProducesRequestCondition getMatchingCondition(ServerWebExchange exchange) {
+        if (CorsUtils.isPreFlightRequest(exchange.getRequest())) {
+            return EMPTY_CONDITION;
+        }
+        if (isEmpty()) {
+            return this;
+        }
+        List<ProduceMediaTypeExpression> result = getMatchingExpressions(exchange);
+        if (!CollectionUtils.isEmpty(result)) {
+            return new ProducesRequestCondition(result, this);
+        } else {
+            try {
+                if (MediaType.ALL.isPresentIn(getAcceptedMediaTypes(exchange))) {
+                    return EMPTY_CONDITION;
+                }
+            } catch (NotAcceptableStatusException | UnsupportedMediaTypeStatusException ex) {
+                // Ignore
+            }
+        }
+        return null;
+    }
 
-	private int compareMatchingMediaTypes(ProducesRequestCondition condition1, int index1,
-			ProducesRequestCondition condition2, int index2) {
+    @Nullable
+    private List<ProduceMediaTypeExpression> getMatchingExpressions(ServerWebExchange exchange) {
+        List<ProduceMediaTypeExpression> result = null;
+        for (ProduceMediaTypeExpression expression : this.expressions) {
+            if (expression.match(exchange)) {
+                result = result != null ? result : new ArrayList<>();
+                result.add(expression);
+            }
+        }
+        return result;
+    }
 
-		int result = 0;
-		if (index1 != index2) {
-			result = index2 - index1;
-		}
-		else if (index1 != -1) {
-			ProduceMediaTypeExpression expr1 = condition1.getExpressionsToCompare().get(index1);
-			ProduceMediaTypeExpression expr2 = condition2.getExpressionsToCompare().get(index2);
-			result = expr1.compareTo(expr2);
-			result = (result != 0 ? result : expr1.getMediaType().compareTo(expr2.getMediaType()));
-		}
-		return result;
-	}
+    /**
+     * Compares this and another "produces" condition as follows:
+     * <ol>
+     * <li>Sort 'Accept' header media types by quality value via
+     * {@link MediaType#sortByQualityValue(List)} and iterate the list.
+     * <li>Get the first index of matching media types in each "produces"
+     * condition first matching with {@link MediaType#equals(Object)} and
+     * then with {@link MediaType#includes(MediaType)}.
+     * <li>If a lower index is found, the condition at that index wins.
+     * <li>If both indexes are equal, the media types at the index are
+     * compared further with {@link MediaType#SPECIFICITY_COMPARATOR}.
+     * </ol>
+     * <p>It is assumed that both instances have been obtained via
+     * {@link #getMatchingCondition(ServerWebExchange)} and each instance
+     * contains the matching producible media type expression only or
+     * is otherwise empty.
+     */
+    @Override
+    public int compareTo(ProducesRequestCondition other, ServerWebExchange exchange) {
+        try {
+            List<MediaType> acceptedMediaTypes = getAcceptedMediaTypes(exchange);
+            for (MediaType acceptedMediaType : acceptedMediaTypes) {
+                int thisIndex = this.indexOfEqualMediaType(acceptedMediaType);
+                int otherIndex = other.indexOfEqualMediaType(acceptedMediaType);
+                int result = compareMatchingMediaTypes(this, thisIndex, other, otherIndex);
+                if (result != 0) {
+                    return result;
+                }
+                thisIndex = this.indexOfIncludedMediaType(acceptedMediaType);
+                otherIndex = other.indexOfIncludedMediaType(acceptedMediaType);
+                result = compareMatchingMediaTypes(this, thisIndex, other, otherIndex);
+                if (result != 0) {
+                    return result;
+                }
+            }
+            return 0;
+        } catch (NotAcceptableStatusException ex) {
+            // should never happen
+            throw new IllegalStateException("Cannot compare without having any requested media types", ex);
+        }
+    }
 
-	/**
-	 * Return the contained "produces" expressions or if that's empty, a list
-	 * with a {@value MediaType#ALL_VALUE} expression.
-	 */
-	private List<ProduceMediaTypeExpression> getExpressionsToCompare() {
-		return (this.expressions.isEmpty() ? this.mediaTypeAllList  : this.expressions);
-	}
+    private List<MediaType> getAcceptedMediaTypes(ServerWebExchange exchange) throws NotAcceptableStatusException {
+        List<MediaType> result = exchange.getAttribute(MEDIA_TYPES_ATTRIBUTE);
+        if (result == null) {
+            result = this.contentTypeResolver.resolveMediaTypes(exchange);
+            exchange.getAttributes().put(MEDIA_TYPES_ATTRIBUTE, result);
+        }
+        return result;
+    }
 
+    private int indexOfEqualMediaType(MediaType mediaType) {
+        for (int i = 0; i < getExpressionsToCompare().size(); i++) {
+            MediaType currentMediaType = getExpressionsToCompare().get(i).getMediaType();
+            if (mediaType.getType().equalsIgnoreCase(currentMediaType.getType()) &&
+                    mediaType.getSubtype().equalsIgnoreCase(currentMediaType.getSubtype())) {
+                return i;
+            }
+        }
+        return -1;
+    }
 
-	/**
-	 * Use this to clear {@link #MEDIA_TYPES_ATTRIBUTE} that contains the parsed,
-	 * requested media types.
-	 * @param exchange the current exchange
-	 * @since 5.2
-	 */
-	public static void clearMediaTypesAttribute(ServerWebExchange exchange) {
-		exchange.getAttributes().remove(MEDIA_TYPES_ATTRIBUTE);
-	}
+    private int indexOfIncludedMediaType(MediaType mediaType) {
+        for (int i = 0; i < getExpressionsToCompare().size(); i++) {
+            if (mediaType.includes(getExpressionsToCompare().get(i).getMediaType())) {
+                return i;
+            }
+        }
+        return -1;
+    }
 
+    private int compareMatchingMediaTypes(ProducesRequestCondition condition1, int index1,
+                                          ProducesRequestCondition condition2, int index2) {
 
-	/**
-	 * Parses and matches a single media type expression to a request's 'Accept' header.
-	 */
-	class ProduceMediaTypeExpression extends AbstractMediaTypeExpression {
+        int result = 0;
+        if (index1 != index2) {
+            result = index2 - index1;
+        } else if (index1 != -1) {
+            ProduceMediaTypeExpression expr1 = condition1.getExpressionsToCompare().get(index1);
+            ProduceMediaTypeExpression expr2 = condition2.getExpressionsToCompare().get(index2);
+            result = expr1.compareTo(expr2);
+            result = (result != 0 ? result : expr1.getMediaType().compareTo(expr2.getMediaType()));
+        }
+        return result;
+    }
 
-		ProduceMediaTypeExpression(MediaType mediaType, boolean negated) {
-			super(mediaType, negated);
-		}
+    /**
+     * Return the contained "produces" expressions or if that's empty, a list
+     * with a {@value MediaType#ALL_VALUE} expression.
+     */
+    private List<ProduceMediaTypeExpression> getExpressionsToCompare() {
+        return (this.expressions.isEmpty() ? this.mediaTypeAllList : this.expressions);
+    }
 
-		ProduceMediaTypeExpression(String expression) {
-			super(expression);
-		}
+    /**
+     * Parses and matches a single media type expression to a request's 'Accept' header.
+     */
+    class ProduceMediaTypeExpression extends AbstractMediaTypeExpression {
 
-		@Override
-		protected boolean matchMediaType(ServerWebExchange exchange) throws NotAcceptableStatusException {
-			List<MediaType> acceptedMediaTypes = getAcceptedMediaTypes(exchange);
-			for (MediaType acceptedMediaType : acceptedMediaTypes) {
-				if (getMediaType().isCompatibleWith(acceptedMediaType) && matchParameters(acceptedMediaType)) {
-					return true;
-				}
-			}
-			return false;
-		}
+        ProduceMediaTypeExpression(MediaType mediaType, boolean negated) {
+            super(mediaType, negated);
+        }
 
-		private boolean matchParameters(MediaType acceptedMediaType) {
-			for (String name : getMediaType().getParameters().keySet()) {
-				String s1 = getMediaType().getParameter(name);
-				String s2 = acceptedMediaType.getParameter(name);
-				if (StringUtils.hasText(s1) && StringUtils.hasText(s2) && !s1.equalsIgnoreCase(s2)) {
-					return false;
-				}
-			}
-			return true;
-		}
-	}
+        ProduceMediaTypeExpression(String expression) {
+            super(expression);
+        }
+
+        @Override
+        protected boolean matchMediaType(ServerWebExchange exchange) throws NotAcceptableStatusException {
+            List<MediaType> acceptedMediaTypes = getAcceptedMediaTypes(exchange);
+            for (MediaType acceptedMediaType : acceptedMediaTypes) {
+                if (getMediaType().isCompatibleWith(acceptedMediaType) && matchParameters(acceptedMediaType)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        private boolean matchParameters(MediaType acceptedMediaType) {
+            for (String name : getMediaType().getParameters().keySet()) {
+                String s1 = getMediaType().getParameter(name);
+                String s2 = acceptedMediaType.getParameter(name);
+                if (StringUtils.hasText(s1) && StringUtils.hasText(s2) && !s1.equalsIgnoreCase(s2)) {
+                    return false;
+                }
+            }
+            return true;
+        }
+    }
 
 }

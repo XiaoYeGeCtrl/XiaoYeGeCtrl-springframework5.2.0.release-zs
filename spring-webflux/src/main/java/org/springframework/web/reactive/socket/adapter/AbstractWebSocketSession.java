@@ -39,120 +39,120 @@ import org.springframework.web.reactive.socket.WebSocketSession;
  * holds common fields and exposes accessors. Also implements the
  * {@code WebSocketMessage} factory methods.
  *
+ * @param <T> the native delegate type
  * @author Rossen Stoyanchev
  * @since 5.0
- * @param <T> the native delegate type
  */
 public abstract class AbstractWebSocketSession<T> implements WebSocketSession {
 
-	protected final Log logger = LogFactory.getLog(getClass());
+    protected final Log logger = LogFactory.getLog(getClass());
 
-	private final T delegate;
+    private final T delegate;
 
-	private final String id;
+    private final String id;
 
-	private final HandshakeInfo handshakeInfo;
+    private final HandshakeInfo handshakeInfo;
 
-	private final DataBufferFactory bufferFactory;
+    private final DataBufferFactory bufferFactory;
 
-	private final Map<String, Object> attributes = new ConcurrentHashMap<>();
+    private final Map<String, Object> attributes = new ConcurrentHashMap<>();
 
-	private final String logPrefix;
-
-
-	/**
-	 * Create a new WebSocket session.
-	 */
-	protected AbstractWebSocketSession(T delegate, String id, HandshakeInfo info, DataBufferFactory bufferFactory) {
-		Assert.notNull(delegate, "Native session is required.");
-		Assert.notNull(id, "Session id is required.");
-		Assert.notNull(info, "HandshakeInfo is required.");
-		Assert.notNull(bufferFactory, "DataBuffer factory is required.");
-
-		this.delegate = delegate;
-		this.id = id;
-		this.handshakeInfo = info;
-		this.bufferFactory = bufferFactory;
-		this.attributes.putAll(info.getAttributes());
-		this.logPrefix = initLogPrefix(info, id);
-
-		if (logger.isDebugEnabled()) {
-			logger.debug(getLogPrefix() + "Session id \"" + getId() + "\" for " + getHandshakeInfo().getUri());
-		}
-	}
-
-	private static String initLogPrefix(HandshakeInfo info, String id) {
-		return info.getLogPrefix() != null ? info.getLogPrefix() : "[" + id + "] ";
-	}
+    private final String logPrefix;
 
 
-	protected T getDelegate() {
-		return this.delegate;
-	}
+    /**
+     * Create a new WebSocket session.
+     */
+    protected AbstractWebSocketSession(T delegate, String id, HandshakeInfo info, DataBufferFactory bufferFactory) {
+        Assert.notNull(delegate, "Native session is required.");
+        Assert.notNull(id, "Session id is required.");
+        Assert.notNull(info, "HandshakeInfo is required.");
+        Assert.notNull(bufferFactory, "DataBuffer factory is required.");
 
-	@Override
-	public String getId() {
-		return this.id;
-	}
+        this.delegate = delegate;
+        this.id = id;
+        this.handshakeInfo = info;
+        this.bufferFactory = bufferFactory;
+        this.attributes.putAll(info.getAttributes());
+        this.logPrefix = initLogPrefix(info, id);
 
-	@Override
-	public HandshakeInfo getHandshakeInfo() {
-		return this.handshakeInfo;
-	}
+        if (logger.isDebugEnabled()) {
+            logger.debug(getLogPrefix() + "Session id \"" + getId() + "\" for " + getHandshakeInfo().getUri());
+        }
+    }
 
-	@Override
-	public DataBufferFactory bufferFactory() {
-		return this.bufferFactory;
-	}
-
-	@Override
-	public Map<String, Object> getAttributes() {
-		return this.attributes;
-	}
-
-	protected String getLogPrefix() {
-		return this.logPrefix;
-	}
+    private static String initLogPrefix(HandshakeInfo info, String id) {
+        return info.getLogPrefix() != null ? info.getLogPrefix() : "[" + id + "] ";
+    }
 
 
-	@Override
-	public abstract Flux<WebSocketMessage> receive();
+    protected T getDelegate() {
+        return this.delegate;
+    }
 
-	@Override
-	public abstract Mono<Void> send(Publisher<WebSocketMessage> messages);
+    @Override
+    public String getId() {
+        return this.id;
+    }
 
+    @Override
+    public HandshakeInfo getHandshakeInfo() {
+        return this.handshakeInfo;
+    }
 
-	// WebSocketMessage factory methods
+    @Override
+    public DataBufferFactory bufferFactory() {
+        return this.bufferFactory;
+    }
 
-	@Override
-	public WebSocketMessage textMessage(String payload) {
-		byte[] bytes = payload.getBytes(StandardCharsets.UTF_8);
-		DataBuffer buffer = bufferFactory().wrap(bytes);
-		return new WebSocketMessage(WebSocketMessage.Type.TEXT, buffer);
-	}
+    @Override
+    public Map<String, Object> getAttributes() {
+        return this.attributes;
+    }
 
-	@Override
-	public WebSocketMessage binaryMessage(Function<DataBufferFactory, DataBuffer> payloadFactory) {
-		DataBuffer payload = payloadFactory.apply(bufferFactory());
-		return new WebSocketMessage(WebSocketMessage.Type.BINARY, payload);
-	}
-
-	@Override
-	public WebSocketMessage pingMessage(Function<DataBufferFactory, DataBuffer> payloadFactory) {
-		DataBuffer payload = payloadFactory.apply(bufferFactory());
-		return new WebSocketMessage(WebSocketMessage.Type.PING, payload);
-	}
-
-	@Override
-	public WebSocketMessage pongMessage(Function<DataBufferFactory, DataBuffer> payloadFactory) {
-		DataBuffer payload = payloadFactory.apply(bufferFactory());
-		return new WebSocketMessage(WebSocketMessage.Type.PONG, payload);
-	}
+    protected String getLogPrefix() {
+        return this.logPrefix;
+    }
 
 
-	@Override
-	public String toString() {
-		return getClass().getSimpleName() + "[id=" + getId() + ", uri=" + getHandshakeInfo().getUri() + "]";
-	}
+    @Override
+    public abstract Flux<WebSocketMessage> receive();
+
+    @Override
+    public abstract Mono<Void> send(Publisher<WebSocketMessage> messages);
+
+
+    // WebSocketMessage factory methods
+
+    @Override
+    public WebSocketMessage textMessage(String payload) {
+        byte[] bytes = payload.getBytes(StandardCharsets.UTF_8);
+        DataBuffer buffer = bufferFactory().wrap(bytes);
+        return new WebSocketMessage(WebSocketMessage.Type.TEXT, buffer);
+    }
+
+    @Override
+    public WebSocketMessage binaryMessage(Function<DataBufferFactory, DataBuffer> payloadFactory) {
+        DataBuffer payload = payloadFactory.apply(bufferFactory());
+        return new WebSocketMessage(WebSocketMessage.Type.BINARY, payload);
+    }
+
+    @Override
+    public WebSocketMessage pingMessage(Function<DataBufferFactory, DataBuffer> payloadFactory) {
+        DataBuffer payload = payloadFactory.apply(bufferFactory());
+        return new WebSocketMessage(WebSocketMessage.Type.PING, payload);
+    }
+
+    @Override
+    public WebSocketMessage pongMessage(Function<DataBufferFactory, DataBuffer> payloadFactory) {
+        DataBuffer payload = payloadFactory.apply(bufferFactory());
+        return new WebSocketMessage(WebSocketMessage.Type.PONG, payload);
+    }
+
+
+    @Override
+    public String toString() {
+        return getClass().getSimpleName() + "[id=" + getId() + ", uri=" + getHandshakeInfo().getUri() + "]";
+    }
 
 }

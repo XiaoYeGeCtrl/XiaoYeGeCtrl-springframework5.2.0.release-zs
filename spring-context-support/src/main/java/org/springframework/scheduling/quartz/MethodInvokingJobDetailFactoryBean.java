@@ -69,232 +69,231 @@ import org.springframework.util.MethodInvoker;
  *
  * @author Juergen Hoeller
  * @author Alef Arendsen
- * @since 18.02.2004
  * @see #setTargetBeanName
  * @see #setTargetObject
  * @see #setTargetMethod
  * @see #setConcurrent
+ * @since 18.02.2004
  */
 public class MethodInvokingJobDetailFactoryBean extends ArgumentConvertingMethodInvoker
-		implements FactoryBean<JobDetail>, BeanNameAware, BeanClassLoaderAware, BeanFactoryAware, InitializingBean {
+        implements FactoryBean<JobDetail>, BeanNameAware, BeanClassLoaderAware, BeanFactoryAware, InitializingBean {
 
-	@Nullable
-	private String name;
+    @Nullable
+    private String name;
 
-	private String group = Scheduler.DEFAULT_GROUP;
+    private String group = Scheduler.DEFAULT_GROUP;
 
-	private boolean concurrent = true;
+    private boolean concurrent = true;
 
-	@Nullable
-	private String targetBeanName;
+    @Nullable
+    private String targetBeanName;
 
-	@Nullable
-	private String beanName;
+    @Nullable
+    private String beanName;
 
-	@Nullable
-	private ClassLoader beanClassLoader = ClassUtils.getDefaultClassLoader();
+    @Nullable
+    private ClassLoader beanClassLoader = ClassUtils.getDefaultClassLoader();
 
-	@Nullable
-	private BeanFactory beanFactory;
+    @Nullable
+    private BeanFactory beanFactory;
 
-	@Nullable
-	private JobDetail jobDetail;
-
-
-	/**
-	 * Set the name of the job.
-	 * <p>Default is the bean name of this FactoryBean.
-	 */
-	public void setName(String name) {
-		this.name = name;
-	}
-
-	/**
-	 * Set the group of the job.
-	 * <p>Default is the default group of the Scheduler.
-	 * @see org.quartz.Scheduler#DEFAULT_GROUP
-	 */
-	public void setGroup(String group) {
-		this.group = group;
-	}
-
-	/**
-	 * Specify whether or not multiple jobs should be run in a concurrent fashion.
-	 * The behavior when one does not want concurrent jobs to be executed is
-	 * realized through adding the {@code @PersistJobDataAfterExecution} and
-	 * {@code @DisallowConcurrentExecution} markers.
-	 * More information on stateful versus stateless jobs can be found
-	 * <a href="https://www.quartz-scheduler.org/documentation/quartz-2.3.0/tutorials/tutorial-lesson-03.html">here</a>.
-	 * <p>The default setting is to run jobs concurrently.
-	 */
-	public void setConcurrent(boolean concurrent) {
-		this.concurrent = concurrent;
-	}
-
-	/**
-	 * Set the name of the target bean in the Spring BeanFactory.
-	 * <p>This is an alternative to specifying {@link #setTargetObject "targetObject"},
-	 * allowing for non-singleton beans to be invoked. Note that specified
-	 * "targetObject" and {@link #setTargetClass "targetClass"} values will
-	 * override the corresponding effect of this "targetBeanName" setting
-	 * (i.e. statically pre-define the bean type or even the bean object).
-	 */
-	public void setTargetBeanName(String targetBeanName) {
-		this.targetBeanName = targetBeanName;
-	}
-
-	@Override
-	public void setBeanName(String beanName) {
-		this.beanName = beanName;
-	}
-
-	@Override
-	public void setBeanClassLoader(ClassLoader classLoader) {
-		this.beanClassLoader = classLoader;
-	}
-
-	@Override
-	public void setBeanFactory(BeanFactory beanFactory) {
-		this.beanFactory = beanFactory;
-	}
-
-	@Override
-	protected Class<?> resolveClassName(String className) throws ClassNotFoundException {
-		return ClassUtils.forName(className, this.beanClassLoader);
-	}
+    @Nullable
+    private JobDetail jobDetail;
 
 
-	@Override
-	public void afterPropertiesSet() throws ClassNotFoundException, NoSuchMethodException {
-		prepare();
+    /**
+     * Set the name of the job.
+     * <p>Default is the bean name of this FactoryBean.
+     */
+    public void setName(String name) {
+        this.name = name;
+    }
 
-		// Use specific name if given, else fall back to bean name.
-		String name = (this.name != null ? this.name : this.beanName);
+    /**
+     * Set the group of the job.
+     * <p>Default is the default group of the Scheduler.
+     *
+     * @see org.quartz.Scheduler#DEFAULT_GROUP
+     */
+    public void setGroup(String group) {
+        this.group = group;
+    }
 
-		// Consider the concurrent flag to choose between stateful and stateless job.
-		Class<? extends Job> jobClass = (this.concurrent ? MethodInvokingJob.class : StatefulMethodInvokingJob.class);
+    /**
+     * Specify whether or not multiple jobs should be run in a concurrent fashion.
+     * The behavior when one does not want concurrent jobs to be executed is
+     * realized through adding the {@code @PersistJobDataAfterExecution} and
+     * {@code @DisallowConcurrentExecution} markers.
+     * More information on stateful versus stateless jobs can be found
+     * <a href="https://www.quartz-scheduler.org/documentation/quartz-2.3.0/tutorials/tutorial-lesson-03.html">here</a>.
+     * <p>The default setting is to run jobs concurrently.
+     */
+    public void setConcurrent(boolean concurrent) {
+        this.concurrent = concurrent;
+    }
 
-		// Build JobDetail instance.
-		JobDetailImpl jdi = new JobDetailImpl();
-		jdi.setName(name != null ? name : toString());
-		jdi.setGroup(this.group);
-		jdi.setJobClass(jobClass);
-		jdi.setDurability(true);
-		jdi.getJobDataMap().put("methodInvoker", this);
-		this.jobDetail = jdi;
+    /**
+     * Set the name of the target bean in the Spring BeanFactory.
+     * <p>This is an alternative to specifying {@link #setTargetObject "targetObject"},
+     * allowing for non-singleton beans to be invoked. Note that specified
+     * "targetObject" and {@link #setTargetClass "targetClass"} values will
+     * override the corresponding effect of this "targetBeanName" setting
+     * (i.e. statically pre-define the bean type or even the bean object).
+     */
+    public void setTargetBeanName(String targetBeanName) {
+        this.targetBeanName = targetBeanName;
+    }
 
-		postProcessJobDetail(this.jobDetail);
-	}
+    @Override
+    public void setBeanName(String beanName) {
+        this.beanName = beanName;
+    }
 
-	/**
-	 * Callback for post-processing the JobDetail to be exposed by this FactoryBean.
-	 * <p>The default implementation is empty. Can be overridden in subclasses.
-	 * @param jobDetail the JobDetail prepared by this FactoryBean
-	 */
-	protected void postProcessJobDetail(JobDetail jobDetail) {
-	}
+    @Override
+    public void setBeanClassLoader(ClassLoader classLoader) {
+        this.beanClassLoader = classLoader;
+    }
 
+    @Override
+    public void setBeanFactory(BeanFactory beanFactory) {
+        this.beanFactory = beanFactory;
+    }
 
-	/**
-	 * Overridden to support the {@link #setTargetBeanName "targetBeanName"} feature.
-	 */
-	@Override
-	public Class<?> getTargetClass() {
-		Class<?> targetClass = super.getTargetClass();
-		if (targetClass == null && this.targetBeanName != null) {
-			Assert.state(this.beanFactory != null, "BeanFactory must be set when using 'targetBeanName'");
-			targetClass = this.beanFactory.getType(this.targetBeanName);
-		}
-		return targetClass;
-	}
-
-	/**
-	 * Overridden to support the {@link #setTargetBeanName "targetBeanName"} feature.
-	 */
-	@Override
-	public Object getTargetObject() {
-		Object targetObject = super.getTargetObject();
-		if (targetObject == null && this.targetBeanName != null) {
-			Assert.state(this.beanFactory != null, "BeanFactory must be set when using 'targetBeanName'");
-			targetObject = this.beanFactory.getBean(this.targetBeanName);
-		}
-		return targetObject;
-	}
-
-
-	@Override
-	@Nullable
-	public JobDetail getObject() {
-		return this.jobDetail;
-	}
-
-	@Override
-	public Class<? extends JobDetail> getObjectType() {
-		return (this.jobDetail != null ? this.jobDetail.getClass() : JobDetail.class);
-	}
-
-	@Override
-	public boolean isSingleton() {
-		return true;
-	}
+    @Override
+    protected Class<?> resolveClassName(String className) throws ClassNotFoundException {
+        return ClassUtils.forName(className, this.beanClassLoader);
+    }
 
 
-	/**
-	 * Quartz Job implementation that invokes a specified method.
-	 * Automatically applied by MethodInvokingJobDetailFactoryBean.
-	 */
-	public static class MethodInvokingJob extends QuartzJobBean {
+    @Override
+    public void afterPropertiesSet() throws ClassNotFoundException, NoSuchMethodException {
+        prepare();
 
-		protected static final Log logger = LogFactory.getLog(MethodInvokingJob.class);
+        // Use specific name if given, else fall back to bean name.
+        String name = (this.name != null ? this.name : this.beanName);
 
-		@Nullable
-		private MethodInvoker methodInvoker;
+        // Consider the concurrent flag to choose between stateful and stateless job.
+        Class<? extends Job> jobClass = (this.concurrent ? MethodInvokingJob.class : StatefulMethodInvokingJob.class);
 
-		/**
-		 * Set the MethodInvoker to use.
-		 */
-		public void setMethodInvoker(MethodInvoker methodInvoker) {
-			this.methodInvoker = methodInvoker;
-		}
+        // Build JobDetail instance.
+        JobDetailImpl jdi = new JobDetailImpl();
+        jdi.setName(name != null ? name : toString());
+        jdi.setGroup(this.group);
+        jdi.setJobClass(jobClass);
+        jdi.setDurability(true);
+        jdi.getJobDataMap().put("methodInvoker", this);
+        this.jobDetail = jdi;
 
-		/**
-		 * Invoke the method via the MethodInvoker.
-		 */
-		@Override
-		protected void executeInternal(JobExecutionContext context) throws JobExecutionException {
-			Assert.state(this.methodInvoker != null, "No MethodInvoker set");
-			try {
-				context.setResult(this.methodInvoker.invoke());
-			}
-			catch (InvocationTargetException ex) {
-				if (ex.getTargetException() instanceof JobExecutionException) {
-					// -> JobExecutionException, to be logged at info level by Quartz
-					throw (JobExecutionException) ex.getTargetException();
-				}
-				else {
-					// -> "unhandled exception", to be logged at error level by Quartz
-					throw new JobMethodInvocationFailedException(this.methodInvoker, ex.getTargetException());
-				}
-			}
-			catch (Exception ex) {
-				// -> "unhandled exception", to be logged at error level by Quartz
-				throw new JobMethodInvocationFailedException(this.methodInvoker, ex);
-			}
-		}
-	}
+        postProcessJobDetail(this.jobDetail);
+    }
+
+    /**
+     * Callback for post-processing the JobDetail to be exposed by this FactoryBean.
+     * <p>The default implementation is empty. Can be overridden in subclasses.
+     *
+     * @param jobDetail the JobDetail prepared by this FactoryBean
+     */
+    protected void postProcessJobDetail(JobDetail jobDetail) {
+    }
 
 
-	/**
-	 * Extension of the MethodInvokingJob, implementing the StatefulJob interface.
-	 * Quartz checks whether or not jobs are stateful and if so,
-	 * won't let jobs interfere with each other.
-	 */
-	@PersistJobDataAfterExecution
-	@DisallowConcurrentExecution
-	public static class StatefulMethodInvokingJob extends MethodInvokingJob {
+    /**
+     * Overridden to support the {@link #setTargetBeanName "targetBeanName"} feature.
+     */
+    @Override
+    public Class<?> getTargetClass() {
+        Class<?> targetClass = super.getTargetClass();
+        if (targetClass == null && this.targetBeanName != null) {
+            Assert.state(this.beanFactory != null, "BeanFactory must be set when using 'targetBeanName'");
+            targetClass = this.beanFactory.getType(this.targetBeanName);
+        }
+        return targetClass;
+    }
 
-		// No implementation, just an addition of the tag interface StatefulJob
-		// in order to allow stateful method invoking jobs.
-	}
+    /**
+     * Overridden to support the {@link #setTargetBeanName "targetBeanName"} feature.
+     */
+    @Override
+    public Object getTargetObject() {
+        Object targetObject = super.getTargetObject();
+        if (targetObject == null && this.targetBeanName != null) {
+            Assert.state(this.beanFactory != null, "BeanFactory must be set when using 'targetBeanName'");
+            targetObject = this.beanFactory.getBean(this.targetBeanName);
+        }
+        return targetObject;
+    }
+
+
+    @Override
+    @Nullable
+    public JobDetail getObject() {
+        return this.jobDetail;
+    }
+
+    @Override
+    public Class<? extends JobDetail> getObjectType() {
+        return (this.jobDetail != null ? this.jobDetail.getClass() : JobDetail.class);
+    }
+
+    @Override
+    public boolean isSingleton() {
+        return true;
+    }
+
+
+    /**
+     * Quartz Job implementation that invokes a specified method.
+     * Automatically applied by MethodInvokingJobDetailFactoryBean.
+     */
+    public static class MethodInvokingJob extends QuartzJobBean {
+
+        protected static final Log logger = LogFactory.getLog(MethodInvokingJob.class);
+
+        @Nullable
+        private MethodInvoker methodInvoker;
+
+        /**
+         * Set the MethodInvoker to use.
+         */
+        public void setMethodInvoker(MethodInvoker methodInvoker) {
+            this.methodInvoker = methodInvoker;
+        }
+
+        /**
+         * Invoke the method via the MethodInvoker.
+         */
+        @Override
+        protected void executeInternal(JobExecutionContext context) throws JobExecutionException {
+            Assert.state(this.methodInvoker != null, "No MethodInvoker set");
+            try {
+                context.setResult(this.methodInvoker.invoke());
+            } catch (InvocationTargetException ex) {
+                if (ex.getTargetException() instanceof JobExecutionException) {
+                    // -> JobExecutionException, to be logged at info level by Quartz
+                    throw (JobExecutionException) ex.getTargetException();
+                } else {
+                    // -> "unhandled exception", to be logged at error level by Quartz
+                    throw new JobMethodInvocationFailedException(this.methodInvoker, ex.getTargetException());
+                }
+            } catch (Exception ex) {
+                // -> "unhandled exception", to be logged at error level by Quartz
+                throw new JobMethodInvocationFailedException(this.methodInvoker, ex);
+            }
+        }
+    }
+
+
+    /**
+     * Extension of the MethodInvokingJob, implementing the StatefulJob interface.
+     * Quartz checks whether or not jobs are stateful and if so,
+     * won't let jobs interfere with each other.
+     */
+    @PersistJobDataAfterExecution
+    @DisallowConcurrentExecution
+    public static class StatefulMethodInvokingJob extends MethodInvokingJob {
+
+        // No implementation, just an addition of the tag interface StatefulJob
+        // in order to allow stateful method invoking jobs.
+    }
 
 }

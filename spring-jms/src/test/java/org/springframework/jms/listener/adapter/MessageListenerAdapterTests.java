@@ -53,378 +53,378 @@ import static org.mockito.Mockito.verify;
  */
 public class MessageListenerAdapterTests {
 
-	private static final String TEXT = "I fancy a good cuppa right now";
+    private static final String TEXT = "I fancy a good cuppa right now";
 
-	private static final Integer NUMBER = new Integer(1);
+    private static final Integer NUMBER = new Integer(1);
 
-	private static final SerializableObject OBJECT = new SerializableObject();
+    private static final SerializableObject OBJECT = new SerializableObject();
 
-	private static final String CORRELATION_ID = "100";
+    private static final String CORRELATION_ID = "100";
 
-	private static final String RESPONSE_TEXT = "... wi' some full fat creamy milk. Top banana.";
+    private static final String RESPONSE_TEXT = "... wi' some full fat creamy milk. Top banana.";
 
 
-	@Test
-	public void testWithMessageContentsDelegateForTextMessage() throws Exception {
-		TextMessage textMessage = mock(TextMessage.class);
-		// TextMessage contents must be unwrapped...
-		given(textMessage.getText()).willReturn(TEXT);
+    @Test
+    public void testWithMessageContentsDelegateForTextMessage() throws Exception {
+        TextMessage textMessage = mock(TextMessage.class);
+        // TextMessage contents must be unwrapped...
+        given(textMessage.getText()).willReturn(TEXT);
 
-		MessageContentsDelegate delegate = mock(MessageContentsDelegate.class);
+        MessageContentsDelegate delegate = mock(MessageContentsDelegate.class);
 
-		MessageListenerAdapter adapter = new MessageListenerAdapter(delegate);
-		adapter.onMessage(textMessage);
+        MessageListenerAdapter adapter = new MessageListenerAdapter(delegate);
+        adapter.onMessage(textMessage);
 
-		verify(delegate).handleMessage(TEXT);
-	}
+        verify(delegate).handleMessage(TEXT);
+    }
 
-	@Test
-	public void testWithMessageContentsDelegateForBytesMessage() throws Exception {
-		BytesMessage bytesMessage = mock(BytesMessage.class);
-		// BytesMessage contents must be unwrapped...
-		given(bytesMessage.getBodyLength()).willReturn(new Long(TEXT.getBytes().length));
-		given(bytesMessage.readBytes(any(byte[].class))).willAnswer(new Answer<Integer>() {
-			@Override
-			public Integer answer(InvocationOnMock invocation) throws Throwable {
-				byte[] bytes = (byte[]) invocation.getArguments()[0];
-				ByteArrayInputStream inputStream = new ByteArrayInputStream(TEXT.getBytes());
-				return inputStream.read(bytes);
-			}
-		});
-
-		MessageContentsDelegate delegate = mock(MessageContentsDelegate.class);
-
-		MessageListenerAdapter adapter = new MessageListenerAdapter(delegate);
-		adapter.onMessage(bytesMessage);
-
-		verify(delegate).handleMessage(TEXT.getBytes());
-	}
-
-	@Test
-	public void testWithMessageContentsDelegateForObjectMessage() throws Exception {
-		ObjectMessage objectMessage = mock(ObjectMessage.class);
-		given(objectMessage.getObject()).willReturn(NUMBER);
-
-		MessageContentsDelegate delegate = mock(MessageContentsDelegate.class);
-
-		MessageListenerAdapter adapter = new MessageListenerAdapter(delegate);
-		adapter.onMessage(objectMessage);
-
-		verify(delegate).handleMessage(NUMBER);
-	}
-
-	@Test
-	public void testWithMessageContentsDelegateForObjectMessageWithPlainObject() throws Exception {
-		ObjectMessage objectMessage = mock(ObjectMessage.class);
-		given(objectMessage.getObject()).willReturn(OBJECT);
-
-		MessageContentsDelegate delegate = mock(MessageContentsDelegate.class);
-
-		MessageListenerAdapter adapter = new MessageListenerAdapter(delegate);
-		adapter.onMessage(objectMessage);
-
-		verify(delegate).handleMessage(OBJECT);
-	}
-
-	@Test
-	public void testWithMessageDelegate() throws Exception {
-		TextMessage textMessage = mock(TextMessage.class);
-
-		MessageDelegate delegate = mock(MessageDelegate.class);
-
-		MessageListenerAdapter adapter = new MessageListenerAdapter(delegate);
-		// we DON'T want the default SimpleMessageConversion happening...
-		adapter.setMessageConverter(null);
-		adapter.onMessage(textMessage);
-
-		verify(delegate).handleMessage(textMessage);
-	}
-
-	@Test
-	public void testWhenTheAdapterItselfIsTheDelegate() throws Exception {
-		TextMessage textMessage = mock(TextMessage.class);
-		// TextMessage contents must be unwrapped...
-		given(textMessage.getText()).willReturn(TEXT);
-
-		StubMessageListenerAdapter adapter = new StubMessageListenerAdapter();
-		adapter.onMessage(textMessage);
-		assertThat(adapter.wasCalled()).isTrue();
-	}
-
-	@Test
-	public void testRainyDayWithNoApplicableHandlingMethods() throws Exception {
-		TextMessage textMessage = mock(TextMessage.class);
-		// TextMessage contents must be unwrapped...
-		given(textMessage.getText()).willReturn(TEXT);
-
-		StubMessageListenerAdapter adapter = new StubMessageListenerAdapter();
-		adapter.setDefaultListenerMethod("walnutsRock");
-		adapter.onMessage(textMessage);
-		assertThat(adapter.wasCalled()).isFalse();
-	}
-
-	@Test
-	public void testThatAnExceptionThrownFromTheHandlingMethodIsSimplySwallowedByDefault() throws Exception {
-		final IllegalArgumentException exception = new IllegalArgumentException();
-
-		TextMessage textMessage = mock(TextMessage.class);
-		MessageDelegate delegate = mock(MessageDelegate.class);
-		willThrow(exception).given(delegate).handleMessage(textMessage);
-
-		MessageListenerAdapter adapter = new MessageListenerAdapter(delegate) {
-			@Override
-			protected void handleListenerException(Throwable ex) {
-				assertThat(ex).as("The Throwable passed to the handleListenerException(..) method must never be null.").isNotNull();
-				boolean condition = ex instanceof ListenerExecutionFailedException;
-				assertThat(condition).as("The Throwable passed to the handleListenerException(..) method must be of type [ListenerExecutionFailedException].").isTrue();
-				ListenerExecutionFailedException lefx = (ListenerExecutionFailedException) ex;
-				Throwable cause = lefx.getCause();
-				assertThat(cause).as("The cause of a ListenerExecutionFailedException must be preserved.").isNotNull();
-				assertThat(cause).isSameAs(exception);
-			}
-		};
-		// we DON'T want the default SimpleMessageConversion happening...
-		adapter.setMessageConverter(null);
-		adapter.onMessage(textMessage);
-	}
-
-	@Test
-	public void testThatTheDefaultMessageConverterisIndeedTheSimpleMessageConverter() throws Exception {
-		MessageListenerAdapter adapter = new MessageListenerAdapter();
-		assertThat(adapter.getMessageConverter()).as("The default [MessageConverter] must never be null.").isNotNull();
-		boolean condition = adapter.getMessageConverter() instanceof SimpleMessageConverter;
-		assertThat(condition).as("The default [MessageConverter] must be of the type [SimpleMessageConverter]").isTrue();
-	}
-
-	@Test
-	public void testThatWhenNoDelegateIsSuppliedTheDelegateIsAssumedToBeTheMessageListenerAdapterItself() throws Exception {
-		MessageListenerAdapter adapter = new MessageListenerAdapter();
-		assertThat(adapter.getDelegate()).isSameAs(adapter);
-	}
-
-	@Test
-	public void testThatTheDefaultMessageHandlingMethodNameIsTheConstantDefault() throws Exception {
-		MessageListenerAdapter adapter = new MessageListenerAdapter();
-		assertThat(adapter.getDefaultListenerMethod()).isEqualTo(MessageListenerAdapter.ORIGINAL_DEFAULT_LISTENER_METHOD);
-	}
-
-	@Test
-	public void testWithResponsiveMessageDelegate_DoesNotSendReturnTextMessageIfNoSessionSupplied() throws Exception {
-		TextMessage textMessage = mock(TextMessage.class);
-		ResponsiveMessageDelegate delegate = mock(ResponsiveMessageDelegate.class);
-		given(delegate.handleMessage(textMessage)).willReturn(TEXT);
-
-		MessageListenerAdapter adapter = new MessageListenerAdapter(delegate);
-		// we DON'T want the default SimpleMessageConversion happening...
-		adapter.setMessageConverter(null);
-		adapter.onMessage(textMessage);
-	}
-
-	@Test
-	public void testWithResponsiveMessageDelegateWithDefaultDestination_SendsReturnTextMessageWhenSessionSupplied() throws Exception {
-		Queue destination = mock(Queue.class);
-		TextMessage sentTextMessage = mock(TextMessage.class);
-		// correlation ID is queried when response is being created...
-		given(sentTextMessage.getJMSCorrelationID()).willReturn(
-				CORRELATION_ID);
-		// Reply-To is queried when response is being created...
-		given(sentTextMessage.getJMSReplyTo()).willReturn(null); // we want to fall back to the default...
-
-		TextMessage responseTextMessage = mock(TextMessage.class);
-
-		QueueSender queueSender = mock(QueueSender.class);
-		Session session = mock(Session.class);
-		given(session.createTextMessage(RESPONSE_TEXT)).willReturn(responseTextMessage);
-		given(session.createProducer(destination)).willReturn(queueSender);
-
-		ResponsiveMessageDelegate delegate = mock(ResponsiveMessageDelegate.class);
-		given(delegate.handleMessage(sentTextMessage)).willReturn(RESPONSE_TEXT);
-
-		MessageListenerAdapter adapter = new MessageListenerAdapter(delegate) {
-			@Override
-			protected Object extractMessage(Message message) {
-				return message;
-			}
-		};
-		adapter.setDefaultResponseDestination(destination);
-		adapter.onMessage(sentTextMessage, session);
-
-		verify(responseTextMessage).setJMSCorrelationID(CORRELATION_ID);
-		verify(queueSender).send(responseTextMessage);
-		verify(queueSender).close();
-		verify(delegate).handleMessage(sentTextMessage);
-	}
-
-	@Test
-	public void testWithResponsiveMessageDelegateNoDefaultDestination_SendsReturnTextMessageWhenSessionSupplied() throws Exception {
-		Queue destination = mock(Queue.class);
-		TextMessage sentTextMessage = mock(TextMessage.class);
-		// correlation ID is queried when response is being created...
-		given(sentTextMessage.getJMSCorrelationID()).willReturn(null);
-		given(sentTextMessage.getJMSMessageID()).willReturn(CORRELATION_ID);
-		// Reply-To is queried when response is being created...
-		given(sentTextMessage.getJMSReplyTo()).willReturn(destination);
-
-		TextMessage responseTextMessage = mock(TextMessage.class);
-		MessageProducer messageProducer = mock(MessageProducer.class);
-		Session session = mock(Session.class);
-		given(session.createTextMessage(RESPONSE_TEXT)).willReturn(responseTextMessage);
-		given(session.createProducer(destination)).willReturn(messageProducer);
-
-		ResponsiveMessageDelegate delegate = mock(ResponsiveMessageDelegate.class);
-		given(delegate.handleMessage(sentTextMessage)).willReturn(RESPONSE_TEXT);
-
-		MessageListenerAdapter adapter = new MessageListenerAdapter(delegate) {
-			@Override
-			protected Object extractMessage(Message message) {
-				return message;
-			}
-		};
-		adapter.onMessage(sentTextMessage, session);
-
-		verify(responseTextMessage).setJMSCorrelationID(CORRELATION_ID);
-		verify(messageProducer).send(responseTextMessage);
-		verify(messageProducer).close();
-		verify(delegate).handleMessage(sentTextMessage);
-	}
-
-	@Test
-	public void testWithResponsiveMessageDelegateNoDefaultDestinationAndNoReplyToDestination_SendsReturnTextMessageWhenSessionSupplied() throws Exception {
-		final TextMessage sentTextMessage = mock(TextMessage.class);
-		// correlation ID is queried when response is being created...
-		given(sentTextMessage.getJMSCorrelationID()).willReturn(CORRELATION_ID);
-		// Reply-To is queried when response is being created...
-		given(sentTextMessage.getJMSReplyTo()).willReturn(null);
-
-		TextMessage responseTextMessage = mock(TextMessage.class);
-		final QueueSession session = mock(QueueSession.class);
-		given(session.createTextMessage(RESPONSE_TEXT)).willReturn(responseTextMessage);
-
-		ResponsiveMessageDelegate delegate = mock(ResponsiveMessageDelegate.class);
-		given(delegate.handleMessage(sentTextMessage)).willReturn(RESPONSE_TEXT);
-
-		final MessageListenerAdapter adapter = new MessageListenerAdapter(delegate) {
-			@Override
-			protected Object extractMessage(Message message) {
-				return message;
-			}
-		};
-		assertThatExceptionOfType(ReplyFailureException.class).isThrownBy(() ->
-				adapter.onMessage(sentTextMessage, session))
-			.withCauseExactlyInstanceOf(InvalidDestinationException.class);
-
-		verify(responseTextMessage).setJMSCorrelationID(CORRELATION_ID);
-		verify(delegate).handleMessage(sentTextMessage);
-	}
-
-	@Test
-	public void testWithResponsiveMessageDelegateNoDefaultDestination_SendsReturnTextMessageWhenSessionSupplied_AndSendingThrowsJMSException() throws Exception {
-		Queue destination = mock(Queue.class);
-
-		final TextMessage sentTextMessage = mock(TextMessage.class);
-		// correlation ID is queried when response is being created...
-		given(sentTextMessage.getJMSCorrelationID()).willReturn(CORRELATION_ID);
-		// Reply-To is queried when response is being created...
-		given(sentTextMessage.getJMSReplyTo()).willReturn(destination);
-
-		TextMessage responseTextMessage = mock(TextMessage.class);
-		MessageProducer messageProducer = mock(MessageProducer.class);
-		willThrow(new JMSException("Doe!")).given(messageProducer).send(responseTextMessage);
-
-		final QueueSession session = mock(QueueSession.class);
-		given(session.createTextMessage(RESPONSE_TEXT)).willReturn(responseTextMessage);
-		given(session.createProducer(destination)).willReturn(messageProducer);
-
-		ResponsiveMessageDelegate delegate = mock(ResponsiveMessageDelegate.class);
-		given(delegate.handleMessage(sentTextMessage)).willReturn(RESPONSE_TEXT);
-
-		final MessageListenerAdapter adapter = new MessageListenerAdapter(delegate) {
-			@Override
-			protected Object extractMessage(Message message) {
-				return message;
-			}
-		};
-		assertThatExceptionOfType(ReplyFailureException.class).isThrownBy(() ->
-				adapter.onMessage(sentTextMessage, session))
-			.withCauseExactlyInstanceOf(JMSException.class);
-
-		verify(responseTextMessage).setJMSCorrelationID(CORRELATION_ID);
-		verify(messageProducer).close();
-		verify(delegate).handleMessage(sentTextMessage);
-	}
-
-	@Test
-	public void testWithResponsiveMessageDelegateDoesNotSendReturnTextMessageWhenSessionSupplied_AndListenerMethodThrowsException() throws Exception {
-		final TextMessage message = mock(TextMessage.class);
-		final QueueSession session = mock(QueueSession.class);
-
-		ResponsiveMessageDelegate delegate = mock(ResponsiveMessageDelegate.class);
-		willThrow(new IllegalArgumentException("Doe!")).given(delegate).handleMessage(message);
-
-		final MessageListenerAdapter adapter = new MessageListenerAdapter(delegate) {
-			@Override
-			protected Object extractMessage(Message message) {
-				return message;
-			}
-		};
-		assertThatExceptionOfType(ListenerExecutionFailedException.class).isThrownBy(() ->
-				adapter.onMessage(message, session));
-	}
-
-	@Test
-	public void testWithResponsiveMessageDelegateWhenReturnTypeIsNotAJMSMessageAndNoMessageConverterIsSupplied() throws Exception {
-		final TextMessage sentTextMessage = mock(TextMessage.class);
-		final Session session = mock(Session.class);
-		ResponsiveMessageDelegate delegate = mock(ResponsiveMessageDelegate.class);
-		given(delegate.handleMessage(sentTextMessage)).willReturn(RESPONSE_TEXT);
-
-		final MessageListenerAdapter adapter = new MessageListenerAdapter(delegate) {
-			@Override
-			protected Object extractMessage(Message message) {
-				return message;
-			}
-		};
-		adapter.setMessageConverter(null);
-		assertThatExceptionOfType(ReplyFailureException.class).isThrownBy(() ->
-				adapter.onMessage(sentTextMessage, session))
-			.withCauseExactlyInstanceOf(MessageConversionException.class);
-	}
-
-	@Test
-	public void testWithResponsiveMessageDelegateWhenReturnTypeIsAJMSMessageAndNoMessageConverterIsSupplied() throws Exception {
-		Queue destination = mock(Queue.class);
-		final TextMessage sentTextMessage = mock(TextMessage.class);
-		// correlation ID is queried when response is being created...
-		given(sentTextMessage.getJMSCorrelationID()).willReturn(CORRELATION_ID);
-		// Reply-To is queried when response is being created...
-		given(sentTextMessage.getJMSReplyTo()).willReturn(destination);
-
-		TextMessage responseMessage = mock(TextMessage.class);
-		QueueSender queueSender = mock(QueueSender.class);
-
-		Session session = mock(Session.class);
-		given(session.createProducer(destination)).willReturn(queueSender);
-
-		ResponsiveJmsTextMessageReturningMessageDelegate delegate = mock(ResponsiveJmsTextMessageReturningMessageDelegate.class);
-		given(delegate.handleMessage(sentTextMessage)).willReturn(responseMessage);
-
-		final MessageListenerAdapter adapter = new MessageListenerAdapter(delegate) {
-			@Override
-			protected Object extractMessage(Message message) {
-				return message;
-			}
-		};
-		adapter.setMessageConverter(null);
-		adapter.onMessage(sentTextMessage, session);
-
-		verify(responseMessage).setJMSCorrelationID(CORRELATION_ID);
-		verify(queueSender).send(responseMessage);
-		verify(queueSender).close();
-	}
-
-
-	@SuppressWarnings("serial")
-	private static class SerializableObject implements Serializable {
-	}
+    @Test
+    public void testWithMessageContentsDelegateForBytesMessage() throws Exception {
+        BytesMessage bytesMessage = mock(BytesMessage.class);
+        // BytesMessage contents must be unwrapped...
+        given(bytesMessage.getBodyLength()).willReturn(new Long(TEXT.getBytes().length));
+        given(bytesMessage.readBytes(any(byte[].class))).willAnswer(new Answer<Integer>() {
+            @Override
+            public Integer answer(InvocationOnMock invocation) throws Throwable {
+                byte[] bytes = (byte[]) invocation.getArguments()[0];
+                ByteArrayInputStream inputStream = new ByteArrayInputStream(TEXT.getBytes());
+                return inputStream.read(bytes);
+            }
+        });
+
+        MessageContentsDelegate delegate = mock(MessageContentsDelegate.class);
+
+        MessageListenerAdapter adapter = new MessageListenerAdapter(delegate);
+        adapter.onMessage(bytesMessage);
+
+        verify(delegate).handleMessage(TEXT.getBytes());
+    }
+
+    @Test
+    public void testWithMessageContentsDelegateForObjectMessage() throws Exception {
+        ObjectMessage objectMessage = mock(ObjectMessage.class);
+        given(objectMessage.getObject()).willReturn(NUMBER);
+
+        MessageContentsDelegate delegate = mock(MessageContentsDelegate.class);
+
+        MessageListenerAdapter adapter = new MessageListenerAdapter(delegate);
+        adapter.onMessage(objectMessage);
+
+        verify(delegate).handleMessage(NUMBER);
+    }
+
+    @Test
+    public void testWithMessageContentsDelegateForObjectMessageWithPlainObject() throws Exception {
+        ObjectMessage objectMessage = mock(ObjectMessage.class);
+        given(objectMessage.getObject()).willReturn(OBJECT);
+
+        MessageContentsDelegate delegate = mock(MessageContentsDelegate.class);
+
+        MessageListenerAdapter adapter = new MessageListenerAdapter(delegate);
+        adapter.onMessage(objectMessage);
+
+        verify(delegate).handleMessage(OBJECT);
+    }
+
+    @Test
+    public void testWithMessageDelegate() throws Exception {
+        TextMessage textMessage = mock(TextMessage.class);
+
+        MessageDelegate delegate = mock(MessageDelegate.class);
+
+        MessageListenerAdapter adapter = new MessageListenerAdapter(delegate);
+        // we DON'T want the default SimpleMessageConversion happening...
+        adapter.setMessageConverter(null);
+        adapter.onMessage(textMessage);
+
+        verify(delegate).handleMessage(textMessage);
+    }
+
+    @Test
+    public void testWhenTheAdapterItselfIsTheDelegate() throws Exception {
+        TextMessage textMessage = mock(TextMessage.class);
+        // TextMessage contents must be unwrapped...
+        given(textMessage.getText()).willReturn(TEXT);
+
+        StubMessageListenerAdapter adapter = new StubMessageListenerAdapter();
+        adapter.onMessage(textMessage);
+        assertThat(adapter.wasCalled()).isTrue();
+    }
+
+    @Test
+    public void testRainyDayWithNoApplicableHandlingMethods() throws Exception {
+        TextMessage textMessage = mock(TextMessage.class);
+        // TextMessage contents must be unwrapped...
+        given(textMessage.getText()).willReturn(TEXT);
+
+        StubMessageListenerAdapter adapter = new StubMessageListenerAdapter();
+        adapter.setDefaultListenerMethod("walnutsRock");
+        adapter.onMessage(textMessage);
+        assertThat(adapter.wasCalled()).isFalse();
+    }
+
+    @Test
+    public void testThatAnExceptionThrownFromTheHandlingMethodIsSimplySwallowedByDefault() throws Exception {
+        final IllegalArgumentException exception = new IllegalArgumentException();
+
+        TextMessage textMessage = mock(TextMessage.class);
+        MessageDelegate delegate = mock(MessageDelegate.class);
+        willThrow(exception).given(delegate).handleMessage(textMessage);
+
+        MessageListenerAdapter adapter = new MessageListenerAdapter(delegate) {
+            @Override
+            protected void handleListenerException(Throwable ex) {
+                assertThat(ex).as("The Throwable passed to the handleListenerException(..) method must never be null.").isNotNull();
+                boolean condition = ex instanceof ListenerExecutionFailedException;
+                assertThat(condition).as("The Throwable passed to the handleListenerException(..) method must be of type [ListenerExecutionFailedException].").isTrue();
+                ListenerExecutionFailedException lefx = (ListenerExecutionFailedException) ex;
+                Throwable cause = lefx.getCause();
+                assertThat(cause).as("The cause of a ListenerExecutionFailedException must be preserved.").isNotNull();
+                assertThat(cause).isSameAs(exception);
+            }
+        };
+        // we DON'T want the default SimpleMessageConversion happening...
+        adapter.setMessageConverter(null);
+        adapter.onMessage(textMessage);
+    }
+
+    @Test
+    public void testThatTheDefaultMessageConverterisIndeedTheSimpleMessageConverter() throws Exception {
+        MessageListenerAdapter adapter = new MessageListenerAdapter();
+        assertThat(adapter.getMessageConverter()).as("The default [MessageConverter] must never be null.").isNotNull();
+        boolean condition = adapter.getMessageConverter() instanceof SimpleMessageConverter;
+        assertThat(condition).as("The default [MessageConverter] must be of the type [SimpleMessageConverter]").isTrue();
+    }
+
+    @Test
+    public void testThatWhenNoDelegateIsSuppliedTheDelegateIsAssumedToBeTheMessageListenerAdapterItself() throws Exception {
+        MessageListenerAdapter adapter = new MessageListenerAdapter();
+        assertThat(adapter.getDelegate()).isSameAs(adapter);
+    }
+
+    @Test
+    public void testThatTheDefaultMessageHandlingMethodNameIsTheConstantDefault() throws Exception {
+        MessageListenerAdapter adapter = new MessageListenerAdapter();
+        assertThat(adapter.getDefaultListenerMethod()).isEqualTo(MessageListenerAdapter.ORIGINAL_DEFAULT_LISTENER_METHOD);
+    }
+
+    @Test
+    public void testWithResponsiveMessageDelegate_DoesNotSendReturnTextMessageIfNoSessionSupplied() throws Exception {
+        TextMessage textMessage = mock(TextMessage.class);
+        ResponsiveMessageDelegate delegate = mock(ResponsiveMessageDelegate.class);
+        given(delegate.handleMessage(textMessage)).willReturn(TEXT);
+
+        MessageListenerAdapter adapter = new MessageListenerAdapter(delegate);
+        // we DON'T want the default SimpleMessageConversion happening...
+        adapter.setMessageConverter(null);
+        adapter.onMessage(textMessage);
+    }
+
+    @Test
+    public void testWithResponsiveMessageDelegateWithDefaultDestination_SendsReturnTextMessageWhenSessionSupplied() throws Exception {
+        Queue destination = mock(Queue.class);
+        TextMessage sentTextMessage = mock(TextMessage.class);
+        // correlation ID is queried when response is being created...
+        given(sentTextMessage.getJMSCorrelationID()).willReturn(
+                CORRELATION_ID);
+        // Reply-To is queried when response is being created...
+        given(sentTextMessage.getJMSReplyTo()).willReturn(null); // we want to fall back to the default...
+
+        TextMessage responseTextMessage = mock(TextMessage.class);
+
+        QueueSender queueSender = mock(QueueSender.class);
+        Session session = mock(Session.class);
+        given(session.createTextMessage(RESPONSE_TEXT)).willReturn(responseTextMessage);
+        given(session.createProducer(destination)).willReturn(queueSender);
+
+        ResponsiveMessageDelegate delegate = mock(ResponsiveMessageDelegate.class);
+        given(delegate.handleMessage(sentTextMessage)).willReturn(RESPONSE_TEXT);
+
+        MessageListenerAdapter adapter = new MessageListenerAdapter(delegate) {
+            @Override
+            protected Object extractMessage(Message message) {
+                return message;
+            }
+        };
+        adapter.setDefaultResponseDestination(destination);
+        adapter.onMessage(sentTextMessage, session);
+
+        verify(responseTextMessage).setJMSCorrelationID(CORRELATION_ID);
+        verify(queueSender).send(responseTextMessage);
+        verify(queueSender).close();
+        verify(delegate).handleMessage(sentTextMessage);
+    }
+
+    @Test
+    public void testWithResponsiveMessageDelegateNoDefaultDestination_SendsReturnTextMessageWhenSessionSupplied() throws Exception {
+        Queue destination = mock(Queue.class);
+        TextMessage sentTextMessage = mock(TextMessage.class);
+        // correlation ID is queried when response is being created...
+        given(sentTextMessage.getJMSCorrelationID()).willReturn(null);
+        given(sentTextMessage.getJMSMessageID()).willReturn(CORRELATION_ID);
+        // Reply-To is queried when response is being created...
+        given(sentTextMessage.getJMSReplyTo()).willReturn(destination);
+
+        TextMessage responseTextMessage = mock(TextMessage.class);
+        MessageProducer messageProducer = mock(MessageProducer.class);
+        Session session = mock(Session.class);
+        given(session.createTextMessage(RESPONSE_TEXT)).willReturn(responseTextMessage);
+        given(session.createProducer(destination)).willReturn(messageProducer);
+
+        ResponsiveMessageDelegate delegate = mock(ResponsiveMessageDelegate.class);
+        given(delegate.handleMessage(sentTextMessage)).willReturn(RESPONSE_TEXT);
+
+        MessageListenerAdapter adapter = new MessageListenerAdapter(delegate) {
+            @Override
+            protected Object extractMessage(Message message) {
+                return message;
+            }
+        };
+        adapter.onMessage(sentTextMessage, session);
+
+        verify(responseTextMessage).setJMSCorrelationID(CORRELATION_ID);
+        verify(messageProducer).send(responseTextMessage);
+        verify(messageProducer).close();
+        verify(delegate).handleMessage(sentTextMessage);
+    }
+
+    @Test
+    public void testWithResponsiveMessageDelegateNoDefaultDestinationAndNoReplyToDestination_SendsReturnTextMessageWhenSessionSupplied() throws Exception {
+        final TextMessage sentTextMessage = mock(TextMessage.class);
+        // correlation ID is queried when response is being created...
+        given(sentTextMessage.getJMSCorrelationID()).willReturn(CORRELATION_ID);
+        // Reply-To is queried when response is being created...
+        given(sentTextMessage.getJMSReplyTo()).willReturn(null);
+
+        TextMessage responseTextMessage = mock(TextMessage.class);
+        final QueueSession session = mock(QueueSession.class);
+        given(session.createTextMessage(RESPONSE_TEXT)).willReturn(responseTextMessage);
+
+        ResponsiveMessageDelegate delegate = mock(ResponsiveMessageDelegate.class);
+        given(delegate.handleMessage(sentTextMessage)).willReturn(RESPONSE_TEXT);
+
+        final MessageListenerAdapter adapter = new MessageListenerAdapter(delegate) {
+            @Override
+            protected Object extractMessage(Message message) {
+                return message;
+            }
+        };
+        assertThatExceptionOfType(ReplyFailureException.class).isThrownBy(() ->
+                adapter.onMessage(sentTextMessage, session))
+                .withCauseExactlyInstanceOf(InvalidDestinationException.class);
+
+        verify(responseTextMessage).setJMSCorrelationID(CORRELATION_ID);
+        verify(delegate).handleMessage(sentTextMessage);
+    }
+
+    @Test
+    public void testWithResponsiveMessageDelegateNoDefaultDestination_SendsReturnTextMessageWhenSessionSupplied_AndSendingThrowsJMSException() throws Exception {
+        Queue destination = mock(Queue.class);
+
+        final TextMessage sentTextMessage = mock(TextMessage.class);
+        // correlation ID is queried when response is being created...
+        given(sentTextMessage.getJMSCorrelationID()).willReturn(CORRELATION_ID);
+        // Reply-To is queried when response is being created...
+        given(sentTextMessage.getJMSReplyTo()).willReturn(destination);
+
+        TextMessage responseTextMessage = mock(TextMessage.class);
+        MessageProducer messageProducer = mock(MessageProducer.class);
+        willThrow(new JMSException("Doe!")).given(messageProducer).send(responseTextMessage);
+
+        final QueueSession session = mock(QueueSession.class);
+        given(session.createTextMessage(RESPONSE_TEXT)).willReturn(responseTextMessage);
+        given(session.createProducer(destination)).willReturn(messageProducer);
+
+        ResponsiveMessageDelegate delegate = mock(ResponsiveMessageDelegate.class);
+        given(delegate.handleMessage(sentTextMessage)).willReturn(RESPONSE_TEXT);
+
+        final MessageListenerAdapter adapter = new MessageListenerAdapter(delegate) {
+            @Override
+            protected Object extractMessage(Message message) {
+                return message;
+            }
+        };
+        assertThatExceptionOfType(ReplyFailureException.class).isThrownBy(() ->
+                adapter.onMessage(sentTextMessage, session))
+                .withCauseExactlyInstanceOf(JMSException.class);
+
+        verify(responseTextMessage).setJMSCorrelationID(CORRELATION_ID);
+        verify(messageProducer).close();
+        verify(delegate).handleMessage(sentTextMessage);
+    }
+
+    @Test
+    public void testWithResponsiveMessageDelegateDoesNotSendReturnTextMessageWhenSessionSupplied_AndListenerMethodThrowsException() throws Exception {
+        final TextMessage message = mock(TextMessage.class);
+        final QueueSession session = mock(QueueSession.class);
+
+        ResponsiveMessageDelegate delegate = mock(ResponsiveMessageDelegate.class);
+        willThrow(new IllegalArgumentException("Doe!")).given(delegate).handleMessage(message);
+
+        final MessageListenerAdapter adapter = new MessageListenerAdapter(delegate) {
+            @Override
+            protected Object extractMessage(Message message) {
+                return message;
+            }
+        };
+        assertThatExceptionOfType(ListenerExecutionFailedException.class).isThrownBy(() ->
+                adapter.onMessage(message, session));
+    }
+
+    @Test
+    public void testWithResponsiveMessageDelegateWhenReturnTypeIsNotAJMSMessageAndNoMessageConverterIsSupplied() throws Exception {
+        final TextMessage sentTextMessage = mock(TextMessage.class);
+        final Session session = mock(Session.class);
+        ResponsiveMessageDelegate delegate = mock(ResponsiveMessageDelegate.class);
+        given(delegate.handleMessage(sentTextMessage)).willReturn(RESPONSE_TEXT);
+
+        final MessageListenerAdapter adapter = new MessageListenerAdapter(delegate) {
+            @Override
+            protected Object extractMessage(Message message) {
+                return message;
+            }
+        };
+        adapter.setMessageConverter(null);
+        assertThatExceptionOfType(ReplyFailureException.class).isThrownBy(() ->
+                adapter.onMessage(sentTextMessage, session))
+                .withCauseExactlyInstanceOf(MessageConversionException.class);
+    }
+
+    @Test
+    public void testWithResponsiveMessageDelegateWhenReturnTypeIsAJMSMessageAndNoMessageConverterIsSupplied() throws Exception {
+        Queue destination = mock(Queue.class);
+        final TextMessage sentTextMessage = mock(TextMessage.class);
+        // correlation ID is queried when response is being created...
+        given(sentTextMessage.getJMSCorrelationID()).willReturn(CORRELATION_ID);
+        // Reply-To is queried when response is being created...
+        given(sentTextMessage.getJMSReplyTo()).willReturn(destination);
+
+        TextMessage responseMessage = mock(TextMessage.class);
+        QueueSender queueSender = mock(QueueSender.class);
+
+        Session session = mock(Session.class);
+        given(session.createProducer(destination)).willReturn(queueSender);
+
+        ResponsiveJmsTextMessageReturningMessageDelegate delegate = mock(ResponsiveJmsTextMessageReturningMessageDelegate.class);
+        given(delegate.handleMessage(sentTextMessage)).willReturn(responseMessage);
+
+        final MessageListenerAdapter adapter = new MessageListenerAdapter(delegate) {
+            @Override
+            protected Object extractMessage(Message message) {
+                return message;
+            }
+        };
+        adapter.setMessageConverter(null);
+        adapter.onMessage(sentTextMessage, session);
+
+        verify(responseMessage).setJMSCorrelationID(CORRELATION_ID);
+        verify(queueSender).send(responseMessage);
+        verify(queueSender).close();
+    }
+
+
+    @SuppressWarnings("serial")
+    private static class SerializableObject implements Serializable {
+    }
 
 }

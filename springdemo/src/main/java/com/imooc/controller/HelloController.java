@@ -6,10 +6,11 @@ import org.springframework.stereotype.Controller;
 
 @Controller
 public class HelloController {
-	@Autowired
-	private HelloService helloService;
-	public void handleRequest(){
-		helloService.sayHello();
-		helloService.JustWantToThrowException();
-	}
+    @Autowired
+    private HelloService helloService;
+
+    public void handleRequest() {
+        helloService.sayHello();
+        helloService.JustWantToThrowException();
+    }
 }

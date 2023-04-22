@@ -38,49 +38,49 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 public class ResponseStatusExceptionHandlerTests {
 
-	protected final MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/"));
+    protected final MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/"));
 
-	protected ResponseStatusExceptionHandler handler;
-
-
-	@BeforeEach
-	public void setup() {
-		this.handler = createResponseStatusExceptionHandler();
-	}
-
-	protected ResponseStatusExceptionHandler createResponseStatusExceptionHandler() {
-		return new ResponseStatusExceptionHandler();
-	}
+    protected ResponseStatusExceptionHandler handler;
 
 
-	@Test
-	public void handleResponseStatusException() {
-		Throwable ex = new ResponseStatusException(HttpStatus.BAD_REQUEST, "");
-		this.handler.handle(this.exchange, ex).block(Duration.ofSeconds(5));
-		assertThat(this.exchange.getResponse().getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
-	}
+    @BeforeEach
+    public void setup() {
+        this.handler = createResponseStatusExceptionHandler();
+    }
 
-	@Test
-	public void handleNestedResponseStatusException() {
-		Throwable ex = new Exception(new ResponseStatusException(HttpStatus.BAD_REQUEST, ""));
-		this.handler.handle(this.exchange, ex).block(Duration.ofSeconds(5));
-		assertThat(this.exchange.getResponse().getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
-	}
+    protected ResponseStatusExceptionHandler createResponseStatusExceptionHandler() {
+        return new ResponseStatusExceptionHandler();
+    }
 
-	@Test
-	public void unresolvedException() {
-		Throwable expected = new IllegalStateException();
-		Mono<Void> mono = this.handler.handle(this.exchange, expected);
-		StepVerifier.create(mono).consumeErrorWith(actual -> assertThat(actual).isSameAs(expected)).verify();
-	}
 
-	@Test  // SPR-16231
-	public void responseCommitted() {
-		Throwable ex = new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Oops");
-		this.exchange.getResponse().setStatusCode(HttpStatus.CREATED);
-		Mono<Void> mono = this.exchange.getResponse().setComplete()
-				.then(Mono.defer(() -> this.handler.handle(this.exchange, ex)));
-		StepVerifier.create(mono).consumeErrorWith(actual -> assertThat(actual).isSameAs(ex)).verify();
-	}
+    @Test
+    public void handleResponseStatusException() {
+        Throwable ex = new ResponseStatusException(HttpStatus.BAD_REQUEST, "");
+        this.handler.handle(this.exchange, ex).block(Duration.ofSeconds(5));
+        assertThat(this.exchange.getResponse().getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+    }
+
+    @Test
+    public void handleNestedResponseStatusException() {
+        Throwable ex = new Exception(new ResponseStatusException(HttpStatus.BAD_REQUEST, ""));
+        this.handler.handle(this.exchange, ex).block(Duration.ofSeconds(5));
+        assertThat(this.exchange.getResponse().getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+    }
+
+    @Test
+    public void unresolvedException() {
+        Throwable expected = new IllegalStateException();
+        Mono<Void> mono = this.handler.handle(this.exchange, expected);
+        StepVerifier.create(mono).consumeErrorWith(actual -> assertThat(actual).isSameAs(expected)).verify();
+    }
+
+    @Test  // SPR-16231
+    public void responseCommitted() {
+        Throwable ex = new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Oops");
+        this.exchange.getResponse().setStatusCode(HttpStatus.CREATED);
+        Mono<Void> mono = this.exchange.getResponse().setComplete()
+                .then(Mono.defer(() -> this.handler.handle(this.exchange, ex)));
+        StepVerifier.create(mono).consumeErrorWith(actual -> assertThat(actual).isSameAs(ex)).verify();
+    }
 
 }

@@ -27,48 +27,48 @@ import org.springframework.lang.Nullable;
  * implementations of {@link #equals(Object)}, {@link #hashCode()}, and
  * {@link #toString()}.
  *
+ * @param <T> the kind of condition that this condition can be combined with or compared to
  * @author Rossen Stoyanchev
  * @since 4.0
- * @param <T> the kind of condition that this condition can be combined with or compared to
  */
 public abstract class AbstractMessageCondition<T extends AbstractMessageCondition<T>> implements MessageCondition<T> {
 
-	@Override
-	public boolean equals(@Nullable Object other) {
-		if (this == other) {
-			return true;
-		}
-		if (other == null || getClass() != other.getClass()) {
-			return false;
-		}
-		return getContent().equals(((AbstractMessageCondition<?>) other).getContent());
-	}
+    @Override
+    public boolean equals(@Nullable Object other) {
+        if (this == other) {
+            return true;
+        }
+        if (other == null || getClass() != other.getClass()) {
+            return false;
+        }
+        return getContent().equals(((AbstractMessageCondition<?>) other).getContent());
+    }
 
-	@Override
-	public int hashCode() {
-		return getContent().hashCode();
-	}
+    @Override
+    public int hashCode() {
+        return getContent().hashCode();
+    }
 
-	@Override
-	public String toString() {
-		StringJoiner joiner = new StringJoiner(getToStringInfix(), "[", "]");
-		for (Object expression : getContent()) {
-			joiner.add(expression.toString());
-		}
-		return joiner.toString();
-	}
+    @Override
+    public String toString() {
+        StringJoiner joiner = new StringJoiner(getToStringInfix(), "[", "]");
+        for (Object expression : getContent()) {
+            joiner.add(expression.toString());
+        }
+        return joiner.toString();
+    }
 
 
-	/**
-	 * Return the collection of objects the message condition is composed of
-	 * (e.g. destination patterns), never {@code null}.
-	 */
-	protected abstract Collection<?> getContent();
+    /**
+     * Return the collection of objects the message condition is composed of
+     * (e.g. destination patterns), never {@code null}.
+     */
+    protected abstract Collection<?> getContent();
 
-	/**
-	 * The notation to use when printing discrete items of content.
-	 * For example " || " for URL patterns or " && " for param expressions.
-	 */
-	protected abstract String getToStringInfix();
+    /**
+     * The notation to use when printing discrete items of content.
+     * For example " || " for URL patterns or " && " for param expressions.
+     */
+    protected abstract String getToStringInfix();
 
 }

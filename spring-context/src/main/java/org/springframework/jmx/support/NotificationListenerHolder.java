@@ -36,148 +36,149 @@ import org.springframework.util.ObjectUtils;
  * to receive {@link javax.management.Notification Notifications}.
  *
  * @author Juergen Hoeller
- * @since 2.5.2
  * @see org.springframework.jmx.export.NotificationListenerBean
  * @see org.springframework.jmx.access.NotificationListenerRegistrar
+ * @since 2.5.2
  */
 public class NotificationListenerHolder {
 
-	@Nullable
-	private NotificationListener notificationListener;
+    @Nullable
+    protected Set<Object> mappedObjectNames;
+    @Nullable
+    private NotificationListener notificationListener;
+    @Nullable
+    private NotificationFilter notificationFilter;
+    @Nullable
+    private Object handback;
 
-	@Nullable
-	private NotificationFilter notificationFilter;
+    /**
+     * Get the {@link javax.management.NotificationListener}.
+     */
+    @Nullable
+    public NotificationListener getNotificationListener() {
+        return this.notificationListener;
+    }
 
-	@Nullable
-	private Object handback;
+    /**
+     * Set the {@link javax.management.NotificationListener}.
+     */
+    public void setNotificationListener(@Nullable NotificationListener notificationListener) {
+        this.notificationListener = notificationListener;
+    }
 
-	@Nullable
-	protected Set<Object> mappedObjectNames;
+    /**
+     * Return the {@link javax.management.NotificationFilter} associated
+     * with the encapsulated {@link #getNotificationListener() NotificationListener}.
+     * <p>May be {@code null}.
+     */
+    @Nullable
+    public NotificationFilter getNotificationFilter() {
+        return this.notificationFilter;
+    }
 
+    /**
+     * Set the {@link javax.management.NotificationFilter} associated
+     * with the encapsulated {@link #getNotificationFilter() NotificationFilter}.
+     * <p>May be {@code null}.
+     */
+    public void setNotificationFilter(@Nullable NotificationFilter notificationFilter) {
+        this.notificationFilter = notificationFilter;
+    }
 
-	/**
-	 * Set the {@link javax.management.NotificationListener}.
-	 */
-	public void setNotificationListener(@Nullable NotificationListener notificationListener) {
-		this.notificationListener = notificationListener;
-	}
+    /**
+     * Return the (arbitrary) object that will be 'handed back' as-is by an
+     * {@link javax.management.NotificationBroadcaster} when notifying
+     * any {@link javax.management.NotificationListener}.
+     *
+     * @return the handback object (may be {@code null})
+     * @see javax.management.NotificationListener#handleNotification(javax.management.Notification, Object)
+     */
+    @Nullable
+    public Object getHandback() {
+        return this.handback;
+    }
 
-	/**
-	 * Get the {@link javax.management.NotificationListener}.
-	 */
-	@Nullable
-	public NotificationListener getNotificationListener() {
-		return this.notificationListener;
-	}
+    /**
+     * Set the (arbitrary) object that will be 'handed back' as-is by an
+     * {@link javax.management.NotificationBroadcaster} when notifying
+     * any {@link javax.management.NotificationListener}.
+     *
+     * @param handback the handback object (can be {@code null})
+     * @see javax.management.NotificationListener#handleNotification(javax.management.Notification, Object)
+     */
+    public void setHandback(@Nullable Object handback) {
+        this.handback = handback;
+    }
 
-	/**
-	 * Set the {@link javax.management.NotificationFilter} associated
-	 * with the encapsulated {@link #getNotificationFilter() NotificationFilter}.
-	 * <p>May be {@code null}.
-	 */
-	public void setNotificationFilter(@Nullable NotificationFilter notificationFilter) {
-		this.notificationFilter = notificationFilter;
-	}
+    /**
+     * Set the {@link javax.management.ObjectName}-style name of the single MBean
+     * that the encapsulated {@link #getNotificationFilter() NotificationFilter}
+     * will be registered with to listen for {@link javax.management.Notification Notifications}.
+     * Can be specified as {@code ObjectName} instance or as {@code String}.
+     *
+     * @see #setMappedObjectNames
+     */
+    public void setMappedObjectName(@Nullable Object mappedObjectName) {
+        this.mappedObjectNames = (mappedObjectName != null ?
+                new LinkedHashSet<>(Collections.singleton(mappedObjectName)) : null);
+    }
 
-	/**
-	 * Return the {@link javax.management.NotificationFilter} associated
-	 * with the encapsulated {@link #getNotificationListener() NotificationListener}.
-	 * <p>May be {@code null}.
-	 */
-	@Nullable
-	public NotificationFilter getNotificationFilter() {
-		return this.notificationFilter;
-	}
+    /**
+     * Set an array of {@link javax.management.ObjectName}-style names of the MBeans
+     * that the encapsulated {@link #getNotificationFilter() NotificationFilter}
+     * will be registered with to listen for {@link javax.management.Notification Notifications}.
+     * Can be specified as {@code ObjectName} instances or as {@code String}s.
+     *
+     * @see #setMappedObjectName
+     */
+    public void setMappedObjectNames(Object... mappedObjectNames) {
+        this.mappedObjectNames = new LinkedHashSet<>(Arrays.asList(mappedObjectNames));
+    }
 
-	/**
-	 * Set the (arbitrary) object that will be 'handed back' as-is by an
-	 * {@link javax.management.NotificationBroadcaster} when notifying
-	 * any {@link javax.management.NotificationListener}.
-	 * @param handback the handback object (can be {@code null})
-	 * @see javax.management.NotificationListener#handleNotification(javax.management.Notification, Object)
-	 */
-	public void setHandback(@Nullable Object handback) {
-		this.handback = handback;
-	}
-
-	/**
-	 * Return the (arbitrary) object that will be 'handed back' as-is by an
-	 * {@link javax.management.NotificationBroadcaster} when notifying
-	 * any {@link javax.management.NotificationListener}.
-	 * @return the handback object (may be {@code null})
-	 * @see javax.management.NotificationListener#handleNotification(javax.management.Notification, Object)
-	 */
-	@Nullable
-	public Object getHandback() {
-		return this.handback;
-	}
-
-	/**
-	 * Set the {@link javax.management.ObjectName}-style name of the single MBean
-	 * that the encapsulated {@link #getNotificationFilter() NotificationFilter}
-	 * will be registered with to listen for {@link javax.management.Notification Notifications}.
-	 * Can be specified as {@code ObjectName} instance or as {@code String}.
-	 * @see #setMappedObjectNames
-	 */
-	public void setMappedObjectName(@Nullable Object mappedObjectName) {
-		this.mappedObjectNames = (mappedObjectName != null ?
-				new LinkedHashSet<>(Collections.singleton(mappedObjectName)) : null);
-	}
-
-	/**
-	 * Set an array of {@link javax.management.ObjectName}-style names of the MBeans
-	 * that the encapsulated {@link #getNotificationFilter() NotificationFilter}
-	 * will be registered with to listen for {@link javax.management.Notification Notifications}.
-	 * Can be specified as {@code ObjectName} instances or as {@code String}s.
-	 * @see #setMappedObjectName
-	 */
-	public void setMappedObjectNames(Object... mappedObjectNames) {
-		this.mappedObjectNames = new LinkedHashSet<>(Arrays.asList(mappedObjectNames));
-	}
-
-	/**
-	 * Return the list of {@link javax.management.ObjectName} String representations for
-	 * which the encapsulated {@link #getNotificationFilter() NotificationFilter} will
-	 * be registered as a listener for {@link javax.management.Notification Notifications}.
-	 * @throws MalformedObjectNameException if an {@code ObjectName} is malformed
-	 */
-	@Nullable
-	public ObjectName[] getResolvedObjectNames() throws MalformedObjectNameException {
-		if (this.mappedObjectNames == null) {
-			return null;
-		}
-		ObjectName[] resolved = new ObjectName[this.mappedObjectNames.size()];
-		int i = 0;
-		for (Object objectName : this.mappedObjectNames) {
-			resolved[i] = ObjectNameManager.getInstance(objectName);
-			i++;
-		}
-		return resolved;
-	}
+    /**
+     * Return the list of {@link javax.management.ObjectName} String representations for
+     * which the encapsulated {@link #getNotificationFilter() NotificationFilter} will
+     * be registered as a listener for {@link javax.management.Notification Notifications}.
+     *
+     * @throws MalformedObjectNameException if an {@code ObjectName} is malformed
+     */
+    @Nullable
+    public ObjectName[] getResolvedObjectNames() throws MalformedObjectNameException {
+        if (this.mappedObjectNames == null) {
+            return null;
+        }
+        ObjectName[] resolved = new ObjectName[this.mappedObjectNames.size()];
+        int i = 0;
+        for (Object objectName : this.mappedObjectNames) {
+            resolved[i] = ObjectNameManager.getInstance(objectName);
+            i++;
+        }
+        return resolved;
+    }
 
 
-	@Override
-	public boolean equals(@Nullable Object other) {
-		if (this == other) {
-			return true;
-		}
-		if (!(other instanceof NotificationListenerHolder)) {
-			return false;
-		}
-		NotificationListenerHolder otherNlh = (NotificationListenerHolder) other;
-		return (ObjectUtils.nullSafeEquals(this.notificationListener, otherNlh.notificationListener) &&
-				ObjectUtils.nullSafeEquals(this.notificationFilter, otherNlh.notificationFilter) &&
-				ObjectUtils.nullSafeEquals(this.handback, otherNlh.handback) &&
-				ObjectUtils.nullSafeEquals(this.mappedObjectNames, otherNlh.mappedObjectNames));
-	}
+    @Override
+    public boolean equals(@Nullable Object other) {
+        if (this == other) {
+            return true;
+        }
+        if (!(other instanceof NotificationListenerHolder)) {
+            return false;
+        }
+        NotificationListenerHolder otherNlh = (NotificationListenerHolder) other;
+        return (ObjectUtils.nullSafeEquals(this.notificationListener, otherNlh.notificationListener) &&
+                ObjectUtils.nullSafeEquals(this.notificationFilter, otherNlh.notificationFilter) &&
+                ObjectUtils.nullSafeEquals(this.handback, otherNlh.handback) &&
+                ObjectUtils.nullSafeEquals(this.mappedObjectNames, otherNlh.mappedObjectNames));
+    }
 
-	@Override
-	public int hashCode() {
-		int hashCode = ObjectUtils.nullSafeHashCode(this.notificationListener);
-		hashCode = 29 * hashCode + ObjectUtils.nullSafeHashCode(this.notificationFilter);
-		hashCode = 29 * hashCode + ObjectUtils.nullSafeHashCode(this.handback);
-		hashCode = 29 * hashCode + ObjectUtils.nullSafeHashCode(this.mappedObjectNames);
-		return hashCode;
-	}
+    @Override
+    public int hashCode() {
+        int hashCode = ObjectUtils.nullSafeHashCode(this.notificationListener);
+        hashCode = 29 * hashCode + ObjectUtils.nullSafeHashCode(this.notificationFilter);
+        hashCode = 29 * hashCode + ObjectUtils.nullSafeHashCode(this.handback);
+        hashCode = 29 * hashCode + ObjectUtils.nullSafeHashCode(this.mappedObjectNames);
+        return hashCode;
+    }
 
 }

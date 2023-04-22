@@ -31,18 +31,18 @@ import java.lang.annotation.Target;
  *
  * @author Brian Clozel
  * @author Rossen Stoyanchev
- * @since 4.0
  * @see org.springframework.messaging.handler.annotation.MessageMapping
  * @see org.springframework.messaging.simp.annotation.support.SimpAnnotationMethodMessageHandler
+ * @since 4.0
  */
 @Target(ElementType.PARAMETER)
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 public @interface DestinationVariable {
 
-	/**
-	 * The name of the destination template variable to bind to.
-	 */
-	String value() default "";
+    /**
+     * The name of the destination template variable to bind to.
+     */
+    String value() default "";
 
 }

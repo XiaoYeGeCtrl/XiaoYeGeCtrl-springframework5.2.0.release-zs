@@ -28,21 +28,21 @@ import org.springframework.util.StringUtils;
  *
  * @author Juergen Hoeller
  * @author Nicholas Williams
- * @since 3.0
  * @see java.util.TimeZone
  * @see ZoneIdEditor
+ * @since 3.0
  */
 public class TimeZoneEditor extends PropertyEditorSupport {
 
-	@Override
-	public void setAsText(String text) throws IllegalArgumentException {
-		setValue(StringUtils.parseTimeZoneString(text));
-	}
+    @Override
+    public String getAsText() {
+        TimeZone value = (TimeZone) getValue();
+        return (value != null ? value.getID() : "");
+    }
 
-	@Override
-	public String getAsText() {
-		TimeZone value = (TimeZone) getValue();
-		return (value != null ? value.getID() : "");
-	}
+    @Override
+    public void setAsText(String text) throws IllegalArgumentException {
+        setValue(StringUtils.parseTimeZoneString(text));
+    }
 
 }

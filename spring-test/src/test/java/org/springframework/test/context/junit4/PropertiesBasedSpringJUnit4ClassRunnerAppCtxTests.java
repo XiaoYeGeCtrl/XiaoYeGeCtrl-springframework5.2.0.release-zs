@@ -50,28 +50,28 @@ import static org.assertj.core.api.Assertions.assertThat;
  * </p>
  *
  * @author Sam Brannen
- * @since 2.5
  * @see GenericPropertiesContextLoader
  * @see SpringJUnit4ClassRunnerAppCtxTests
+ * @since 2.5
  */
 @RunWith(SpringRunner.class)
 @ContextConfiguration(loader = GenericPropertiesContextLoader.class)
 public class PropertiesBasedSpringJUnit4ClassRunnerAppCtxTests {
 
-	@Autowired
-	private Pet cat;
+    @Autowired
+    private Pet cat;
 
-	@Autowired
-	private String testString;
+    @Autowired
+    private String testString;
 
 
-	@Test
-	public void verifyAnnotationAutowiredFields() {
-		assertThat(this.cat).as("The cat field should have been autowired.").isNotNull();
-		assertThat(this.cat.getName()).isEqualTo("Garfield");
+    @Test
+    public void verifyAnnotationAutowiredFields() {
+        assertThat(this.cat).as("The cat field should have been autowired.").isNotNull();
+        assertThat(this.cat.getName()).isEqualTo("Garfield");
 
-		assertThat(this.testString).as("The testString field should have been autowired.").isNotNull();
-		assertThat(this.testString).isEqualTo("Test String");
-	}
+        assertThat(this.testString).as("The testString field should have been autowired.").isNotNull();
+        assertThat(this.testString).isEqualTo("Test String");
+    }
 
 }

@@ -32,9 +32,9 @@ import org.springframework.util.concurrent.ListenableFuture;
  */
 public interface ConnectionHandlingStompSession extends StompSession, TcpConnectionHandler<byte[]> {
 
-	/**
-	 * Return a future that will complete when the session is ready for use.
-	 */
-	ListenableFuture<StompSession> getSessionFuture();
+    /**
+     * Return a future that will complete when the session is ready for use.
+     */
+    ListenableFuture<StompSession> getSessionFuture();
 
 }

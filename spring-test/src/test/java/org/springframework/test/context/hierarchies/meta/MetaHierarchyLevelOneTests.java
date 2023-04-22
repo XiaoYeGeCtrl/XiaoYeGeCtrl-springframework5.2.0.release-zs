@@ -32,13 +32,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 @MetaMetaContextHierarchyConfig
 class MetaHierarchyLevelOneTests {
 
-	@Autowired
-	private String foo;
+    @Autowired
+    private String foo;
 
 
-	@Test
-	void foo() {
-		assertThat(foo).isEqualTo("Dev Foo");
-	}
+    @Test
+    void foo() {
+        assertThat(foo).isEqualTo("Dev Foo");
+    }
 
 }

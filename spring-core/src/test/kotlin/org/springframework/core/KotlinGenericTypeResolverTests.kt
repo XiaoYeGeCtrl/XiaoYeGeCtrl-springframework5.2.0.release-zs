@@ -29,34 +29,34 @@ import java.lang.reflect.Method
  */
 class KotlinGenericTypeResolverTests {
 
-	@Test
-	fun methodReturnTypes() {
-		assertThat(resolveReturnTypeArgument(findMethod(MyTypeWithMethods::class.java, "integer")!!,
-				MyInterfaceType::class.java)).isEqualTo(Integer::class.java)
-		assertThat(resolveReturnTypeArgument(findMethod(MyTypeWithMethods::class.java, "string")!!,
-				MyInterfaceType::class.java)).isEqualTo(String::class.java)
-		assertThat(resolveReturnTypeArgument(findMethod(MyTypeWithMethods::class.java, "raw")!!,
-				MyInterfaceType::class.java)).isNull()
-		assertThat(resolveReturnTypeArgument(findMethod(MyTypeWithMethods::class.java, "object")!!,
-				MyInterfaceType::class.java)).isNull()
-	}
+    @Test
+    fun methodReturnTypes() {
+        assertThat(resolveReturnTypeArgument(findMethod(MyTypeWithMethods::class.java, "integer")!!,
+                MyInterfaceType::class.java)).isEqualTo(Integer::class.java)
+        assertThat(resolveReturnTypeArgument(findMethod(MyTypeWithMethods::class.java, "string")!!,
+                MyInterfaceType::class.java)).isEqualTo(String::class.java)
+        assertThat(resolveReturnTypeArgument(findMethod(MyTypeWithMethods::class.java, "raw")!!,
+                MyInterfaceType::class.java)).isNull()
+        assertThat(resolveReturnTypeArgument(findMethod(MyTypeWithMethods::class.java, "object")!!,
+                MyInterfaceType::class.java)).isNull()
+    }
 
-	private fun findMethod(clazz: Class<*>, name: String): Method? =
-			clazz.methods.firstOrNull { it.name == name }
+    private fun findMethod(clazz: Class<*>, name: String): Method? =
+            clazz.methods.firstOrNull { it.name == name }
 
-	open class MyTypeWithMethods<T> {
-		suspend fun integer(): MyInterfaceType<Int>? = null
+    open class MyTypeWithMethods<T> {
+        suspend fun integer(): MyInterfaceType<Int>? = null
 
-		suspend fun string(): MySimpleInterfaceType? = null
+        suspend fun string(): MySimpleInterfaceType? = null
 
-		suspend fun `object`(): Any? = null
+        suspend fun `object`(): Any? = null
 
-		suspend fun raw(): MyInterfaceType<*>? = null
-	}
+        suspend fun raw(): MyInterfaceType<*>? = null
+    }
 
-	interface MyInterfaceType<T>
+    interface MyInterfaceType<T>
 
-	interface MySimpleInterfaceType: MyInterfaceType<String>
+    interface MySimpleInterfaceType : MyInterfaceType<String>
 
-	open class MySimpleTypeWithMethods: MyTypeWithMethods<Int>()
+    open class MySimpleTypeWithMethods : MyTypeWithMethods<Int>()
 }

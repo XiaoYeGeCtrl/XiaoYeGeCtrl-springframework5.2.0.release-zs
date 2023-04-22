@@ -29,20 +29,20 @@ import org.springframework.context.annotation.Role;
  * annotations.
  *
  * @author Stephane Nicoll
- * @since 4.1
  * @see org.springframework.cache.annotation.EnableCaching
  * @see org.springframework.cache.annotation.CachingConfigurationSelector
+ * @since 4.1
  */
 @Configuration
 @Role(BeanDefinition.ROLE_INFRASTRUCTURE)
 public class AspectJJCacheConfiguration extends AbstractJCacheConfiguration {
 
-	@Bean(name = CacheManagementConfigUtils.JCACHE_ASPECT_BEAN_NAME)
-	@Role(BeanDefinition.ROLE_INFRASTRUCTURE)
-	public JCacheCacheAspect cacheAspect() {
-		JCacheCacheAspect cacheAspect = JCacheCacheAspect.aspectOf();
-		cacheAspect.setCacheOperationSource(cacheOperationSource());
-		return cacheAspect;
-	}
+    @Bean(name = CacheManagementConfigUtils.JCACHE_ASPECT_BEAN_NAME)
+    @Role(BeanDefinition.ROLE_INFRASTRUCTURE)
+    public JCacheCacheAspect cacheAspect() {
+        JCacheCacheAspect cacheAspect = JCacheCacheAspect.aspectOf();
+        cacheAspect.setCacheOperationSource(cacheOperationSource());
+        return cacheAspect;
+    }
 
 }

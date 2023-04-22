@@ -27,19 +27,19 @@ import org.springframework.format.Formatter;
  * following JSR-310's parsing rules for a Year.
  *
  * @author Juergen Hoeller
- * @since 5.0.4
  * @see Year#parse
+ * @since 5.0.4
  */
 class YearFormatter implements Formatter<Year> {
 
-	@Override
-	public Year parse(String text, Locale locale) throws ParseException {
-		return Year.parse(text);
-	}
+    @Override
+    public Year parse(String text, Locale locale) throws ParseException {
+        return Year.parse(text);
+    }
 
-	@Override
-	public String print(Year object, Locale locale) {
-		return object.toString();
-	}
+    @Override
+    public String print(Year object, Locale locale) {
+        return object.toString();
+    }
 
 }

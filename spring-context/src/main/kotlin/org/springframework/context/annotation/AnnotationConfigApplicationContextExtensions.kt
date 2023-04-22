@@ -25,4 +25,4 @@ package org.springframework.context.annotation
  */
 @Deprecated("Use regular apply method instead.", replaceWith = ReplaceWith("AnnotationConfigApplicationContext().apply(configure)"))
 fun AnnotationConfigApplicationContext(configure: AnnotationConfigApplicationContext.() -> Unit) =
-		AnnotationConfigApplicationContext().apply(configure)
+        AnnotationConfigApplicationContext().apply(configure)

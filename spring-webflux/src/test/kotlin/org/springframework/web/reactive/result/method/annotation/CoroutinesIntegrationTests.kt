@@ -37,118 +37,118 @@ import org.springframework.web.reactive.config.EnableWebFlux
 
 class CoroutinesIntegrationTests : AbstractRequestMappingIntegrationTests() {
 
-	override fun initApplicationContext(): ApplicationContext {
-		val context = AnnotationConfigApplicationContext()
-		context.register(WebConfig::class.java)
-		context.refresh()
-		return context
-	}
+    override fun initApplicationContext(): ApplicationContext {
+        val context = AnnotationConfigApplicationContext()
+        context.register(WebConfig::class.java)
+        context.refresh()
+        return context
+    }
 
 
-	@ParameterizedHttpServerTest
-	fun `Suspending handler method`(httpServer: HttpServer) {
-		startServer(httpServer)
+    @ParameterizedHttpServerTest
+    fun `Suspending handler method`(httpServer: HttpServer) {
+        startServer(httpServer)
 
-		val entity = performGet<String>("/suspend", HttpHeaders.EMPTY, String::class.java)
-		assertThat(entity.statusCode).isEqualTo(HttpStatus.OK)
-		assertThat(entity.body).isEqualTo("foo")
-	}
+        val entity = performGet<String>("/suspend", HttpHeaders.EMPTY, String::class.java)
+        assertThat(entity.statusCode).isEqualTo(HttpStatus.OK)
+        assertThat(entity.body).isEqualTo("foo")
+    }
 
-	@ParameterizedHttpServerTest
-	fun `Handler method returning Deferred`(httpServer: HttpServer) {
-		startServer(httpServer)
+    @ParameterizedHttpServerTest
+    fun `Handler method returning Deferred`(httpServer: HttpServer) {
+        startServer(httpServer)
 
-		val entity = performGet<String>("/deferred", HttpHeaders.EMPTY, String::class.java)
-		assertThat(entity.statusCode).isEqualTo(HttpStatus.OK)
-		assertThat(entity.body).isEqualTo("foo")
-	}
+        val entity = performGet<String>("/deferred", HttpHeaders.EMPTY, String::class.java)
+        assertThat(entity.statusCode).isEqualTo(HttpStatus.OK)
+        assertThat(entity.body).isEqualTo("foo")
+    }
 
-	@ParameterizedHttpServerTest
-	fun `Handler method returning Flow`(httpServer: HttpServer) {
-		startServer(httpServer)
+    @ParameterizedHttpServerTest
+    fun `Handler method returning Flow`(httpServer: HttpServer) {
+        startServer(httpServer)
 
-		val entity = performGet<String>("/flow", HttpHeaders.EMPTY, String::class.java)
-		assertThat(entity.statusCode).isEqualTo(HttpStatus.OK)
-		assertThat(entity.body).isEqualTo("foobar")
-	}
+        val entity = performGet<String>("/flow", HttpHeaders.EMPTY, String::class.java)
+        assertThat(entity.statusCode).isEqualTo(HttpStatus.OK)
+        assertThat(entity.body).isEqualTo("foobar")
+    }
 
-	@ParameterizedHttpServerTest
-	fun `Suspending handler method returning Flow`(httpServer: HttpServer) {
-		startServer(httpServer)
+    @ParameterizedHttpServerTest
+    fun `Suspending handler method returning Flow`(httpServer: HttpServer) {
+        startServer(httpServer)
 
-		val entity = performGet<String>("/suspending-flow", HttpHeaders.EMPTY, String::class.java)
-		assertThat(entity.statusCode).isEqualTo(HttpStatus.OK)
-		assertThat(entity.body).isEqualTo("foobar")
-	}
+        val entity = performGet<String>("/suspending-flow", HttpHeaders.EMPTY, String::class.java)
+        assertThat(entity.statusCode).isEqualTo(HttpStatus.OK)
+        assertThat(entity.body).isEqualTo("foobar")
+    }
 
-	@ParameterizedHttpServerTest
-	fun `Suspending handler method throwing exception`(httpServer: HttpServer) {
-		startServer(httpServer)
+    @ParameterizedHttpServerTest
+    fun `Suspending handler method throwing exception`(httpServer: HttpServer) {
+        startServer(httpServer)
 
-		assertThatExceptionOfType(HttpServerErrorException.InternalServerError::class.java).isThrownBy {
-			performGet<String>("/error", HttpHeaders.EMPTY, String::class.java)
-		}
-	}
+        assertThatExceptionOfType(HttpServerErrorException.InternalServerError::class.java).isThrownBy {
+            performGet<String>("/error", HttpHeaders.EMPTY, String::class.java)
+        }
+    }
 
-	@ParameterizedHttpServerTest
-	fun `Handler method returning Flow throwing exception`(httpServer: HttpServer) {
-		startServer(httpServer)
+    @ParameterizedHttpServerTest
+    fun `Handler method returning Flow throwing exception`(httpServer: HttpServer) {
+        startServer(httpServer)
 
-		assertThatExceptionOfType(HttpServerErrorException.InternalServerError::class.java).isThrownBy {
-			performGet<String>("/flow-error", HttpHeaders.EMPTY, String::class.java)
-		}
-	}
+        assertThatExceptionOfType(HttpServerErrorException.InternalServerError::class.java).isThrownBy {
+            performGet<String>("/flow-error", HttpHeaders.EMPTY, String::class.java)
+        }
+    }
 
-	@Configuration
-	@EnableWebFlux
-	@ComponentScan(resourcePattern = "**/CoroutinesIntegrationTests*")
-	open class WebConfig
+    @Configuration
+    @EnableWebFlux
+    @ComponentScan(resourcePattern = "**/CoroutinesIntegrationTests*")
+    open class WebConfig
 
-	@RestController
-	class CoroutinesController {
+    @RestController
+    class CoroutinesController {
 
-		@GetMapping("/suspend")
-		suspend fun suspendingEndpoint(): String {
-			delay(1)
-			return "foo"
-		}
+        @GetMapping("/suspend")
+        suspend fun suspendingEndpoint(): String {
+            delay(1)
+            return "foo"
+        }
 
-		@GetMapping("/deferred")
-		fun deferredEndpoint(): Deferred<String> = GlobalScope.async {
-			delay(1)
-			"foo"
-		}
+        @GetMapping("/deferred")
+        fun deferredEndpoint(): Deferred<String> = GlobalScope.async {
+            delay(1)
+            "foo"
+        }
 
-		@GetMapping("/flow")
-		fun flowEndpoint()= flow {
-			emit("foo")
-			delay(1)
-			emit("bar")
-			delay(1)
-		}
+        @GetMapping("/flow")
+        fun flowEndpoint() = flow {
+            emit("foo")
+            delay(1)
+            emit("bar")
+            delay(1)
+        }
 
-		@GetMapping("/suspending-flow")
-		suspend fun suspendingFlowEndpoint(): Flow<String> {
-			delay(10)
-			return flow {
-				emit("foo")
-				delay(1)
-				emit("bar")
-				delay(1)
-			}
-		}
+        @GetMapping("/suspending-flow")
+        suspend fun suspendingFlowEndpoint(): Flow<String> {
+            delay(10)
+            return flow {
+                emit("foo")
+                delay(1)
+                emit("bar")
+                delay(1)
+            }
+        }
 
-		@GetMapping("/error")
-		suspend fun error() {
-			delay(1)
-			throw IllegalStateException()
-		}
+        @GetMapping("/error")
+        suspend fun error() {
+            delay(1)
+            throw IllegalStateException()
+        }
 
-		@GetMapping("/flow-error")
-		suspend fun flowError() = flow<String> {
-			delay(1)
-			throw IllegalStateException()
-		}
+        @GetMapping("/flow-error")
+        suspend fun flowError() = flow<String> {
+            delay(1)
+            throw IllegalStateException()
+        }
 
-	}
+    }
 }

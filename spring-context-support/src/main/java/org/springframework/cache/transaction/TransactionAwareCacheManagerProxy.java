@@ -32,61 +32,62 @@ import org.springframework.util.Assert;
  * If no transaction is active, {@link Cache#put} operations will be performed immediately, as usual.
  *
  * @author Juergen Hoeller
- * @since 3.2
  * @see #setTargetCacheManager
  * @see TransactionAwareCacheDecorator
  * @see org.springframework.transaction.support.TransactionSynchronizationManager
+ * @since 3.2
  */
 public class TransactionAwareCacheManagerProxy implements CacheManager, InitializingBean {
 
-	@Nullable
-	private CacheManager targetCacheManager;
+    @Nullable
+    private CacheManager targetCacheManager;
 
 
-	/**
-	 * Create a new TransactionAwareCacheManagerProxy, setting the target CacheManager
-	 * through the {@link #setTargetCacheManager} bean property.
-	 */
-	public TransactionAwareCacheManagerProxy() {
-	}
+    /**
+     * Create a new TransactionAwareCacheManagerProxy, setting the target CacheManager
+     * through the {@link #setTargetCacheManager} bean property.
+     */
+    public TransactionAwareCacheManagerProxy() {
+    }
 
-	/**
-	 * Create a new TransactionAwareCacheManagerProxy for the given target CacheManager.
-	 * @param targetCacheManager the target CacheManager to proxy
-	 */
-	public TransactionAwareCacheManagerProxy(CacheManager targetCacheManager) {
-		Assert.notNull(targetCacheManager, "Target CacheManager must not be null");
-		this.targetCacheManager = targetCacheManager;
-	}
-
-
-	/**
-	 * Set the target CacheManager to proxy.
-	 */
-	public void setTargetCacheManager(CacheManager targetCacheManager) {
-		this.targetCacheManager = targetCacheManager;
-	}
-
-	@Override
-	public void afterPropertiesSet() {
-		if (this.targetCacheManager == null) {
-			throw new IllegalArgumentException("Property 'targetCacheManager' is required");
-		}
-	}
+    /**
+     * Create a new TransactionAwareCacheManagerProxy for the given target CacheManager.
+     *
+     * @param targetCacheManager the target CacheManager to proxy
+     */
+    public TransactionAwareCacheManagerProxy(CacheManager targetCacheManager) {
+        Assert.notNull(targetCacheManager, "Target CacheManager must not be null");
+        this.targetCacheManager = targetCacheManager;
+    }
 
 
-	@Override
-	@Nullable
-	public Cache getCache(String name) {
-		Assert.state(this.targetCacheManager != null, "No target CacheManager set");
-		Cache targetCache = this.targetCacheManager.getCache(name);
-		return (targetCache != null ? new TransactionAwareCacheDecorator(targetCache) : null);
-	}
+    /**
+     * Set the target CacheManager to proxy.
+     */
+    public void setTargetCacheManager(CacheManager targetCacheManager) {
+        this.targetCacheManager = targetCacheManager;
+    }
 
-	@Override
-	public Collection<String> getCacheNames() {
-		Assert.state(this.targetCacheManager != null, "No target CacheManager set");
-		return this.targetCacheManager.getCacheNames();
-	}
+    @Override
+    public void afterPropertiesSet() {
+        if (this.targetCacheManager == null) {
+            throw new IllegalArgumentException("Property 'targetCacheManager' is required");
+        }
+    }
+
+
+    @Override
+    @Nullable
+    public Cache getCache(String name) {
+        Assert.state(this.targetCacheManager != null, "No target CacheManager set");
+        Cache targetCache = this.targetCacheManager.getCache(name);
+        return (targetCache != null ? new TransactionAwareCacheDecorator(targetCache) : null);
+    }
+
+    @Override
+    public Collection<String> getCacheNames() {
+        Assert.state(this.targetCacheManager != null, "No target CacheManager set");
+        return this.targetCacheManager.getCacheNames();
+    }
 
 }

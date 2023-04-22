@@ -26,12 +26,12 @@ import org.junit.jupiter.api.Test
  */
 class ModelMapExtensionsTests {
 
-	@Test
-	fun setAttribute() {
-		val model = ModelMap()
-		model["foo"] = "bing"
-		assertThat(model.containsAttribute("foo"))
-		assertThat(model["foo"]).isEqualTo("bing")
-	}
+    @Test
+    fun setAttribute() {
+        val model = ModelMap()
+        model["foo"] = "bing"
+        assertThat(model.containsAttribute("foo"))
+        assertThat(model["foo"]).isEqualTo("bing")
+    }
 
 }

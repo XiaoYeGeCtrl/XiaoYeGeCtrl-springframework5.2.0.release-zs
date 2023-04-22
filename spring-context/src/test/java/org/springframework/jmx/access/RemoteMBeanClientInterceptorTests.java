@@ -37,57 +37,56 @@ import org.springframework.util.SocketUtils;
  */
 public class RemoteMBeanClientInterceptorTests extends MBeanClientInterceptorTests {
 
-	private static final int SERVICE_PORT;
+    private static final int SERVICE_PORT;
 
-	private static final String SERVICE_URL;
+    private static final String SERVICE_URL;
 
-	static {
-		SERVICE_PORT = SocketUtils.findAvailableTcpPort();
-		SERVICE_URL = "service:jmx:jmxmp://localhost:" + SERVICE_PORT;
-	}
-
-
-	private JMXConnectorServer connectorServer;
-
-	private JMXConnector connector;
+    static {
+        SERVICE_PORT = SocketUtils.findAvailableTcpPort();
+        SERVICE_URL = "service:jmx:jmxmp://localhost:" + SERVICE_PORT;
+    }
 
 
-	@Override
-	public void onSetUp() throws Exception {
-		super.onSetUp();
-		this.connectorServer = JMXConnectorServerFactory.newJMXConnectorServer(getServiceUrl(), null, getServer());
-		try {
-			this.connectorServer.start();
-		}
-		catch (BindException ex) {
-			System.out.println("Skipping remote JMX tests because binding to local port ["
-					+ SERVICE_PORT + "] failed: " + ex.getMessage());
-			runTests = false;
-		}
-	}
+    private JMXConnectorServer connectorServer;
 
-	private JMXServiceURL getServiceUrl() throws MalformedURLException {
-		return new JMXServiceURL(SERVICE_URL);
-	}
+    private JMXConnector connector;
 
-	@Override
-	protected MBeanServerConnection getServerConnection() throws Exception {
-		this.connector = JMXConnectorFactory.connect(getServiceUrl());
-		return this.connector.getMBeanServerConnection();
-	}
 
-	@AfterEach
-	@Override
-	public void tearDown() throws Exception {
-		if (this.connector != null) {
-			this.connector.close();
-		}
-		if (this.connectorServer != null) {
-			this.connectorServer.stop();
-		}
-		if (runTests) {
-			super.tearDown();
-		}
-	}
+    @Override
+    public void onSetUp() throws Exception {
+        super.onSetUp();
+        this.connectorServer = JMXConnectorServerFactory.newJMXConnectorServer(getServiceUrl(), null, getServer());
+        try {
+            this.connectorServer.start();
+        } catch (BindException ex) {
+            System.out.println("Skipping remote JMX tests because binding to local port ["
+                    + SERVICE_PORT + "] failed: " + ex.getMessage());
+            runTests = false;
+        }
+    }
+
+    private JMXServiceURL getServiceUrl() throws MalformedURLException {
+        return new JMXServiceURL(SERVICE_URL);
+    }
+
+    @Override
+    protected MBeanServerConnection getServerConnection() throws Exception {
+        this.connector = JMXConnectorFactory.connect(getServiceUrl());
+        return this.connector.getMBeanServerConnection();
+    }
+
+    @AfterEach
+    @Override
+    public void tearDown() throws Exception {
+        if (this.connector != null) {
+            this.connector.close();
+        }
+        if (this.connectorServer != null) {
+            this.connectorServer.stop();
+        }
+        if (runTests) {
+            super.tearDown();
+        }
+    }
 
 }

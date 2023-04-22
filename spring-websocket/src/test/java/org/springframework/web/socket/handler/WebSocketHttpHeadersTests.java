@@ -35,22 +35,22 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 public class WebSocketHttpHeadersTests {
 
-	private WebSocketHttpHeaders headers;
+    private WebSocketHttpHeaders headers;
 
-	@BeforeEach
-	public void setUp() {
-		headers = new WebSocketHttpHeaders();
-	}
+    @BeforeEach
+    public void setUp() {
+        headers = new WebSocketHttpHeaders();
+    }
 
-	@Test
-	public void parseWebSocketExtensions() {
-		List<String> extensions = new ArrayList<>();
-		extensions.add("x-foo-extension, x-bar-extension");
-		extensions.add("x-test-extension");
-		this.headers.put(WebSocketHttpHeaders.SEC_WEBSOCKET_EXTENSIONS, extensions);
+    @Test
+    public void parseWebSocketExtensions() {
+        List<String> extensions = new ArrayList<>();
+        extensions.add("x-foo-extension, x-bar-extension");
+        extensions.add("x-test-extension");
+        this.headers.put(WebSocketHttpHeaders.SEC_WEBSOCKET_EXTENSIONS, extensions);
 
-		List<WebSocketExtension> parsedExtensions = this.headers.getSecWebSocketExtensions();
-		assertThat(parsedExtensions).hasSize(3);
-	}
+        List<WebSocketExtension> parsedExtensions = this.headers.getSecWebSocketExtensions();
+        assertThat(parsedExtensions).hasSize(3);
+    }
 
 }

@@ -37,61 +37,56 @@ import static org.assertj.core.api.Assertions.assertThat;
 @ExtendWith(SpringExtension.class)
 @ContextHierarchy({
 //
-	@ContextConfiguration(name = "parent", classes = ClassHierarchyWithMergedConfigLevelOneTests.AppConfig.class),//
-	@ContextConfiguration(name = "child", classes = ClassHierarchyWithMergedConfigLevelOneTests.UserConfig.class) //
+        @ContextConfiguration(name = "parent", classes = ClassHierarchyWithMergedConfigLevelOneTests.AppConfig.class),//
+        @ContextConfiguration(name = "child", classes = ClassHierarchyWithMergedConfigLevelOneTests.UserConfig.class) //
 })
 class ClassHierarchyWithMergedConfigLevelOneTests {
 
-	@Configuration
-	static class AppConfig {
+    @Autowired
+    protected String parent;
+    @Autowired
+    protected String user;
+    @Autowired(required = false)
+    @Qualifier("beanFromUserConfig")
+    protected String beanFromUserConfig;
+    @Autowired
+    protected ApplicationContext context;
 
-		@Bean
-		String parent() {
-			return "parent";
-		}
-	}
+    @Test
+    void loadContextHierarchy() {
+        assertThat(context).as("child ApplicationContext").isNotNull();
+        assertThat(context.getParent()).as("parent ApplicationContext").isNotNull();
+        assertThat(context.getParent().getParent()).as("grandparent ApplicationContext").isNull();
+        assertThat(parent).isEqualTo("parent");
+        assertThat(user).isEqualTo("parent + user");
+        assertThat(beanFromUserConfig).isEqualTo("from UserConfig");
+    }
 
-	@Configuration
-	static class UserConfig {
+    @Configuration
+    static class AppConfig {
 
-		@Autowired
-		private AppConfig appConfig;
+        @Bean
+        String parent() {
+            return "parent";
+        }
+    }
 
+    @Configuration
+    static class UserConfig {
 
-		@Bean
-		String user() {
-			return appConfig.parent() + " + user";
-		}
-
-		@Bean
-		String beanFromUserConfig() {
-			return "from UserConfig";
-		}
-	}
-
-
-	@Autowired
-	protected String parent;
-
-	@Autowired
-	protected String user;
-
-	@Autowired(required = false)
-	@Qualifier("beanFromUserConfig")
-	protected String beanFromUserConfig;
-
-	@Autowired
-	protected ApplicationContext context;
+        @Autowired
+        private AppConfig appConfig;
 
 
-	@Test
-	void loadContextHierarchy() {
-		assertThat(context).as("child ApplicationContext").isNotNull();
-		assertThat(context.getParent()).as("parent ApplicationContext").isNotNull();
-		assertThat(context.getParent().getParent()).as("grandparent ApplicationContext").isNull();
-		assertThat(parent).isEqualTo("parent");
-		assertThat(user).isEqualTo("parent + user");
-		assertThat(beanFromUserConfig).isEqualTo("from UserConfig");
-	}
+        @Bean
+        String user() {
+            return appConfig.parent() + " + user";
+        }
+
+        @Bean
+        String beanFromUserConfig() {
+            return "from UserConfig";
+        }
+    }
 
 }

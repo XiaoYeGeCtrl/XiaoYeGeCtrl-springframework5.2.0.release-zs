@@ -31,54 +31,53 @@ import org.springframework.beans.factory.FactoryBean;
  */
 public class WebSocketContainerFactoryBean implements FactoryBean<WebSocketContainer> {
 
-	private final WebSocketContainer webSocketContainer = ContainerProvider.getWebSocketContainer();
+    private final WebSocketContainer webSocketContainer = ContainerProvider.getWebSocketContainer();
 
+    public long getAsyncSendTimeout() {
+        return this.webSocketContainer.getDefaultAsyncSendTimeout();
+    }
 
-	public void setAsyncSendTimeout(long timeoutInMillis) {
-		this.webSocketContainer.setAsyncSendTimeout(timeoutInMillis);
-	}
+    public void setAsyncSendTimeout(long timeoutInMillis) {
+        this.webSocketContainer.setAsyncSendTimeout(timeoutInMillis);
+    }
 
-	public long getAsyncSendTimeout() {
-		return this.webSocketContainer.getDefaultAsyncSendTimeout();
-	}
+    public long getMaxSessionIdleTimeout() {
+        return this.webSocketContainer.getDefaultMaxSessionIdleTimeout();
+    }
 
-	public void setMaxSessionIdleTimeout(long timeoutInMillis) {
-		this.webSocketContainer.setDefaultMaxSessionIdleTimeout(timeoutInMillis);
-	}
+    public void setMaxSessionIdleTimeout(long timeoutInMillis) {
+        this.webSocketContainer.setDefaultMaxSessionIdleTimeout(timeoutInMillis);
+    }
 
-	public long getMaxSessionIdleTimeout() {
-		return this.webSocketContainer.getDefaultMaxSessionIdleTimeout();
-	}
+    public int getMaxTextMessageBufferSize() {
+        return this.webSocketContainer.getDefaultMaxTextMessageBufferSize();
+    }
 
-	public void setMaxTextMessageBufferSize(int bufferSize) {
-		this.webSocketContainer.setDefaultMaxTextMessageBufferSize(bufferSize);
-	}
+    public void setMaxTextMessageBufferSize(int bufferSize) {
+        this.webSocketContainer.setDefaultMaxTextMessageBufferSize(bufferSize);
+    }
 
-	public int getMaxTextMessageBufferSize() {
-		return this.webSocketContainer.getDefaultMaxTextMessageBufferSize();
-	}
+    public int getMaxBinaryMessageBufferSize() {
+        return this.webSocketContainer.getDefaultMaxBinaryMessageBufferSize();
+    }
 
-	public void setMaxBinaryMessageBufferSize(int bufferSize) {
-		this.webSocketContainer.setDefaultMaxBinaryMessageBufferSize(bufferSize);
-	}
+    public void setMaxBinaryMessageBufferSize(int bufferSize) {
+        this.webSocketContainer.setDefaultMaxBinaryMessageBufferSize(bufferSize);
+    }
 
-	public int getMaxBinaryMessageBufferSize() {
-		return this.webSocketContainer.getDefaultMaxBinaryMessageBufferSize();
-	}
+    @Override
+    public WebSocketContainer getObject() throws Exception {
+        return this.webSocketContainer;
+    }
 
-	@Override
-	public WebSocketContainer getObject() throws Exception {
-		return this.webSocketContainer;
-	}
+    @Override
+    public Class<?> getObjectType() {
+        return WebSocketContainer.class;
+    }
 
-	@Override
-	public Class<?> getObjectType() {
-		return WebSocketContainer.class;
-	}
-
-	@Override
-	public boolean isSingleton() {
-		return true;
-	}
+    @Override
+    public boolean isSingleton() {
+        return true;
+    }
 
 }

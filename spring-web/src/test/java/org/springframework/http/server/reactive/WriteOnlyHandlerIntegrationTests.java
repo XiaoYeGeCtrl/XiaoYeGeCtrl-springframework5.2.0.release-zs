@@ -37,48 +37,48 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 class WriteOnlyHandlerIntegrationTests extends AbstractHttpHandlerIntegrationTests {
 
-	private static final int REQUEST_SIZE = 4096 * 3;
+    private static final int REQUEST_SIZE = 4096 * 3;
 
-	private final Random rnd = new Random();
+    private final Random rnd = new Random();
 
-	private byte[] body;
-
-
-	@Override
-	protected WriteOnlyHandler createHttpHandler() {
-		return new WriteOnlyHandler();
-	}
-
-	@ParameterizedHttpServerTest
-	void writeOnly(HttpServer httpServer) throws Exception {
-		startServer(httpServer);
-
-		RestTemplate restTemplate = new RestTemplate();
-
-		this.body = randomBytes();
-		RequestEntity<byte[]> request = RequestEntity.post(
-				new URI("http://localhost:" + port)).body(
-						"".getBytes(StandardCharsets.UTF_8));
-		ResponseEntity<byte[]> response = restTemplate.exchange(request, byte[].class);
-
-		assertThat(response.getBody()).isEqualTo(body);
-	}
-
-	private byte[] randomBytes() {
-		byte[] buffer = new byte[REQUEST_SIZE];
-		rnd.nextBytes(buffer);
-		return buffer;
-	}
+    private byte[] body;
 
 
-	class WriteOnlyHandler implements HttpHandler {
+    @Override
+    protected WriteOnlyHandler createHttpHandler() {
+        return new WriteOnlyHandler();
+    }
 
-		@Override
-		public Mono<Void> handle(ServerHttpRequest request, ServerHttpResponse response) {
-			DataBuffer buffer = response.bufferFactory().allocateBuffer(body.length);
-			buffer.write(body);
-			return response.writeAndFlushWith(Flux.just(Flux.just(buffer)));
-		}
-	}
+    @ParameterizedHttpServerTest
+    void writeOnly(HttpServer httpServer) throws Exception {
+        startServer(httpServer);
+
+        RestTemplate restTemplate = new RestTemplate();
+
+        this.body = randomBytes();
+        RequestEntity<byte[]> request = RequestEntity.post(
+                new URI("http://localhost:" + port)).body(
+                "".getBytes(StandardCharsets.UTF_8));
+        ResponseEntity<byte[]> response = restTemplate.exchange(request, byte[].class);
+
+        assertThat(response.getBody()).isEqualTo(body);
+    }
+
+    private byte[] randomBytes() {
+        byte[] buffer = new byte[REQUEST_SIZE];
+        rnd.nextBytes(buffer);
+        return buffer;
+    }
+
+
+    class WriteOnlyHandler implements HttpHandler {
+
+        @Override
+        public Mono<Void> handle(ServerHttpRequest request, ServerHttpResponse response) {
+            DataBuffer buffer = response.bufferFactory().allocateBuffer(body.length);
+            buffer.write(body);
+            return response.writeAndFlushWith(Flux.just(Flux.just(buffer)));
+        }
+    }
 
 }

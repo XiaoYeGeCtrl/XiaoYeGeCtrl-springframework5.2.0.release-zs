@@ -24,6 +24,6 @@ package org.springframework.expression.spel.testresources.le.div.mod.reserved;
  */
 public class Reserver {
 
-	public static final String CONST = "Const";
+    public static final String CONST = "Const";
 
 }

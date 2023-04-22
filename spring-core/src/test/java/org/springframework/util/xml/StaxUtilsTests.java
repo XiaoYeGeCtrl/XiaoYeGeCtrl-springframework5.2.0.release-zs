@@ -43,56 +43,56 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 class StaxUtilsTests {
 
-	@Test
-	void isStaxSourceInvalid() throws Exception {
-		assertThat(StaxUtils.isStaxSource(new DOMSource())).as("A StAX Source").isFalse();
-		assertThat(StaxUtils.isStaxSource(new SAXSource())).as("A StAX Source").isFalse();
-		assertThat(StaxUtils.isStaxSource(new StreamSource())).as("A StAX Source").isFalse();
-	}
+    @Test
+    void isStaxSourceInvalid() throws Exception {
+        assertThat(StaxUtils.isStaxSource(new DOMSource())).as("A StAX Source").isFalse();
+        assertThat(StaxUtils.isStaxSource(new SAXSource())).as("A StAX Source").isFalse();
+        assertThat(StaxUtils.isStaxSource(new StreamSource())).as("A StAX Source").isFalse();
+    }
 
-	@Test
-	void isStaxSource() throws Exception {
-		XMLInputFactory inputFactory = XMLInputFactory.newInstance();
-		String expected = "<element/>";
-		XMLStreamReader streamReader = inputFactory.createXMLStreamReader(new StringReader(expected));
-		Source source = StaxUtils.createCustomStaxSource(streamReader);
+    @Test
+    void isStaxSource() throws Exception {
+        XMLInputFactory inputFactory = XMLInputFactory.newInstance();
+        String expected = "<element/>";
+        XMLStreamReader streamReader = inputFactory.createXMLStreamReader(new StringReader(expected));
+        Source source = StaxUtils.createCustomStaxSource(streamReader);
 
-		assertThat(StaxUtils.isStaxSource(source)).as("Not a StAX Source").isTrue();
-	}
+        assertThat(StaxUtils.isStaxSource(source)).as("Not a StAX Source").isTrue();
+    }
 
-	@Test
-	void isStaxSourceJaxp14() throws Exception {
-		XMLInputFactory inputFactory = XMLInputFactory.newInstance();
-		String expected = "<element/>";
-		XMLStreamReader streamReader = inputFactory.createXMLStreamReader(new StringReader(expected));
-		StAXSource source = new StAXSource(streamReader);
+    @Test
+    void isStaxSourceJaxp14() throws Exception {
+        XMLInputFactory inputFactory = XMLInputFactory.newInstance();
+        String expected = "<element/>";
+        XMLStreamReader streamReader = inputFactory.createXMLStreamReader(new StringReader(expected));
+        StAXSource source = new StAXSource(streamReader);
 
-		assertThat(StaxUtils.isStaxSource(source)).as("Not a StAX Source").isTrue();
-	}
+        assertThat(StaxUtils.isStaxSource(source)).as("Not a StAX Source").isTrue();
+    }
 
-	@Test
-	void isStaxResultInvalid() throws Exception {
-		assertThat(StaxUtils.isStaxResult(new DOMResult())).as("A StAX Result").isFalse();
-		assertThat(StaxUtils.isStaxResult(new SAXResult())).as("A StAX Result").isFalse();
-		assertThat(StaxUtils.isStaxResult(new StreamResult())).as("A StAX Result").isFalse();
-	}
+    @Test
+    void isStaxResultInvalid() throws Exception {
+        assertThat(StaxUtils.isStaxResult(new DOMResult())).as("A StAX Result").isFalse();
+        assertThat(StaxUtils.isStaxResult(new SAXResult())).as("A StAX Result").isFalse();
+        assertThat(StaxUtils.isStaxResult(new StreamResult())).as("A StAX Result").isFalse();
+    }
 
-	@Test
-	void isStaxResult() throws Exception {
-		XMLOutputFactory outputFactory = XMLOutputFactory.newInstance();
-		XMLStreamWriter streamWriter = outputFactory.createXMLStreamWriter(new StringWriter());
-		Result result = StaxUtils.createCustomStaxResult(streamWriter);
+    @Test
+    void isStaxResult() throws Exception {
+        XMLOutputFactory outputFactory = XMLOutputFactory.newInstance();
+        XMLStreamWriter streamWriter = outputFactory.createXMLStreamWriter(new StringWriter());
+        Result result = StaxUtils.createCustomStaxResult(streamWriter);
 
-		assertThat(StaxUtils.isStaxResult(result)).as("Not a StAX Result").isTrue();
-	}
+        assertThat(StaxUtils.isStaxResult(result)).as("Not a StAX Result").isTrue();
+    }
 
-	@Test
-	void isStaxResultJaxp14() throws Exception {
-		XMLOutputFactory outputFactory = XMLOutputFactory.newInstance();
-		XMLStreamWriter streamWriter = outputFactory.createXMLStreamWriter(new StringWriter());
-		StAXResult result = new StAXResult(streamWriter);
+    @Test
+    void isStaxResultJaxp14() throws Exception {
+        XMLOutputFactory outputFactory = XMLOutputFactory.newInstance();
+        XMLStreamWriter streamWriter = outputFactory.createXMLStreamWriter(new StringWriter());
+        StAXResult result = new StAXResult(streamWriter);
 
-		assertThat(StaxUtils.isStaxResult(result)).as("Not a StAX Result").isTrue();
-	}
+        assertThat(StaxUtils.isStaxResult(result)).as("Not a StAX Result").isTrue();
+    }
 
 }

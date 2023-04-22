@@ -58,224 +58,226 @@ import org.springframework.web.util.UriBuilder;
  */
 public class ServerRequestWrapper implements ServerRequest {
 
-	private final ServerRequest delegate;
+    private final ServerRequest delegate;
 
 
-	/**
-	 * Create a new {@code ServerRequestWrapper} that wraps the given request.
-	 * @param delegate the request to wrap
-	 */
-	public ServerRequestWrapper(ServerRequest delegate) {
-		Assert.notNull(delegate, "Delegate must not be null");
-		this.delegate = delegate;
-	}
+    /**
+     * Create a new {@code ServerRequestWrapper} that wraps the given request.
+     *
+     * @param delegate the request to wrap
+     */
+    public ServerRequestWrapper(ServerRequest delegate) {
+        Assert.notNull(delegate, "Delegate must not be null");
+        this.delegate = delegate;
+    }
 
 
-	/**
-	 * Return the wrapped request.
-	 */
-	public ServerRequest request() {
-		return this.delegate;
-	}
+    /**
+     * Return the wrapped request.
+     */
+    public ServerRequest request() {
+        return this.delegate;
+    }
 
-	@Override
-	public HttpMethod method() {
-		return this.delegate.method();
-	}
+    @Override
+    public HttpMethod method() {
+        return this.delegate.method();
+    }
 
-	@Override
-	public String methodName() {
-		return this.delegate.methodName();
-	}
+    @Override
+    public String methodName() {
+        return this.delegate.methodName();
+    }
 
-	@Override
-	public URI uri() {
-		return this.delegate.uri();
-	}
+    @Override
+    public URI uri() {
+        return this.delegate.uri();
+    }
 
-	@Override
-	public UriBuilder uriBuilder() {
-		return this.delegate.uriBuilder();
-	}
+    @Override
+    public UriBuilder uriBuilder() {
+        return this.delegate.uriBuilder();
+    }
 
-	@Override
-	public String path() {
-		return this.delegate.path();
-	}
+    @Override
+    public String path() {
+        return this.delegate.path();
+    }
 
-	@Override
-	public PathContainer pathContainer() {
-		return this.delegate.pathContainer();
-	}
+    @Override
+    public PathContainer pathContainer() {
+        return this.delegate.pathContainer();
+    }
 
-	@Override
-	public Headers headers() {
-		return this.delegate.headers();
-	}
+    @Override
+    public Headers headers() {
+        return this.delegate.headers();
+    }
 
-	@Override
-	public MultiValueMap<String, HttpCookie> cookies() {
-		return this.delegate.cookies();
-	}
+    @Override
+    public MultiValueMap<String, HttpCookie> cookies() {
+        return this.delegate.cookies();
+    }
 
-	@Override
-	public Optional<InetSocketAddress> remoteAddress() {
-		return this.delegate.remoteAddress();
-	}
+    @Override
+    public Optional<InetSocketAddress> remoteAddress() {
+        return this.delegate.remoteAddress();
+    }
 
-	@Override
-	public List<HttpMessageReader<?>> messageReaders() {
-		return this.delegate.messageReaders();
-	}
+    @Override
+    public List<HttpMessageReader<?>> messageReaders() {
+        return this.delegate.messageReaders();
+    }
 
-	@Override
-	public <T> T body(BodyExtractor<T, ? super ServerHttpRequest> extractor) {
-		return this.delegate.body(extractor);
-	}
+    @Override
+    public <T> T body(BodyExtractor<T, ? super ServerHttpRequest> extractor) {
+        return this.delegate.body(extractor);
+    }
 
-	@Override
-	public <T> T body(BodyExtractor<T, ? super ServerHttpRequest> extractor, Map<String, Object> hints) {
-		return this.delegate.body(extractor, hints);
-	}
+    @Override
+    public <T> T body(BodyExtractor<T, ? super ServerHttpRequest> extractor, Map<String, Object> hints) {
+        return this.delegate.body(extractor, hints);
+    }
 
-	@Override
-	public <T> Mono<T> bodyToMono(Class<? extends T> elementClass) {
-		return this.delegate.bodyToMono(elementClass);
-	}
+    @Override
+    public <T> Mono<T> bodyToMono(Class<? extends T> elementClass) {
+        return this.delegate.bodyToMono(elementClass);
+    }
 
-	@Override
-	public <T> Mono<T> bodyToMono(ParameterizedTypeReference<T> typeReference) {
-		return this.delegate.bodyToMono(typeReference);
-	}
+    @Override
+    public <T> Mono<T> bodyToMono(ParameterizedTypeReference<T> typeReference) {
+        return this.delegate.bodyToMono(typeReference);
+    }
 
-	@Override
-	public <T> Flux<T> bodyToFlux(Class<? extends T> elementClass) {
-		return this.delegate.bodyToFlux(elementClass);
-	}
+    @Override
+    public <T> Flux<T> bodyToFlux(Class<? extends T> elementClass) {
+        return this.delegate.bodyToFlux(elementClass);
+    }
 
-	@Override
-	public <T> Flux<T> bodyToFlux(ParameterizedTypeReference<T> typeReference) {
-		return this.delegate.bodyToFlux(typeReference);
-	}
+    @Override
+    public <T> Flux<T> bodyToFlux(ParameterizedTypeReference<T> typeReference) {
+        return this.delegate.bodyToFlux(typeReference);
+    }
 
-	@Override
-	public Optional<Object> attribute(String name) {
-		return this.delegate.attribute(name);
-	}
+    @Override
+    public Optional<Object> attribute(String name) {
+        return this.delegate.attribute(name);
+    }
 
-	@Override
-	public Map<String, Object> attributes() {
-		return this.delegate.attributes();
-	}
+    @Override
+    public Map<String, Object> attributes() {
+        return this.delegate.attributes();
+    }
 
-	@Override
-	public Optional<String> queryParam(String name) {
-		return this.delegate.queryParam(name);
-	}
+    @Override
+    public Optional<String> queryParam(String name) {
+        return this.delegate.queryParam(name);
+    }
 
-	@Override
-	public MultiValueMap<String, String> queryParams() {
-		return this.delegate.queryParams();
-	}
+    @Override
+    public MultiValueMap<String, String> queryParams() {
+        return this.delegate.queryParams();
+    }
 
-	@Override
-	public String pathVariable(String name) {
-		return this.delegate.pathVariable(name);
-	}
+    @Override
+    public String pathVariable(String name) {
+        return this.delegate.pathVariable(name);
+    }
 
-	@Override
-	public Map<String, String> pathVariables() {
-		return this.delegate.pathVariables();
-	}
+    @Override
+    public Map<String, String> pathVariables() {
+        return this.delegate.pathVariables();
+    }
 
-	@Override
-	public Mono<WebSession> session() {
-		return this.delegate.session();
-	}
+    @Override
+    public Mono<WebSession> session() {
+        return this.delegate.session();
+    }
 
-	@Override
-	public Mono<? extends Principal> principal() {
-		return this.delegate.principal();
-	}
+    @Override
+    public Mono<? extends Principal> principal() {
+        return this.delegate.principal();
+    }
 
-	@Override
-	public Mono<MultiValueMap<String, String>> formData() {
-		return this.delegate.formData();
-	}
+    @Override
+    public Mono<MultiValueMap<String, String>> formData() {
+        return this.delegate.formData();
+    }
 
-	@Override
-	public Mono<MultiValueMap<String, Part>> multipartData() {
-		return this.delegate.multipartData();
-	}
+    @Override
+    public Mono<MultiValueMap<String, Part>> multipartData() {
+        return this.delegate.multipartData();
+    }
 
-	@Override
-	public ServerWebExchange exchange() {
-		return this.delegate.exchange();
-	}
+    @Override
+    public ServerWebExchange exchange() {
+        return this.delegate.exchange();
+    }
 
-	/**
-	 * Implementation of the {@code Headers} interface that can be subclassed
-	 * to adapt the headers in a
-	 * {@link org.springframework.web.reactive.function.server.HandlerFilterFunction handler filter function}.
-	 * All methods default to calling through to the wrapped headers.
-	 */
-	public static class HeadersWrapper implements ServerRequest.Headers {
+    /**
+     * Implementation of the {@code Headers} interface that can be subclassed
+     * to adapt the headers in a
+     * {@link org.springframework.web.reactive.function.server.HandlerFilterFunction handler filter function}.
+     * All methods default to calling through to the wrapped headers.
+     */
+    public static class HeadersWrapper implements ServerRequest.Headers {
 
-		private final Headers headers;
+        private final Headers headers;
 
-		/**
-		 * Create a new {@code HeadersWrapper} that wraps the given request.
-		 * @param headers the headers to wrap
-		 */
-		public HeadersWrapper(Headers headers) {
-			Assert.notNull(headers, "Headers must not be null");
-			this.headers = headers;
-		}
+        /**
+         * Create a new {@code HeadersWrapper} that wraps the given request.
+         *
+         * @param headers the headers to wrap
+         */
+        public HeadersWrapper(Headers headers) {
+            Assert.notNull(headers, "Headers must not be null");
+            this.headers = headers;
+        }
 
-		@Override
-		public List<MediaType> accept() {
-			return this.headers.accept();
-		}
+        @Override
+        public List<MediaType> accept() {
+            return this.headers.accept();
+        }
 
-		@Override
-		public List<Charset> acceptCharset() {
-			return this.headers.acceptCharset();
-		}
+        @Override
+        public List<Charset> acceptCharset() {
+            return this.headers.acceptCharset();
+        }
 
-		@Override
-		public List<Locale.LanguageRange> acceptLanguage() {
-			return this.headers.acceptLanguage();
-		}
+        @Override
+        public List<Locale.LanguageRange> acceptLanguage() {
+            return this.headers.acceptLanguage();
+        }
 
-		@Override
-		public OptionalLong contentLength() {
-			return this.headers.contentLength();
-		}
+        @Override
+        public OptionalLong contentLength() {
+            return this.headers.contentLength();
+        }
 
-		@Override
-		public Optional<MediaType> contentType() {
-			return this.headers.contentType();
-		}
+        @Override
+        public Optional<MediaType> contentType() {
+            return this.headers.contentType();
+        }
 
-		@Override
-		public InetSocketAddress host() {
-			return this.headers.host();
-		}
+        @Override
+        public InetSocketAddress host() {
+            return this.headers.host();
+        }
 
-		@Override
-		public List<HttpRange> range() {
-			return this.headers.range();
-		}
+        @Override
+        public List<HttpRange> range() {
+            return this.headers.range();
+        }
 
-		@Override
-		public List<String> header(String headerName) {
-			return this.headers.header(headerName);
-		}
+        @Override
+        public List<String> header(String headerName) {
+            return this.headers.header(headerName);
+        }
 
-		@Override
-		public HttpHeaders asHttpHeaders() {
-			return this.headers.asHttpHeaders();
-		}
-	}
+        @Override
+        public HttpHeaders asHttpHeaders() {
+            return this.headers.asHttpHeaders();
+        }
+    }
 
 }

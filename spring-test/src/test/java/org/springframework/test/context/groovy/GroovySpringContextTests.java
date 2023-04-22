@@ -43,81 +43,76 @@ import static org.assertj.core.api.Assertions.assertThat;
 @ContextConfiguration("context.groovy")
 class GroovySpringContextTests implements BeanNameAware, InitializingBean {
 
-	private Employee employee;
+    @Autowired(required = false)
+    protected Long nonrequiredLong;
+    @Resource
+    protected String foo;
+    protected String bar;
+    private Employee employee;
+    @Autowired
+    private Pet pet;
+    @Autowired
+    private ApplicationContext applicationContext;
 
-	@Autowired
-	private Pet pet;
+    private String beanName;
 
-	@Autowired(required = false)
-	protected Long nonrequiredLong;
-
-	@Resource
-	protected String foo;
-
-	protected String bar;
-
-	@Autowired
-	private ApplicationContext applicationContext;
-
-	private String beanName;
-
-	private boolean beanInitialized = false;
+    private boolean beanInitialized = false;
 
 
-	@Autowired
-	protected void setEmployee(Employee employee) {
-		this.employee = employee;
-	}
+    @Autowired
+    protected void setEmployee(Employee employee) {
+        this.employee = employee;
+    }
 
-	@Resource
-	protected void setBar(String bar) {
-		this.bar = bar;
-	}
+    @Resource
+    protected void setBar(String bar) {
+        this.bar = bar;
+    }
 
-	@Override
-	public void setBeanName(String beanName) {
-		this.beanName = beanName;
-	}
+    @Override
+    public void setBeanName(String beanName) {
+        this.beanName = beanName;
+    }
 
-	@Override
-	public void afterPropertiesSet() {
-		this.beanInitialized = true;
-	}
+    @Override
+    public void afterPropertiesSet() {
+        this.beanInitialized = true;
+    }
 
 
-	@Test
-	void verifyBeanNameSet() {
-		assertThat(this.beanName.startsWith(getClass().getName())).as("The bean name of this test instance should have been set to the fully qualified class name " +
-				"due to BeanNameAware semantics.").isTrue();
-	}
+    @Test
+    void verifyBeanNameSet() {
+        assertThat(this.beanName.startsWith(getClass().getName())).as("The bean name of this test instance should have been set to the fully qualified class name " +
+                "due to BeanNameAware semantics.").isTrue();
+    }
 
-	@Test
-	void verifyBeanInitialized() {
-		assertThat(this.beanInitialized).as("This test bean should have been initialized due to InitializingBean semantics.").isTrue();
-	}
+    @Test
+    void verifyBeanInitialized() {
+        assertThat(this.beanInitialized).as("This test bean should have been initialized due to InitializingBean semantics.").isTrue();
+    }
 
-	@Test
-	void verifyAnnotationAutowiredFields() {
-		assertThat(this.nonrequiredLong).as("The nonrequiredLong property should NOT have been autowired.").isNull();
-		assertThat(this.applicationContext).as("The application context should have been autowired.").isNotNull();
-		assertThat(this.pet).as("The pet field should have been autowired.").isNotNull();
-		assertThat(this.pet.getName()).isEqualTo("Dogbert");
-	}
+    @Test
+    void verifyAnnotationAutowiredFields() {
+        assertThat(this.nonrequiredLong).as("The nonrequiredLong property should NOT have been autowired.").isNull();
+        assertThat(this.applicationContext).as("The application context should have been autowired.").isNotNull();
+        assertThat(this.pet).as("The pet field should have been autowired.").isNotNull();
+        assertThat(this.pet.getName()).isEqualTo("Dogbert");
+    }
 
-	@Test
-	void verifyAnnotationAutowiredMethods() {
-		assertThat(this.employee).as("The employee setter method should have been autowired.").isNotNull();
-		assertThat(this.employee.getName()).isEqualTo("Dilbert");
-	}
+    @Test
+    void verifyAnnotationAutowiredMethods() {
+        assertThat(this.employee).as("The employee setter method should have been autowired.").isNotNull();
+        assertThat(this.employee.getName()).isEqualTo("Dilbert");
+    }
 
-	@Test
-	void verifyResourceAnnotationWiredFields() {
-		assertThat(this.foo).as("The foo field should have been wired via @Resource.").isEqualTo("Foo");
-	}
+    @Test
+    void verifyResourceAnnotationWiredFields() {
+        assertThat(this.foo).as("The foo field should have been wired via @Resource.").isEqualTo("Foo");
+    }
 
-	@Test
-	void verifyResourceAnnotationWiredMethods() {
-		assertThat(this.bar).as("The bar method should have been wired via @Resource.").isEqualTo("Bar");
-	}
+    @Test
+    void verifyResourceAnnotationWiredMethods() {
+        assertThat(this.bar).as("The bar method should have been wired via @Resource.").isEqualTo("Bar");
+    }
 
 }

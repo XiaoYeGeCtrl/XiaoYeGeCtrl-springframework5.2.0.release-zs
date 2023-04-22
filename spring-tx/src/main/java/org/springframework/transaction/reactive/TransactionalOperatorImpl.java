@@ -35,108 +35,110 @@ import org.springframework.util.Assert;
  *
  * @author Mark Paluch
  * @author Juergen Hoeller
- * @since 5.2
  * @see #execute
  * @see ReactiveTransactionManager
+ * @since 5.2
  */
 @SuppressWarnings("serial")
 final class TransactionalOperatorImpl implements TransactionalOperator {
 
-	private static final Log logger = LogFactory.getLog(TransactionalOperatorImpl.class);
+    private static final Log logger = LogFactory.getLog(TransactionalOperatorImpl.class);
 
-	private final ReactiveTransactionManager transactionManager;
+    private final ReactiveTransactionManager transactionManager;
 
-	private final TransactionDefinition transactionDefinition;
-
-
-	/**
-	 * Construct a new TransactionTemplate using the given transaction manager,
-	 * taking its default settings from the given transaction definition.
-	 * @param transactionManager the transaction management strategy to be used
-	 * @param transactionDefinition the transaction definition to copy the
-	 * default settings from. Local properties can still be set to change values.
-	 */
-	TransactionalOperatorImpl(ReactiveTransactionManager transactionManager, TransactionDefinition transactionDefinition) {
-		Assert.notNull(transactionManager, "ReactiveTransactionManager must not be null");
-		Assert.notNull(transactionManager, "TransactionDefinition must not be null");
-		this.transactionManager = transactionManager;
-		this.transactionDefinition = transactionDefinition;
-	}
+    private final TransactionDefinition transactionDefinition;
 
 
-	/**
-	 * Return the transaction management strategy to be used.
-	 */
-	public ReactiveTransactionManager getTransactionManager() {
-		return this.transactionManager;
-	}
-
-	@Override
-	public <T> Mono<T> transactional(Mono<T> mono) {
-		return TransactionContextManager.currentContext().flatMap(context -> {
-			Mono<ReactiveTransaction> status = this.transactionManager.getReactiveTransaction(this.transactionDefinition);
-			// This is an around advice: Invoke the next interceptor in the chain.
-			// This will normally result in a target object being invoked.
-			// Need re-wrapping of ReactiveTransaction until we get hold of the exception
-			// through usingWhen.
-			return status.flatMap(it -> Mono.usingWhen(Mono.just(it), ignore -> mono,
-					this.transactionManager::commit, (res, err) -> Mono.empty(), s -> Mono.empty())
-					.onErrorResume(ex -> rollbackOnException(it, ex).then(Mono.error(ex))));
-		})
-		.subscriberContext(TransactionContextManager.getOrCreateContext())
-		.subscriberContext(TransactionContextManager.getOrCreateContextHolder());
-	}
-
-	@Override
-	public <T> Flux<T> execute(TransactionCallback<T> action) throws TransactionException {
-		return TransactionContextManager.currentContext().flatMapMany(context -> {
-			Mono<ReactiveTransaction> status = this.transactionManager.getReactiveTransaction(this.transactionDefinition);
-			// This is an around advice: Invoke the next interceptor in the chain.
-			// This will normally result in a target object being invoked.
-			// Need re-wrapping of ReactiveTransaction until we get hold of the exception
-			// through usingWhen.
-			return status.flatMapMany(it -> Flux
-					.usingWhen(
-							Mono.just(it),
-							action::doInTransaction,
-							this.transactionManager::commit,
-							(tx, ex) -> Mono.empty(),
-							this.transactionManager::commit)
-					.onErrorResume(ex ->
-							rollbackOnException(it, ex).then(Mono.error(ex))));
-		})
-		.subscriberContext(TransactionContextManager.getOrCreateContext())
-		.subscriberContext(TransactionContextManager.getOrCreateContextHolder());
-	}
-
-	/**
-	 * Perform a rollback, handling rollback exceptions properly.
-	 * @param status object representing the transaction
-	 * @param ex the thrown application exception or error
-	 * @throws TransactionException in case of a rollback error
-	 */
-	private Mono<Void> rollbackOnException(ReactiveTransaction status, Throwable ex) throws TransactionException {
-		logger.debug("Initiating transaction rollback on application exception", ex);
-		return this.transactionManager.rollback(status).onErrorMap(ex2 -> {
-					logger.error("Application exception overridden by rollback exception", ex);
-					if (ex2 instanceof TransactionSystemException) {
-						((TransactionSystemException) ex2).initApplicationException(ex);
-					}
-					return ex2;
-				}
-		);
-	}
+    /**
+     * Construct a new TransactionTemplate using the given transaction manager,
+     * taking its default settings from the given transaction definition.
+     *
+     * @param transactionManager    the transaction management strategy to be used
+     * @param transactionDefinition the transaction definition to copy the
+     *                              default settings from. Local properties can still be set to change values.
+     */
+    TransactionalOperatorImpl(ReactiveTransactionManager transactionManager, TransactionDefinition transactionDefinition) {
+        Assert.notNull(transactionManager, "ReactiveTransactionManager must not be null");
+        Assert.notNull(transactionManager, "TransactionDefinition must not be null");
+        this.transactionManager = transactionManager;
+        this.transactionDefinition = transactionDefinition;
+    }
 
 
-	@Override
-	public boolean equals(@Nullable Object other) {
-		return (this == other || (super.equals(other) && (!(other instanceof TransactionalOperatorImpl) ||
-				getTransactionManager() == ((TransactionalOperatorImpl) other).getTransactionManager())));
-	}
+    /**
+     * Return the transaction management strategy to be used.
+     */
+    public ReactiveTransactionManager getTransactionManager() {
+        return this.transactionManager;
+    }
 
-	@Override
-	public int hashCode() {
-		return getTransactionManager().hashCode();
-	}
+    @Override
+    public <T> Mono<T> transactional(Mono<T> mono) {
+        return TransactionContextManager.currentContext().flatMap(context -> {
+            Mono<ReactiveTransaction> status = this.transactionManager.getReactiveTransaction(this.transactionDefinition);
+            // This is an around advice: Invoke the next interceptor in the chain.
+            // This will normally result in a target object being invoked.
+            // Need re-wrapping of ReactiveTransaction until we get hold of the exception
+            // through usingWhen.
+            return status.flatMap(it -> Mono.usingWhen(Mono.just(it), ignore -> mono,
+                    this.transactionManager::commit, (res, err) -> Mono.empty(), s -> Mono.empty())
+                    .onErrorResume(ex -> rollbackOnException(it, ex).then(Mono.error(ex))));
+        })
+                .subscriberContext(TransactionContextManager.getOrCreateContext())
+                .subscriberContext(TransactionContextManager.getOrCreateContextHolder());
+    }
+
+    @Override
+    public <T> Flux<T> execute(TransactionCallback<T> action) throws TransactionException {
+        return TransactionContextManager.currentContext().flatMapMany(context -> {
+            Mono<ReactiveTransaction> status = this.transactionManager.getReactiveTransaction(this.transactionDefinition);
+            // This is an around advice: Invoke the next interceptor in the chain.
+            // This will normally result in a target object being invoked.
+            // Need re-wrapping of ReactiveTransaction until we get hold of the exception
+            // through usingWhen.
+            return status.flatMapMany(it -> Flux
+                    .usingWhen(
+                            Mono.just(it),
+                            action::doInTransaction,
+                            this.transactionManager::commit,
+                            (tx, ex) -> Mono.empty(),
+                            this.transactionManager::commit)
+                    .onErrorResume(ex ->
+                            rollbackOnException(it, ex).then(Mono.error(ex))));
+        })
+                .subscriberContext(TransactionContextManager.getOrCreateContext())
+                .subscriberContext(TransactionContextManager.getOrCreateContextHolder());
+    }
+
+    /**
+     * Perform a rollback, handling rollback exceptions properly.
+     *
+     * @param status object representing the transaction
+     * @param ex     the thrown application exception or error
+     * @throws TransactionException in case of a rollback error
+     */
+    private Mono<Void> rollbackOnException(ReactiveTransaction status, Throwable ex) throws TransactionException {
+        logger.debug("Initiating transaction rollback on application exception", ex);
+        return this.transactionManager.rollback(status).onErrorMap(ex2 -> {
+                    logger.error("Application exception overridden by rollback exception", ex);
+                    if (ex2 instanceof TransactionSystemException) {
+                        ((TransactionSystemException) ex2).initApplicationException(ex);
+                    }
+                    return ex2;
+                }
+        );
+    }
+
+
+    @Override
+    public boolean equals(@Nullable Object other) {
+        return (this == other || (super.equals(other) && (!(other instanceof TransactionalOperatorImpl) ||
+                getTransactionManager() == ((TransactionalOperatorImpl) other).getTransactionManager())));
+    }
+
+    @Override
+    public int hashCode() {
+        return getTransactionManager().hashCode();
+    }
 
 }

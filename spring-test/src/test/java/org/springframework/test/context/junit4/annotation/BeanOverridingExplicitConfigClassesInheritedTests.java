@@ -35,11 +35,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 @ContextConfiguration(classes = BeanOverridingDefaultConfigClassesInheritedTests.ContextConfiguration.class)
 public class BeanOverridingExplicitConfigClassesInheritedTests extends ExplicitConfigClassesBaseTests {
 
-	@Test
-	@Override
-	public void verifyEmployeeSetFromBaseContextConfig() {
-		assertThat(this.employee).as("The employee should have been autowired.").isNotNull();
-		assertThat(this.employee.getName()).as("The employee bean should have been overridden.").isEqualTo("Yoda");
-	}
+    @Test
+    @Override
+    public void verifyEmployeeSetFromBaseContextConfig() {
+        assertThat(this.employee).as("The employee should have been autowired.").isNotNull();
+        assertThat(this.employee.getName()).as("The employee bean should have been overridden.").isEqualTo("Yoda");
+    }
 
 }

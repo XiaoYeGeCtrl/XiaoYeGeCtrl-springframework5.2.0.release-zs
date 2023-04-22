@@ -35,81 +35,81 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 public class ImportWithConditionTests {
 
-	private AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext();
+    private AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext();
 
-	@Test
-	public void conditionalThenUnconditional() throws Exception {
-		this.context.register(ConditionalThenUnconditional.class);
-		this.context.refresh();
-		assertThat(this.context.containsBean("beanTwo")).isFalse();
-		assertThat(this.context.containsBean("beanOne")).isTrue();
-	}
+    @Test
+    public void conditionalThenUnconditional() throws Exception {
+        this.context.register(ConditionalThenUnconditional.class);
+        this.context.refresh();
+        assertThat(this.context.containsBean("beanTwo")).isFalse();
+        assertThat(this.context.containsBean("beanOne")).isTrue();
+    }
 
-	@Test
-	public void unconditionalThenConditional() throws Exception {
-		this.context.register(UnconditionalThenConditional.class);
-		this.context.refresh();
-		assertThat(this.context.containsBean("beanTwo")).isFalse();
-		assertThat(this.context.containsBean("beanOne")).isTrue();
-	}
-
-
-	@Configuration
-	@Import({ConditionalConfiguration.class, UnconditionalConfiguration.class})
-	protected static class ConditionalThenUnconditional {
-
-		@Autowired
-		private BeanOne beanOne;
-	}
+    @Test
+    public void unconditionalThenConditional() throws Exception {
+        this.context.register(UnconditionalThenConditional.class);
+        this.context.refresh();
+        assertThat(this.context.containsBean("beanTwo")).isFalse();
+        assertThat(this.context.containsBean("beanOne")).isTrue();
+    }
 
 
-	@Configuration
-	@Import({UnconditionalConfiguration.class, ConditionalConfiguration.class})
-	protected static class UnconditionalThenConditional {
+    @Configuration
+    @Import({ConditionalConfiguration.class, UnconditionalConfiguration.class})
+    protected static class ConditionalThenUnconditional {
 
-		@Autowired
-		private BeanOne beanOne;
-	}
-
-
-	@Configuration
-	@Import(BeanProvidingConfiguration.class)
-	protected static class UnconditionalConfiguration {
-	}
+        @Autowired
+        private BeanOne beanOne;
+    }
 
 
-	@Configuration
-	@Conditional(NeverMatchingCondition.class)
-	@Import(BeanProvidingConfiguration.class)
-	protected static class ConditionalConfiguration {
-	}
+    @Configuration
+    @Import({UnconditionalConfiguration.class, ConditionalConfiguration.class})
+    protected static class UnconditionalThenConditional {
+
+        @Autowired
+        private BeanOne beanOne;
+    }
 
 
-	@Configuration
-	protected static class BeanProvidingConfiguration {
-
-		@Bean
-		BeanOne beanOne() {
-			return new BeanOne();
-		}
-	}
+    @Configuration
+    @Import(BeanProvidingConfiguration.class)
+    protected static class UnconditionalConfiguration {
+    }
 
 
-	private static final class BeanOne {
-	}
+    @Configuration
+    @Conditional(NeverMatchingCondition.class)
+    @Import(BeanProvidingConfiguration.class)
+    protected static class ConditionalConfiguration {
+    }
 
 
-	private static final class NeverMatchingCondition implements ConfigurationCondition {
+    @Configuration
+    protected static class BeanProvidingConfiguration {
 
-		@Override
-		public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
-			return false;
-		}
+        @Bean
+        BeanOne beanOne() {
+            return new BeanOne();
+        }
+    }
 
-		@Override
-		public ConfigurationPhase getConfigurationPhase() {
-			return ConfigurationPhase.REGISTER_BEAN;
-		}
-	}
+
+    private static final class BeanOne {
+    }
+
+
+    private static final class NeverMatchingCondition implements ConfigurationCondition {
+
+        @Override
+        public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
+            return false;
+        }
+
+        @Override
+        public ConfigurationPhase getConfigurationPhase() {
+            return ConfigurationPhase.REGISTER_BEAN;
+        }
+    }
 
 }

@@ -40,10 +40,10 @@ import static org.springframework.test.transaction.TransactionAssert.assertThatT
  * via {@link Transactional @Transactional}.
  *
  * @author Sam Brannen
- * @since 4.2
  * @see Rollback
  * @see Transactional#transactionManager
  * @see DefaultRollbackFalseTransactionalTests
+ * @since 4.2
  */
 @RunWith(SpringRunner.class)
 @ContextConfiguration(classes = EmbeddedPersonDatabaseTestsConfig.class, inheritLocations = false)
@@ -51,34 +51,32 @@ import static org.springframework.test.transaction.TransactionAssert.assertThatT
 @Rollback(false)
 public class DefaultRollbackFalseRollbackAnnotationTransactionalTests extends AbstractTransactionalSpringRunnerTests {
 
-	private static JdbcTemplate jdbcTemplate;
+    private static JdbcTemplate jdbcTemplate;
 
+    @AfterClass
+    public static void verifyFinalTestData() {
+        assertThat(countRowsInPersonTable(jdbcTemplate)).as("Verifying the final number of rows in the person table after all tests.").isEqualTo(2);
+    }
 
-	@Autowired
-	public void setDataSource(DataSource dataSource) {
-		jdbcTemplate = new JdbcTemplate(dataSource);
-	}
+    @Autowired
+    public void setDataSource(DataSource dataSource) {
+        jdbcTemplate = new JdbcTemplate(dataSource);
+    }
 
+    @Before
+    public void verifyInitialTestData() {
+        clearPersonTable(jdbcTemplate);
+        assertThat(addPerson(jdbcTemplate, BOB)).as("Adding bob").isEqualTo(1);
+        assertThat(countRowsInPersonTable(jdbcTemplate)).as("Verifying the initial number of rows in the person table.").isEqualTo(1);
+    }
 
-	@Before
-	public void verifyInitialTestData() {
-		clearPersonTable(jdbcTemplate);
-		assertThat(addPerson(jdbcTemplate, BOB)).as("Adding bob").isEqualTo(1);
-		assertThat(countRowsInPersonTable(jdbcTemplate)).as("Verifying the initial number of rows in the person table.").isEqualTo(1);
-	}
-
-	@Test
-	public void modifyTestDataWithinTransaction() {
-		assertThatTransaction().isActive();
-		assertThat(deletePerson(jdbcTemplate, BOB)).as("Deleting bob").isEqualTo(1);
-		assertThat(addPerson(jdbcTemplate, JANE)).as("Adding jane").isEqualTo(1);
-		assertThat(addPerson(jdbcTemplate, SUE)).as("Adding sue").isEqualTo(1);
-		assertThat(countRowsInPersonTable(jdbcTemplate)).as("Verifying the number of rows in the person table within a transaction.").isEqualTo(2);
-	}
-
-	@AfterClass
-	public static void verifyFinalTestData() {
-		assertThat(countRowsInPersonTable(jdbcTemplate)).as("Verifying the final number of rows in the person table after all tests.").isEqualTo(2);
-	}
+    @Test
+    public void modifyTestDataWithinTransaction() {
+        assertThatTransaction().isActive();
+        assertThat(deletePerson(jdbcTemplate, BOB)).as("Deleting bob").isEqualTo(1);
+        assertThat(addPerson(jdbcTemplate, JANE)).as("Adding jane").isEqualTo(1);
+        assertThat(addPerson(jdbcTemplate, SUE)).as("Adding sue").isEqualTo(1);
+        assertThat(countRowsInPersonTable(jdbcTemplate)).as("Verifying the number of rows in the person table within a transaction.").isEqualTo(2);
+    }
 
 }

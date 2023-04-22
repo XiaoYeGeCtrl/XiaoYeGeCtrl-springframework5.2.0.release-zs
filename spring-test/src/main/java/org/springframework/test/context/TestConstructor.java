@@ -49,7 +49,6 @@ import java.lang.annotation.Target;
  * or various test-related annotations from Spring Boot Test.
  *
  * @author Sam Brannen
- * @since 5.2
  * @see org.springframework.beans.factory.annotation.Autowired @Autowired
  * @see org.springframework.test.context.junit.jupiter.SpringExtension SpringExtension
  * @see org.springframework.test.context.junit.jupiter.SpringJUnitConfig @SpringJUnitConfig
@@ -58,6 +57,7 @@ import java.lang.annotation.Target;
  * @see ContextHierarchy @ContextHierarchy
  * @see ActiveProfiles @ActiveProfiles
  * @see TestPropertySource @TestPropertySource
+ * @since 5.2
  */
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
@@ -65,65 +65,70 @@ import java.lang.annotation.Target;
 @Inherited
 public @interface TestConstructor {
 
-	/**
-	 * JVM system property used to change the default <em>test constructor
-	 * autowire mode</em>: {@value #TEST_CONSTRUCTOR_AUTOWIRE_MODE_PROPERTY_NAME}.
-	 * <p>Acceptable values include enum constants defined in {@link AutowireMode},
-	 * ignoring case. For example, the default may be changed to {@link AutowireMode#ALL}
-	 * by supplying the following JVM system property via the command line.
-	 * <pre style="code">-Dspring.test.constructor.autowire.mode=all</pre>
-	 * <p>If the property is not set to {@code ALL}, parameters for test class
-	 * constructors will be autowired according to {@link AutowireMode#ANNOTATED}
-	 * semantics by default.
-	 * <p>May alternatively be configured via the
-	 * {@link org.springframework.core.SpringProperties SpringProperties}
-	 * mechanism.
-	 * @see #autowireMode
-	 */
-	String TEST_CONSTRUCTOR_AUTOWIRE_MODE_PROPERTY_NAME = "spring.test.constructor.autowire.mode";
+    /**
+     * JVM system property used to change the default <em>test constructor
+     * autowire mode</em>: {@value #TEST_CONSTRUCTOR_AUTOWIRE_MODE_PROPERTY_NAME}.
+     * <p>Acceptable values include enum constants defined in {@link AutowireMode},
+     * ignoring case. For example, the default may be changed to {@link AutowireMode#ALL}
+     * by supplying the following JVM system property via the command line.
+     * <pre style="code">-Dspring.test.constructor.autowire.mode=all</pre>
+     * <p>If the property is not set to {@code ALL}, parameters for test class
+     * constructors will be autowired according to {@link AutowireMode#ANNOTATED}
+     * semantics by default.
+     * <p>May alternatively be configured via the
+     * {@link org.springframework.core.SpringProperties SpringProperties}
+     * mechanism.
+     *
+     * @see #autowireMode
+     */
+    String TEST_CONSTRUCTOR_AUTOWIRE_MODE_PROPERTY_NAME = "spring.test.constructor.autowire.mode";
 
 
-	/**
-	 * Flag for setting the <em>test constructor {@linkplain AutowireMode autowire
-	 * mode}</em> for the current test class.
-	 * <p>Setting this flag overrides the global default. See
-	 * {@link #TEST_CONSTRUCTOR_AUTOWIRE_MODE_PROPERTY_NAME} for details on how
-	 * to change the global default.
-	 * @return an {@link AutowireMode} to take precedence over the global default
-	 * @see #TEST_CONSTRUCTOR_AUTOWIRE_MODE_PROPERTY_NAME
-	 * @see org.springframework.beans.factory.annotation.Autowired @Autowired
-	 * @see AutowireMode#ALL
-	 * @see AutowireMode#ANNOTATED
-	 */
-	AutowireMode autowireMode();
+    /**
+     * Flag for setting the <em>test constructor {@linkplain AutowireMode autowire
+     * mode}</em> for the current test class.
+     * <p>Setting this flag overrides the global default. See
+     * {@link #TEST_CONSTRUCTOR_AUTOWIRE_MODE_PROPERTY_NAME} for details on how
+     * to change the global default.
+     *
+     * @return an {@link AutowireMode} to take precedence over the global default
+     * @see #TEST_CONSTRUCTOR_AUTOWIRE_MODE_PROPERTY_NAME
+     * @see org.springframework.beans.factory.annotation.Autowired @Autowired
+     * @see AutowireMode#ALL
+     * @see AutowireMode#ANNOTATED
+     */
+    AutowireMode autowireMode();
 
 
-	/**
-	 * Defines autowiring modes for parameters in a test constructor.
-	 * @see #ALL
-	 * @see #ANNOTATED
-	 */
-	enum AutowireMode {
+    /**
+     * Defines autowiring modes for parameters in a test constructor.
+     *
+     * @see #ALL
+     * @see #ANNOTATED
+     */
+    enum AutowireMode {
 
-		/**
-		 * All test constructor parameters will be autowired as if the constructor
-		 * itself were annotated with
-		 * {@link org.springframework.beans.factory.annotation.Autowired @Autowired}.
-		 * @see #ANNOTATED
-		 */
-		ALL,
+        /**
+         * All test constructor parameters will be autowired as if the constructor
+         * itself were annotated with
+         * {@link org.springframework.beans.factory.annotation.Autowired @Autowired}.
+         *
+         * @see #ANNOTATED
+         */
+        ALL,
 
-		/**
-		 * Each individual test constructor parameter will only be autowired if it
-		 * is annotated with
-		 * {@link org.springframework.beans.factory.annotation.Autowired @Autowired},
-		 * {@link org.springframework.beans.factory.annotation.Qualifier @Qualifier},
-		 * or {@link org.springframework.beans.factory.annotation.Value @Value},
-		 * or if the constructor itself is annotated with {@code @Autowired}.
-		 * @see #ALL
-		 */
-		ANNOTATED;
+        /**
+         * Each individual test constructor parameter will only be autowired if it
+         * is annotated with
+         * {@link org.springframework.beans.factory.annotation.Autowired @Autowired},
+         * {@link org.springframework.beans.factory.annotation.Qualifier @Qualifier},
+         * or {@link org.springframework.beans.factory.annotation.Value @Value},
+         * or if the constructor itself is annotated with {@code @Autowired}.
+         *
+         * @see #ALL
+         */
+        ANNOTATED;
 
-	}
+    }
 
 }

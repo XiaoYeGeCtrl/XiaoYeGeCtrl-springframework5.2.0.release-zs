@@ -31,14 +31,14 @@ import java.lang.annotation.Target;
  * implicitly generating this container annotation.
  *
  * @author Juergen Hoeller
- * @since 4.3
  * @see ComponentScan
+ * @since 4.3
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
 @Documented
 public @interface ComponentScans {
 
-	ComponentScan[] value();
+    ComponentScan[] value();
 
 }

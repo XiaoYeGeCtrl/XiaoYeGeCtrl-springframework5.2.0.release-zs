@@ -34,22 +34,22 @@ import org.springframework.util.CollectionUtils;
 @Configuration
 public class DelegatingWebSocketConfiguration extends WebSocketConfigurationSupport {
 
-	private final List<WebSocketConfigurer> configurers = new ArrayList<>();
+    private final List<WebSocketConfigurer> configurers = new ArrayList<>();
 
 
-	@Autowired(required = false)
-	public void setConfigurers(List<WebSocketConfigurer> configurers) {
-		if (!CollectionUtils.isEmpty(configurers)) {
-			this.configurers.addAll(configurers);
-		}
-	}
+    @Autowired(required = false)
+    public void setConfigurers(List<WebSocketConfigurer> configurers) {
+        if (!CollectionUtils.isEmpty(configurers)) {
+            this.configurers.addAll(configurers);
+        }
+    }
 
 
-	@Override
-	protected void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
-		for (WebSocketConfigurer configurer : this.configurers) {
-			configurer.registerWebSocketHandlers(registry);
-		}
-	}
+    @Override
+    protected void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
+        for (WebSocketConfigurer configurer : this.configurers) {
+            configurer.registerWebSocketHandlers(registry);
+        }
+    }
 
 }

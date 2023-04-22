@@ -49,22 +49,22 @@ import org.springframework.util.StringUtils;
  */
 public class BeanNameUrlHandlerMapping extends AbstractDetectingUrlHandlerMapping {
 
-	/**
-	 * Checks name and aliases of the given bean for URLs, starting with "/".
-	 */
-	@Override
-	protected String[] determineUrlsForHandler(String beanName) {
-		List<String> urls = new ArrayList<>();
-		if (beanName.startsWith("/")) {
-			urls.add(beanName);
-		}
-		String[] aliases = obtainApplicationContext().getAliases(beanName);
-		for (String alias : aliases) {
-			if (alias.startsWith("/")) {
-				urls.add(alias);
-			}
-		}
-		return StringUtils.toStringArray(urls);
-	}
+    /**
+     * Checks name and aliases of the given bean for URLs, starting with "/".
+     */
+    @Override
+    protected String[] determineUrlsForHandler(String beanName) {
+        List<String> urls = new ArrayList<>();
+        if (beanName.startsWith("/")) {
+            urls.add(beanName);
+        }
+        String[] aliases = obtainApplicationContext().getAliases(beanName);
+        for (String alias : aliases) {
+            if (alias.startsWith("/")) {
+                urls.add(alias);
+            }
+        }
+        return StringUtils.toStringArray(urls);
+    }
 
 }

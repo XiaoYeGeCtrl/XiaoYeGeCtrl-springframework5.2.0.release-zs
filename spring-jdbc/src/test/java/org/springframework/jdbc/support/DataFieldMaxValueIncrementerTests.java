@@ -43,167 +43,167 @@ import static org.mockito.Mockito.verify;
  */
 public class DataFieldMaxValueIncrementerTests {
 
-	private final DataSource dataSource = mock(DataSource.class);
+    private final DataSource dataSource = mock(DataSource.class);
 
-	private final Connection connection = mock(Connection.class);
+    private final Connection connection = mock(Connection.class);
 
-	private final Statement statement = mock(Statement.class);
+    private final Statement statement = mock(Statement.class);
 
-	private final ResultSet resultSet = mock(ResultSet.class);
+    private final ResultSet resultSet = mock(ResultSet.class);
 
 
-	@Test
-	public void testHanaSequenceMaxValueIncrementer() throws SQLException {
-		given(dataSource.getConnection()).willReturn(connection);
-		given(connection.createStatement()).willReturn(statement);
-		given(statement.executeQuery("select myseq.nextval from dummy")).willReturn(resultSet);
-		given(resultSet.next()).willReturn(true);
-		given(resultSet.getLong(1)).willReturn(10L, 12L);
+    @Test
+    public void testHanaSequenceMaxValueIncrementer() throws SQLException {
+        given(dataSource.getConnection()).willReturn(connection);
+        given(connection.createStatement()).willReturn(statement);
+        given(statement.executeQuery("select myseq.nextval from dummy")).willReturn(resultSet);
+        given(resultSet.next()).willReturn(true);
+        given(resultSet.getLong(1)).willReturn(10L, 12L);
 
-		HanaSequenceMaxValueIncrementer incrementer = new HanaSequenceMaxValueIncrementer();
-		incrementer.setDataSource(dataSource);
-		incrementer.setIncrementerName("myseq");
-		incrementer.setPaddingLength(2);
-		incrementer.afterPropertiesSet();
+        HanaSequenceMaxValueIncrementer incrementer = new HanaSequenceMaxValueIncrementer();
+        incrementer.setDataSource(dataSource);
+        incrementer.setIncrementerName("myseq");
+        incrementer.setPaddingLength(2);
+        incrementer.afterPropertiesSet();
 
-		assertThat(incrementer.nextLongValue()).isEqualTo(10);
-		assertThat(incrementer.nextStringValue()).isEqualTo("12");
+        assertThat(incrementer.nextLongValue()).isEqualTo(10);
+        assertThat(incrementer.nextStringValue()).isEqualTo("12");
 
-		verify(resultSet, times(2)).close();
-		verify(statement, times(2)).close();
-		verify(connection, times(2)).close();
-	}
+        verify(resultSet, times(2)).close();
+        verify(statement, times(2)).close();
+        verify(connection, times(2)).close();
+    }
 
-	@Test
-	public void testHsqlMaxValueIncrementer() throws SQLException {
-		given(dataSource.getConnection()).willReturn(connection);
-		given(connection.createStatement()).willReturn(statement);
-		given(statement.executeQuery("select max(identity()) from myseq")).willReturn(resultSet);
-		given(resultSet.next()).willReturn(true);
-		given(resultSet.getLong(1)).willReturn(0L, 1L, 2L, 3L, 4L, 5L);
+    @Test
+    public void testHsqlMaxValueIncrementer() throws SQLException {
+        given(dataSource.getConnection()).willReturn(connection);
+        given(connection.createStatement()).willReturn(statement);
+        given(statement.executeQuery("select max(identity()) from myseq")).willReturn(resultSet);
+        given(resultSet.next()).willReturn(true);
+        given(resultSet.getLong(1)).willReturn(0L, 1L, 2L, 3L, 4L, 5L);
 
-		HsqlMaxValueIncrementer incrementer = new HsqlMaxValueIncrementer();
-		incrementer.setDataSource(dataSource);
-		incrementer.setIncrementerName("myseq");
-		incrementer.setColumnName("seq");
-		incrementer.setCacheSize(3);
-		incrementer.setPaddingLength(3);
-		incrementer.afterPropertiesSet();
+        HsqlMaxValueIncrementer incrementer = new HsqlMaxValueIncrementer();
+        incrementer.setDataSource(dataSource);
+        incrementer.setIncrementerName("myseq");
+        incrementer.setColumnName("seq");
+        incrementer.setCacheSize(3);
+        incrementer.setPaddingLength(3);
+        incrementer.afterPropertiesSet();
 
-		assertThat(incrementer.nextIntValue()).isEqualTo(0);
-		assertThat(incrementer.nextLongValue()).isEqualTo(1);
-		assertThat(incrementer.nextStringValue()).isEqualTo("002");
-		assertThat(incrementer.nextIntValue()).isEqualTo(3);
-		assertThat(incrementer.nextLongValue()).isEqualTo(4);
+        assertThat(incrementer.nextIntValue()).isEqualTo(0);
+        assertThat(incrementer.nextLongValue()).isEqualTo(1);
+        assertThat(incrementer.nextStringValue()).isEqualTo("002");
+        assertThat(incrementer.nextIntValue()).isEqualTo(3);
+        assertThat(incrementer.nextLongValue()).isEqualTo(4);
 
-		verify(statement, times(6)).executeUpdate("insert into myseq values(null)");
-		verify(statement).executeUpdate("delete from myseq where seq < 2");
-		verify(statement).executeUpdate("delete from myseq where seq < 5");
-		verify(resultSet, times(6)).close();
-		verify(statement, times(2)).close();
-		verify(connection, times(2)).close();
-	}
+        verify(statement, times(6)).executeUpdate("insert into myseq values(null)");
+        verify(statement).executeUpdate("delete from myseq where seq < 2");
+        verify(statement).executeUpdate("delete from myseq where seq < 5");
+        verify(resultSet, times(6)).close();
+        verify(statement, times(2)).close();
+        verify(connection, times(2)).close();
+    }
 
-	@Test
-	public void testHsqlMaxValueIncrementerWithDeleteSpecificValues() throws SQLException {
-		given(dataSource.getConnection()).willReturn(connection);
-		given(connection.createStatement()).willReturn(statement);
-		given(statement.executeQuery("select max(identity()) from myseq")).willReturn(resultSet);
-		given(resultSet.next()).willReturn(true);
-		given(resultSet.getLong(1)).willReturn(0L, 1L, 2L, 3L, 4L, 5L);
+    @Test
+    public void testHsqlMaxValueIncrementerWithDeleteSpecificValues() throws SQLException {
+        given(dataSource.getConnection()).willReturn(connection);
+        given(connection.createStatement()).willReturn(statement);
+        given(statement.executeQuery("select max(identity()) from myseq")).willReturn(resultSet);
+        given(resultSet.next()).willReturn(true);
+        given(resultSet.getLong(1)).willReturn(0L, 1L, 2L, 3L, 4L, 5L);
 
-		HsqlMaxValueIncrementer incrementer = new HsqlMaxValueIncrementer();
-		incrementer.setDataSource(dataSource);
-		incrementer.setIncrementerName("myseq");
-		incrementer.setColumnName("seq");
-		incrementer.setCacheSize(3);
-		incrementer.setPaddingLength(3);
-		incrementer.setDeleteSpecificValues(true);
-		incrementer.afterPropertiesSet();
+        HsqlMaxValueIncrementer incrementer = new HsqlMaxValueIncrementer();
+        incrementer.setDataSource(dataSource);
+        incrementer.setIncrementerName("myseq");
+        incrementer.setColumnName("seq");
+        incrementer.setCacheSize(3);
+        incrementer.setPaddingLength(3);
+        incrementer.setDeleteSpecificValues(true);
+        incrementer.afterPropertiesSet();
 
-		assertThat(incrementer.nextIntValue()).isEqualTo(0);
-		assertThat(incrementer.nextLongValue()).isEqualTo(1);
-		assertThat(incrementer.nextStringValue()).isEqualTo("002");
-		assertThat(incrementer.nextIntValue()).isEqualTo(3);
-		assertThat(incrementer.nextLongValue()).isEqualTo(4);
+        assertThat(incrementer.nextIntValue()).isEqualTo(0);
+        assertThat(incrementer.nextLongValue()).isEqualTo(1);
+        assertThat(incrementer.nextStringValue()).isEqualTo("002");
+        assertThat(incrementer.nextIntValue()).isEqualTo(3);
+        assertThat(incrementer.nextLongValue()).isEqualTo(4);
 
-		verify(statement, times(6)).executeUpdate("insert into myseq values(null)");
-		verify(statement).executeUpdate("delete from myseq where seq in (-1, 0, 1)");
-		verify(statement).executeUpdate("delete from myseq where seq in (2, 3, 4)");
-		verify(resultSet, times(6)).close();
-		verify(statement, times(2)).close();
-		verify(connection, times(2)).close();
-	}
+        verify(statement, times(6)).executeUpdate("insert into myseq values(null)");
+        verify(statement).executeUpdate("delete from myseq where seq in (-1, 0, 1)");
+        verify(statement).executeUpdate("delete from myseq where seq in (2, 3, 4)");
+        verify(resultSet, times(6)).close();
+        verify(statement, times(2)).close();
+        verify(connection, times(2)).close();
+    }
 
-	@Test
-	public void testMySQLMaxValueIncrementer() throws SQLException {
-		given(dataSource.getConnection()).willReturn(connection);
-		given(connection.createStatement()).willReturn(statement);
-		given(statement.executeQuery("select last_insert_id()")).willReturn(resultSet);
-		given(resultSet.next()).willReturn(true);
-		given(resultSet.getLong(1)).willReturn(2L, 4L);
+    @Test
+    public void testMySQLMaxValueIncrementer() throws SQLException {
+        given(dataSource.getConnection()).willReturn(connection);
+        given(connection.createStatement()).willReturn(statement);
+        given(statement.executeQuery("select last_insert_id()")).willReturn(resultSet);
+        given(resultSet.next()).willReturn(true);
+        given(resultSet.getLong(1)).willReturn(2L, 4L);
 
-		MySQLMaxValueIncrementer incrementer = new MySQLMaxValueIncrementer();
-		incrementer.setDataSource(dataSource);
-		incrementer.setIncrementerName("myseq");
-		incrementer.setColumnName("seq");
-		incrementer.setCacheSize(2);
-		incrementer.setPaddingLength(1);
-		incrementer.afterPropertiesSet();
+        MySQLMaxValueIncrementer incrementer = new MySQLMaxValueIncrementer();
+        incrementer.setDataSource(dataSource);
+        incrementer.setIncrementerName("myseq");
+        incrementer.setColumnName("seq");
+        incrementer.setCacheSize(2);
+        incrementer.setPaddingLength(1);
+        incrementer.afterPropertiesSet();
 
-		assertThat(incrementer.nextIntValue()).isEqualTo(1);
-		assertThat(incrementer.nextLongValue()).isEqualTo(2);
-		assertThat(incrementer.nextStringValue()).isEqualTo("3");
-		assertThat(incrementer.nextLongValue()).isEqualTo(4);
+        assertThat(incrementer.nextIntValue()).isEqualTo(1);
+        assertThat(incrementer.nextLongValue()).isEqualTo(2);
+        assertThat(incrementer.nextStringValue()).isEqualTo("3");
+        assertThat(incrementer.nextLongValue()).isEqualTo(4);
 
-		verify(statement, times(2)).executeUpdate("update myseq set seq = last_insert_id(seq + 2)");
-		verify(resultSet, times(2)).close();
-		verify(statement, times(2)).close();
-		verify(connection, times(2)).close();
-	}
+        verify(statement, times(2)).executeUpdate("update myseq set seq = last_insert_id(seq + 2)");
+        verify(resultSet, times(2)).close();
+        verify(statement, times(2)).close();
+        verify(connection, times(2)).close();
+    }
 
-	@Test
-	public void testOracleSequenceMaxValueIncrementer() throws SQLException {
-		given(dataSource.getConnection()).willReturn(connection);
-		given(connection.createStatement()).willReturn(statement);
-		given(statement.executeQuery("select myseq.nextval from dual")).willReturn(resultSet);
-		given(resultSet.next()).willReturn(true);
-		given(resultSet.getLong(1)).willReturn(10L, 12L);
+    @Test
+    public void testOracleSequenceMaxValueIncrementer() throws SQLException {
+        given(dataSource.getConnection()).willReturn(connection);
+        given(connection.createStatement()).willReturn(statement);
+        given(statement.executeQuery("select myseq.nextval from dual")).willReturn(resultSet);
+        given(resultSet.next()).willReturn(true);
+        given(resultSet.getLong(1)).willReturn(10L, 12L);
 
-		OracleSequenceMaxValueIncrementer incrementer = new OracleSequenceMaxValueIncrementer();
-		incrementer.setDataSource(dataSource);
-		incrementer.setIncrementerName("myseq");
-		incrementer.setPaddingLength(2);
-		incrementer.afterPropertiesSet();
+        OracleSequenceMaxValueIncrementer incrementer = new OracleSequenceMaxValueIncrementer();
+        incrementer.setDataSource(dataSource);
+        incrementer.setIncrementerName("myseq");
+        incrementer.setPaddingLength(2);
+        incrementer.afterPropertiesSet();
 
-		assertThat(incrementer.nextLongValue()).isEqualTo(10);
-		assertThat(incrementer.nextStringValue()).isEqualTo("12");
+        assertThat(incrementer.nextLongValue()).isEqualTo(10);
+        assertThat(incrementer.nextStringValue()).isEqualTo("12");
 
-		verify(resultSet, times(2)).close();
-		verify(statement, times(2)).close();
-		verify(connection, times(2)).close();
-	}
+        verify(resultSet, times(2)).close();
+        verify(statement, times(2)).close();
+        verify(connection, times(2)).close();
+    }
 
-	@Test
-	public void testPostgresSequenceMaxValueIncrementer() throws SQLException {
-		given(dataSource.getConnection()).willReturn(connection);
-		given(connection.createStatement()).willReturn(statement);
-		given(statement.executeQuery("select nextval('myseq')")).willReturn(resultSet);
-		given(resultSet.next()).willReturn(true);
-		given(resultSet.getLong(1)).willReturn(10L, 12L);
+    @Test
+    public void testPostgresSequenceMaxValueIncrementer() throws SQLException {
+        given(dataSource.getConnection()).willReturn(connection);
+        given(connection.createStatement()).willReturn(statement);
+        given(statement.executeQuery("select nextval('myseq')")).willReturn(resultSet);
+        given(resultSet.next()).willReturn(true);
+        given(resultSet.getLong(1)).willReturn(10L, 12L);
 
-		PostgresSequenceMaxValueIncrementer incrementer = new PostgresSequenceMaxValueIncrementer();
-		incrementer.setDataSource(dataSource);
-		incrementer.setIncrementerName("myseq");
-		incrementer.setPaddingLength(5);
-		incrementer.afterPropertiesSet();
+        PostgresSequenceMaxValueIncrementer incrementer = new PostgresSequenceMaxValueIncrementer();
+        incrementer.setDataSource(dataSource);
+        incrementer.setIncrementerName("myseq");
+        incrementer.setPaddingLength(5);
+        incrementer.afterPropertiesSet();
 
-		assertThat(incrementer.nextStringValue()).isEqualTo("00010");
-		assertThat(incrementer.nextIntValue()).isEqualTo(12);
+        assertThat(incrementer.nextStringValue()).isEqualTo("00010");
+        assertThat(incrementer.nextIntValue()).isEqualTo(12);
 
-		verify(resultSet, times(2)).close();
-		verify(statement, times(2)).close();
-		verify(connection, times(2)).close();
-	}
+        verify(resultSet, times(2)).close();
+        verify(statement, times(2)).close();
+        verify(connection, times(2)).close();
+    }
 
 }

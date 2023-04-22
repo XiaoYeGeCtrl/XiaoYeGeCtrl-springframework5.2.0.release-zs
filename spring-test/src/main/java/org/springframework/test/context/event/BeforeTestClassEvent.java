@@ -24,14 +24,14 @@ import org.springframework.test.context.TestContext;
  * is invoked.
  *
  * @author Frank Scheffler
- * @since 5.2
  * @see org.springframework.test.context.event.annotation.BeforeTestClass @BeforeTestClass
+ * @since 5.2
  */
 @SuppressWarnings("serial")
 public class BeforeTestClassEvent extends TestContextEvent {
 
-	public BeforeTestClassEvent(TestContext source) {
-		super(source);
-	}
+    public BeforeTestClassEvent(TestContext source) {
+        super(source);
+    }
 
 }

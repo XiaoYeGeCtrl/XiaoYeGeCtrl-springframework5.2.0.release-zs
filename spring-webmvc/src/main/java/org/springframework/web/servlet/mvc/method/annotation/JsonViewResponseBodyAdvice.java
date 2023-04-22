@@ -40,31 +40,31 @@ import org.springframework.util.Assert;
  * exactly one class argument. Consider the use of a composite interface.
  *
  * @author Rossen Stoyanchev
- * @since 4.1
  * @see com.fasterxml.jackson.annotation.JsonView
  * @see com.fasterxml.jackson.databind.ObjectMapper#writerWithView(Class)
+ * @since 4.1
  */
 public class JsonViewResponseBodyAdvice extends AbstractMappingJacksonResponseBodyAdvice {
 
-	@Override
-	public boolean supports(MethodParameter returnType, Class<? extends HttpMessageConverter<?>> converterType) {
-		return super.supports(returnType, converterType) && returnType.hasMethodAnnotation(JsonView.class);
-	}
+    @Override
+    public boolean supports(MethodParameter returnType, Class<? extends HttpMessageConverter<?>> converterType) {
+        return super.supports(returnType, converterType) && returnType.hasMethodAnnotation(JsonView.class);
+    }
 
-	@Override
-	protected void beforeBodyWriteInternal(MappingJacksonValue bodyContainer, MediaType contentType,
-			MethodParameter returnType, ServerHttpRequest request, ServerHttpResponse response) {
+    @Override
+    protected void beforeBodyWriteInternal(MappingJacksonValue bodyContainer, MediaType contentType,
+                                           MethodParameter returnType, ServerHttpRequest request, ServerHttpResponse response) {
 
-		JsonView ann = returnType.getMethodAnnotation(JsonView.class);
-		Assert.state(ann != null, "No JsonView annotation");
+        JsonView ann = returnType.getMethodAnnotation(JsonView.class);
+        Assert.state(ann != null, "No JsonView annotation");
 
-		Class<?>[] classes = ann.value();
-		if (classes.length != 1) {
-			throw new IllegalArgumentException(
-					"@JsonView only supported for response body advice with exactly 1 class argument: " + returnType);
-		}
+        Class<?>[] classes = ann.value();
+        if (classes.length != 1) {
+            throw new IllegalArgumentException(
+                    "@JsonView only supported for response body advice with exactly 1 class argument: " + returnType);
+        }
 
-		bodyContainer.setSerializationView(classes[0]);
-	}
+        bodyContainer.setSerializationView(classes[0]);
+    }
 
 }

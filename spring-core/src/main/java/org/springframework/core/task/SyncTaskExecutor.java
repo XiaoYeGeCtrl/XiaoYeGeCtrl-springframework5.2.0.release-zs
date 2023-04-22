@@ -33,21 +33,22 @@ import org.springframework.util.Assert;
  * {@code TaskExecutor} instead for such scenarios.
  *
  * @author Juergen Hoeller
- * @since 2.0
  * @see SimpleAsyncTaskExecutor
+ * @since 2.0
  */
 @SuppressWarnings("serial")
 public class SyncTaskExecutor implements TaskExecutor, Serializable {
 
-	/**
-	 * Executes the given {@code task} synchronously, through direct
-	 * invocation of it's {@link Runnable#run() run()} method.
-	 * @throws IllegalArgumentException if the given {@code task} is {@code null}
-	 */
-	@Override
-	public void execute(Runnable task) {
-		Assert.notNull(task, "Runnable must not be null");
-		task.run();
-	}
+    /**
+     * Executes the given {@code task} synchronously, through direct
+     * invocation of it's {@link Runnable#run() run()} method.
+     *
+     * @throws IllegalArgumentException if the given {@code task} is {@code null}
+     */
+    @Override
+    public void execute(Runnable task) {
+        Assert.notNull(task, "Runnable must not be null");
+        task.run();
+    }
 
 }

@@ -33,28 +33,28 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 public class BshScriptEvaluatorTests {
 
-	@Test
-	public void testBshScriptFromString() {
-		ScriptEvaluator evaluator = new BshScriptEvaluator();
-		Object result = evaluator.evaluate(new StaticScriptSource("return 3 * 2;"));
-		assertThat(result).isEqualTo(6);
-	}
+    @Test
+    public void testBshScriptFromString() {
+        ScriptEvaluator evaluator = new BshScriptEvaluator();
+        Object result = evaluator.evaluate(new StaticScriptSource("return 3 * 2;"));
+        assertThat(result).isEqualTo(6);
+    }
 
-	@Test
-	public void testBshScriptFromFile() {
-		ScriptEvaluator evaluator = new BshScriptEvaluator();
-		Object result = evaluator.evaluate(new ResourceScriptSource(new ClassPathResource("simple.bsh", getClass())));
-		assertThat(result).isEqualTo(6);
-	}
+    @Test
+    public void testBshScriptFromFile() {
+        ScriptEvaluator evaluator = new BshScriptEvaluator();
+        Object result = evaluator.evaluate(new ResourceScriptSource(new ClassPathResource("simple.bsh", getClass())));
+        assertThat(result).isEqualTo(6);
+    }
 
-	@Test
-	public void testGroovyScriptWithArguments() {
-		ScriptEvaluator evaluator = new BshScriptEvaluator();
-		Map<String, Object> arguments = new HashMap<>();
-		arguments.put("a", 3);
-		arguments.put("b", 2);
-		Object result = evaluator.evaluate(new StaticScriptSource("return a * b;"), arguments);
-		assertThat(result).isEqualTo(6);
-	}
+    @Test
+    public void testGroovyScriptWithArguments() {
+        ScriptEvaluator evaluator = new BshScriptEvaluator();
+        Map<String, Object> arguments = new HashMap<>();
+        arguments.put("a", 3);
+        arguments.put("b", 2);
+        Object result = evaluator.evaluate(new StaticScriptSource("return a * b;"), arguments);
+        assertThat(result).isEqualTo(6);
+    }
 
 }

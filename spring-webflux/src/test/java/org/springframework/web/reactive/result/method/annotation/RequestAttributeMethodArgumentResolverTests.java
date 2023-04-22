@@ -47,137 +47,134 @@ import static org.springframework.web.method.MvcAnnotationPredicates.requestAttr
  */
 public class RequestAttributeMethodArgumentResolverTests {
 
-	private RequestAttributeMethodArgumentResolver resolver;
+    private final MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/"));
+    private final ResolvableMethod testMethod = ResolvableMethod.on(getClass())
+            .named("handleWithRequestAttribute").build();
+    private RequestAttributeMethodArgumentResolver resolver;
 
-	private final MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/"));
-
-	private final ResolvableMethod testMethod = ResolvableMethod.on(getClass())
-			.named("handleWithRequestAttribute").build();
-
-
-	@BeforeEach
-	@SuppressWarnings("resource")
-	public void setup() throws Exception {
-		AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext();
-		context.refresh();
-		ReactiveAdapterRegistry registry = ReactiveAdapterRegistry.getSharedInstance();
-		this.resolver = new RequestAttributeMethodArgumentResolver(context.getBeanFactory(), registry);
-	}
+    @BeforeEach
+    @SuppressWarnings("resource")
+    public void setup() throws Exception {
+        AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext();
+        context.refresh();
+        ReactiveAdapterRegistry registry = ReactiveAdapterRegistry.getSharedInstance();
+        this.resolver = new RequestAttributeMethodArgumentResolver(context.getBeanFactory(), registry);
+    }
 
 
-	@Test
-	public void supportsParameter() {
-		assertThat(this.resolver.supportsParameter(
-				this.testMethod.annot(requestAttribute().noName()).arg(Foo.class))).isTrue();
+    @Test
+    public void supportsParameter() {
+        assertThat(this.resolver.supportsParameter(
+                this.testMethod.annot(requestAttribute().noName()).arg(Foo.class))).isTrue();
 
-		// SPR-16158
-		assertThat(this.resolver.supportsParameter(
-				this.testMethod.annotPresent(RequestAttribute.class).arg(Mono.class, Foo.class))).isTrue();
+        // SPR-16158
+        assertThat(this.resolver.supportsParameter(
+                this.testMethod.annotPresent(RequestAttribute.class).arg(Mono.class, Foo.class))).isTrue();
 
-		assertThat(this.resolver.supportsParameter(
-				this.testMethod.annotNotPresent(RequestAttribute.class).arg())).isFalse();
-	}
+        assertThat(this.resolver.supportsParameter(
+                this.testMethod.annotNotPresent(RequestAttribute.class).arg())).isFalse();
+    }
 
-	@Test
-	public void resolve() {
-		MethodParameter param = this.testMethod.annot(requestAttribute().noName()).arg(Foo.class);
-		Mono<Object> mono = this.resolver.resolveArgument(param, new BindingContext(), this.exchange);
-		StepVerifier.create(mono)
-				.expectNextCount(0)
-				.expectError(ServerWebInputException.class)
-				.verify();
+    @Test
+    public void resolve() {
+        MethodParameter param = this.testMethod.annot(requestAttribute().noName()).arg(Foo.class);
+        Mono<Object> mono = this.resolver.resolveArgument(param, new BindingContext(), this.exchange);
+        StepVerifier.create(mono)
+                .expectNextCount(0)
+                .expectError(ServerWebInputException.class)
+                .verify();
 
-		Foo foo = new Foo();
-		this.exchange.getAttributes().put("foo", foo);
-		mono = this.resolver.resolveArgument(param, new BindingContext(), this.exchange);
-		assertThat(mono.block()).isSameAs(foo);
-	}
+        Foo foo = new Foo();
+        this.exchange.getAttributes().put("foo", foo);
+        mono = this.resolver.resolveArgument(param, new BindingContext(), this.exchange);
+        assertThat(mono.block()).isSameAs(foo);
+    }
 
-	@Test
-	public void resolveWithName() {
-		MethodParameter param = this.testMethod.annot(requestAttribute().name("specialFoo")).arg();
-		Foo foo = new Foo();
-		this.exchange.getAttributes().put("specialFoo", foo);
-		Mono<Object> mono = this.resolver.resolveArgument(param, new BindingContext(), this.exchange);
-		assertThat(mono.block()).isSameAs(foo);
-	}
+    @Test
+    public void resolveWithName() {
+        MethodParameter param = this.testMethod.annot(requestAttribute().name("specialFoo")).arg();
+        Foo foo = new Foo();
+        this.exchange.getAttributes().put("specialFoo", foo);
+        Mono<Object> mono = this.resolver.resolveArgument(param, new BindingContext(), this.exchange);
+        assertThat(mono.block()).isSameAs(foo);
+    }
 
-	@Test
-	public void resolveNotRequired() {
-		MethodParameter param = this.testMethod.annot(requestAttribute().name("foo").notRequired()).arg();
-		Mono<Object> mono = this.resolver.resolveArgument(param, new BindingContext(), this.exchange);
-		assertThat(mono.block()).isNull();
+    @Test
+    public void resolveNotRequired() {
+        MethodParameter param = this.testMethod.annot(requestAttribute().name("foo").notRequired()).arg();
+        Mono<Object> mono = this.resolver.resolveArgument(param, new BindingContext(), this.exchange);
+        assertThat(mono.block()).isNull();
 
-		Foo foo = new Foo();
-		this.exchange.getAttributes().put("foo", foo);
-		mono = this.resolver.resolveArgument(param, new BindingContext(), this.exchange);
-		assertThat(mono.block()).isSameAs(foo);
-	}
+        Foo foo = new Foo();
+        this.exchange.getAttributes().put("foo", foo);
+        mono = this.resolver.resolveArgument(param, new BindingContext(), this.exchange);
+        assertThat(mono.block()).isSameAs(foo);
+    }
 
-	@Test
-	public void resolveOptional() {
-		MethodParameter param = this.testMethod.annot(requestAttribute().name("foo")).arg(Optional.class, Foo.class);
-		Mono<Object> mono = this.resolver.resolveArgument(param, new BindingContext(), this.exchange);
+    @Test
+    public void resolveOptional() {
+        MethodParameter param = this.testMethod.annot(requestAttribute().name("foo")).arg(Optional.class, Foo.class);
+        Mono<Object> mono = this.resolver.resolveArgument(param, new BindingContext(), this.exchange);
 
-		assertThat(mono.block()).isNotNull();
-		assertThat(mono.block().getClass()).isEqualTo(Optional.class);
-		assertThat(((Optional<?>) mono.block()).isPresent()).isFalse();
+        assertThat(mono.block()).isNotNull();
+        assertThat(mono.block().getClass()).isEqualTo(Optional.class);
+        assertThat(((Optional<?>) mono.block()).isPresent()).isFalse();
 
-		ConfigurableWebBindingInitializer initializer = new ConfigurableWebBindingInitializer();
-		initializer.setConversionService(new DefaultFormattingConversionService());
-		BindingContext bindingContext = new BindingContext(initializer);
+        ConfigurableWebBindingInitializer initializer = new ConfigurableWebBindingInitializer();
+        initializer.setConversionService(new DefaultFormattingConversionService());
+        BindingContext bindingContext = new BindingContext(initializer);
 
-		Foo foo = new Foo();
-		this.exchange.getAttributes().put("foo", foo);
-		mono = this.resolver.resolveArgument(param, bindingContext, this.exchange);
+        Foo foo = new Foo();
+        this.exchange.getAttributes().put("foo", foo);
+        mono = this.resolver.resolveArgument(param, bindingContext, this.exchange);
 
-		assertThat(mono.block()).isNotNull();
-		assertThat(mono.block().getClass()).isEqualTo(Optional.class);
-		Optional<?> optional = (Optional<?>) mono.block();
-		assertThat(optional.isPresent()).isTrue();
-		assertThat(optional.get()).isSameAs(foo);
-	}
+        assertThat(mono.block()).isNotNull();
+        assertThat(mono.block().getClass()).isEqualTo(Optional.class);
+        Optional<?> optional = (Optional<?>) mono.block();
+        assertThat(optional.isPresent()).isTrue();
+        assertThat(optional.get()).isSameAs(foo);
+    }
 
-	@Test  // SPR-16158
-	public void resolveMonoParameter() {
-		MethodParameter param = this.testMethod.annot(requestAttribute().noName()).arg(Mono.class, Foo.class);
+    @Test  // SPR-16158
+    public void resolveMonoParameter() {
+        MethodParameter param = this.testMethod.annot(requestAttribute().noName()).arg(Mono.class, Foo.class);
 
-		// Mono attribute
-		Foo foo = new Foo();
-		Mono<Foo> fooMono = Mono.just(foo);
-		this.exchange.getAttributes().put("fooMono", fooMono);
-		Mono<Object> mono = this.resolver.resolveArgument(param, new BindingContext(), this.exchange);
-		assertThat(mono.block(Duration.ZERO)).isSameAs(fooMono);
+        // Mono attribute
+        Foo foo = new Foo();
+        Mono<Foo> fooMono = Mono.just(foo);
+        this.exchange.getAttributes().put("fooMono", fooMono);
+        Mono<Object> mono = this.resolver.resolveArgument(param, new BindingContext(), this.exchange);
+        assertThat(mono.block(Duration.ZERO)).isSameAs(fooMono);
 
-		// RxJava Single attribute
-		Single<Foo> singleMono = Single.just(foo);
-		this.exchange.getAttributes().clear();
-		this.exchange.getAttributes().put("fooMono", singleMono);
-		mono = this.resolver.resolveArgument(param, new BindingContext(), this.exchange);
-		Object value = mono.block(Duration.ZERO);
-		boolean condition = value instanceof Mono;
-		assertThat(condition).isTrue();
-		assertThat(((Mono<?>) value).block(Duration.ZERO)).isSameAs(foo);
+        // RxJava Single attribute
+        Single<Foo> singleMono = Single.just(foo);
+        this.exchange.getAttributes().clear();
+        this.exchange.getAttributes().put("fooMono", singleMono);
+        mono = this.resolver.resolveArgument(param, new BindingContext(), this.exchange);
+        Object value = mono.block(Duration.ZERO);
+        boolean condition = value instanceof Mono;
+        assertThat(condition).isTrue();
+        assertThat(((Mono<?>) value).block(Duration.ZERO)).isSameAs(foo);
 
-		// No attribute --> Mono.empty
-		this.exchange.getAttributes().clear();
-		mono = this.resolver.resolveArgument(param, new BindingContext(), this.exchange);
-		assertThat(mono.block(Duration.ZERO)).isSameAs(Mono.empty());
-	}
-
-
-	@SuppressWarnings({"unused", "OptionalUsedAsFieldOrParameterType"})
-	private void handleWithRequestAttribute(
-			@RequestAttribute Foo foo,
-			@RequestAttribute("specialFoo") Foo namedFoo,
-			@RequestAttribute(name="foo", required = false) Foo notRequiredFoo,
-			@RequestAttribute(name="foo") Optional<Foo> optionalFoo,
-			@RequestAttribute Mono<Foo> fooMono,
-			String notSupported) {
-	}
+        // No attribute --> Mono.empty
+        this.exchange.getAttributes().clear();
+        mono = this.resolver.resolveArgument(param, new BindingContext(), this.exchange);
+        assertThat(mono.block(Duration.ZERO)).isSameAs(Mono.empty());
+    }
 
 
-	private static class Foo {
-	}
+    @SuppressWarnings({"unused", "OptionalUsedAsFieldOrParameterType"})
+    private void handleWithRequestAttribute(
+            @RequestAttribute Foo foo,
+            @RequestAttribute("specialFoo") Foo namedFoo,
+            @RequestAttribute(name = "foo", required = false) Foo notRequiredFoo,
+            @RequestAttribute(name = "foo") Optional<Foo> optionalFoo,
+            @RequestAttribute Mono<Foo> fooMono,
+            String notSupported) {
+    }
+
+
+    private static class Foo {
+    }
 
 }

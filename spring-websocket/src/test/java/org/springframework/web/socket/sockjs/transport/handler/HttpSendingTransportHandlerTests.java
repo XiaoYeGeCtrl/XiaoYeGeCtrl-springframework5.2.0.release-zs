@@ -40,126 +40,126 @@ import static org.mockito.Mockito.verify;
  *
  * @author Rossen Stoyanchev
  */
-public class HttpSendingTransportHandlerTests  extends AbstractHttpRequestTests {
+public class HttpSendingTransportHandlerTests extends AbstractHttpRequestTests {
 
-	private WebSocketHandler webSocketHandler;
+    private WebSocketHandler webSocketHandler;
 
-	private StubSockJsServiceConfig sockJsConfig;
+    private StubSockJsServiceConfig sockJsConfig;
 
-	private TaskScheduler taskScheduler;
-
-
-	@Override
-	@BeforeEach
-	public void setup() {
-		super.setup();
-
-		this.webSocketHandler = mock(WebSocketHandler.class);
-		this.taskScheduler = mock(TaskScheduler.class);
-
-		this.sockJsConfig = new StubSockJsServiceConfig();
-		this.sockJsConfig.setTaskScheduler(this.taskScheduler);
-
-		setRequest("POST", "/");
-	}
+    private TaskScheduler taskScheduler;
 
 
-	@Test
-	public void handleRequestXhr() throws Exception {
-		XhrPollingTransportHandler transportHandler = new XhrPollingTransportHandler();
-		transportHandler.initialize(this.sockJsConfig);
+    @Override
+    @BeforeEach
+    public void setup() {
+        super.setup();
 
-		AbstractSockJsSession session = transportHandler.createSession("1", this.webSocketHandler, null);
-		transportHandler.handleRequest(this.request, this.response, this.webSocketHandler, session);
+        this.webSocketHandler = mock(WebSocketHandler.class);
+        this.taskScheduler = mock(TaskScheduler.class);
 
-		assertThat(this.response.getHeaders().getContentType().toString()).isEqualTo("application/javascript;charset=UTF-8");
-		assertThat(this.servletResponse.getContentAsString()).isEqualTo("o\n");
-		assertThat(this.servletRequest.isAsyncStarted()).as("Polling request should complete after open frame").isFalse();
-		verify(this.webSocketHandler).afterConnectionEstablished(session);
+        this.sockJsConfig = new StubSockJsServiceConfig();
+        this.sockJsConfig.setTaskScheduler(this.taskScheduler);
 
-		resetRequestAndResponse();
-		transportHandler.handleRequest(this.request, this.response, this.webSocketHandler, session);
+        setRequest("POST", "/");
+    }
 
-		assertThat(this.servletRequest.isAsyncStarted()).as("Polling request should remain open").isTrue();
-		verify(this.taskScheduler).schedule(any(Runnable.class), any(Date.class));
 
-		resetRequestAndResponse();
-		transportHandler.handleRequest(this.request, this.response, this.webSocketHandler, session);
+    @Test
+    public void handleRequestXhr() throws Exception {
+        XhrPollingTransportHandler transportHandler = new XhrPollingTransportHandler();
+        transportHandler.initialize(this.sockJsConfig);
 
-		assertThat(this.servletRequest.isAsyncStarted()).as("Request should have been rejected").isFalse();
-		assertThat(this.servletResponse.getContentAsString()).isEqualTo("c[2010,\"Another connection still open\"]\n");
-	}
+        AbstractSockJsSession session = transportHandler.createSession("1", this.webSocketHandler, null);
+        transportHandler.handleRequest(this.request, this.response, this.webSocketHandler, session);
 
-	@Test
-	public void handleRequestXhrStreaming() throws Exception {
-		XhrStreamingTransportHandler transportHandler = new XhrStreamingTransportHandler();
-		transportHandler.initialize(this.sockJsConfig);
-		AbstractSockJsSession session = transportHandler.createSession("1", this.webSocketHandler, null);
+        assertThat(this.response.getHeaders().getContentType().toString()).isEqualTo("application/javascript;charset=UTF-8");
+        assertThat(this.servletResponse.getContentAsString()).isEqualTo("o\n");
+        assertThat(this.servletRequest.isAsyncStarted()).as("Polling request should complete after open frame").isFalse();
+        verify(this.webSocketHandler).afterConnectionEstablished(session);
 
-		transportHandler.handleRequest(this.request, this.response, this.webSocketHandler, session);
+        resetRequestAndResponse();
+        transportHandler.handleRequest(this.request, this.response, this.webSocketHandler, session);
 
-		assertThat(this.response.getHeaders().getContentType().toString()).isEqualTo("application/javascript;charset=UTF-8");
-		assertThat(this.servletRequest.isAsyncStarted()).as("Streaming request not started").isTrue();
-		verify(this.webSocketHandler).afterConnectionEstablished(session);
-	}
+        assertThat(this.servletRequest.isAsyncStarted()).as("Polling request should remain open").isTrue();
+        verify(this.taskScheduler).schedule(any(Runnable.class), any(Date.class));
 
-	@Test
-	public void htmlFileTransport() throws Exception {
-		HtmlFileTransportHandler transportHandler = new HtmlFileTransportHandler();
-		transportHandler.initialize(this.sockJsConfig);
-		StreamingSockJsSession session = transportHandler.createSession("1", this.webSocketHandler, null);
+        resetRequestAndResponse();
+        transportHandler.handleRequest(this.request, this.response, this.webSocketHandler, session);
 
-		transportHandler.handleRequest(this.request, this.response, this.webSocketHandler, session);
+        assertThat(this.servletRequest.isAsyncStarted()).as("Request should have been rejected").isFalse();
+        assertThat(this.servletResponse.getContentAsString()).isEqualTo("c[2010,\"Another connection still open\"]\n");
+    }
 
-		assertThat(this.servletResponse.getStatus()).isEqualTo(500);
-		assertThat(this.servletResponse.getContentAsString()).isEqualTo("\"callback\" parameter required");
+    @Test
+    public void handleRequestXhrStreaming() throws Exception {
+        XhrStreamingTransportHandler transportHandler = new XhrStreamingTransportHandler();
+        transportHandler.initialize(this.sockJsConfig);
+        AbstractSockJsSession session = transportHandler.createSession("1", this.webSocketHandler, null);
 
-		resetRequestAndResponse();
-		setRequest("POST", "/");
-		this.servletRequest.setQueryString("c=callback");
-		this.servletRequest.addParameter("c", "callback");
-		transportHandler.handleRequest(this.request, this.response, this.webSocketHandler, session);
+        transportHandler.handleRequest(this.request, this.response, this.webSocketHandler, session);
 
-		assertThat(this.response.getHeaders().getContentType().toString()).isEqualTo("text/html;charset=UTF-8");
-		assertThat(this.servletRequest.isAsyncStarted()).as("Streaming request not started").isTrue();
-		verify(this.webSocketHandler).afterConnectionEstablished(session);
-	}
+        assertThat(this.response.getHeaders().getContentType().toString()).isEqualTo("application/javascript;charset=UTF-8");
+        assertThat(this.servletRequest.isAsyncStarted()).as("Streaming request not started").isTrue();
+        verify(this.webSocketHandler).afterConnectionEstablished(session);
+    }
 
-	@Test
-	public void eventSourceTransport() throws Exception {
-		EventSourceTransportHandler transportHandler = new EventSourceTransportHandler();
-		transportHandler.initialize(this.sockJsConfig);
-		StreamingSockJsSession session = transportHandler.createSession("1", this.webSocketHandler, null);
+    @Test
+    public void htmlFileTransport() throws Exception {
+        HtmlFileTransportHandler transportHandler = new HtmlFileTransportHandler();
+        transportHandler.initialize(this.sockJsConfig);
+        StreamingSockJsSession session = transportHandler.createSession("1", this.webSocketHandler, null);
 
-		transportHandler.handleRequest(this.request, this.response, this.webSocketHandler, session);
+        transportHandler.handleRequest(this.request, this.response, this.webSocketHandler, session);
 
-		assertThat(this.response.getHeaders().getContentType().toString()).isEqualTo("text/event-stream;charset=UTF-8");
-		assertThat(this.servletRequest.isAsyncStarted()).as("Streaming request not started").isTrue();
-		verify(this.webSocketHandler).afterConnectionEstablished(session);
-	}
+        assertThat(this.servletResponse.getStatus()).isEqualTo(500);
+        assertThat(this.servletResponse.getContentAsString()).isEqualTo("\"callback\" parameter required");
 
-	@Test
-	public void frameFormats() throws Exception {
-		this.servletRequest.setQueryString("c=callback");
-		this.servletRequest.addParameter("c", "callback");
+        resetRequestAndResponse();
+        setRequest("POST", "/");
+        this.servletRequest.setQueryString("c=callback");
+        this.servletRequest.addParameter("c", "callback");
+        transportHandler.handleRequest(this.request, this.response, this.webSocketHandler, session);
 
-		SockJsFrame frame = SockJsFrame.openFrame();
+        assertThat(this.response.getHeaders().getContentType().toString()).isEqualTo("text/html;charset=UTF-8");
+        assertThat(this.servletRequest.isAsyncStarted()).as("Streaming request not started").isTrue();
+        verify(this.webSocketHandler).afterConnectionEstablished(session);
+    }
 
-		SockJsFrameFormat format = new XhrPollingTransportHandler().getFrameFormat(this.request);
-		String formatted = format.format(frame);
-		assertThat(formatted).isEqualTo((frame.getContent() + "\n"));
+    @Test
+    public void eventSourceTransport() throws Exception {
+        EventSourceTransportHandler transportHandler = new EventSourceTransportHandler();
+        transportHandler.initialize(this.sockJsConfig);
+        StreamingSockJsSession session = transportHandler.createSession("1", this.webSocketHandler, null);
 
-		format = new XhrStreamingTransportHandler().getFrameFormat(this.request);
-		formatted = format.format(frame);
-		assertThat(formatted).isEqualTo((frame.getContent() + "\n"));
+        transportHandler.handleRequest(this.request, this.response, this.webSocketHandler, session);
 
-		format = new HtmlFileTransportHandler().getFrameFormat(this.request);
-		formatted = format.format(frame);
-		assertThat(formatted).isEqualTo(("<script>\np(\"" + frame.getContent() + "\");\n</script>\r\n"));
+        assertThat(this.response.getHeaders().getContentType().toString()).isEqualTo("text/event-stream;charset=UTF-8");
+        assertThat(this.servletRequest.isAsyncStarted()).as("Streaming request not started").isTrue();
+        verify(this.webSocketHandler).afterConnectionEstablished(session);
+    }
 
-		format = new EventSourceTransportHandler().getFrameFormat(this.request);
-		formatted = format.format(frame);
-		assertThat(formatted).isEqualTo(("data: " + frame.getContent() + "\r\n\r\n"));
-	}
+    @Test
+    public void frameFormats() throws Exception {
+        this.servletRequest.setQueryString("c=callback");
+        this.servletRequest.addParameter("c", "callback");
+
+        SockJsFrame frame = SockJsFrame.openFrame();
+
+        SockJsFrameFormat format = new XhrPollingTransportHandler().getFrameFormat(this.request);
+        String formatted = format.format(frame);
+        assertThat(formatted).isEqualTo((frame.getContent() + "\n"));
+
+        format = new XhrStreamingTransportHandler().getFrameFormat(this.request);
+        formatted = format.format(frame);
+        assertThat(formatted).isEqualTo((frame.getContent() + "\n"));
+
+        format = new HtmlFileTransportHandler().getFrameFormat(this.request);
+        formatted = format.format(frame);
+        assertThat(formatted).isEqualTo(("<script>\np(\"" + frame.getContent() + "\");\n</script>\r\n"));
+
+        format = new EventSourceTransportHandler().getFrameFormat(this.request);
+        formatted = format.format(frame);
+        assertThat(formatted).isEqualTo(("data: " + frame.getContent() + "\r\n\r\n"));
+    }
 
 }

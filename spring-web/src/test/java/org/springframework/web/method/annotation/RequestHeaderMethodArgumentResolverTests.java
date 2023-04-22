@@ -52,197 +52,194 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
  */
 public class RequestHeaderMethodArgumentResolverTests {
 
-	private RequestHeaderMethodArgumentResolver resolver;
+    private RequestHeaderMethodArgumentResolver resolver;
 
-	private MethodParameter paramNamedDefaultValueStringHeader;
-	private MethodParameter paramNamedValueStringArray;
-	private MethodParameter paramSystemProperty;
-	private MethodParameter paramContextPath;
-	private MethodParameter paramResolvedNameWithExpression;
-	private MethodParameter paramResolvedNameWithPlaceholder;
-	private MethodParameter paramNamedValueMap;
-	private MethodParameter paramDate;
-	private MethodParameter paramInstant;
+    private MethodParameter paramNamedDefaultValueStringHeader;
+    private MethodParameter paramNamedValueStringArray;
+    private MethodParameter paramSystemProperty;
+    private MethodParameter paramContextPath;
+    private MethodParameter paramResolvedNameWithExpression;
+    private MethodParameter paramResolvedNameWithPlaceholder;
+    private MethodParameter paramNamedValueMap;
+    private MethodParameter paramDate;
+    private MethodParameter paramInstant;
 
-	private MockHttpServletRequest servletRequest;
+    private MockHttpServletRequest servletRequest;
 
-	private NativeWebRequest webRequest;
-
-
-	@BeforeEach
-	@SuppressWarnings("resource")
-	public void setup() throws Exception {
-		GenericWebApplicationContext context = new GenericWebApplicationContext();
-		context.refresh();
-		resolver = new RequestHeaderMethodArgumentResolver(context.getBeanFactory());
-
-		Method method = ReflectionUtils.findMethod(getClass(), "params", (Class<?>[]) null);
-		paramNamedDefaultValueStringHeader = new SynthesizingMethodParameter(method, 0);
-		paramNamedValueStringArray = new SynthesizingMethodParameter(method, 1);
-		paramSystemProperty = new SynthesizingMethodParameter(method, 2);
-		paramContextPath = new SynthesizingMethodParameter(method, 3);
-		paramResolvedNameWithExpression = new SynthesizingMethodParameter(method, 4);
-		paramResolvedNameWithPlaceholder = new SynthesizingMethodParameter(method, 5);
-		paramNamedValueMap = new SynthesizingMethodParameter(method, 6);
-		paramDate = new SynthesizingMethodParameter(method, 7);
-		paramInstant = new SynthesizingMethodParameter(method, 8);
-
-		servletRequest = new MockHttpServletRequest();
-		webRequest = new ServletWebRequest(servletRequest, new MockHttpServletResponse());
-
-		// Expose request to the current thread (for SpEL expressions)
-		RequestContextHolder.setRequestAttributes(webRequest);
-	}
-
-	@AfterEach
-	public void reset() {
-		RequestContextHolder.resetRequestAttributes();
-	}
+    private NativeWebRequest webRequest;
 
 
-	@Test
-	public void supportsParameter() {
-		assertThat(resolver.supportsParameter(paramNamedDefaultValueStringHeader)).as("String parameter not supported").isTrue();
-		assertThat(resolver.supportsParameter(paramNamedValueStringArray)).as("String array parameter not supported").isTrue();
-		assertThat(resolver.supportsParameter(paramNamedValueMap)).as("non-@RequestParam parameter supported").isFalse();
-	}
+    @BeforeEach
+    @SuppressWarnings("resource")
+    public void setup() throws Exception {
+        GenericWebApplicationContext context = new GenericWebApplicationContext();
+        context.refresh();
+        resolver = new RequestHeaderMethodArgumentResolver(context.getBeanFactory());
 
-	@Test
-	public void resolveStringArgument() throws Exception {
-		String expected = "foo";
-		servletRequest.addHeader("name", expected);
+        Method method = ReflectionUtils.findMethod(getClass(), "params", (Class<?>[]) null);
+        paramNamedDefaultValueStringHeader = new SynthesizingMethodParameter(method, 0);
+        paramNamedValueStringArray = new SynthesizingMethodParameter(method, 1);
+        paramSystemProperty = new SynthesizingMethodParameter(method, 2);
+        paramContextPath = new SynthesizingMethodParameter(method, 3);
+        paramResolvedNameWithExpression = new SynthesizingMethodParameter(method, 4);
+        paramResolvedNameWithPlaceholder = new SynthesizingMethodParameter(method, 5);
+        paramNamedValueMap = new SynthesizingMethodParameter(method, 6);
+        paramDate = new SynthesizingMethodParameter(method, 7);
+        paramInstant = new SynthesizingMethodParameter(method, 8);
 
-		Object result = resolver.resolveArgument(paramNamedDefaultValueStringHeader, null, webRequest, null);
-		boolean condition = result instanceof String;
-		assertThat(condition).isTrue();
-		assertThat(result).isEqualTo(expected);
-	}
+        servletRequest = new MockHttpServletRequest();
+        webRequest = new ServletWebRequest(servletRequest, new MockHttpServletResponse());
 
-	@Test
-	public void resolveStringArrayArgument() throws Exception {
-		String[] expected = new String[] {"foo", "bar"};
-		servletRequest.addHeader("name", expected);
+        // Expose request to the current thread (for SpEL expressions)
+        RequestContextHolder.setRequestAttributes(webRequest);
+    }
 
-		Object result = resolver.resolveArgument(paramNamedValueStringArray, null, webRequest, null);
-		boolean condition = result instanceof String[];
-		assertThat(condition).isTrue();
-		assertThat((String[]) result).isEqualTo(expected);
-	}
-
-	@Test
-	public void resolveDefaultValue() throws Exception {
-		Object result = resolver.resolveArgument(paramNamedDefaultValueStringHeader, null, webRequest, null);
-		boolean condition = result instanceof String;
-		assertThat(condition).isTrue();
-		assertThat(result).isEqualTo("bar");
-	}
-
-	@Test
-	public void resolveDefaultValueFromSystemProperty() throws Exception {
-		System.setProperty("systemProperty", "bar");
-		try {
-			Object result = resolver.resolveArgument(paramSystemProperty, null, webRequest, null);
-			boolean condition = result instanceof String;
-			assertThat(condition).isTrue();
-			assertThat(result).isEqualTo("bar");
-		}
-		finally {
-			System.clearProperty("systemProperty");
-		}
-	}
-
-	@Test
-	public void resolveNameFromSystemPropertyThroughExpression() throws Exception {
-		String expected = "foo";
-		servletRequest.addHeader("bar", expected);
-
-		System.setProperty("systemProperty", "bar");
-		try {
-			Object result = resolver.resolveArgument(paramResolvedNameWithExpression, null, webRequest, null);
-			boolean condition = result instanceof String;
-			assertThat(condition).isTrue();
-			assertThat(result).isEqualTo(expected);
-		}
-		finally {
-			System.clearProperty("systemProperty");
-		}
-	}
-
-	@Test
-	public void resolveNameFromSystemPropertyThroughPlaceholder() throws Exception {
-		String expected = "foo";
-		servletRequest.addHeader("bar", expected);
-
-		System.setProperty("systemProperty", "bar");
-		try {
-			Object result = resolver.resolveArgument(paramResolvedNameWithPlaceholder, null, webRequest, null);
-			boolean condition = result instanceof String;
-			assertThat(condition).isTrue();
-			assertThat(result).isEqualTo(expected);
-		}
-		finally {
-			System.clearProperty("systemProperty");
-		}
-	}
-
-	@Test
-	public void resolveDefaultValueFromRequest() throws Exception {
-		servletRequest.setContextPath("/bar");
-
-		Object result = resolver.resolveArgument(paramContextPath, null, webRequest, null);
-		boolean condition = result instanceof String;
-		assertThat(condition).isTrue();
-		assertThat(result).isEqualTo("/bar");
-	}
-
-	@Test
-	public void notFound() throws Exception {
-		assertThatExceptionOfType(ServletRequestBindingException.class).isThrownBy(() ->
-				resolver.resolveArgument(paramNamedValueStringArray, null, webRequest, null));
-	}
-
-	@Test
-	@SuppressWarnings("deprecation")
-	public void dateConversion() throws Exception {
-		String rfc1123val = "Thu, 21 Apr 2016 17:11:08 +0100";
-		servletRequest.addHeader("name", rfc1123val);
-
-		ConfigurableWebBindingInitializer bindingInitializer = new ConfigurableWebBindingInitializer();
-		bindingInitializer.setConversionService(new DefaultFormattingConversionService());
-		Object result = resolver.resolveArgument(paramDate, null, webRequest,
-				new DefaultDataBinderFactory(bindingInitializer));
-
-		boolean condition = result instanceof Date;
-		assertThat(condition).isTrue();
-		assertThat(result).isEqualTo(new Date(rfc1123val));
-	}
-
-	@Test
-	public void instantConversion() throws Exception {
-		String rfc1123val = "Thu, 21 Apr 2016 17:11:08 +0100";
-		servletRequest.addHeader("name", rfc1123val);
-
-		ConfigurableWebBindingInitializer bindingInitializer = new ConfigurableWebBindingInitializer();
-		bindingInitializer.setConversionService(new DefaultFormattingConversionService());
-		Object result = resolver.resolveArgument(paramInstant, null, webRequest,
-				new DefaultDataBinderFactory(bindingInitializer));
-
-		boolean condition = result instanceof Instant;
-		assertThat(condition).isTrue();
-		assertThat(result).isEqualTo(Instant.from(DateTimeFormatter.RFC_1123_DATE_TIME.parse(rfc1123val)));
-	}
+    @AfterEach
+    public void reset() {
+        RequestContextHolder.resetRequestAttributes();
+    }
 
 
-	public void params(
-			@RequestHeader(name = "name", defaultValue = "bar") String param1,
-			@RequestHeader("name") String[] param2,
-			@RequestHeader(name = "name", defaultValue="#{systemProperties.systemProperty}") String param3,
-			@RequestHeader(name = "name", defaultValue="#{request.contextPath}") String param4,
-			@RequestHeader("#{systemProperties.systemProperty}") String param5,
-			@RequestHeader("${systemProperty}") String param6,
-			@RequestHeader("name") Map<?, ?> unsupported,
-			@RequestHeader("name") Date dateParam,
-			@RequestHeader("name") Instant instantParam) {
-	}
+    @Test
+    public void supportsParameter() {
+        assertThat(resolver.supportsParameter(paramNamedDefaultValueStringHeader)).as("String parameter not supported").isTrue();
+        assertThat(resolver.supportsParameter(paramNamedValueStringArray)).as("String array parameter not supported").isTrue();
+        assertThat(resolver.supportsParameter(paramNamedValueMap)).as("non-@RequestParam parameter supported").isFalse();
+    }
+
+    @Test
+    public void resolveStringArgument() throws Exception {
+        String expected = "foo";
+        servletRequest.addHeader("name", expected);
+
+        Object result = resolver.resolveArgument(paramNamedDefaultValueStringHeader, null, webRequest, null);
+        boolean condition = result instanceof String;
+        assertThat(condition).isTrue();
+        assertThat(result).isEqualTo(expected);
+    }
+
+    @Test
+    public void resolveStringArrayArgument() throws Exception {
+        String[] expected = new String[]{"foo", "bar"};
+        servletRequest.addHeader("name", expected);
+
+        Object result = resolver.resolveArgument(paramNamedValueStringArray, null, webRequest, null);
+        boolean condition = result instanceof String[];
+        assertThat(condition).isTrue();
+        assertThat((String[]) result).isEqualTo(expected);
+    }
+
+    @Test
+    public void resolveDefaultValue() throws Exception {
+        Object result = resolver.resolveArgument(paramNamedDefaultValueStringHeader, null, webRequest, null);
+        boolean condition = result instanceof String;
+        assertThat(condition).isTrue();
+        assertThat(result).isEqualTo("bar");
+    }
+
+    @Test
+    public void resolveDefaultValueFromSystemProperty() throws Exception {
+        System.setProperty("systemProperty", "bar");
+        try {
+            Object result = resolver.resolveArgument(paramSystemProperty, null, webRequest, null);
+            boolean condition = result instanceof String;
+            assertThat(condition).isTrue();
+            assertThat(result).isEqualTo("bar");
+        } finally {
+            System.clearProperty("systemProperty");
+        }
+    }
+
+    @Test
+    public void resolveNameFromSystemPropertyThroughExpression() throws Exception {
+        String expected = "foo";
+        servletRequest.addHeader("bar", expected);
+
+        System.setProperty("systemProperty", "bar");
+        try {
+            Object result = resolver.resolveArgument(paramResolvedNameWithExpression, null, webRequest, null);
+            boolean condition = result instanceof String;
+            assertThat(condition).isTrue();
+            assertThat(result).isEqualTo(expected);
+        } finally {
+            System.clearProperty("systemProperty");
+        }
+    }
+
+    @Test
+    public void resolveNameFromSystemPropertyThroughPlaceholder() throws Exception {
+        String expected = "foo";
+        servletRequest.addHeader("bar", expected);
+
+        System.setProperty("systemProperty", "bar");
+        try {
+            Object result = resolver.resolveArgument(paramResolvedNameWithPlaceholder, null, webRequest, null);
+            boolean condition = result instanceof String;
+            assertThat(condition).isTrue();
+            assertThat(result).isEqualTo(expected);
+        } finally {
+            System.clearProperty("systemProperty");
+        }
+    }
+
+    @Test
+    public void resolveDefaultValueFromRequest() throws Exception {
+        servletRequest.setContextPath("/bar");
+
+        Object result = resolver.resolveArgument(paramContextPath, null, webRequest, null);
+        boolean condition = result instanceof String;
+        assertThat(condition).isTrue();
+        assertThat(result).isEqualTo("/bar");
+    }
+
+    @Test
+    public void notFound() throws Exception {
+        assertThatExceptionOfType(ServletRequestBindingException.class).isThrownBy(() ->
+                resolver.resolveArgument(paramNamedValueStringArray, null, webRequest, null));
+    }
+
+    @Test
+    @SuppressWarnings("deprecation")
+    public void dateConversion() throws Exception {
+        String rfc1123val = "Thu, 21 Apr 2016 17:11:08 +0100";
+        servletRequest.addHeader("name", rfc1123val);
+
+        ConfigurableWebBindingInitializer bindingInitializer = new ConfigurableWebBindingInitializer();
+        bindingInitializer.setConversionService(new DefaultFormattingConversionService());
+        Object result = resolver.resolveArgument(paramDate, null, webRequest,
+                new DefaultDataBinderFactory(bindingInitializer));
+
+        boolean condition = result instanceof Date;
+        assertThat(condition).isTrue();
+        assertThat(result).isEqualTo(new Date(rfc1123val));
+    }
+
+    @Test
+    public void instantConversion() throws Exception {
+        String rfc1123val = "Thu, 21 Apr 2016 17:11:08 +0100";
+        servletRequest.addHeader("name", rfc1123val);
+
+        ConfigurableWebBindingInitializer bindingInitializer = new ConfigurableWebBindingInitializer();
+        bindingInitializer.setConversionService(new DefaultFormattingConversionService());
+        Object result = resolver.resolveArgument(paramInstant, null, webRequest,
+                new DefaultDataBinderFactory(bindingInitializer));
+
+        boolean condition = result instanceof Instant;
+        assertThat(condition).isTrue();
+        assertThat(result).isEqualTo(Instant.from(DateTimeFormatter.RFC_1123_DATE_TIME.parse(rfc1123val)));
+    }
+
+
+    public void params(
+            @RequestHeader(name = "name", defaultValue = "bar") String param1,
+            @RequestHeader("name") String[] param2,
+            @RequestHeader(name = "name", defaultValue = "#{systemProperties.systemProperty}") String param3,
+            @RequestHeader(name = "name", defaultValue = "#{request.contextPath}") String param4,
+            @RequestHeader("#{systemProperties.systemProperty}") String param5,
+            @RequestHeader("${systemProperty}") String param6,
+            @RequestHeader("name") Map<?, ?> unsupported,
+            @RequestHeader("name") Date dateParam,
+            @RequestHeader("name") Instant instantParam) {
+    }
 
 }

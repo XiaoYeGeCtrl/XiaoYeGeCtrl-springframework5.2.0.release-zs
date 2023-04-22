@@ -30,105 +30,105 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 public class PropertyComparatorTests {
 
-	@Test
-	public void testPropertyComparator() {
-		Dog dog = new Dog();
-		dog.setNickName("mace");
+    @Test
+    public void testPropertyComparator() {
+        Dog dog = new Dog();
+        dog.setNickName("mace");
 
-		Dog dog2 = new Dog();
-		dog2.setNickName("biscy");
+        Dog dog2 = new Dog();
+        dog2.setNickName("biscy");
 
-		PropertyComparator<Dog> c = new PropertyComparator<>("nickName", false, true);
-		assertThat(c.compare(dog, dog2) > 0).isTrue();
-		assertThat(c.compare(dog, dog) == 0).isTrue();
-		assertThat(c.compare(dog2, dog) < 0).isTrue();
-	}
+        PropertyComparator<Dog> c = new PropertyComparator<>("nickName", false, true);
+        assertThat(c.compare(dog, dog2) > 0).isTrue();
+        assertThat(c.compare(dog, dog) == 0).isTrue();
+        assertThat(c.compare(dog2, dog) < 0).isTrue();
+    }
 
-	@Test
-	public void testPropertyComparatorNulls() {
-		Dog dog = new Dog();
-		Dog dog2 = new Dog();
-		PropertyComparator<Dog> c = new PropertyComparator<>("nickName", false, true);
-		assertThat(c.compare(dog, dog2) == 0).isTrue();
-	}
+    @Test
+    public void testPropertyComparatorNulls() {
+        Dog dog = new Dog();
+        Dog dog2 = new Dog();
+        PropertyComparator<Dog> c = new PropertyComparator<>("nickName", false, true);
+        assertThat(c.compare(dog, dog2) == 0).isTrue();
+    }
 
-	@Test
-	public void testChainedComparators() {
-		Comparator<Dog> c = new PropertyComparator<>("lastName", false, true);
+    @Test
+    public void testChainedComparators() {
+        Comparator<Dog> c = new PropertyComparator<>("lastName", false, true);
 
-		Dog dog1 = new Dog();
-		dog1.setFirstName("macy");
-		dog1.setLastName("grayspots");
+        Dog dog1 = new Dog();
+        dog1.setFirstName("macy");
+        dog1.setLastName("grayspots");
 
-		Dog dog2 = new Dog();
-		dog2.setFirstName("biscuit");
-		dog2.setLastName("grayspots");
+        Dog dog2 = new Dog();
+        dog2.setFirstName("biscuit");
+        dog2.setLastName("grayspots");
 
-		assertThat(c.compare(dog1, dog2) == 0).isTrue();
+        assertThat(c.compare(dog1, dog2) == 0).isTrue();
 
-		c = c.thenComparing(new PropertyComparator<>("firstName", false, true));
-		assertThat(c.compare(dog1, dog2) > 0).isTrue();
+        c = c.thenComparing(new PropertyComparator<>("firstName", false, true));
+        assertThat(c.compare(dog1, dog2) > 0).isTrue();
 
-		dog2.setLastName("konikk dog");
-		assertThat(c.compare(dog2, dog1) > 0).isTrue();
-	}
+        dog2.setLastName("konikk dog");
+        assertThat(c.compare(dog2, dog1) > 0).isTrue();
+    }
 
-	@Test
-	public void testChainedComparatorsReversed() {
-		Comparator<Dog> c = (new PropertyComparator<Dog>("lastName", false, true)).
-				thenComparing(new PropertyComparator<>("firstName", false, true));
+    @Test
+    public void testChainedComparatorsReversed() {
+        Comparator<Dog> c = (new PropertyComparator<Dog>("lastName", false, true)).
+                thenComparing(new PropertyComparator<>("firstName", false, true));
 
-		Dog dog1 = new Dog();
-		dog1.setFirstName("macy");
-		dog1.setLastName("grayspots");
+        Dog dog1 = new Dog();
+        dog1.setFirstName("macy");
+        dog1.setLastName("grayspots");
 
-		Dog dog2 = new Dog();
-		dog2.setFirstName("biscuit");
-		dog2.setLastName("grayspots");
+        Dog dog2 = new Dog();
+        dog2.setFirstName("biscuit");
+        dog2.setLastName("grayspots");
 
-		assertThat(c.compare(dog1, dog2) > 0).isTrue();
-		c = c.reversed();
-		assertThat(c.compare(dog1, dog2) < 0).isTrue();
-	}
+        assertThat(c.compare(dog1, dog2) > 0).isTrue();
+        c = c.reversed();
+        assertThat(c.compare(dog1, dog2) < 0).isTrue();
+    }
 
 
-	@SuppressWarnings("unused")
-	private static class Dog implements Comparable<Object> {
+    @SuppressWarnings("unused")
+    private static class Dog implements Comparable<Object> {
 
-		private String nickName;
+        private String nickName;
 
-		private String firstName;
+        private String firstName;
 
-		private String lastName;
+        private String lastName;
 
-		public String getNickName() {
-			return nickName;
-		}
+        public String getNickName() {
+            return nickName;
+        }
 
-		public void setNickName(String nickName) {
-			this.nickName = nickName;
-		}
+        public void setNickName(String nickName) {
+            this.nickName = nickName;
+        }
 
-		public String getFirstName() {
-			return firstName;
-		}
+        public String getFirstName() {
+            return firstName;
+        }
 
-		public void setFirstName(String firstName) {
-			this.firstName = firstName;
-		}
+        public void setFirstName(String firstName) {
+            this.firstName = firstName;
+        }
 
-		public String getLastName() {
-			return lastName;
-		}
+        public String getLastName() {
+            return lastName;
+        }
 
-		public void setLastName(String lastName) {
-			this.lastName = lastName;
-		}
+        public void setLastName(String lastName) {
+            this.lastName = lastName;
+        }
 
-		@Override
-		public int compareTo(Object o) {
-			return this.nickName.compareTo(((Dog) o).nickName);
-		}
-	}
+        @Override
+        public int compareTo(Object o) {
+            return this.nickName.compareTo(((Dog) o).nickName);
+        }
+    }
 
 }

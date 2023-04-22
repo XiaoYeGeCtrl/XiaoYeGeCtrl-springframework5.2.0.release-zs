@@ -29,32 +29,33 @@ import org.springframework.util.Assert;
  */
 public class SimpleTheme implements Theme {
 
-	private final String name;
+    private final String name;
 
-	private final MessageSource messageSource;
-
-
-	/**
-	 * Create a SimpleTheme.
-	 * @param name the name of the theme
-	 * @param messageSource the MessageSource that resolves theme messages
-	 */
-	public SimpleTheme(String name, MessageSource messageSource) {
-		Assert.notNull(name, "Name must not be null");
-		Assert.notNull(messageSource, "MessageSource must not be null");
-		this.name = name;
-		this.messageSource = messageSource;
-	}
+    private final MessageSource messageSource;
 
 
-	@Override
-	public final String getName() {
-		return this.name;
-	}
+    /**
+     * Create a SimpleTheme.
+     *
+     * @param name          the name of the theme
+     * @param messageSource the MessageSource that resolves theme messages
+     */
+    public SimpleTheme(String name, MessageSource messageSource) {
+        Assert.notNull(name, "Name must not be null");
+        Assert.notNull(messageSource, "MessageSource must not be null");
+        this.name = name;
+        this.messageSource = messageSource;
+    }
 
-	@Override
-	public final MessageSource getMessageSource() {
-		return this.messageSource;
-	}
+
+    @Override
+    public final String getName() {
+        return this.name;
+    }
+
+    @Override
+    public final MessageSource getMessageSource() {
+        return this.messageSource;
+    }
 
 }

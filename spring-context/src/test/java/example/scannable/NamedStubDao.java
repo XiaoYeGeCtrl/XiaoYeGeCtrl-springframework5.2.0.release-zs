@@ -24,8 +24,8 @@ import org.springframework.stereotype.Repository;
 @Repository("myNamedDao")
 public class NamedStubDao {
 
-	public String find(int id) {
-		return "bar";
-	}
+    public String find(int id) {
+        return "bar";
+    }
 
 }

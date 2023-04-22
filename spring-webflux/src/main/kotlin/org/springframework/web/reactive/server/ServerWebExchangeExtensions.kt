@@ -32,7 +32,7 @@ import java.security.Principal
  * @since 5.2
  */
 suspend fun ServerWebExchange.awaitFormData(): MultiValueMap<String, String> =
-		this.formData.awaitSingle()
+        this.formData.awaitSingle()
 
 /**
  * Coroutines variant of [ServerWebExchange.getMultipartData].
@@ -41,7 +41,7 @@ suspend fun ServerWebExchange.awaitFormData(): MultiValueMap<String, String> =
  * @since 5.2
  */
 suspend fun ServerWebExchange.awaitMultipartData(): MultiValueMap<String, Part> =
-		this.multipartData.awaitSingle()
+        this.multipartData.awaitSingle()
 
 /**
  * Coroutines variant of [ServerWebExchange.getPrincipal].
@@ -50,7 +50,7 @@ suspend fun ServerWebExchange.awaitMultipartData(): MultiValueMap<String, Part> 
  * @since 5.2
  */
 suspend fun <T : Principal> ServerWebExchange.awaitPrincipal(): T =
-		this.getPrincipal<T>().awaitSingle()
+        this.getPrincipal<T>().awaitSingle()
 
 /**
  * Coroutines variant of [ServerWebExchange.getSession].
@@ -59,7 +59,7 @@ suspend fun <T : Principal> ServerWebExchange.awaitPrincipal(): T =
  * @since 5.2
  */
 suspend fun ServerWebExchange.awaitSession(): WebSession =
-		this.session.awaitSingle()
+        this.session.awaitSingle()
 
 /**
  * Coroutines variant of [ServerWebExchange.Builder.principal].
@@ -67,5 +67,4 @@ suspend fun ServerWebExchange.awaitSession(): WebSession =
  * @author Sebastien Deleuze
  * @since 5.2
  */
-fun ServerWebExchange.Builder.principal(supplier: suspend () -> Principal): ServerWebExchange.Builder
-        = principal(mono(Dispatchers.Unconfined) { supplier.invoke() })
+fun ServerWebExchange.Builder.principal(supplier: suspend () -> Principal): ServerWebExchange.Builder = principal(mono(Dispatchers.Unconfined) { supplier.invoke() })

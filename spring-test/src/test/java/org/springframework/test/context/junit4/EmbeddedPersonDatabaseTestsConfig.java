@@ -34,17 +34,17 @@ import org.springframework.transaction.PlatformTransactionManager;
 @Configuration
 public class EmbeddedPersonDatabaseTestsConfig {
 
-	@Bean
-	public PlatformTransactionManager txMgr() {
-		return new DataSourceTransactionManager(dataSource());
-	}
+    @Bean
+    public PlatformTransactionManager txMgr() {
+        return new DataSourceTransactionManager(dataSource());
+    }
 
-	@Bean
-	public DataSource dataSource() {
-		return new EmbeddedDatabaseBuilder()//
-		.generateUniqueName(true)//
-		.addScript("classpath:/org/springframework/test/jdbc/schema.sql") //
-		.build();
-	}
+    @Bean
+    public DataSource dataSource() {
+        return new EmbeddedDatabaseBuilder()//
+                .generateUniqueName(true)//
+                .addScript("classpath:/org/springframework/test/jdbc/schema.sql") //
+                .build();
+    }
 
 }

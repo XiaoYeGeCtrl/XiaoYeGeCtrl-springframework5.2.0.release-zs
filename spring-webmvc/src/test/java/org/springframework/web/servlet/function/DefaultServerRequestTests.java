@@ -55,250 +55,251 @@ import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException
  */
 public class DefaultServerRequestTests {
 
-	private final List<HttpMessageConverter<?>> messageConverters = Collections.singletonList(
-			new StringHttpMessageConverter());
+    private final List<HttpMessageConverter<?>> messageConverters = Collections.singletonList(
+            new StringHttpMessageConverter());
 
-	@Test
-	public void method() {
-		MockHttpServletRequest servletRequest = new MockHttpServletRequest("HEAD", "/");
-		DefaultServerRequest request =
-				new DefaultServerRequest(servletRequest, this.messageConverters);
+    @Test
+    public void method() {
+        MockHttpServletRequest servletRequest = new MockHttpServletRequest("HEAD", "/");
+        DefaultServerRequest request =
+                new DefaultServerRequest(servletRequest, this.messageConverters);
 
-		assertThat(request.method()).isEqualTo(HttpMethod.HEAD);
-	}
+        assertThat(request.method()).isEqualTo(HttpMethod.HEAD);
+    }
 
-	@Test
-	public void uri() {
-		MockHttpServletRequest servletRequest = new MockHttpServletRequest("GET", "/");
-		servletRequest.setServerName("example.com");
-		servletRequest.setScheme("https");
-		servletRequest.setServerPort(443);
+    @Test
+    public void uri() {
+        MockHttpServletRequest servletRequest = new MockHttpServletRequest("GET", "/");
+        servletRequest.setServerName("example.com");
+        servletRequest.setScheme("https");
+        servletRequest.setServerPort(443);
 
-		DefaultServerRequest request =
-				new DefaultServerRequest(servletRequest, this.messageConverters);
+        DefaultServerRequest request =
+                new DefaultServerRequest(servletRequest, this.messageConverters);
 
-		assertThat(request.uri()).isEqualTo(URI.create("https://example.com/"));
-	}
+        assertThat(request.uri()).isEqualTo(URI.create("https://example.com/"));
+    }
 
-	@Test
-	public void uriBuilder() {
-		MockHttpServletRequest servletRequest = new MockHttpServletRequest("GET", "/path");
-		servletRequest.setQueryString("a=1");
+    @Test
+    public void uriBuilder() {
+        MockHttpServletRequest servletRequest = new MockHttpServletRequest("GET", "/path");
+        servletRequest.setQueryString("a=1");
 
-		DefaultServerRequest request =
-				new DefaultServerRequest(servletRequest, this.messageConverters);
+        DefaultServerRequest request =
+                new DefaultServerRequest(servletRequest, this.messageConverters);
 
-		URI result = request.uriBuilder().build();
-		assertThat(result.getScheme()).isEqualTo("http");
-		assertThat(result.getHost()).isEqualTo("localhost");
-		assertThat(result.getPort()).isEqualTo(-1);
-		assertThat(result.getPath()).isEqualTo("/path");
-		assertThat(result.getQuery()).isEqualTo("a=1");
-	}
+        URI result = request.uriBuilder().build();
+        assertThat(result.getScheme()).isEqualTo("http");
+        assertThat(result.getHost()).isEqualTo("localhost");
+        assertThat(result.getPort()).isEqualTo(-1);
+        assertThat(result.getPath()).isEqualTo("/path");
+        assertThat(result.getQuery()).isEqualTo("a=1");
+    }
 
-	@Test
-	public void attribute() {
-		MockHttpServletRequest servletRequest = new MockHttpServletRequest("GET", "/");
-		servletRequest.setAttribute("foo", "bar");
+    @Test
+    public void attribute() {
+        MockHttpServletRequest servletRequest = new MockHttpServletRequest("GET", "/");
+        servletRequest.setAttribute("foo", "bar");
 
-		DefaultServerRequest request =
-				new DefaultServerRequest(servletRequest, this.messageConverters);
+        DefaultServerRequest request =
+                new DefaultServerRequest(servletRequest, this.messageConverters);
 
-		assertThat(request.attribute("foo")).isEqualTo(Optional.of("bar"));
-	}
+        assertThat(request.attribute("foo")).isEqualTo(Optional.of("bar"));
+    }
 
-	@Test
-	public void params() {
-		MockHttpServletRequest servletRequest = new MockHttpServletRequest("GET", "/");
-		servletRequest.setParameter("foo", "bar");
+    @Test
+    public void params() {
+        MockHttpServletRequest servletRequest = new MockHttpServletRequest("GET", "/");
+        servletRequest.setParameter("foo", "bar");
 
-		DefaultServerRequest request =
-				new DefaultServerRequest(servletRequest, this.messageConverters);
+        DefaultServerRequest request =
+                new DefaultServerRequest(servletRequest, this.messageConverters);
 
-		assertThat(request.param("foo")).isEqualTo(Optional.of("bar"));
-	}
+        assertThat(request.param("foo")).isEqualTo(Optional.of("bar"));
+    }
 
-	@Test
-	public void emptyQueryParam() {
-		MockHttpServletRequest servletRequest = new MockHttpServletRequest("GET", "/");
-		servletRequest.setParameter("foo", "");
+    @Test
+    public void emptyQueryParam() {
+        MockHttpServletRequest servletRequest = new MockHttpServletRequest("GET", "/");
+        servletRequest.setParameter("foo", "");
 
-		DefaultServerRequest request =
-				new DefaultServerRequest(servletRequest, this.messageConverters);
+        DefaultServerRequest request =
+                new DefaultServerRequest(servletRequest, this.messageConverters);
 
-		assertThat(request.param("foo")).isEqualTo(Optional.of(""));
-	}
+        assertThat(request.param("foo")).isEqualTo(Optional.of(""));
+    }
 
-	@Test
-	public void absentQueryParam() {
-		MockHttpServletRequest servletRequest = new MockHttpServletRequest("GET", "/");
-		servletRequest.setParameter("foo", "");
+    @Test
+    public void absentQueryParam() {
+        MockHttpServletRequest servletRequest = new MockHttpServletRequest("GET", "/");
+        servletRequest.setParameter("foo", "");
 
-		DefaultServerRequest request =
-				new DefaultServerRequest(servletRequest, this.messageConverters);
+        DefaultServerRequest request =
+                new DefaultServerRequest(servletRequest, this.messageConverters);
 
-		assertThat(request.param("bar")).isEqualTo(Optional.empty());
-	}
+        assertThat(request.param("bar")).isEqualTo(Optional.empty());
+    }
 
-	@Test
-	public void pathVariable() {
-		MockHttpServletRequest servletRequest = new MockHttpServletRequest("GET", "/");
-		Map<String, String> pathVariables = Collections.singletonMap("foo", "bar");
-		servletRequest
-				.setAttribute(RouterFunctions.URI_TEMPLATE_VARIABLES_ATTRIBUTE, pathVariables);
+    @Test
+    public void pathVariable() {
+        MockHttpServletRequest servletRequest = new MockHttpServletRequest("GET", "/");
+        Map<String, String> pathVariables = Collections.singletonMap("foo", "bar");
+        servletRequest
+                .setAttribute(RouterFunctions.URI_TEMPLATE_VARIABLES_ATTRIBUTE, pathVariables);
 
-		DefaultServerRequest request = new DefaultServerRequest(servletRequest,
-				this.messageConverters);
+        DefaultServerRequest request = new DefaultServerRequest(servletRequest,
+                this.messageConverters);
 
-		assertThat(request.pathVariable("foo")).isEqualTo("bar");
-	}
+        assertThat(request.pathVariable("foo")).isEqualTo("bar");
+    }
 
-	@Test
-	public void pathVariableNotFound() {
-		MockHttpServletRequest servletRequest = new MockHttpServletRequest("GET", "/");
-		Map<String, String> pathVariables = Collections.singletonMap("foo", "bar");
-		servletRequest
-				.setAttribute(RouterFunctions.URI_TEMPLATE_VARIABLES_ATTRIBUTE, pathVariables);
+    @Test
+    public void pathVariableNotFound() {
+        MockHttpServletRequest servletRequest = new MockHttpServletRequest("GET", "/");
+        Map<String, String> pathVariables = Collections.singletonMap("foo", "bar");
+        servletRequest
+                .setAttribute(RouterFunctions.URI_TEMPLATE_VARIABLES_ATTRIBUTE, pathVariables);
 
-		DefaultServerRequest request = new DefaultServerRequest(servletRequest,
-				this.messageConverters);
+        DefaultServerRequest request = new DefaultServerRequest(servletRequest,
+                this.messageConverters);
 
-		assertThatIllegalArgumentException().isThrownBy(() ->
-				request.pathVariable("baz"));
-	}
+        assertThatIllegalArgumentException().isThrownBy(() ->
+                request.pathVariable("baz"));
+    }
 
-	@Test
-	public void pathVariables() {
-		MockHttpServletRequest servletRequest = new MockHttpServletRequest("GET", "/");
-		Map<String, String> pathVariables = Collections.singletonMap("foo", "bar");
-		servletRequest
-				.setAttribute(RouterFunctions.URI_TEMPLATE_VARIABLES_ATTRIBUTE, pathVariables);
+    @Test
+    public void pathVariables() {
+        MockHttpServletRequest servletRequest = new MockHttpServletRequest("GET", "/");
+        Map<String, String> pathVariables = Collections.singletonMap("foo", "bar");
+        servletRequest
+                .setAttribute(RouterFunctions.URI_TEMPLATE_VARIABLES_ATTRIBUTE, pathVariables);
 
-		DefaultServerRequest request = new DefaultServerRequest(servletRequest,
-				this.messageConverters);
+        DefaultServerRequest request = new DefaultServerRequest(servletRequest,
+                this.messageConverters);
 
-		assertThat(request.pathVariables()).isEqualTo(pathVariables);
-	}
+        assertThat(request.pathVariables()).isEqualTo(pathVariables);
+    }
 
-	@Test
-	public void header() {
-		HttpHeaders httpHeaders = new HttpHeaders();
-		List<MediaType> accept =
-				Collections.singletonList(MediaType.APPLICATION_JSON);
-		httpHeaders.setAccept(accept);
-		List<Charset> acceptCharset = Collections.singletonList(UTF_8);
-		httpHeaders.setAcceptCharset(acceptCharset);
-		long contentLength = 42L;
-		httpHeaders.setContentLength(contentLength);
-		MediaType contentType = MediaType.TEXT_PLAIN;
-		httpHeaders.setContentType(contentType);
-		InetSocketAddress host = InetSocketAddress.createUnresolved("localhost", 80);
-		httpHeaders.setHost(host);
-		List<HttpRange> range = Collections.singletonList(HttpRange.createByteRange(0, 42));
-		httpHeaders.setRange(range);
+    @Test
+    public void header() {
+        HttpHeaders httpHeaders = new HttpHeaders();
+        List<MediaType> accept =
+                Collections.singletonList(MediaType.APPLICATION_JSON);
+        httpHeaders.setAccept(accept);
+        List<Charset> acceptCharset = Collections.singletonList(UTF_8);
+        httpHeaders.setAcceptCharset(acceptCharset);
+        long contentLength = 42L;
+        httpHeaders.setContentLength(contentLength);
+        MediaType contentType = MediaType.TEXT_PLAIN;
+        httpHeaders.setContentType(contentType);
+        InetSocketAddress host = InetSocketAddress.createUnresolved("localhost", 80);
+        httpHeaders.setHost(host);
+        List<HttpRange> range = Collections.singletonList(HttpRange.createByteRange(0, 42));
+        httpHeaders.setRange(range);
 
-		MockHttpServletRequest servletRequest = new MockHttpServletRequest("GET", "/");
-		httpHeaders.forEach(servletRequest::addHeader);
-		servletRequest.setContentType(MediaType.TEXT_PLAIN_VALUE);
+        MockHttpServletRequest servletRequest = new MockHttpServletRequest("GET", "/");
+        httpHeaders.forEach(servletRequest::addHeader);
+        servletRequest.setContentType(MediaType.TEXT_PLAIN_VALUE);
 
-		DefaultServerRequest request = new DefaultServerRequest(servletRequest,
-				this.messageConverters);
+        DefaultServerRequest request = new DefaultServerRequest(servletRequest,
+                this.messageConverters);
 
-		ServerRequest.Headers headers = request.headers();
-		assertThat(headers.accept()).isEqualTo(accept);
-		assertThat(headers.acceptCharset()).isEqualTo(acceptCharset);
-		assertThat(headers.contentLength()).isEqualTo(OptionalLong.of(contentLength));
-		assertThat(headers.contentType()).isEqualTo(Optional.of(contentType));
-		assertThat(headers.asHttpHeaders()).isEqualTo(httpHeaders);
-	}
+        ServerRequest.Headers headers = request.headers();
+        assertThat(headers.accept()).isEqualTo(accept);
+        assertThat(headers.acceptCharset()).isEqualTo(acceptCharset);
+        assertThat(headers.contentLength()).isEqualTo(OptionalLong.of(contentLength));
+        assertThat(headers.contentType()).isEqualTo(Optional.of(contentType));
+        assertThat(headers.asHttpHeaders()).isEqualTo(httpHeaders);
+    }
 
-	@Test
-	public void cookies() {
-		Cookie cookie = new Cookie("foo", "bar");
+    @Test
+    public void cookies() {
+        Cookie cookie = new Cookie("foo", "bar");
 
-		MockHttpServletRequest servletRequest = new MockHttpServletRequest("GET", "/");
-		servletRequest.setCookies(cookie);
+        MockHttpServletRequest servletRequest = new MockHttpServletRequest("GET", "/");
+        servletRequest.setCookies(cookie);
 
-		DefaultServerRequest request = new DefaultServerRequest(servletRequest,
-				this.messageConverters);
+        DefaultServerRequest request = new DefaultServerRequest(servletRequest,
+                this.messageConverters);
 
-		MultiValueMap<String, Cookie> expected = new LinkedMultiValueMap<>();
-		expected.add("foo", cookie);
+        MultiValueMap<String, Cookie> expected = new LinkedMultiValueMap<>();
+        expected.add("foo", cookie);
 
-		assertThat(request.cookies()).isEqualTo(expected);
+        assertThat(request.cookies()).isEqualTo(expected);
 
-	}
+    }
 
-	@Test
-	public void bodyClass() throws Exception {
-		MockHttpServletRequest servletRequest = new MockHttpServletRequest("GET", "/");
-		servletRequest.setContentType(MediaType.TEXT_PLAIN_VALUE);
-		servletRequest.setContent("foo".getBytes(UTF_8));
+    @Test
+    public void bodyClass() throws Exception {
+        MockHttpServletRequest servletRequest = new MockHttpServletRequest("GET", "/");
+        servletRequest.setContentType(MediaType.TEXT_PLAIN_VALUE);
+        servletRequest.setContent("foo".getBytes(UTF_8));
 
-		DefaultServerRequest request = new DefaultServerRequest(servletRequest,
-				this.messageConverters);
+        DefaultServerRequest request = new DefaultServerRequest(servletRequest,
+                this.messageConverters);
 
-		String result = request.body(String.class);
-		assertThat(result).isEqualTo("foo");
-	}
+        String result = request.body(String.class);
+        assertThat(result).isEqualTo("foo");
+    }
 
-	@Test
-	public void bodyParameterizedTypeReference() throws Exception {
-		MockHttpServletRequest servletRequest = new MockHttpServletRequest("GET", "/");
-		servletRequest.setContentType(MediaType.APPLICATION_JSON_VALUE);
-		servletRequest.setContent("[\"foo\",\"bar\"]".getBytes(UTF_8));
+    @Test
+    public void bodyParameterizedTypeReference() throws Exception {
+        MockHttpServletRequest servletRequest = new MockHttpServletRequest("GET", "/");
+        servletRequest.setContentType(MediaType.APPLICATION_JSON_VALUE);
+        servletRequest.setContent("[\"foo\",\"bar\"]".getBytes(UTF_8));
 
-		DefaultServerRequest request = new DefaultServerRequest(servletRequest,
-				Collections.singletonList(new MappingJackson2HttpMessageConverter()));
+        DefaultServerRequest request = new DefaultServerRequest(servletRequest,
+                Collections.singletonList(new MappingJackson2HttpMessageConverter()));
 
-		List<String> result = request.body(new ParameterizedTypeReference<List<String>>() {});
-		assertThat(result.size()).isEqualTo(2);
-		assertThat(result.get(0)).isEqualTo("foo");
-		assertThat(result.get(1)).isEqualTo("bar");
-	}
+        List<String> result = request.body(new ParameterizedTypeReference<List<String>>() {
+        });
+        assertThat(result.size()).isEqualTo(2);
+        assertThat(result.get(0)).isEqualTo("foo");
+        assertThat(result.get(1)).isEqualTo("bar");
+    }
 
-	@Test
-	public void bodyUnacceptable() throws Exception {
-		MockHttpServletRequest servletRequest = new MockHttpServletRequest("GET", "/");
-		servletRequest.setContentType(MediaType.TEXT_PLAIN_VALUE);
-		servletRequest.setContent("foo".getBytes(UTF_8));
+    @Test
+    public void bodyUnacceptable() throws Exception {
+        MockHttpServletRequest servletRequest = new MockHttpServletRequest("GET", "/");
+        servletRequest.setContentType(MediaType.TEXT_PLAIN_VALUE);
+        servletRequest.setContent("foo".getBytes(UTF_8));
 
-		DefaultServerRequest request =
-				new DefaultServerRequest(servletRequest, Collections.emptyList());
+        DefaultServerRequest request =
+                new DefaultServerRequest(servletRequest, Collections.emptyList());
 
-		assertThatExceptionOfType(HttpMediaTypeNotSupportedException.class).isThrownBy(() ->
-				request.body(String.class));
-	}
+        assertThatExceptionOfType(HttpMediaTypeNotSupportedException.class).isThrownBy(() ->
+                request.body(String.class));
+    }
 
-	@Test
-	public void session() {
-		MockHttpServletRequest servletRequest = new MockHttpServletRequest("GET", "/");
-		MockHttpSession session = new MockHttpSession();
-		servletRequest.setSession(session);
+    @Test
+    public void session() {
+        MockHttpServletRequest servletRequest = new MockHttpServletRequest("GET", "/");
+        MockHttpSession session = new MockHttpSession();
+        servletRequest.setSession(session);
 
-		DefaultServerRequest request = new DefaultServerRequest(servletRequest,
-				this.messageConverters);
+        DefaultServerRequest request = new DefaultServerRequest(servletRequest,
+                this.messageConverters);
 
-		assertThat(request.session()).isEqualTo(session);
+        assertThat(request.session()).isEqualTo(session);
 
-	}
+    }
 
-	@Test
-	public void principal() {
-		MockHttpServletRequest servletRequest = new MockHttpServletRequest("GET", "/");
-		Principal principal = new Principal() {
-			@Override
-			public String getName() {
-				return "foo";
-			}
-		};
-		servletRequest.setUserPrincipal(principal);
+    @Test
+    public void principal() {
+        MockHttpServletRequest servletRequest = new MockHttpServletRequest("GET", "/");
+        Principal principal = new Principal() {
+            @Override
+            public String getName() {
+                return "foo";
+            }
+        };
+        servletRequest.setUserPrincipal(principal);
 
-		DefaultServerRequest request = new DefaultServerRequest(servletRequest,
-				this.messageConverters);
+        DefaultServerRequest request = new DefaultServerRequest(servletRequest,
+                this.messageConverters);
 
-		assertThat(request.principal().get()).isEqualTo(principal);
+        assertThat(request.principal().get()).isEqualTo(principal);
 
-	}
+    }
 
 }

@@ -37,90 +37,89 @@ import org.springframework.lang.Nullable;
  *
  * @author Stephane Nicoll
  * @author Juergen Hoeller
- * @since 4.1
  * @see org.springframework.cache.interceptor.AbstractFallbackCacheOperationSource
+ * @since 4.1
  */
 public abstract class AbstractFallbackJCacheOperationSource implements JCacheOperationSource {
 
-	/**
-	 * Canonical value held in cache to indicate no caching attribute was
-	 * found for this method and we don't need to look again.
-	 */
-	private static final Object NULL_CACHING_ATTRIBUTE = new Object();
+    /**
+     * Canonical value held in cache to indicate no caching attribute was
+     * found for this method and we don't need to look again.
+     */
+    private static final Object NULL_CACHING_ATTRIBUTE = new Object();
 
 
-	protected final Log logger = LogFactory.getLog(getClass());
+    protected final Log logger = LogFactory.getLog(getClass());
 
-	private final Map<MethodClassKey, Object> cache = new ConcurrentHashMap<>(1024);
-
-
-	@Override
-	public JCacheOperation<?> getCacheOperation(Method method, @Nullable Class<?> targetClass) {
-		MethodClassKey cacheKey = new MethodClassKey(method, targetClass);
-		Object cached = this.cache.get(cacheKey);
-
-		if (cached != null) {
-			return (cached != NULL_CACHING_ATTRIBUTE ? (JCacheOperation<?>) cached : null);
-		}
-		else {
-			JCacheOperation<?> operation = computeCacheOperation(method, targetClass);
-			if (operation != null) {
-				if (logger.isDebugEnabled()) {
-					logger.debug("Adding cacheable method '" + method.getName() + "' with operation: " + operation);
-				}
-				this.cache.put(cacheKey, operation);
-			}
-			else {
-				this.cache.put(cacheKey, NULL_CACHING_ATTRIBUTE);
-			}
-			return operation;
-		}
-	}
-
-	@Nullable
-	private JCacheOperation<?> computeCacheOperation(Method method, @Nullable Class<?> targetClass) {
-		// Don't allow no-public methods as required.
-		if (allowPublicMethodsOnly() && !Modifier.isPublic(method.getModifiers())) {
-			return null;
-		}
-
-		// The method may be on an interface, but we need attributes from the target class.
-		// If the target class is null, the method will be unchanged.
-		Method specificMethod = AopUtils.getMostSpecificMethod(method, targetClass);
-
-		// First try is the method in the target class.
-		JCacheOperation<?> operation = findCacheOperation(specificMethod, targetClass);
-		if (operation != null) {
-			return operation;
-		}
-		if (specificMethod != method) {
-			// Fallback is to look at the original method.
-			operation = findCacheOperation(method, targetClass);
-			if (operation != null) {
-				return operation;
-			}
-		}
-		return null;
-	}
+    private final Map<MethodClassKey, Object> cache = new ConcurrentHashMap<>(1024);
 
 
-	/**
-	 * Subclasses need to implement this to return the caching operation
-	 * for the given method, if any.
-	 * @param method the method to retrieve the operation for
-	 * @param targetType the target class
-	 * @return the cache operation associated with this method
-	 * (or {@code null} if none)
-	 */
-	@Nullable
-	protected abstract JCacheOperation<?> findCacheOperation(Method method, @Nullable Class<?> targetType);
+    @Override
+    public JCacheOperation<?> getCacheOperation(Method method, @Nullable Class<?> targetClass) {
+        MethodClassKey cacheKey = new MethodClassKey(method, targetClass);
+        Object cached = this.cache.get(cacheKey);
 
-	/**
-	 * Should only public methods be allowed to have caching semantics?
-	 * <p>The default implementation returns {@code false}.
-	 */
-	protected boolean allowPublicMethodsOnly() {
-		return false;
-	}
+        if (cached != null) {
+            return (cached != NULL_CACHING_ATTRIBUTE ? (JCacheOperation<?>) cached : null);
+        } else {
+            JCacheOperation<?> operation = computeCacheOperation(method, targetClass);
+            if (operation != null) {
+                if (logger.isDebugEnabled()) {
+                    logger.debug("Adding cacheable method '" + method.getName() + "' with operation: " + operation);
+                }
+                this.cache.put(cacheKey, operation);
+            } else {
+                this.cache.put(cacheKey, NULL_CACHING_ATTRIBUTE);
+            }
+            return operation;
+        }
+    }
+
+    @Nullable
+    private JCacheOperation<?> computeCacheOperation(Method method, @Nullable Class<?> targetClass) {
+        // Don't allow no-public methods as required.
+        if (allowPublicMethodsOnly() && !Modifier.isPublic(method.getModifiers())) {
+            return null;
+        }
+
+        // The method may be on an interface, but we need attributes from the target class.
+        // If the target class is null, the method will be unchanged.
+        Method specificMethod = AopUtils.getMostSpecificMethod(method, targetClass);
+
+        // First try is the method in the target class.
+        JCacheOperation<?> operation = findCacheOperation(specificMethod, targetClass);
+        if (operation != null) {
+            return operation;
+        }
+        if (specificMethod != method) {
+            // Fallback is to look at the original method.
+            operation = findCacheOperation(method, targetClass);
+            if (operation != null) {
+                return operation;
+            }
+        }
+        return null;
+    }
+
+
+    /**
+     * Subclasses need to implement this to return the caching operation
+     * for the given method, if any.
+     *
+     * @param method     the method to retrieve the operation for
+     * @param targetType the target class
+     * @return the cache operation associated with this method
+     * (or {@code null} if none)
+     */
+    @Nullable
+    protected abstract JCacheOperation<?> findCacheOperation(Method method, @Nullable Class<?> targetType);
+
+    /**
+     * Should only public methods be allowed to have caching semantics?
+     * <p>The default implementation returns {@code false}.
+     */
+    protected boolean allowPublicMethodsOnly() {
+        return false;
+    }
 
 }

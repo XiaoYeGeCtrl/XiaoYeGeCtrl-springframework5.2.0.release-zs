@@ -33,74 +33,74 @@ import java.util.concurrent.CompletableFuture
  */
 class WebTestClientExtensionsTests {
 
-	private val requestBodySpec = mockk<WebTestClient.RequestBodySpec>(relaxed = true)
+    private val requestBodySpec = mockk<WebTestClient.RequestBodySpec>(relaxed = true)
 
-	private val responseSpec = mockk<WebTestClient.ResponseSpec>(relaxed = true)
+    private val responseSpec = mockk<WebTestClient.ResponseSpec>(relaxed = true)
 
 
-	@Test
-	fun `RequestBodySpec#body with Publisher and reified type parameters`() {
-		val body = mockk<Publisher<Foo>>()
-		requestBodySpec.body(body)
-		verify { requestBodySpec.body(body, object : ParameterizedTypeReference<Foo>() {}) }
-	}
+    @Test
+    fun `RequestBodySpec#body with Publisher and reified type parameters`() {
+        val body = mockk<Publisher<Foo>>()
+        requestBodySpec.body(body)
+        verify { requestBodySpec.body(body, object : ParameterizedTypeReference<Foo>() {}) }
+    }
 
-	@Test
-	fun `RequestBodySpec#body with Flow and reified type parameters`() {
-		val body = mockk<Flow<Foo>>()
-		requestBodySpec.body(body)
-		verify { requestBodySpec.body(body, object : ParameterizedTypeReference<Foo>() {}) }
-	}
+    @Test
+    fun `RequestBodySpec#body with Flow and reified type parameters`() {
+        val body = mockk<Flow<Foo>>()
+        requestBodySpec.body(body)
+        verify { requestBodySpec.body(body, object : ParameterizedTypeReference<Foo>() {}) }
+    }
 
-	@Test
-	fun `RequestBodySpec#body with CompletableFuture and reified type parameters`() {
-		val body = mockk<CompletableFuture<Foo>>()
-		requestBodySpec.body<Foo>(body)
-		verify { requestBodySpec.body(body, object : ParameterizedTypeReference<Foo>() {}) }
-	}
+    @Test
+    fun `RequestBodySpec#body with CompletableFuture and reified type parameters`() {
+        val body = mockk<CompletableFuture<Foo>>()
+        requestBodySpec.body<Foo>(body)
+        verify { requestBodySpec.body(body, object : ParameterizedTypeReference<Foo>() {}) }
+    }
 
-	@Test
-	fun `ResponseSpec#expectBody with reified type parameters`() {
-		responseSpec.expectBody<Foo>()
-		verify { responseSpec.expectBody(Foo::class.java) }
-	}
+    @Test
+    fun `ResponseSpec#expectBody with reified type parameters`() {
+        responseSpec.expectBody<Foo>()
+        verify { responseSpec.expectBody(Foo::class.java) }
+    }
 
-	@Test
-	fun `KotlinBodySpec#isEqualTo`() {
-		WebTestClient
-				.bindToRouterFunction( router { GET("/") { ok().bodyValue("foo") } } )
-				.build()
-				.get().uri("/").exchange().expectBody<String>().isEqualTo("foo")
-	}
+    @Test
+    fun `KotlinBodySpec#isEqualTo`() {
+        WebTestClient
+                .bindToRouterFunction(router { GET("/") { ok().bodyValue("foo") } })
+                .build()
+                .get().uri("/").exchange().expectBody<String>().isEqualTo("foo")
+    }
 
-	@Test
-	fun `KotlinBodySpec#consumeWith`() {
-		WebTestClient
-				.bindToRouterFunction( router { GET("/") { ok().bodyValue("foo") } } )
-				.build()
-				.get().uri("/").exchange().expectBody<String>().consumeWith { assertThat(it.responseBody).isEqualTo("foo") }
-	}
+    @Test
+    fun `KotlinBodySpec#consumeWith`() {
+        WebTestClient
+                .bindToRouterFunction(router { GET("/") { ok().bodyValue("foo") } })
+                .build()
+                .get().uri("/").exchange().expectBody<String>().consumeWith { assertThat(it.responseBody).isEqualTo("foo") }
+    }
 
-	@Test
-	fun `KotlinBodySpec#returnResult`() {
-		WebTestClient
-				.bindToRouterFunction( router { GET("/") { ok().bodyValue("foo") } } )
-				.build()
-				.get().uri("/").exchange().expectBody<String>().returnResult().apply { assertThat(responseBody).isEqualTo("foo") }
-	}
+    @Test
+    fun `KotlinBodySpec#returnResult`() {
+        WebTestClient
+                .bindToRouterFunction(router { GET("/") { ok().bodyValue("foo") } })
+                .build()
+                .get().uri("/").exchange().expectBody<String>().returnResult().apply { assertThat(responseBody).isEqualTo("foo") }
+    }
 
-	@Test
-	fun `ResponseSpec#expectBodyList with reified type parameters`() {
-		responseSpec.expectBodyList<Foo>()
-		verify { responseSpec.expectBodyList(object : ParameterizedTypeReference<Foo>() {}) }
-	}
+    @Test
+    fun `ResponseSpec#expectBodyList with reified type parameters`() {
+        responseSpec.expectBodyList<Foo>()
+        verify { responseSpec.expectBodyList(object : ParameterizedTypeReference<Foo>() {}) }
+    }
 
-	@Test
-	fun `ResponseSpec#returnResult with reified type parameters`() {
-		responseSpec.returnResult<Foo>()
-		verify { responseSpec.returnResult(object : ParameterizedTypeReference<Foo>() {}) }
-	}
+    @Test
+    fun `ResponseSpec#returnResult with reified type parameters`() {
+        responseSpec.returnResult<Foo>()
+        verify { responseSpec.returnResult(object : ParameterizedTypeReference<Foo>() {}) }
+    }
 
-	class Foo
+    class Foo
 
 }

@@ -46,83 +46,77 @@ import org.springframework.web.reactive.socket.WebSocketSession;
  */
 public class StandardWebSocketSession extends AbstractListenerWebSocketSession<Session> {
 
-	public StandardWebSocketSession(Session session, HandshakeInfo info, DataBufferFactory factory) {
-		this(session, info, factory, null);
-	}
+    public StandardWebSocketSession(Session session, HandshakeInfo info, DataBufferFactory factory) {
+        this(session, info, factory, null);
+    }
 
-	public StandardWebSocketSession(Session session, HandshakeInfo info, DataBufferFactory factory,
-			@Nullable MonoProcessor<Void> completionMono) {
+    public StandardWebSocketSession(Session session, HandshakeInfo info, DataBufferFactory factory,
+                                    @Nullable MonoProcessor<Void> completionMono) {
 
-		super(session, session.getId(), info, factory, completionMono);
-	}
-
-
-	@Override
-	protected boolean canSuspendReceiving() {
-		return false;
-	}
-
-	@Override
-	protected void suspendReceiving() {
-		// no-op
-	}
-
-	@Override
-	protected void resumeReceiving() {
-		// no-op
-	}
-
-	@Override
-	protected boolean sendMessage(WebSocketMessage message) throws IOException {
-		ByteBuffer buffer = message.getPayload().asByteBuffer();
-		if (WebSocketMessage.Type.TEXT.equals(message.getType())) {
-			getSendProcessor().setReadyToSend(false);
-			String text = new String(buffer.array(), StandardCharsets.UTF_8);
-			getDelegate().getAsyncRemote().sendText(text, new SendProcessorCallback());
-		}
-		else if (WebSocketMessage.Type.BINARY.equals(message.getType())) {
-			getSendProcessor().setReadyToSend(false);
-			getDelegate().getAsyncRemote().sendBinary(buffer, new SendProcessorCallback());
-		}
-		else if (WebSocketMessage.Type.PING.equals(message.getType())) {
-			getDelegate().getAsyncRemote().sendPing(buffer);
-		}
-		else if (WebSocketMessage.Type.PONG.equals(message.getType())) {
-			getDelegate().getAsyncRemote().sendPong(buffer);
-		}
-		else {
-			throw new IllegalArgumentException("Unexpected message type: " + message.getType());
-		}
-		return true;
-	}
-
-	@Override
-	public Mono<Void> close(CloseStatus status) {
-		try {
-			CloseReason.CloseCode code = CloseCodes.getCloseCode(status.getCode());
-			getDelegate().close(new CloseReason(code, status.getReason()));
-		}
-		catch (IOException ex) {
-			return Mono.error(ex);
-		}
-		return Mono.empty();
-	}
+        super(session, session.getId(), info, factory, completionMono);
+    }
 
 
-	private final class SendProcessorCallback implements SendHandler {
+    @Override
+    protected boolean canSuspendReceiving() {
+        return false;
+    }
 
-		@Override
-		public void onResult(SendResult result) {
-			if (result.isOK()) {
-				getSendProcessor().setReadyToSend(true);
-				getSendProcessor().onWritePossible();
-			}
-			else {
-				getSendProcessor().cancel();
-				getSendProcessor().onError(result.getException());
-			}
-		}
+    @Override
+    protected void suspendReceiving() {
+        // no-op
+    }
 
-	}
+    @Override
+    protected void resumeReceiving() {
+        // no-op
+    }
+
+    @Override
+    protected boolean sendMessage(WebSocketMessage message) throws IOException {
+        ByteBuffer buffer = message.getPayload().asByteBuffer();
+        if (WebSocketMessage.Type.TEXT.equals(message.getType())) {
+            getSendProcessor().setReadyToSend(false);
+            String text = new String(buffer.array(), StandardCharsets.UTF_8);
+            getDelegate().getAsyncRemote().sendText(text, new SendProcessorCallback());
+        } else if (WebSocketMessage.Type.BINARY.equals(message.getType())) {
+            getSendProcessor().setReadyToSend(false);
+            getDelegate().getAsyncRemote().sendBinary(buffer, new SendProcessorCallback());
+        } else if (WebSocketMessage.Type.PING.equals(message.getType())) {
+            getDelegate().getAsyncRemote().sendPing(buffer);
+        } else if (WebSocketMessage.Type.PONG.equals(message.getType())) {
+            getDelegate().getAsyncRemote().sendPong(buffer);
+        } else {
+            throw new IllegalArgumentException("Unexpected message type: " + message.getType());
+        }
+        return true;
+    }
+
+    @Override
+    public Mono<Void> close(CloseStatus status) {
+        try {
+            CloseReason.CloseCode code = CloseCodes.getCloseCode(status.getCode());
+            getDelegate().close(new CloseReason(code, status.getReason()));
+        } catch (IOException ex) {
+            return Mono.error(ex);
+        }
+        return Mono.empty();
+    }
+
+
+    private final class SendProcessorCallback implements SendHandler {
+
+        @Override
+        public void onResult(SendResult result) {
+            if (result.isOK()) {
+                getSendProcessor().setReadyToSend(true);
+                getSendProcessor().onWritePossible();
+            } else {
+                getSendProcessor().cancel();
+                getSendProcessor().onError(result.getException());
+            }
+        }
+
+    }
 
 }

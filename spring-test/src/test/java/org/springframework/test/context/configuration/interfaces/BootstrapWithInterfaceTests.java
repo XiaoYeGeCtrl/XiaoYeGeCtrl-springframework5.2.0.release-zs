@@ -31,13 +31,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 @ExtendWith(SpringExtension.class)
 class BootstrapWithInterfaceTests implements BootstrapWithTestInterface {
 
-	@Autowired
-	String foo;
+    @Autowired
+    String foo;
 
 
-	@Test
-	void injectedBean() {
-		assertThat(foo).isEqualTo("foo");
-	}
+    @Test
+    void injectedBean() {
+        assertThat(foo).isEqualTo("foo");
+    }
 
 }

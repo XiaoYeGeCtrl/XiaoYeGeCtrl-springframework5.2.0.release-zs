@@ -35,73 +35,73 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class HttpMessageConverterTests {
 
 
-	@Test
-	public void canRead() {
-		MediaType mediaType = new MediaType("foo", "bar");
-		HttpMessageConverter<MyType> converter = new MyHttpMessageConverter<>(mediaType);
+    @Test
+    public void canRead() {
+        MediaType mediaType = new MediaType("foo", "bar");
+        HttpMessageConverter<MyType> converter = new MyHttpMessageConverter<>(mediaType);
 
-		assertThat(converter.canRead(MyType.class, mediaType)).isTrue();
-		assertThat(converter.canRead(MyType.class, new MediaType("foo", "*"))).isFalse();
-		assertThat(converter.canRead(MyType.class, MediaType.ALL)).isFalse();
-	}
+        assertThat(converter.canRead(MyType.class, mediaType)).isTrue();
+        assertThat(converter.canRead(MyType.class, new MediaType("foo", "*"))).isFalse();
+        assertThat(converter.canRead(MyType.class, MediaType.ALL)).isFalse();
+    }
 
-	@Test
-	public void canReadWithWildcardSubtype() {
-		MediaType mediaType = new MediaType("foo");
-		HttpMessageConverter<MyType> converter = new MyHttpMessageConverter<>(mediaType);
+    @Test
+    public void canReadWithWildcardSubtype() {
+        MediaType mediaType = new MediaType("foo");
+        HttpMessageConverter<MyType> converter = new MyHttpMessageConverter<>(mediaType);
 
-		assertThat(converter.canRead(MyType.class, new MediaType("foo", "bar"))).isTrue();
-		assertThat(converter.canRead(MyType.class, new MediaType("foo", "*"))).isTrue();
-		assertThat(converter.canRead(MyType.class, MediaType.ALL)).isFalse();
-	}
+        assertThat(converter.canRead(MyType.class, new MediaType("foo", "bar"))).isTrue();
+        assertThat(converter.canRead(MyType.class, new MediaType("foo", "*"))).isTrue();
+        assertThat(converter.canRead(MyType.class, MediaType.ALL)).isFalse();
+    }
 
-	@Test
-	public void canWrite() {
-		MediaType mediaType = new MediaType("foo", "bar");
-		HttpMessageConverter<MyType> converter = new MyHttpMessageConverter<>(mediaType);
+    @Test
+    public void canWrite() {
+        MediaType mediaType = new MediaType("foo", "bar");
+        HttpMessageConverter<MyType> converter = new MyHttpMessageConverter<>(mediaType);
 
-		assertThat(converter.canWrite(MyType.class, mediaType)).isTrue();
-		assertThat(converter.canWrite(MyType.class, new MediaType("foo", "*"))).isTrue();
-		assertThat(converter.canWrite(MyType.class, MediaType.ALL)).isTrue();
-	}
+        assertThat(converter.canWrite(MyType.class, mediaType)).isTrue();
+        assertThat(converter.canWrite(MyType.class, new MediaType("foo", "*"))).isTrue();
+        assertThat(converter.canWrite(MyType.class, MediaType.ALL)).isTrue();
+    }
 
-	@Test
-	public void canWriteWithWildcardInSupportedSubtype() {
-		MediaType mediaType = new MediaType("foo");
-		HttpMessageConverter<MyType> converter = new MyHttpMessageConverter<>(mediaType);
+    @Test
+    public void canWriteWithWildcardInSupportedSubtype() {
+        MediaType mediaType = new MediaType("foo");
+        HttpMessageConverter<MyType> converter = new MyHttpMessageConverter<>(mediaType);
 
-		assertThat(converter.canWrite(MyType.class, new MediaType("foo", "bar"))).isTrue();
-		assertThat(converter.canWrite(MyType.class, new MediaType("foo", "*"))).isTrue();
-		assertThat(converter.canWrite(MyType.class, MediaType.ALL)).isTrue();
-	}
+        assertThat(converter.canWrite(MyType.class, new MediaType("foo", "bar"))).isTrue();
+        assertThat(converter.canWrite(MyType.class, new MediaType("foo", "*"))).isTrue();
+        assertThat(converter.canWrite(MyType.class, MediaType.ALL)).isTrue();
+    }
 
 
-	private static class MyHttpMessageConverter<T> extends AbstractHttpMessageConverter<T> {
+    private static class MyHttpMessageConverter<T> extends AbstractHttpMessageConverter<T> {
 
-		private MyHttpMessageConverter(MediaType supportedMediaType) {
-			super(supportedMediaType);
-		}
+        private MyHttpMessageConverter(MediaType supportedMediaType) {
+            super(supportedMediaType);
+        }
 
-		@Override
-		protected boolean supports(Class<?> clazz) {
-			return MyType.class.equals(clazz);
-		}
+        @Override
+        protected boolean supports(Class<?> clazz) {
+            return MyType.class.equals(clazz);
+        }
 
-		@Override
-		protected T readInternal(Class<? extends T> clazz, HttpInputMessage inputMessage)
-				throws IOException, HttpMessageNotReadableException {
-			throw new AssertionError("Not expected");
-		}
+        @Override
+        protected T readInternal(Class<? extends T> clazz, HttpInputMessage inputMessage)
+                throws IOException, HttpMessageNotReadableException {
+            throw new AssertionError("Not expected");
+        }
 
-		@Override
-		protected void writeInternal(T t, HttpOutputMessage outputMessage)
-				throws IOException, HttpMessageNotWritableException {
-			throw new AssertionError("Not expected");
-		}
-	}
+        @Override
+        protected void writeInternal(T t, HttpOutputMessage outputMessage)
+                throws IOException, HttpMessageNotWritableException {
+            throw new AssertionError("Not expected");
+        }
+    }
 
-	private static class MyType {
+    private static class MyType {
 
-	}
+    }
 
 }

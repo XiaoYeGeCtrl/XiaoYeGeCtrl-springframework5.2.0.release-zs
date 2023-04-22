@@ -42,104 +42,104 @@ import org.springframework.web.reactive.socket.adapter.ReactorNettyWebSocketSess
  */
 public class ReactorNettyWebSocketClient implements WebSocketClient {
 
-	private static final Log logger = LogFactory.getLog(ReactorNettyWebSocketClient.class);
-
-	private int maxFramePayloadLength = NettyWebSocketSessionSupport.DEFAULT_FRAME_MAX_SIZE;
-
-	private final HttpClient httpClient;
+    private static final Log logger = LogFactory.getLog(ReactorNettyWebSocketClient.class);
+    private final HttpClient httpClient;
+    private int maxFramePayloadLength = NettyWebSocketSessionSupport.DEFAULT_FRAME_MAX_SIZE;
 
 
-	/**
-	 * Default constructor.
-	 */
-	public ReactorNettyWebSocketClient() {
-		this(HttpClient.create());
-	}
+    /**
+     * Default constructor.
+     */
+    public ReactorNettyWebSocketClient() {
+        this(HttpClient.create());
+    }
 
-	/**
-	 * Constructor that accepts an existing {@link HttpClient} builder.
-	 * @since 5.1
-	 */
-	public ReactorNettyWebSocketClient(HttpClient httpClient) {
-		Assert.notNull(httpClient, "HttpClient is required");
-		this.httpClient = httpClient;
-	}
+    /**
+     * Constructor that accepts an existing {@link HttpClient} builder.
+     *
+     * @since 5.1
+     */
+    public ReactorNettyWebSocketClient(HttpClient httpClient) {
+        Assert.notNull(httpClient, "HttpClient is required");
+        this.httpClient = httpClient;
+    }
 
-	/**
-	 * Return the configured {@link HttpClient}.
-	 */
-	public HttpClient getHttpClient() {
-		return this.httpClient;
-	}
+    /**
+     * Return the configured {@link HttpClient}.
+     */
+    public HttpClient getHttpClient() {
+        return this.httpClient;
+    }
 
-	/**
-	 * Configure the maximum allowable frame payload length. Setting this value
-	 * to your application's requirement may reduce denial of service attacks
-	 * using long data frames.
-	 * <p>Corresponds to the argument with the same name in the constructor of
-	 * {@link io.netty.handler.codec.http.websocketx.WebSocketServerHandshakerFactory
-	 * WebSocketServerHandshakerFactory} in Netty.
-	 * <p>By default set to 65536 (64K).
-	 * @param maxFramePayloadLength the max length for frames.
-	 * @since 5.2
-	 */
-	public void setMaxFramePayloadLength(int maxFramePayloadLength) {
-		this.maxFramePayloadLength = maxFramePayloadLength;
-	}
+    /**
+     * Return the configured {@link #setMaxFramePayloadLength(int) maxFramePayloadLength}.
+     *
+     * @since 5.2
+     */
+    public int getMaxFramePayloadLength() {
+        return this.maxFramePayloadLength;
+    }
 
-	/**
-	 * Return the configured {@link #setMaxFramePayloadLength(int) maxFramePayloadLength}.
-	 * @since 5.2
-	 */
-	public int getMaxFramePayloadLength() {
-		return this.maxFramePayloadLength;
-	}
+    /**
+     * Configure the maximum allowable frame payload length. Setting this value
+     * to your application's requirement may reduce denial of service attacks
+     * using long data frames.
+     * <p>Corresponds to the argument with the same name in the constructor of
+     * {@link io.netty.handler.codec.http.websocketx.WebSocketServerHandshakerFactory
+     * WebSocketServerHandshakerFactory} in Netty.
+     * <p>By default set to 65536 (64K).
+     *
+     * @param maxFramePayloadLength the max length for frames.
+     * @since 5.2
+     */
+    public void setMaxFramePayloadLength(int maxFramePayloadLength) {
+        this.maxFramePayloadLength = maxFramePayloadLength;
+    }
 
+    @Override
+    public Mono<Void> execute(URI url, WebSocketHandler handler) {
+        return execute(url, new HttpHeaders(), handler);
+    }
 
-	@Override
-	public Mono<Void> execute(URI url, WebSocketHandler handler) {
-		return execute(url, new HttpHeaders(), handler);
-	}
+    @Override
+    public Mono<Void> execute(URI url, HttpHeaders requestHeaders, WebSocketHandler handler) {
+        String protocols = StringUtils.collectionToCommaDelimitedString(handler.getSubProtocols());
+        return getHttpClient()
+                .headers(nettyHeaders -> setNettyHeaders(requestHeaders, nettyHeaders))
+                .websocket(protocols, getMaxFramePayloadLength())
+                .uri(url.toString())
+                .handle((inbound, outbound) -> {
+                    HttpHeaders responseHeaders = toHttpHeaders(inbound);
+                    String protocol = responseHeaders.getFirst("Sec-WebSocket-Protocol");
+                    HandshakeInfo info = new HandshakeInfo(url, responseHeaders, Mono.empty(), protocol);
+                    NettyDataBufferFactory factory = new NettyDataBufferFactory(outbound.alloc());
+                    WebSocketSession session = new ReactorNettyWebSocketSession(
+                            inbound, outbound, info, factory, getMaxFramePayloadLength());
+                    if (logger.isDebugEnabled()) {
+                        logger.debug("Started session '" + session.getId() + "' for " + url);
+                    }
+                    return handler.handle(session).checkpoint(url + " [ReactorNettyWebSocketClient]");
+                })
+                .doOnRequest(n -> {
+                    if (logger.isDebugEnabled()) {
+                        logger.debug("Connecting to " + url);
+                    }
+                })
+                .next();
+    }
 
-	@Override
-	public Mono<Void> execute(URI url, HttpHeaders requestHeaders, WebSocketHandler handler) {
-		String protocols = StringUtils.collectionToCommaDelimitedString(handler.getSubProtocols());
-		return getHttpClient()
-				.headers(nettyHeaders -> setNettyHeaders(requestHeaders, nettyHeaders))
-				.websocket(protocols, getMaxFramePayloadLength())
-				.uri(url.toString())
-				.handle((inbound, outbound) -> {
-					HttpHeaders responseHeaders = toHttpHeaders(inbound);
-					String protocol = responseHeaders.getFirst("Sec-WebSocket-Protocol");
-					HandshakeInfo info = new HandshakeInfo(url, responseHeaders, Mono.empty(), protocol);
-					NettyDataBufferFactory factory = new NettyDataBufferFactory(outbound.alloc());
-					WebSocketSession session = new ReactorNettyWebSocketSession(
-							inbound, outbound, info, factory, getMaxFramePayloadLength());
-					if (logger.isDebugEnabled()) {
-						logger.debug("Started session '" + session.getId() + "' for " + url);
-					}
-					return handler.handle(session).checkpoint(url + " [ReactorNettyWebSocketClient]");
-				})
-				.doOnRequest(n -> {
-					if (logger.isDebugEnabled()) {
-						logger.debug("Connecting to " + url);
-					}
-				})
-				.next();
-	}
+    private void setNettyHeaders(HttpHeaders httpHeaders, io.netty.handler.codec.http.HttpHeaders nettyHeaders) {
+        httpHeaders.forEach(nettyHeaders::set);
+    }
 
-	private void setNettyHeaders(HttpHeaders httpHeaders, io.netty.handler.codec.http.HttpHeaders nettyHeaders) {
-		httpHeaders.forEach(nettyHeaders::set);
-	}
-
-	private HttpHeaders toHttpHeaders(WebsocketInbound inbound) {
-		HttpHeaders headers = new HttpHeaders();
-		io.netty.handler.codec.http.HttpHeaders nettyHeaders = inbound.headers();
-		nettyHeaders.forEach(entry -> {
-			String name = entry.getKey();
-			headers.put(name, nettyHeaders.getAll(name));
-		});
-		return headers;
-	}
+    private HttpHeaders toHttpHeaders(WebsocketInbound inbound) {
+        HttpHeaders headers = new HttpHeaders();
+        io.netty.handler.codec.http.HttpHeaders nettyHeaders = inbound.headers();
+        nettyHeaders.forEach(entry -> {
+            String name = entry.getKey();
+            headers.put(name, nettyHeaders.getAll(name));
+        });
+        return headers;
+    }
 
 }

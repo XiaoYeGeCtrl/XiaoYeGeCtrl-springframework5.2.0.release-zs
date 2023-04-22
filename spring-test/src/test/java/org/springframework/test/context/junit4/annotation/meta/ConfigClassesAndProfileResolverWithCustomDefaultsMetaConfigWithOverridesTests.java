@@ -39,34 +39,34 @@ import static org.assertj.core.api.Assertions.assertThat;
 @ConfigClassesAndProfileResolverWithCustomDefaultsMetaConfig(classes = LocalDevConfig.class, resolver = DevResolver.class)
 public class ConfigClassesAndProfileResolverWithCustomDefaultsMetaConfigWithOverridesTests {
 
-	@Autowired
-	private String foo;
+    @Autowired
+    private String foo;
 
 
-	@Test
-	public void foo() {
-		assertThat(foo).isEqualTo("Local Dev Foo");
-	}
+    @Test
+    public void foo() {
+        assertThat(foo).isEqualTo("Local Dev Foo");
+    }
 }
 
 @Configuration
 @Profile("dev")
 class LocalDevConfig {
 
-	@Bean
-	public String foo() {
-		return "Local Dev Foo";
-	}
+    @Bean
+    public String foo() {
+        return "Local Dev Foo";
+    }
 }
 
 class DevResolver implements ActiveProfilesResolver {
 
-	@Override
-	public String[] resolve(Class<?> testClass) {
-		// Checking that the "test class" name ends with "*Tests" ensures that an actual
-		// test class is passed to this method as opposed to a "*Config" class which would
-		// imply that we likely have been passed the 'declaringClass' instead of the
-		// 'rootDeclaringClass'.
-		return testClass.getName().endsWith("Tests") ? new String[] { "dev" } : new String[] {};
-	}
+    @Override
+    public String[] resolve(Class<?> testClass) {
+        // Checking that the "test class" name ends with "*Tests" ensures that an actual
+        // test class is passed to this method as opposed to a "*Config" class which would
+        // imply that we likely have been passed the 'declaringClass' instead of the
+        // 'rootDeclaringClass'.
+        return testClass.getName().endsWith("Tests") ? new String[]{"dev"} : new String[]{};
+    }
 }

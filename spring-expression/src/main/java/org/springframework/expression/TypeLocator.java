@@ -30,13 +30,14 @@ package org.springframework.expression;
 @FunctionalInterface
 public interface TypeLocator {
 
-	/**
-	 * Find a type by name. The name may or may not be fully qualified
-	 * (e.g. {@code String} or {@code java.lang.String}).
-	 * @param typeName the type to be located
-	 * @return the {@code Class} object representing that type
-	 * @throws EvaluationException if there is a problem finding the type
-	 */
-	Class<?> findType(String typeName) throws EvaluationException;
+    /**
+     * Find a type by name. The name may or may not be fully qualified
+     * (e.g. {@code String} or {@code java.lang.String}).
+     *
+     * @param typeName the type to be located
+     * @return the {@code Class} object representing that type
+     * @throws EvaluationException if there is a problem finding the type
+     */
+    Class<?> findType(String typeName) throws EvaluationException;
 
 }

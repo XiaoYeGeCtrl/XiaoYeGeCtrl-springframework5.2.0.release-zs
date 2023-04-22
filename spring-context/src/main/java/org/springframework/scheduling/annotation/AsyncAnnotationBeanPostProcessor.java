@@ -55,103 +55,107 @@ import org.springframework.util.function.SingletonSupplier;
  * @author Mark Fisher
  * @author Juergen Hoeller
  * @author Stephane Nicoll
- * @since 3.0
  * @see Async
  * @see AsyncAnnotationAdvisor
  * @see #setBeforeExistingAdvisors
  * @see ScheduledAnnotationBeanPostProcessor
+ * @since 3.0
  */
 @SuppressWarnings("serial")
 public class AsyncAnnotationBeanPostProcessor extends AbstractBeanFactoryAwareAdvisingPostProcessor {
 
-	/**
-	 * The default name of the {@link TaskExecutor} bean to pick up: "taskExecutor".
-	 * <p>Note that the initial lookup happens by type; this is just the fallback
-	 * in case of multiple executor beans found in the context.
-	 * @since 4.2
-	 * @see AnnotationAsyncExecutionInterceptor#DEFAULT_TASK_EXECUTOR_BEAN_NAME
-	 */
-	public static final String DEFAULT_TASK_EXECUTOR_BEAN_NAME =
-			AnnotationAsyncExecutionInterceptor.DEFAULT_TASK_EXECUTOR_BEAN_NAME;
+    /**
+     * The default name of the {@link TaskExecutor} bean to pick up: "taskExecutor".
+     * <p>Note that the initial lookup happens by type; this is just the fallback
+     * in case of multiple executor beans found in the context.
+     *
+     * @see AnnotationAsyncExecutionInterceptor#DEFAULT_TASK_EXECUTOR_BEAN_NAME
+     * @since 4.2
+     */
+    public static final String DEFAULT_TASK_EXECUTOR_BEAN_NAME =
+            AnnotationAsyncExecutionInterceptor.DEFAULT_TASK_EXECUTOR_BEAN_NAME;
 
 
-	protected final Log logger = LogFactory.getLog(getClass());
+    protected final Log logger = LogFactory.getLog(getClass());
 
-	@Nullable
-	private Supplier<Executor> executor;
+    @Nullable
+    private Supplier<Executor> executor;
 
-	@Nullable
-	private Supplier<AsyncUncaughtExceptionHandler> exceptionHandler;
+    @Nullable
+    private Supplier<AsyncUncaughtExceptionHandler> exceptionHandler;
 
-	@Nullable
-	private Class<? extends Annotation> asyncAnnotationType;
-
-
-
-	public AsyncAnnotationBeanPostProcessor() {
-		setBeforeExistingAdvisors(true);
-	}
+    @Nullable
+    private Class<? extends Annotation> asyncAnnotationType;
 
 
-	/**
-	 * Configure this post-processor with the given executor and exception handler suppliers,
-	 * applying the corresponding default if a supplier is not resolvable.
-	 * @since 5.1
-	 */
-	public void configure(
-			@Nullable Supplier<Executor> executor, @Nullable Supplier<AsyncUncaughtExceptionHandler> exceptionHandler) {
-
-		this.executor = executor;
-		this.exceptionHandler = exceptionHandler;
-	}
-
-	/**
-	 * Set the {@link Executor} to use when invoking methods asynchronously.
-	 * <p>If not specified, default executor resolution will apply: searching for a
-	 * unique {@link TaskExecutor} bean in the context, or for an {@link Executor}
-	 * bean named "taskExecutor" otherwise. If neither of the two is resolvable,
-	 * a local default executor will be created within the interceptor.
-	 * @see AnnotationAsyncExecutionInterceptor#getDefaultExecutor(BeanFactory)
-	 * @see #DEFAULT_TASK_EXECUTOR_BEAN_NAME
-	 */
-	public void setExecutor(Executor executor) {
-		this.executor = SingletonSupplier.of(executor);
-	}
-
-	/**
-	 * Set the {@link AsyncUncaughtExceptionHandler} to use to handle uncaught
-	 * exceptions thrown by asynchronous method executions.
-	 * @since 4.1
-	 */
-	public void setExceptionHandler(AsyncUncaughtExceptionHandler exceptionHandler) {
-		this.exceptionHandler = SingletonSupplier.of(exceptionHandler);
-	}
-
-	/**
-	 * Set the 'async' annotation type to be detected at either class or method
-	 * level. By default, both the {@link Async} annotation and the EJB 3.1
-	 * {@code javax.ejb.Asynchronous} annotation will be detected.
-	 * <p>This setter property exists so that developers can provide their own
-	 * (non-Spring-specific) annotation type to indicate that a method (or all
-	 * methods of a given class) should be invoked asynchronously.
-	 * @param asyncAnnotationType the desired annotation type
-	 */
-	public void setAsyncAnnotationType(Class<? extends Annotation> asyncAnnotationType) {
-		Assert.notNull(asyncAnnotationType, "'asyncAnnotationType' must not be null");
-		this.asyncAnnotationType = asyncAnnotationType;
-	}
+    public AsyncAnnotationBeanPostProcessor() {
+        setBeforeExistingAdvisors(true);
+    }
 
 
-	@Override
-	public void setBeanFactory(BeanFactory beanFactory) {
-		super.setBeanFactory(beanFactory);
+    /**
+     * Configure this post-processor with the given executor and exception handler suppliers,
+     * applying the corresponding default if a supplier is not resolvable.
+     *
+     * @since 5.1
+     */
+    public void configure(
+            @Nullable Supplier<Executor> executor, @Nullable Supplier<AsyncUncaughtExceptionHandler> exceptionHandler) {
 
-		AsyncAnnotationAdvisor advisor = new AsyncAnnotationAdvisor(this.executor, this.exceptionHandler);
-		if (this.asyncAnnotationType != null) {
-			advisor.setAsyncAnnotationType(this.asyncAnnotationType);
-		}
-		advisor.setBeanFactory(beanFactory);
-		this.advisor = advisor;
-	}
+        this.executor = executor;
+        this.exceptionHandler = exceptionHandler;
+    }
+
+    /**
+     * Set the {@link Executor} to use when invoking methods asynchronously.
+     * <p>If not specified, default executor resolution will apply: searching for a
+     * unique {@link TaskExecutor} bean in the context, or for an {@link Executor}
+     * bean named "taskExecutor" otherwise. If neither of the two is resolvable,
+     * a local default executor will be created within the interceptor.
+     *
+     * @see AnnotationAsyncExecutionInterceptor#getDefaultExecutor(BeanFactory)
+     * @see #DEFAULT_TASK_EXECUTOR_BEAN_NAME
+     */
+    public void setExecutor(Executor executor) {
+        this.executor = SingletonSupplier.of(executor);
+    }
+
+    /**
+     * Set the {@link AsyncUncaughtExceptionHandler} to use to handle uncaught
+     * exceptions thrown by asynchronous method executions.
+     *
+     * @since 4.1
+     */
+    public void setExceptionHandler(AsyncUncaughtExceptionHandler exceptionHandler) {
+        this.exceptionHandler = SingletonSupplier.of(exceptionHandler);
+    }
+
+    /**
+     * Set the 'async' annotation type to be detected at either class or method
+     * level. By default, both the {@link Async} annotation and the EJB 3.1
+     * {@code javax.ejb.Asynchronous} annotation will be detected.
+     * <p>This setter property exists so that developers can provide their own
+     * (non-Spring-specific) annotation type to indicate that a method (or all
+     * methods of a given class) should be invoked asynchronously.
+     *
+     * @param asyncAnnotationType the desired annotation type
+     */
+    public void setAsyncAnnotationType(Class<? extends Annotation> asyncAnnotationType) {
+        Assert.notNull(asyncAnnotationType, "'asyncAnnotationType' must not be null");
+        this.asyncAnnotationType = asyncAnnotationType;
+    }
+
+
+    @Override
+    public void setBeanFactory(BeanFactory beanFactory) {
+        super.setBeanFactory(beanFactory);
+
+        AsyncAnnotationAdvisor advisor = new AsyncAnnotationAdvisor(this.executor, this.exceptionHandler);
+        if (this.asyncAnnotationType != null) {
+            advisor.setAsyncAnnotationType(this.asyncAnnotationType);
+        }
+        advisor.setBeanFactory(beanFactory);
+        this.advisor = advisor;
+    }
 
 }

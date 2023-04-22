@@ -43,89 +43,89 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 public class ResourceUrlProviderJavaConfigTests {
 
-	private final TestServlet servlet = new TestServlet();
+    private final TestServlet servlet = new TestServlet();
 
-	private MockFilterChain filterChain;
+    private MockFilterChain filterChain;
 
-	private MockHttpServletRequest request;
+    private MockHttpServletRequest request;
 
-	private MockHttpServletResponse response;
-
-
-	@BeforeEach
-	@SuppressWarnings("resource")
-	public void setup() throws Exception {
-		AnnotationConfigWebApplicationContext context = new AnnotationConfigWebApplicationContext();
-		context.setServletContext(new MockServletContext());
-		context.register(WebConfig.class);
-		context.refresh();
-
-		this.request = new MockHttpServletRequest("GET", "/");
-		this.request.setContextPath("/myapp");
-		this.response = new MockHttpServletResponse();
-
-		this.filterChain = new MockFilterChain(this.servlet,
-				new ResourceUrlEncodingFilter(),
-				(request, response, chain) -> {
-					Object urlProvider = context.getBean(ResourceUrlProvider.class);
-					request.setAttribute(ResourceUrlProviderExposingInterceptor.RESOURCE_URL_PROVIDER_ATTR, urlProvider);
-					chain.doFilter(request, response);
-				});
-	}
-
-	@Test
-	public void resolvePathWithServletMappedAsRoot() throws Exception {
-		this.request.setRequestURI("/myapp/index");
-		this.request.setServletPath("/index");
-		this.filterChain.doFilter(this.request, this.response);
-
-		assertThat(resolvePublicResourceUrlPath("/myapp/resources/foo.css")).isEqualTo("/myapp/resources/foo-e36d2e05253c6c7085a91522ce43a0b4.css");
-	}
-
-	@Test
-	public void resolvePathWithServletMappedByPrefix() throws Exception {
-		this.request.setRequestURI("/myapp/myservlet/index");
-		this.request.setServletPath("/myservlet");
-		this.filterChain.doFilter(this.request, this.response);
-
-		assertThat(resolvePublicResourceUrlPath("/myapp/myservlet/resources/foo.css")).isEqualTo("/myapp/myservlet/resources/foo-e36d2e05253c6c7085a91522ce43a0b4.css");
-	}
-
-	@Test
-	public void resolvePathNoMatch() throws Exception {
-		this.request.setRequestURI("/myapp/myservlet/index");
-		this.request.setServletPath("/myservlet");
-		this.filterChain.doFilter(this.request, this.response);
-
-		assertThat(resolvePublicResourceUrlPath("/myapp/myservlet/index")).isEqualTo("/myapp/myservlet/index");
-	}
+    private MockHttpServletResponse response;
 
 
-	private String resolvePublicResourceUrlPath(String path) {
-		return this.servlet.wrappedResponse.encodeURL(path);
-	}
+    @BeforeEach
+    @SuppressWarnings("resource")
+    public void setup() throws Exception {
+        AnnotationConfigWebApplicationContext context = new AnnotationConfigWebApplicationContext();
+        context.setServletContext(new MockServletContext());
+        context.register(WebConfig.class);
+        context.refresh();
+
+        this.request = new MockHttpServletRequest("GET", "/");
+        this.request.setContextPath("/myapp");
+        this.response = new MockHttpServletResponse();
+
+        this.filterChain = new MockFilterChain(this.servlet,
+                new ResourceUrlEncodingFilter(),
+                (request, response, chain) -> {
+                    Object urlProvider = context.getBean(ResourceUrlProvider.class);
+                    request.setAttribute(ResourceUrlProviderExposingInterceptor.RESOURCE_URL_PROVIDER_ATTR, urlProvider);
+                    chain.doFilter(request, response);
+                });
+    }
+
+    @Test
+    public void resolvePathWithServletMappedAsRoot() throws Exception {
+        this.request.setRequestURI("/myapp/index");
+        this.request.setServletPath("/index");
+        this.filterChain.doFilter(this.request, this.response);
+
+        assertThat(resolvePublicResourceUrlPath("/myapp/resources/foo.css")).isEqualTo("/myapp/resources/foo-e36d2e05253c6c7085a91522ce43a0b4.css");
+    }
+
+    @Test
+    public void resolvePathWithServletMappedByPrefix() throws Exception {
+        this.request.setRequestURI("/myapp/myservlet/index");
+        this.request.setServletPath("/myservlet");
+        this.filterChain.doFilter(this.request, this.response);
+
+        assertThat(resolvePublicResourceUrlPath("/myapp/myservlet/resources/foo.css")).isEqualTo("/myapp/myservlet/resources/foo-e36d2e05253c6c7085a91522ce43a0b4.css");
+    }
+
+    @Test
+    public void resolvePathNoMatch() throws Exception {
+        this.request.setRequestURI("/myapp/myservlet/index");
+        this.request.setServletPath("/myservlet");
+        this.filterChain.doFilter(this.request, this.response);
+
+        assertThat(resolvePublicResourceUrlPath("/myapp/myservlet/index")).isEqualTo("/myapp/myservlet/index");
+    }
 
 
-	@Configuration
-	static class WebConfig extends WebMvcConfigurationSupport {
+    private String resolvePublicResourceUrlPath(String path) {
+        return this.servlet.wrappedResponse.encodeURL(path);
+    }
 
-		@Override
-		public void addResourceHandlers(ResourceHandlerRegistry registry) {
-			registry.addResourceHandler("/resources/**")
-				.addResourceLocations("classpath:org/springframework/web/servlet/resource/test/")
-				.resourceChain(true).addResolver(new VersionResourceResolver().addContentVersionStrategy("/**"));
-		}
-	}
 
-	@SuppressWarnings("serial")
-	private static class TestServlet extends HttpServlet {
+    @Configuration
+    static class WebConfig extends WebMvcConfigurationSupport {
 
-		private HttpServletResponse wrappedResponse;
+        @Override
+        public void addResourceHandlers(ResourceHandlerRegistry registry) {
+            registry.addResourceHandler("/resources/**")
+                    .addResourceLocations("classpath:org/springframework/web/servlet/resource/test/")
+                    .resourceChain(true).addResolver(new VersionResourceResolver().addContentVersionStrategy("/**"));
+        }
+    }
 
-		@Override
-		protected void doGet(HttpServletRequest request, HttpServletResponse response) {
-			this.wrappedResponse = response;
-		}
-	}
+    @SuppressWarnings("serial")
+    private static class TestServlet extends HttpServlet {
+
+        private HttpServletResponse wrappedResponse;
+
+        @Override
+        protected void doGet(HttpServletRequest request, HttpServletResponse response) {
+            this.wrappedResponse = response;
+        }
+    }
 
 }

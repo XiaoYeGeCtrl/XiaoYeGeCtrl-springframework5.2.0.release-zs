@@ -77,257 +77,261 @@ import org.springframework.validation.Validator;
  * {@link #initReturnValueHandlers()} to set up default return value handlers.
  *
  * @author Rossen Stoyanchev
- * @since 5.2
  * @see AbstractEncoderMethodReturnValueHandler
+ * @since 5.2
  */
 public class MessageMappingMessageHandler extends AbstractMethodMessageHandler<CompositeMessageCondition>
-		implements EmbeddedValueResolverAware {
+        implements EmbeddedValueResolverAware {
 
-	private final List<Decoder<?>> decoders = new ArrayList<>();
+    private final List<Decoder<?>> decoders = new ArrayList<>();
 
-	@Nullable
-	private Validator validator;
+    @Nullable
+    private Validator validator;
 
-	@Nullable
-	private RouteMatcher routeMatcher;
+    @Nullable
+    private RouteMatcher routeMatcher;
 
-	private ConversionService conversionService = new DefaultFormattingConversionService();
+    private ConversionService conversionService = new DefaultFormattingConversionService();
 
-	@Nullable
-	private StringValueResolver valueResolver;
-
-
-	public MessageMappingMessageHandler() {
-		setHandlerPredicate(type -> AnnotatedElementUtils.hasAnnotation(type, Controller.class));
-	}
+    @Nullable
+    private StringValueResolver valueResolver;
 
 
-	/**
-	 * Configure the decoders to use for incoming payloads.
-	 */
-	public void setDecoders(List<? extends Decoder<?>> decoders) {
-		this.decoders.clear();
-		this.decoders.addAll(decoders);
-	}
+    public MessageMappingMessageHandler() {
+        setHandlerPredicate(type -> AnnotatedElementUtils.hasAnnotation(type, Controller.class));
+    }
 
-	/**
-	 * Return the configured decoders.
-	 */
-	public List<? extends Decoder<?>> getDecoders() {
-		return this.decoders;
-	}
+    /**
+     * Return the configured decoders.
+     */
+    public List<? extends Decoder<?>> getDecoders() {
+        return this.decoders;
+    }
 
-	/**
-	 * Set the Validator instance used for validating {@code @Payload} arguments.
-	 * @see org.springframework.validation.annotation.Validated
-	 * @see PayloadMethodArgumentResolver
-	 */
-	public void setValidator(@Nullable Validator validator) {
-		this.validator = validator;
-	}
+    /**
+     * Configure the decoders to use for incoming payloads.
+     */
+    public void setDecoders(List<? extends Decoder<?>> decoders) {
+        this.decoders.clear();
+        this.decoders.addAll(decoders);
+    }
 
-	/**
-	 * Return the configured Validator instance.
-	 */
-	@Nullable
-	public Validator getValidator() {
-		return this.validator;
-	}
+    /**
+     * Return the configured Validator instance.
+     */
+    @Nullable
+    public Validator getValidator() {
+        return this.validator;
+    }
 
-	/**
-	 * Set the {@code RouteMatcher} to use for mapping messages to handlers
-	 * based on the route patterns they're configured with.
-	 * <p>By default, {@link SimpleRouteMatcher} is used, backed by
-	 * {@link AntPathMatcher} with "." as separator. For greater
-	 * efficiency consider using the {@code PathPatternRouteMatcher} from
-	 * {@code spring-web} instead.
-	 */
-	public void setRouteMatcher(@Nullable RouteMatcher routeMatcher) {
-		this.routeMatcher = routeMatcher;
-	}
+    /**
+     * Set the Validator instance used for validating {@code @Payload} arguments.
+     *
+     * @see org.springframework.validation.annotation.Validated
+     * @see PayloadMethodArgumentResolver
+     */
+    public void setValidator(@Nullable Validator validator) {
+        this.validator = validator;
+    }
 
-	/**
-	 * Return the {@code RouteMatcher} used to map messages to handlers.
-	 * May be {@code null} before the component is initialized.
-	 */
-	@Nullable
-	public RouteMatcher getRouteMatcher() {
-		return this.routeMatcher;
-	}
+    /**
+     * Return the {@code RouteMatcher} used to map messages to handlers.
+     * May be {@code null} before the component is initialized.
+     */
+    @Nullable
+    public RouteMatcher getRouteMatcher() {
+        return this.routeMatcher;
+    }
 
-	/**
-	 * Obtain the {@code RouteMatcher} for actual use.
-	 * @return the RouteMatcher (never {@code null})
-	 * @throws IllegalStateException in case of no RouteMatcher set
-	 * @since 5.0
-	 */
-	protected RouteMatcher obtainRouteMatcher() {
-		RouteMatcher routeMatcher = getRouteMatcher();
-		Assert.state(routeMatcher != null, "No RouteMatcher set");
-		return routeMatcher;
-	}
+    /**
+     * Set the {@code RouteMatcher} to use for mapping messages to handlers
+     * based on the route patterns they're configured with.
+     * <p>By default, {@link SimpleRouteMatcher} is used, backed by
+     * {@link AntPathMatcher} with "." as separator. For greater
+     * efficiency consider using the {@code PathPatternRouteMatcher} from
+     * {@code spring-web} instead.
+     */
+    public void setRouteMatcher(@Nullable RouteMatcher routeMatcher) {
+        this.routeMatcher = routeMatcher;
+    }
 
-	/**
-	 * Configure a {@link ConversionService} to use for type conversion of
-	 * String based values, e.g. in destination variables or headers.
-	 * <p>By default {@link DefaultFormattingConversionService} is used.
-	 * @param conversionService the conversion service to use
-	 */
-	public void setConversionService(ConversionService conversionService) {
-		this.conversionService = conversionService;
-	}
+    /**
+     * Obtain the {@code RouteMatcher} for actual use.
+     *
+     * @return the RouteMatcher (never {@code null})
+     * @throws IllegalStateException in case of no RouteMatcher set
+     * @since 5.0
+     */
+    protected RouteMatcher obtainRouteMatcher() {
+        RouteMatcher routeMatcher = getRouteMatcher();
+        Assert.state(routeMatcher != null, "No RouteMatcher set");
+        return routeMatcher;
+    }
 
-	/**
-	 * Return the configured ConversionService.
-	 */
-	public ConversionService getConversionService() {
-		return this.conversionService;
-	}
+    /**
+     * Return the configured ConversionService.
+     */
+    public ConversionService getConversionService() {
+        return this.conversionService;
+    }
 
-	@Override
-	public void setEmbeddedValueResolver(StringValueResolver resolver) {
-		this.valueResolver = resolver;
-	}
+    /**
+     * Configure a {@link ConversionService} to use for type conversion of
+     * String based values, e.g. in destination variables or headers.
+     * <p>By default {@link DefaultFormattingConversionService} is used.
+     *
+     * @param conversionService the conversion service to use
+     */
+    public void setConversionService(ConversionService conversionService) {
+        this.conversionService = conversionService;
+    }
 
-
-	@Override
-	public void afterPropertiesSet() {
-
-		// Initialize RouteMatcher before parent initializes handler mappings
-		if (this.routeMatcher == null) {
-			AntPathMatcher pathMatcher = new AntPathMatcher();
-			pathMatcher.setPathSeparator(".");
-			this.routeMatcher = new SimpleRouteMatcher(pathMatcher);
-		}
-
-		super.afterPropertiesSet();
-	}
-
-	@Override
-	protected List<? extends HandlerMethodArgumentResolver> initArgumentResolvers() {
-		List<HandlerMethodArgumentResolver> resolvers = new ArrayList<>();
-
-		ApplicationContext context = getApplicationContext();
-		ConfigurableBeanFactory beanFactory = (context instanceof ConfigurableApplicationContext ?
-				((ConfigurableApplicationContext) context).getBeanFactory() : null);
-
-		// Annotation-based resolvers
-		resolvers.add(new HeaderMethodArgumentResolver(this.conversionService, beanFactory));
-		resolvers.add(new HeadersMethodArgumentResolver());
-		resolvers.add(new DestinationVariableMethodArgumentResolver(this.conversionService));
-
-		// Type-based...
-		if (KotlinDetector.isKotlinPresent()) {
-			resolvers.add(new ContinuationHandlerMethodArgumentResolver());
-		}
-
-		// Custom resolvers
-		resolvers.addAll(getArgumentResolverConfigurer().getCustomResolvers());
-
-		// Catch-all
-		resolvers.add(new PayloadMethodArgumentResolver(
-				getDecoders(), this.validator, getReactiveAdapterRegistry(), true));
-
-		return resolvers;
-	}
-
-	@Override
-	protected List<? extends HandlerMethodReturnValueHandler> initReturnValueHandlers() {
-		return Collections.emptyList();
-	}
+    @Override
+    public void setEmbeddedValueResolver(StringValueResolver resolver) {
+        this.valueResolver = resolver;
+    }
 
 
-	@Override
-	protected CompositeMessageCondition getMappingForMethod(Method method, Class<?> handlerType) {
-		CompositeMessageCondition methodCondition = getCondition(method);
-		if (methodCondition != null) {
-			CompositeMessageCondition typeCondition = getCondition(handlerType);
-			if (typeCondition != null) {
-				return typeCondition.combine(methodCondition);
-			}
-		}
-		return methodCondition;
-	}
+    @Override
+    public void afterPropertiesSet() {
 
-	/**
-	 * Determine the mapping condition for the given annotated element.
-	 * @param element the element to check
-	 * @return the condition, or {@code null}
-	 */
-	@Nullable
-	protected CompositeMessageCondition getCondition(AnnotatedElement element) {
-		MessageMapping ann = AnnotatedElementUtils.findMergedAnnotation(element, MessageMapping.class);
-		if (ann == null || ann.value().length == 0) {
-			return null;
-		}
-		String[] patterns = processDestinations(ann.value());
-		return new CompositeMessageCondition(
-				new DestinationPatternsMessageCondition(patterns, obtainRouteMatcher()));
-	}
+        // Initialize RouteMatcher before parent initializes handler mappings
+        if (this.routeMatcher == null) {
+            AntPathMatcher pathMatcher = new AntPathMatcher();
+            pathMatcher.setPathSeparator(".");
+            this.routeMatcher = new SimpleRouteMatcher(pathMatcher);
+        }
 
-	/**
-	 * Resolve placeholders in the given destinations.
-	 * @param destinations the destinations
-	 * @return new array with the processed destinations or the same array
-	 */
-	protected String[] processDestinations(String[] destinations) {
-		if (this.valueResolver != null) {
-			destinations = Arrays.stream(destinations)
-					.map(s -> this.valueResolver.resolveStringValue(s))
-					.toArray(String[]::new);
-		}
-		return destinations;
-	}
+        super.afterPropertiesSet();
+    }
 
-	@Override
-	protected Set<String> getDirectLookupMappings(CompositeMessageCondition mapping) {
-		Set<String> result = new LinkedHashSet<>();
-		for (String pattern : mapping.getCondition(DestinationPatternsMessageCondition.class).getPatterns()) {
-			if (!obtainRouteMatcher().isPattern(pattern)) {
-				result.add(pattern);
-			}
-		}
-		return result;
-	}
+    @Override
+    protected List<? extends HandlerMethodArgumentResolver> initArgumentResolvers() {
+        List<HandlerMethodArgumentResolver> resolvers = new ArrayList<>();
 
-	@Override
-	protected RouteMatcher.Route getDestination(Message<?> message) {
-		return (RouteMatcher.Route) message.getHeaders()
-				.get(DestinationPatternsMessageCondition.LOOKUP_DESTINATION_HEADER);
-	}
+        ApplicationContext context = getApplicationContext();
+        ConfigurableBeanFactory beanFactory = (context instanceof ConfigurableApplicationContext ?
+                ((ConfigurableApplicationContext) context).getBeanFactory() : null);
 
-	@Override
-	protected CompositeMessageCondition getMatchingMapping(CompositeMessageCondition mapping, Message<?> message) {
-		return mapping.getMatchingCondition(message);
-	}
+        // Annotation-based resolvers
+        resolvers.add(new HeaderMethodArgumentResolver(this.conversionService, beanFactory));
+        resolvers.add(new HeadersMethodArgumentResolver());
+        resolvers.add(new DestinationVariableMethodArgumentResolver(this.conversionService));
 
-	@Override
-	protected Comparator<CompositeMessageCondition> getMappingComparator(Message<?> message) {
-		return (info1, info2) -> info1.compareTo(info2, message);
-	}
+        // Type-based...
+        if (KotlinDetector.isKotlinPresent()) {
+            resolvers.add(new ContinuationHandlerMethodArgumentResolver());
+        }
 
-	@Override
-	protected AbstractExceptionHandlerMethodResolver createExceptionMethodResolverFor(Class<?> beanType) {
-		return new AnnotationExceptionHandlerMethodResolver(beanType);
-	}
+        // Custom resolvers
+        resolvers.addAll(getArgumentResolverConfigurer().getCustomResolvers());
 
-	@Override
-	protected Mono<Void> handleMatch(
-			CompositeMessageCondition mapping, HandlerMethod handlerMethod, Message<?> message) {
+        // Catch-all
+        resolvers.add(new PayloadMethodArgumentResolver(
+                getDecoders(), this.validator, getReactiveAdapterRegistry(), true));
 
-		Set<String> patterns = mapping.getCondition(DestinationPatternsMessageCondition.class).getPatterns();
-		if (!CollectionUtils.isEmpty(patterns)) {
-			String pattern = patterns.iterator().next();
-			RouteMatcher.Route destination = getDestination(message);
-			Assert.state(destination != null, "Missing destination header");
-			Map<String, String> vars = obtainRouteMatcher().matchAndExtract(pattern, destination);
-			if (!CollectionUtils.isEmpty(vars)) {
-				MessageHeaderAccessor mha = MessageHeaderAccessor.getAccessor(message, MessageHeaderAccessor.class);
-				Assert.state(mha != null && mha.isMutable(), "Mutable MessageHeaderAccessor required");
-				mha.setHeader(DestinationVariableMethodArgumentResolver.DESTINATION_TEMPLATE_VARIABLES_HEADER, vars);
-			}
-		}
-		return super.handleMatch(mapping, handlerMethod, message);
-	}
+        return resolvers;
+    }
+
+    @Override
+    protected List<? extends HandlerMethodReturnValueHandler> initReturnValueHandlers() {
+        return Collections.emptyList();
+    }
+
+
+    @Override
+    protected CompositeMessageCondition getMappingForMethod(Method method, Class<?> handlerType) {
+        CompositeMessageCondition methodCondition = getCondition(method);
+        if (methodCondition != null) {
+            CompositeMessageCondition typeCondition = getCondition(handlerType);
+            if (typeCondition != null) {
+                return typeCondition.combine(methodCondition);
+            }
+        }
+        return methodCondition;
+    }
+
+    /**
+     * Determine the mapping condition for the given annotated element.
+     *
+     * @param element the element to check
+     * @return the condition, or {@code null}
+     */
+    @Nullable
+    protected CompositeMessageCondition getCondition(AnnotatedElement element) {
+        MessageMapping ann = AnnotatedElementUtils.findMergedAnnotation(element, MessageMapping.class);
+        if (ann == null || ann.value().length == 0) {
+            return null;
+        }
+        String[] patterns = processDestinations(ann.value());
+        return new CompositeMessageCondition(
+                new DestinationPatternsMessageCondition(patterns, obtainRouteMatcher()));
+    }
+
+    /**
+     * Resolve placeholders in the given destinations.
+     *
+     * @param destinations the destinations
+     * @return new array with the processed destinations or the same array
+     */
+    protected String[] processDestinations(String[] destinations) {
+        if (this.valueResolver != null) {
+            destinations = Arrays.stream(destinations)
+                    .map(s -> this.valueResolver.resolveStringValue(s))
+                    .toArray(String[]::new);
+        }
+        return destinations;
+    }
+
+    @Override
+    protected Set<String> getDirectLookupMappings(CompositeMessageCondition mapping) {
+        Set<String> result = new LinkedHashSet<>();
+        for (String pattern : mapping.getCondition(DestinationPatternsMessageCondition.class).getPatterns()) {
+            if (!obtainRouteMatcher().isPattern(pattern)) {
+                result.add(pattern);
+            }
+        }
+        return result;
+    }
+
+    @Override
+    protected RouteMatcher.Route getDestination(Message<?> message) {
+        return (RouteMatcher.Route) message.getHeaders()
+                .get(DestinationPatternsMessageCondition.LOOKUP_DESTINATION_HEADER);
+    }
+
+    @Override
+    protected CompositeMessageCondition getMatchingMapping(CompositeMessageCondition mapping, Message<?> message) {
+        return mapping.getMatchingCondition(message);
+    }
+
+    @Override
+    protected Comparator<CompositeMessageCondition> getMappingComparator(Message<?> message) {
+        return (info1, info2) -> info1.compareTo(info2, message);
+    }
+
+    @Override
+    protected AbstractExceptionHandlerMethodResolver createExceptionMethodResolverFor(Class<?> beanType) {
+        return new AnnotationExceptionHandlerMethodResolver(beanType);
+    }
+
+    @Override
+    protected Mono<Void> handleMatch(
+            CompositeMessageCondition mapping, HandlerMethod handlerMethod, Message<?> message) {
+
+        Set<String> patterns = mapping.getCondition(DestinationPatternsMessageCondition.class).getPatterns();
+        if (!CollectionUtils.isEmpty(patterns)) {
+            String pattern = patterns.iterator().next();
+            RouteMatcher.Route destination = getDestination(message);
+            Assert.state(destination != null, "Missing destination header");
+            Map<String, String> vars = obtainRouteMatcher().matchAndExtract(pattern, destination);
+            if (!CollectionUtils.isEmpty(vars)) {
+                MessageHeaderAccessor mha = MessageHeaderAccessor.getAccessor(message, MessageHeaderAccessor.class);
+                Assert.state(mha != null && mha.isMutable(), "Mutable MessageHeaderAccessor required");
+                mha.setHeader(DestinationVariableMethodArgumentResolver.DESTINATION_TEMPLATE_VARIABLES_HEADER, vars);
+            }
+        }
+        return super.handleMatch(mapping, handlerMethod, message);
+    }
 
 }

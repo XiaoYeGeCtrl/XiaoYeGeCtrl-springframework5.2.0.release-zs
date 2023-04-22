@@ -27,70 +27,72 @@ import org.springframework.messaging.MessageChannel;
  *
  * @author Mark Fisher
  * @author Rossen Stoyanchev
- * @since 4.0
  * @see Message
  * @see MessageChannel
+ * @since 4.0
  */
 public interface ChannelInterceptor {
 
-	/**
-	 * Invoked before the Message is actually sent to the channel.
-	 * This allows for modification of the Message if necessary.
-	 * If this method returns {@code null} then the actual
-	 * send invocation will not occur.
-	 */
-	@Nullable
-	default Message<?> preSend(Message<?> message, MessageChannel channel) {
-		return message;
-	}
+    /**
+     * Invoked before the Message is actually sent to the channel.
+     * This allows for modification of the Message if necessary.
+     * If this method returns {@code null} then the actual
+     * send invocation will not occur.
+     */
+    @Nullable
+    default Message<?> preSend(Message<?> message, MessageChannel channel) {
+        return message;
+    }
 
-	/**
-	 * Invoked immediately after the send invocation. The boolean
-	 * value argument represents the return value of that invocation.
-	 */
-	default void postSend(Message<?> message, MessageChannel channel, boolean sent) {
-	}
+    /**
+     * Invoked immediately after the send invocation. The boolean
+     * value argument represents the return value of that invocation.
+     */
+    default void postSend(Message<?> message, MessageChannel channel, boolean sent) {
+    }
 
-	/**
-	 * Invoked after the completion of a send regardless of any exception that
-	 * have been raised thus allowing for proper resource cleanup.
-	 * <p>Note that this will be invoked only if {@link #preSend} successfully
-	 * completed and returned a Message, i.e. it did not return {@code null}.
-	 * @since 4.1
-	 */
-	default void afterSendCompletion(
-			Message<?> message, MessageChannel channel, boolean sent, @Nullable Exception ex) {
-	}
+    /**
+     * Invoked after the completion of a send regardless of any exception that
+     * have been raised thus allowing for proper resource cleanup.
+     * <p>Note that this will be invoked only if {@link #preSend} successfully
+     * completed and returned a Message, i.e. it did not return {@code null}.
+     *
+     * @since 4.1
+     */
+    default void afterSendCompletion(
+            Message<?> message, MessageChannel channel, boolean sent, @Nullable Exception ex) {
+    }
 
-	/**
-	 * Invoked as soon as receive is called and before a Message is
-	 * actually retrieved. If the return value is 'false', then no
-	 * Message will be retrieved. This only applies to PollableChannels.
-	 */
-	default boolean preReceive(MessageChannel channel) {
-		return true;
-	}
+    /**
+     * Invoked as soon as receive is called and before a Message is
+     * actually retrieved. If the return value is 'false', then no
+     * Message will be retrieved. This only applies to PollableChannels.
+     */
+    default boolean preReceive(MessageChannel channel) {
+        return true;
+    }
 
-	/**
-	 * Invoked immediately after a Message has been retrieved but before
-	 * it is returned to the caller. The Message may be modified if
-	 * necessary; {@code null} aborts further interceptor invocations.
-	 * This only applies to PollableChannels.
-	 */
-	@Nullable
-	default Message<?> postReceive(Message<?> message, MessageChannel channel) {
-		return message;
-	}
+    /**
+     * Invoked immediately after a Message has been retrieved but before
+     * it is returned to the caller. The Message may be modified if
+     * necessary; {@code null} aborts further interceptor invocations.
+     * This only applies to PollableChannels.
+     */
+    @Nullable
+    default Message<?> postReceive(Message<?> message, MessageChannel channel) {
+        return message;
+    }
 
-	/**
-	 * Invoked after the completion of a receive regardless of any exception that
-	 * have been raised thus allowing for proper resource cleanup.
-	 * <p>Note that this will be invoked only if {@link #preReceive} successfully
-	 * completed and returned {@code true}.
-	 * @since 4.1
-	 */
-	default void afterReceiveCompletion(@Nullable Message<?> message, MessageChannel channel,
-			@Nullable Exception ex) {
-	}
+    /**
+     * Invoked after the completion of a receive regardless of any exception that
+     * have been raised thus allowing for proper resource cleanup.
+     * <p>Note that this will be invoked only if {@link #preReceive} successfully
+     * completed and returned {@code true}.
+     *
+     * @since 4.1
+     */
+    default void afterReceiveCompletion(@Nullable Message<?> message, MessageChannel channel,
+                                        @Nullable Exception ex) {
+    }
 
 }

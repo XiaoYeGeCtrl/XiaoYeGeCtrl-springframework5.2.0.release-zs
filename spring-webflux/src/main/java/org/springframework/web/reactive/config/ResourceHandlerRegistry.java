@@ -56,103 +56,104 @@ import org.springframework.web.server.WebHandler;
  */
 public class ResourceHandlerRegistry {
 
-	private final ResourceLoader resourceLoader;
+    private final ResourceLoader resourceLoader;
 
-	private final List<ResourceHandlerRegistration> registrations = new ArrayList<>();
+    private final List<ResourceHandlerRegistration> registrations = new ArrayList<>();
 
-	private int order = Ordered.LOWEST_PRECEDENCE - 1;
+    private int order = Ordered.LOWEST_PRECEDENCE - 1;
 
-	@Nullable
-	private ResourceUrlProvider resourceUrlProvider;
-
-
-	/**
-	 * Create a new resource handler registry for the given resource loader
-	 * (typically an application context).
-	 * @param resourceLoader the resource loader to use
-	 */
-	public ResourceHandlerRegistry(ResourceLoader resourceLoader) {
-		this.resourceLoader = resourceLoader;
-	}
-
-	/**
-	 * Configure the {@link ResourceUrlProvider} that can be used by
-	 * {@link org.springframework.web.reactive.resource.ResourceTransformer} instances.
-	 * @param resourceUrlProvider the resource URL provider to use
-	 * @since 5.0.11
-	 */
-	public void setResourceUrlProvider(@Nullable ResourceUrlProvider resourceUrlProvider) {
-		this.resourceUrlProvider = resourceUrlProvider;
-	}
+    @Nullable
+    private ResourceUrlProvider resourceUrlProvider;
 
 
+    /**
+     * Create a new resource handler registry for the given resource loader
+     * (typically an application context).
+     *
+     * @param resourceLoader the resource loader to use
+     */
+    public ResourceHandlerRegistry(ResourceLoader resourceLoader) {
+        this.resourceLoader = resourceLoader;
+    }
 
-	/**
-	 * Add a resource handler for serving static resources based on the specified
-	 * URL path patterns. The handler will be invoked for every incoming request
-	 * that matches to one of the specified path patterns.
-	 * <p>Patterns like {@code "/static/**"} or {@code "/css/{filename:\\w+\\.css}"}
-	 * are allowed. See {@link org.springframework.web.util.pattern.PathPattern}
-	 * for more details on the syntax.
-	 * @return a {@link ResourceHandlerRegistration} to use to further configure
-	 * the registered resource handler
-	 */
-	public ResourceHandlerRegistration addResourceHandler(String... patterns) {
-		ResourceHandlerRegistration registration = new ResourceHandlerRegistration(this.resourceLoader, patterns);
-		this.registrations.add(registration);
-		return registration;
-	}
+    /**
+     * Configure the {@link ResourceUrlProvider} that can be used by
+     * {@link org.springframework.web.reactive.resource.ResourceTransformer} instances.
+     *
+     * @param resourceUrlProvider the resource URL provider to use
+     * @since 5.0.11
+     */
+    public void setResourceUrlProvider(@Nullable ResourceUrlProvider resourceUrlProvider) {
+        this.resourceUrlProvider = resourceUrlProvider;
+    }
 
-	/**
-	 * Whether a resource handler has already been registered for the given path pattern.
-	 */
-	public boolean hasMappingForPattern(String pathPattern) {
-		for (ResourceHandlerRegistration registration : this.registrations) {
-			if (Arrays.asList(registration.getPathPatterns()).contains(pathPattern)) {
-				return true;
-			}
-		}
-		return false;
-	}
 
-	/**
-	 * Specify the order to use for resource handling relative to other
-	 * {@code HandlerMapping}s configured in the Spring configuration.
-	 * <p>The default value used is {@code Integer.MAX_VALUE-1}.
-	 */
-	public ResourceHandlerRegistry setOrder(int order) {
-		this.order = order;
-		return this;
-	}
+    /**
+     * Add a resource handler for serving static resources based on the specified
+     * URL path patterns. The handler will be invoked for every incoming request
+     * that matches to one of the specified path patterns.
+     * <p>Patterns like {@code "/static/**"} or {@code "/css/{filename:\\w+\\.css}"}
+     * are allowed. See {@link org.springframework.web.util.pattern.PathPattern}
+     * for more details on the syntax.
+     *
+     * @return a {@link ResourceHandlerRegistration} to use to further configure
+     * the registered resource handler
+     */
+    public ResourceHandlerRegistration addResourceHandler(String... patterns) {
+        ResourceHandlerRegistration registration = new ResourceHandlerRegistration(this.resourceLoader, patterns);
+        this.registrations.add(registration);
+        return registration;
+    }
 
-	/**
-	 * Return a handler mapping with the mapped resource handlers; or {@code null} in case
-	 * of no registrations.
-	 */
-	@Nullable
-	protected AbstractUrlHandlerMapping getHandlerMapping() {
-		if (this.registrations.isEmpty()) {
-			return null;
-		}
-		Map<String, WebHandler> urlMap = new LinkedHashMap<>();
-		for (ResourceHandlerRegistration registration : this.registrations) {
-			for (String pathPattern : registration.getPathPatterns()) {
-				ResourceWebHandler handler = registration.getRequestHandler();
-				handler.getResourceTransformers().forEach(transformer -> {
-					if (transformer instanceof ResourceTransformerSupport) {
-						((ResourceTransformerSupport) transformer).setResourceUrlProvider(this.resourceUrlProvider);
-					}
-				});
-				try {
-					handler.afterPropertiesSet();
-				}
-				catch (Throwable ex) {
-					throw new BeanInitializationException("Failed to init ResourceHttpRequestHandler", ex);
-				}
-				urlMap.put(pathPattern, handler);
-			}
-		}
-		return new SimpleUrlHandlerMapping(urlMap, this.order);
-	}
+    /**
+     * Whether a resource handler has already been registered for the given path pattern.
+     */
+    public boolean hasMappingForPattern(String pathPattern) {
+        for (ResourceHandlerRegistration registration : this.registrations) {
+            if (Arrays.asList(registration.getPathPatterns()).contains(pathPattern)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Specify the order to use for resource handling relative to other
+     * {@code HandlerMapping}s configured in the Spring configuration.
+     * <p>The default value used is {@code Integer.MAX_VALUE-1}.
+     */
+    public ResourceHandlerRegistry setOrder(int order) {
+        this.order = order;
+        return this;
+    }
+
+    /**
+     * Return a handler mapping with the mapped resource handlers; or {@code null} in case
+     * of no registrations.
+     */
+    @Nullable
+    protected AbstractUrlHandlerMapping getHandlerMapping() {
+        if (this.registrations.isEmpty()) {
+            return null;
+        }
+        Map<String, WebHandler> urlMap = new LinkedHashMap<>();
+        for (ResourceHandlerRegistration registration : this.registrations) {
+            for (String pathPattern : registration.getPathPatterns()) {
+                ResourceWebHandler handler = registration.getRequestHandler();
+                handler.getResourceTransformers().forEach(transformer -> {
+                    if (transformer instanceof ResourceTransformerSupport) {
+                        ((ResourceTransformerSupport) transformer).setResourceUrlProvider(this.resourceUrlProvider);
+                    }
+                });
+                try {
+                    handler.afterPropertiesSet();
+                } catch (Throwable ex) {
+                    throw new BeanInitializationException("Failed to init ResourceHttpRequestHandler", ex);
+                }
+                urlMap.put(pathPattern, handler);
+            }
+        }
+        return new SimpleUrlHandlerMapping(urlMap, this.order);
+    }
 
 }

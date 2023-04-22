@@ -34,48 +34,44 @@ import static org.assertj.core.api.Assertions.assertThat;
  * Spring Boot.
  *
  * @author Sam Brannen
- * @since 4.0.4
  * @see HybridContextLoader
+ * @since 4.0.4
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(loader = HybridContextLoader.class)
 public class HybridContextLoaderTests {
 
-	@Configuration
-	static class Config {
+    @Autowired
+    private String fooFromXml;
+    @Autowired
+    private String fooFromJava;
+    @Autowired
+    private String enigma;
 
-		@Bean
-		public String fooFromJava() {
-			return "Java";
-		}
+    @Test
+    public void verifyContentsOfHybridApplicationContext() {
+        assertThat(fooFromXml).isEqualTo("XML");
+        assertThat(fooFromJava).isEqualTo("Java");
 
-		@Bean
-		public String enigma() {
-			return "enigma from Java";
-		}
-	}
+        // Note: the XML bean definition for "enigma" always wins since
+        // ConfigurationClassBeanDefinitionReader.isOverriddenByExistingDefinition()
+        // lets XML bean definitions override those "discovered" later via an
+        // @Bean method.
+        assertThat(enigma).isEqualTo("enigma from XML");
+    }
 
+    @Configuration
+    static class Config {
 
-	@Autowired
-	private String fooFromXml;
+        @Bean
+        public String fooFromJava() {
+            return "Java";
+        }
 
-	@Autowired
-	private String fooFromJava;
-
-	@Autowired
-	private String enigma;
-
-
-	@Test
-	public void verifyContentsOfHybridApplicationContext() {
-		assertThat(fooFromXml).isEqualTo("XML");
-		assertThat(fooFromJava).isEqualTo("Java");
-
-		// Note: the XML bean definition for "enigma" always wins since
-		// ConfigurationClassBeanDefinitionReader.isOverriddenByExistingDefinition()
-		// lets XML bean definitions override those "discovered" later via an
-		// @Bean method.
-		assertThat(enigma).isEqualTo("enigma from XML");
-	}
+        @Bean
+        public String enigma() {
+            return "enigma from Java";
+        }
+    }
 
 }

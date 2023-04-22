@@ -47,83 +47,79 @@ import org.springframework.lang.Nullable;
 @SuppressWarnings("serial")
 public class DefaultAdvisorChainFactory implements AdvisorChainFactory, Serializable {
 
-	@Override
-	public List<Object> getInterceptorsAndDynamicInterceptionAdvice(
-			Advised config, Method method, @Nullable Class<?> targetClass) {
+    /**
+     * Determine whether the Advisors contain matching introductions.
+     */
+    private static boolean hasMatchingIntroductions(Advisor[] advisors, Class<?> actualClass) {
+        for (Advisor advisor : advisors) {
+            if (advisor instanceof IntroductionAdvisor) {
+                IntroductionAdvisor ia = (IntroductionAdvisor) advisor;
+                if (ia.getClassFilter().matches(actualClass)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
 
-		// This is somewhat tricky... We have to process introductions first,
-		// but we need to preserve order in the ultimate list.
-		//通过单例方式实例一个DefaultAdvisorAdapterRegistry
-		// 拿到代理里面所有的通知们：getAdvisors
-		AdvisorAdapterRegistry registry = GlobalAdvisorAdapterRegistry.getInstance();
-		Advisor[] advisors = config.getAdvisors();
-		List<Object> interceptorList = new ArrayList<>(advisors.length);
-		Class<?> actualClass = (targetClass != null ? targetClass : method.getDeclaringClass());
-		Boolean hasIntroductions = null;
+    @Override
+    public List<Object> getInterceptorsAndDynamicInterceptionAdvice(
+            Advised config, Method method, @Nullable Class<?> targetClass) {
 
-		for (Advisor advisor : advisors) {
-			if (advisor instanceof PointcutAdvisor) {
-				// Add it conditionally.
-				PointcutAdvisor pointcutAdvisor = (PointcutAdvisor) advisor;
-				if (config.isPreFiltered() || pointcutAdvisor.getPointcut().getClassFilter().matches(actualClass)) {
-					//已预过滤过的或者这个切点适用于给定的接口或目标类
-					//从registry获取MethodInterceptor拦截器
-					MethodMatcher mm = pointcutAdvisor.getPointcut().getMethodMatcher();
-					boolean match;
-					if (mm instanceof IntroductionAwareMethodMatcher) {
-						if (hasIntroductions == null) {
-							hasIntroductions = hasMatchingIntroductions(advisors, actualClass);
-						}
-						match = ((IntroductionAwareMethodMatcher) mm).matches(method, actualClass, hasIntroductions);
-					}
-					else {
-						match = mm.matches(method, actualClass);
-					}
-					if (match) {
-						MethodInterceptor[] interceptors = registry.getInterceptors(advisor);
-						// 动态匹配
-						if (mm.isRuntime()) {
-							// Creating a new object instance in the getInterceptors() method
-							// isn't a problem as we normally cache created chains.
-							for (MethodInterceptor interceptor : interceptors) {
-								interceptorList.add(new InterceptorAndDynamicMethodMatcher(interceptor, mm));
-							}
-						}
-						else {
-							interceptorList.addAll(Arrays.asList(interceptors));
-						}
-					}
-				}
-			}
-			else if (advisor instanceof IntroductionAdvisor) {
-				IntroductionAdvisor ia = (IntroductionAdvisor) advisor;
-				if (config.isPreFiltered() || ia.getClassFilter().matches(actualClass)) {
-					Interceptor[] interceptors = registry.getInterceptors(advisor);
-					interceptorList.addAll(Arrays.asList(interceptors));
-				}
-			}
-			else {
-				Interceptor[] interceptors = registry.getInterceptors(advisor);
-				interceptorList.addAll(Arrays.asList(interceptors));
-			}
-		}
+        // This is somewhat tricky... We have to process introductions first,
+        // but we need to preserve order in the ultimate list.
+        //通过单例方式实例一个DefaultAdvisorAdapterRegistry
+        // 拿到代理里面所有的通知们：getAdvisors
+        AdvisorAdapterRegistry registry = GlobalAdvisorAdapterRegistry.getInstance();
+        Advisor[] advisors = config.getAdvisors();
+        List<Object> interceptorList = new ArrayList<>(advisors.length);
+        Class<?> actualClass = (targetClass != null ? targetClass : method.getDeclaringClass());
+        Boolean hasIntroductions = null;
 
-		return interceptorList;
-	}
+        for (Advisor advisor : advisors) {
+            if (advisor instanceof PointcutAdvisor) {
+                // Add it conditionally.
+                PointcutAdvisor pointcutAdvisor = (PointcutAdvisor) advisor;
+                if (config.isPreFiltered() || pointcutAdvisor.getPointcut().getClassFilter().matches(actualClass)) {
+                    //已预过滤过的或者这个切点适用于给定的接口或目标类
+                    //从registry获取MethodInterceptor拦截器
+                    MethodMatcher mm = pointcutAdvisor.getPointcut().getMethodMatcher();
+                    boolean match;
+                    if (mm instanceof IntroductionAwareMethodMatcher) {
+                        if (hasIntroductions == null) {
+                            hasIntroductions = hasMatchingIntroductions(advisors, actualClass);
+                        }
+                        match = ((IntroductionAwareMethodMatcher) mm).matches(method, actualClass, hasIntroductions);
+                    } else {
+                        match = mm.matches(method, actualClass);
+                    }
+                    if (match) {
+                        MethodInterceptor[] interceptors = registry.getInterceptors(advisor);
+                        // 动态匹配
+                        if (mm.isRuntime()) {
+                            // Creating a new object instance in the getInterceptors() method
+                            // isn't a problem as we normally cache created chains.
+                            for (MethodInterceptor interceptor : interceptors) {
+                                interceptorList.add(new InterceptorAndDynamicMethodMatcher(interceptor, mm));
+                            }
+                        } else {
+                            interceptorList.addAll(Arrays.asList(interceptors));
+                        }
+                    }
+                }
+            } else if (advisor instanceof IntroductionAdvisor) {
+                IntroductionAdvisor ia = (IntroductionAdvisor) advisor;
+                if (config.isPreFiltered() || ia.getClassFilter().matches(actualClass)) {
+                    Interceptor[] interceptors = registry.getInterceptors(advisor);
+                    interceptorList.addAll(Arrays.asList(interceptors));
+                }
+            } else {
+                Interceptor[] interceptors = registry.getInterceptors(advisor);
+                interceptorList.addAll(Arrays.asList(interceptors));
+            }
+        }
 
-	/**
-	 * Determine whether the Advisors contain matching introductions.
-	 */
-	private static boolean hasMatchingIntroductions(Advisor[] advisors, Class<?> actualClass) {
-		for (Advisor advisor : advisors) {
-			if (advisor instanceof IntroductionAdvisor) {
-				IntroductionAdvisor ia = (IntroductionAdvisor) advisor;
-				if (ia.getClassFilter().matches(actualClass)) {
-					return true;
-				}
-			}
-		}
-		return false;
-	}
+        return interceptorList;
+    }
 
 }

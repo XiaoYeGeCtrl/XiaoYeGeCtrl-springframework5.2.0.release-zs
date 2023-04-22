@@ -39,76 +39,77 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Unit tests for {@link WebSocketAnnotationMethodMessageHandler}.
+ *
  * @author Rossen Stoyanchev
  */
 public class WebSocketAnnotationMethodMessageHandlerTests {
 
-	private TestWebSocketAnnotationMethodMessageHandler messageHandler;
+    private TestWebSocketAnnotationMethodMessageHandler messageHandler;
 
-	private StaticApplicationContext applicationContext;
-
-
-	@BeforeEach
-	public void setUp() throws Exception {
-		this.applicationContext = new StaticApplicationContext();
-		this.applicationContext.registerSingleton("controller", TestController.class);
-		this.applicationContext.registerSingleton("controllerAdvice", TestControllerAdvice.class);
-		this.applicationContext.refresh();
-
-		SubscribableChannel channel = Mockito.mock(SubscribableChannel.class);
-		SimpMessageSendingOperations brokerTemplate = new SimpMessagingTemplate(channel);
-
-		this.messageHandler = new TestWebSocketAnnotationMethodMessageHandler(brokerTemplate, channel, channel);
-		this.messageHandler.setApplicationContext(this.applicationContext);
-		this.messageHandler.afterPropertiesSet();
-	}
-
-	@Test
-	public void globalException() throws Exception {
-		SimpMessageHeaderAccessor headers = SimpMessageHeaderAccessor.create();
-		headers.setSessionId("session1");
-		headers.setSessionAttributes(new ConcurrentHashMap<>());
-		headers.setDestination("/exception");
-		Message<?> message = MessageBuilder.withPayload(new byte[0]).setHeaders(headers).build();
-		this.messageHandler.handleMessage(message);
-
-		TestControllerAdvice controllerAdvice = this.applicationContext.getBean(TestControllerAdvice.class);
-		assertThat(controllerAdvice.isExceptionHandled()).isTrue();
-	}
+    private StaticApplicationContext applicationContext;
 
 
-	@Controller
-	private static class TestController {
+    @BeforeEach
+    public void setUp() throws Exception {
+        this.applicationContext = new StaticApplicationContext();
+        this.applicationContext.registerSingleton("controller", TestController.class);
+        this.applicationContext.registerSingleton("controllerAdvice", TestControllerAdvice.class);
+        this.applicationContext.refresh();
 
-		@MessageMapping("/exception")
-		public void handleWithSimulatedException() {
-			throw new IllegalStateException("simulated exception");
-		}
-	}
+        SubscribableChannel channel = Mockito.mock(SubscribableChannel.class);
+        SimpMessageSendingOperations brokerTemplate = new SimpMessagingTemplate(channel);
 
-	@ControllerAdvice
-	private static class TestControllerAdvice {
+        this.messageHandler = new TestWebSocketAnnotationMethodMessageHandler(brokerTemplate, channel, channel);
+        this.messageHandler.setApplicationContext(this.applicationContext);
+        this.messageHandler.afterPropertiesSet();
+    }
 
-		private boolean exceptionHandled;
+    @Test
+    public void globalException() throws Exception {
+        SimpMessageHeaderAccessor headers = SimpMessageHeaderAccessor.create();
+        headers.setSessionId("session1");
+        headers.setSessionAttributes(new ConcurrentHashMap<>());
+        headers.setDestination("/exception");
+        Message<?> message = MessageBuilder.withPayload(new byte[0]).setHeaders(headers).build();
+        this.messageHandler.handleMessage(message);
+
+        TestControllerAdvice controllerAdvice = this.applicationContext.getBean(TestControllerAdvice.class);
+        assertThat(controllerAdvice.isExceptionHandled()).isTrue();
+    }
 
 
-		public boolean isExceptionHandled() {
-			return this.exceptionHandled;
-		}
+    @Controller
+    private static class TestController {
 
-		@MessageExceptionHandler
-		public void handleException(IllegalStateException ex) {
-			this.exceptionHandled = true;
-		}
-	}
+        @MessageMapping("/exception")
+        public void handleWithSimulatedException() {
+            throw new IllegalStateException("simulated exception");
+        }
+    }
 
-	private static class TestWebSocketAnnotationMethodMessageHandler extends WebSocketAnnotationMethodMessageHandler {
+    @ControllerAdvice
+    private static class TestControllerAdvice {
 
-		public TestWebSocketAnnotationMethodMessageHandler(SimpMessageSendingOperations brokerTemplate,
-				SubscribableChannel clientInboundChannel, MessageChannel clientOutboundChannel) {
+        private boolean exceptionHandled;
 
-			super(clientInboundChannel, clientOutboundChannel, brokerTemplate);
-		}
-	}
+
+        public boolean isExceptionHandled() {
+            return this.exceptionHandled;
+        }
+
+        @MessageExceptionHandler
+        public void handleException(IllegalStateException ex) {
+            this.exceptionHandled = true;
+        }
+    }
+
+    private static class TestWebSocketAnnotationMethodMessageHandler extends WebSocketAnnotationMethodMessageHandler {
+
+        public TestWebSocketAnnotationMethodMessageHandler(SimpMessageSendingOperations brokerTemplate,
+                                                           SubscribableChannel clientInboundChannel, MessageChannel clientOutboundChannel) {
+
+            super(clientInboundChannel, clientOutboundChannel, brokerTemplate);
+        }
+    }
 
 }

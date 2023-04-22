@@ -40,101 +40,100 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 public class DispatcherServletInitializerTests {
 
-	private static final String SERVLET_NAME = "myservlet";
+    private static final String SERVLET_NAME = "myservlet";
 
-	private static final String ROLE_NAME = "role";
+    private static final String ROLE_NAME = "role";
 
-	private static final String SERVLET_MAPPING = "/myservlet";
-
-
-	private final MockServletContext servletContext = new MyMockServletContext();
-
-	private final AbstractDispatcherServletInitializer initializer = new MyDispatcherServletInitializer();
-
-	private final Map<String, Servlet> servlets = new LinkedHashMap<>(2);
-
-	private final Map<String, MockServletRegistration> registrations = new LinkedHashMap<>(2);
+    private static final String SERVLET_MAPPING = "/myservlet";
 
 
-	@Test
-	public void register() throws ServletException {
-		initializer.onStartup(servletContext);
+    private final MockServletContext servletContext = new MyMockServletContext();
 
-		assertThat(servlets.size()).isEqualTo(1);
-		assertThat(servlets.get(SERVLET_NAME)).isNotNull();
+    private final AbstractDispatcherServletInitializer initializer = new MyDispatcherServletInitializer();
 
-		DispatcherServlet servlet = (DispatcherServlet) servlets.get(SERVLET_NAME);
-		assertThat(servlet.getClass()).isEqualTo(MyDispatcherServlet.class);
-		WebApplicationContext servletContext = servlet.getWebApplicationContext();
+    private final Map<String, Servlet> servlets = new LinkedHashMap<>(2);
 
-		assertThat(servletContext.containsBean("bean")).isTrue();
-		boolean condition = servletContext.getBean("bean") instanceof MyBean;
-		assertThat(condition).isTrue();
-
-		assertThat(registrations.size()).isEqualTo(1);
-		assertThat(registrations.get(SERVLET_NAME)).isNotNull();
-
-		MockServletRegistration registration = registrations.get(SERVLET_NAME);
-		assertThat(registration.getMappings()).isEqualTo(Collections.singleton(SERVLET_MAPPING));
-		assertThat(registration.getLoadOnStartup()).isEqualTo(1);
-		assertThat(registration.getRunAsRole()).isEqualTo(ROLE_NAME);
-	}
+    private final Map<String, MockServletRegistration> registrations = new LinkedHashMap<>(2);
 
 
-	private class MyMockServletContext extends MockServletContext {
+    @Test
+    public void register() throws ServletException {
+        initializer.onStartup(servletContext);
 
-		@Override
-		public ServletRegistration.Dynamic addServlet(String servletName, Servlet servlet) {
-			servlets.put(servletName, servlet);
-			MockServletRegistration registration = new MockServletRegistration();
-			registrations.put(servletName, registration);
-			return registration;
-		}
-	}
+        assertThat(servlets.size()).isEqualTo(1);
+        assertThat(servlets.get(SERVLET_NAME)).isNotNull();
 
-	private static class MyDispatcherServletInitializer extends AbstractDispatcherServletInitializer {
+        DispatcherServlet servlet = (DispatcherServlet) servlets.get(SERVLET_NAME);
+        assertThat(servlet.getClass()).isEqualTo(MyDispatcherServlet.class);
+        WebApplicationContext servletContext = servlet.getWebApplicationContext();
 
-		@Override
-		protected String getServletName() {
-			return SERVLET_NAME;
-		}
+        assertThat(servletContext.containsBean("bean")).isTrue();
+        boolean condition = servletContext.getBean("bean") instanceof MyBean;
+        assertThat(condition).isTrue();
 
-		@Override
-		protected DispatcherServlet createDispatcherServlet(WebApplicationContext servletAppContext) {
-			return new MyDispatcherServlet(servletAppContext);
-		}
+        assertThat(registrations.size()).isEqualTo(1);
+        assertThat(registrations.get(SERVLET_NAME)).isNotNull();
 
-		@Override
-		protected WebApplicationContext createServletApplicationContext() {
-			StaticWebApplicationContext servletContext = new StaticWebApplicationContext();
-			servletContext.registerSingleton("bean", MyBean.class);
-			return servletContext;
-		}
+        MockServletRegistration registration = registrations.get(SERVLET_NAME);
+        assertThat(registration.getMappings()).isEqualTo(Collections.singleton(SERVLET_MAPPING));
+        assertThat(registration.getLoadOnStartup()).isEqualTo(1);
+        assertThat(registration.getRunAsRole()).isEqualTo(ROLE_NAME);
+    }
 
-		@Override
-		protected String[] getServletMappings() {
-			return new String[] { SERVLET_MAPPING };
-		}
+    private static class MyDispatcherServletInitializer extends AbstractDispatcherServletInitializer {
 
-		@Override
-		protected void customizeRegistration(ServletRegistration.Dynamic registration) {
-			registration.setRunAsRole("role");
-		}
+        @Override
+        protected String getServletName() {
+            return SERVLET_NAME;
+        }
 
-		@Override
-		protected WebApplicationContext createRootApplicationContext() {
-			return null;
-		}
-	}
+        @Override
+        protected DispatcherServlet createDispatcherServlet(WebApplicationContext servletAppContext) {
+            return new MyDispatcherServlet(servletAppContext);
+        }
 
-	private static class MyBean {
-	}
+        @Override
+        protected WebApplicationContext createServletApplicationContext() {
+            StaticWebApplicationContext servletContext = new StaticWebApplicationContext();
+            servletContext.registerSingleton("bean", MyBean.class);
+            return servletContext;
+        }
 
-	@SuppressWarnings("serial")
-	private static class MyDispatcherServlet extends DispatcherServlet {
-		public MyDispatcherServlet(WebApplicationContext webApplicationContext) {
-			super(webApplicationContext);
-		}
-	}
+        @Override
+        protected String[] getServletMappings() {
+            return new String[]{SERVLET_MAPPING};
+        }
+
+        @Override
+        protected void customizeRegistration(ServletRegistration.Dynamic registration) {
+            registration.setRunAsRole("role");
+        }
+
+        @Override
+        protected WebApplicationContext createRootApplicationContext() {
+            return null;
+        }
+    }
+
+    private static class MyBean {
+    }
+
+    @SuppressWarnings("serial")
+    private static class MyDispatcherServlet extends DispatcherServlet {
+        public MyDispatcherServlet(WebApplicationContext webApplicationContext) {
+            super(webApplicationContext);
+        }
+    }
+
+    private class MyMockServletContext extends MockServletContext {
+
+        @Override
+        public ServletRegistration.Dynamic addServlet(String servletName, Servlet servlet) {
+            servlets.put(servletName, servlet);
+            MockServletRegistration registration = new MockServletRegistration();
+            registrations.put(servletName, registration);
+            return registration;
+        }
+    }
 
 }

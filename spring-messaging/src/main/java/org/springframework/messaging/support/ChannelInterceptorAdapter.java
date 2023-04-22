@@ -34,31 +34,31 @@ import org.springframework.messaging.MessageChannel;
 @Deprecated
 public abstract class ChannelInterceptorAdapter implements ChannelInterceptor {
 
-	@Override
-	public Message<?> preSend(Message<?> message, MessageChannel channel) {
-		return message;
-	}
+    @Override
+    public Message<?> preSend(Message<?> message, MessageChannel channel) {
+        return message;
+    }
 
-	@Override
-	public void postSend(Message<?> message, MessageChannel channel, boolean sent) {
-	}
+    @Override
+    public void postSend(Message<?> message, MessageChannel channel, boolean sent) {
+    }
 
-	@Override
-	public void afterSendCompletion(Message<?> message, MessageChannel channel, boolean sent, @Nullable Exception ex) {
-	}
+    @Override
+    public void afterSendCompletion(Message<?> message, MessageChannel channel, boolean sent, @Nullable Exception ex) {
+    }
 
-	@Override
-	public boolean preReceive(MessageChannel channel) {
-		return true;
-	}
+    @Override
+    public boolean preReceive(MessageChannel channel) {
+        return true;
+    }
 
-	@Override
-	public Message<?> postReceive(Message<?> message, MessageChannel channel) {
-		return message;
-	}
+    @Override
+    public Message<?> postReceive(Message<?> message, MessageChannel channel) {
+        return message;
+    }
 
-	@Override
-	public void afterReceiveCompletion(@Nullable Message<?> message, MessageChannel channel, @Nullable Exception ex) {
-	}
+    @Override
+    public void afterReceiveCompletion(@Nullable Message<?> message, MessageChannel channel, @Nullable Exception ex) {
+    }
 
 }

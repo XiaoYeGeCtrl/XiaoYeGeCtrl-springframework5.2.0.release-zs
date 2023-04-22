@@ -42,48 +42,47 @@ import org.springframework.test.context.ContextConfiguration;
 @Target(ElementType.TYPE)
 public @interface ConfigClassesAndProfileResolverWithCustomDefaultsMetaConfig {
 
-	@Configuration
-	@Profile("dev")
-	static class DevConfig {
+    Class<?>[] classes() default {DevConfig.class, ProductionConfig.class, ResolverConfig.class};
 
-		@Bean
-		public String foo() {
-			return "Dev Foo";
-		}
-	}
+    Class<? extends ActiveProfilesResolver> resolver() default CustomResolver.class;
 
-	@Configuration
-	@Profile("prod")
-	static class ProductionConfig {
+    @Configuration
+    @Profile("dev")
+    static class DevConfig {
 
-		@Bean
-		public String foo() {
-			return "Production Foo";
-		}
-	}
+        @Bean
+        public String foo() {
+            return "Dev Foo";
+        }
+    }
 
-	@Configuration
-	@Profile("resolver")
-	static class ResolverConfig {
+    @Configuration
+    @Profile("prod")
+    static class ProductionConfig {
 
-		@Bean
-		public String foo() {
-			return "Resolver Foo";
-		}
-	}
+        @Bean
+        public String foo() {
+            return "Production Foo";
+        }
+    }
 
-	static class CustomResolver implements ActiveProfilesResolver {
+    @Configuration
+    @Profile("resolver")
+    static class ResolverConfig {
 
-		@Override
-		public String[] resolve(Class<?> testClass) {
-			return testClass.getSimpleName().equals("ConfigClassesAndProfileResolverWithCustomDefaultsMetaConfigTests") ? new String[] { "resolver" }
-					: new String[] {};
-		}
-	}
+        @Bean
+        public String foo() {
+            return "Resolver Foo";
+        }
+    }
 
+    static class CustomResolver implements ActiveProfilesResolver {
 
-	Class<?>[] classes() default { DevConfig.class, ProductionConfig.class, ResolverConfig.class };
-
-	Class<? extends ActiveProfilesResolver> resolver() default CustomResolver.class;
+        @Override
+        public String[] resolve(Class<?> testClass) {
+            return testClass.getSimpleName().equals("ConfigClassesAndProfileResolverWithCustomDefaultsMetaConfigTests") ? new String[]{"resolver"}
+                    : new String[]{};
+        }
+    }
 
 }

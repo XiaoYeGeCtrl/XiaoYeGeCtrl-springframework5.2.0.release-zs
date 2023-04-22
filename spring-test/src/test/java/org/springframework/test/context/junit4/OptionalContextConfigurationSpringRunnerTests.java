@@ -37,23 +37,23 @@ import static org.assertj.core.api.Assertions.assertThat;
 @RunWith(SpringRunner.class)
 public class OptionalContextConfigurationSpringRunnerTests {
 
-	@Autowired
-	String foo;
+    @Autowired
+    String foo;
 
 
-	@Test
-	public void contextConfigurationAnnotationIsOptional() {
-		assertThat(foo).isEqualTo("foo");
-	}
+    @Test
+    public void contextConfigurationAnnotationIsOptional() {
+        assertThat(foo).isEqualTo("foo");
+    }
 
 
-	@Configuration
-	static class Config {
+    @Configuration
+    static class Config {
 
-		@Bean
-		String foo() {
-			return "foo";
-		}
-	}
+        @Bean
+        String foo() {
+            return "foo";
+        }
+    }
 
 }

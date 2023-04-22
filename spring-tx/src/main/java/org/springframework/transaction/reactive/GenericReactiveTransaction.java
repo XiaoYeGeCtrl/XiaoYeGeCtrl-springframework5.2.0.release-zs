@@ -34,138 +34,140 @@ import org.springframework.util.Assert;
  *
  * @author Mark Paluch
  * @author Juergen Hoeller
- * @since 5.2
  * @see AbstractReactiveTransactionManager
  * @see #getTransaction
+ * @since 5.2
  */
 public class GenericReactiveTransaction implements ReactiveTransaction {
 
-	@Nullable
-	private final Object transaction;
+    @Nullable
+    private final Object transaction;
 
-	private final boolean newTransaction;
+    private final boolean newTransaction;
 
-	private final boolean newSynchronization;
+    private final boolean newSynchronization;
 
-	private final boolean readOnly;
+    private final boolean readOnly;
 
-	private final boolean debug;
+    private final boolean debug;
 
-	@Nullable
-	private final Object suspendedResources;
+    @Nullable
+    private final Object suspendedResources;
 
-	private boolean rollbackOnly = false;
+    private boolean rollbackOnly = false;
 
-	private boolean completed = false;
-
-
-	/**
-	 * Create a new {@code DefaultReactiveTransactionStatus} instance.
-	 * @param transaction underlying transaction object that can hold state
-	 * for the internal transaction implementation
-	 * @param newTransaction if the transaction is new, otherwise participating
-	 * in an existing transaction
-	 * @param newSynchronization if a new transaction synchronization has been
-	 * opened for the given transaction
-	 * @param readOnly whether the transaction is marked as read-only
-	 * @param debug should debug logging be enabled for the handling of this transaction?
-	 * Caching it in here can prevent repeated calls to ask the logging system whether
-	 * debug logging should be enabled.
-	 * @param suspendedResources a holder for resources that have been suspended
-	 * for this transaction, if any
-	 */
-	public GenericReactiveTransaction(
-			@Nullable Object transaction, boolean newTransaction, boolean newSynchronization,
-			boolean readOnly, boolean debug, @Nullable Object suspendedResources) {
-
-		this.transaction = transaction;
-		this.newTransaction = newTransaction;
-		this.newSynchronization = newSynchronization;
-		this.readOnly = readOnly;
-		this.debug = debug;
-		this.suspendedResources = suspendedResources;
-	}
+    private boolean completed = false;
 
 
-	/**
-	 * Return the underlying transaction object.
-	 * @throws IllegalStateException if no transaction is active
-	 */
-	public Object getTransaction() {
-		Assert.state(this.transaction != null, "No transaction active");
-		return this.transaction;
-	}
+    /**
+     * Create a new {@code DefaultReactiveTransactionStatus} instance.
+     *
+     * @param transaction        underlying transaction object that can hold state
+     *                           for the internal transaction implementation
+     * @param newTransaction     if the transaction is new, otherwise participating
+     *                           in an existing transaction
+     * @param newSynchronization if a new transaction synchronization has been
+     *                           opened for the given transaction
+     * @param readOnly           whether the transaction is marked as read-only
+     * @param debug              should debug logging be enabled for the handling of this transaction?
+     *                           Caching it in here can prevent repeated calls to ask the logging system whether
+     *                           debug logging should be enabled.
+     * @param suspendedResources a holder for resources that have been suspended
+     *                           for this transaction, if any
+     */
+    public GenericReactiveTransaction(
+            @Nullable Object transaction, boolean newTransaction, boolean newSynchronization,
+            boolean readOnly, boolean debug, @Nullable Object suspendedResources) {
 
-	/**
-	 * Return whether there is an actual transaction active.
-	 */
-	public boolean hasTransaction() {
-		return (this.transaction != null);
-	}
+        this.transaction = transaction;
+        this.newTransaction = newTransaction;
+        this.newSynchronization = newSynchronization;
+        this.readOnly = readOnly;
+        this.debug = debug;
+        this.suspendedResources = suspendedResources;
+    }
 
-	@Override
-	public boolean isNewTransaction() {
-		return (hasTransaction() && this.newTransaction);
-	}
 
-	/**
-	 * Return if a new transaction synchronization has been opened
-	 * for this transaction.
-	 */
-	public boolean isNewSynchronization() {
-		return this.newSynchronization;
-	}
+    /**
+     * Return the underlying transaction object.
+     *
+     * @throws IllegalStateException if no transaction is active
+     */
+    public Object getTransaction() {
+        Assert.state(this.transaction != null, "No transaction active");
+        return this.transaction;
+    }
 
-	/**
-	 * Return if this transaction is defined as read-only transaction.
-	 */
-	public boolean isReadOnly() {
-		return this.readOnly;
-	}
+    /**
+     * Return whether there is an actual transaction active.
+     */
+    public boolean hasTransaction() {
+        return (this.transaction != null);
+    }
 
-	/**
-	 * Return whether the progress of this transaction is debugged. This is used by
-	 * {@link AbstractReactiveTransactionManager} as an optimization, to prevent repeated
-	 * calls to {@code logger.isDebugEnabled()}. Not really intended for client code.
-	 */
-	public boolean isDebug() {
-		return this.debug;
-	}
+    @Override
+    public boolean isNewTransaction() {
+        return (hasTransaction() && this.newTransaction);
+    }
 
-	/**
-	 * Return the holder for resources that have been suspended for this transaction,
-	 * if any.
-	 */
-	@Nullable
-	public Object getSuspendedResources() {
-		return this.suspendedResources;
-	}
+    /**
+     * Return if a new transaction synchronization has been opened
+     * for this transaction.
+     */
+    public boolean isNewSynchronization() {
+        return this.newSynchronization;
+    }
 
-	@Override
-	public void setRollbackOnly() {
-		this.rollbackOnly = true;
-	}
+    /**
+     * Return if this transaction is defined as read-only transaction.
+     */
+    public boolean isReadOnly() {
+        return this.readOnly;
+    }
 
-	/**
-	 * Determine the rollback-only flag via checking this ReactiveTransactionStatus.
-	 * <p>Will only return "true" if the application called {@code setRollbackOnly}
-	 * on this TransactionStatus object.
-	 */
-	@Override
-	public boolean isRollbackOnly() {
-		return this.rollbackOnly;
-	}
+    /**
+     * Return whether the progress of this transaction is debugged. This is used by
+     * {@link AbstractReactiveTransactionManager} as an optimization, to prevent repeated
+     * calls to {@code logger.isDebugEnabled()}. Not really intended for client code.
+     */
+    public boolean isDebug() {
+        return this.debug;
+    }
 
-	/**
-	 * Mark this transaction as completed, that is, committed or rolled back.
-	 */
-	public void setCompleted() {
-		this.completed = true;
-	}
+    /**
+     * Return the holder for resources that have been suspended for this transaction,
+     * if any.
+     */
+    @Nullable
+    public Object getSuspendedResources() {
+        return this.suspendedResources;
+    }
 
-	@Override
-	public boolean isCompleted() {
-		return this.completed;
-	}
+    @Override
+    public void setRollbackOnly() {
+        this.rollbackOnly = true;
+    }
+
+    /**
+     * Determine the rollback-only flag via checking this ReactiveTransactionStatus.
+     * <p>Will only return "true" if the application called {@code setRollbackOnly}
+     * on this TransactionStatus object.
+     */
+    @Override
+    public boolean isRollbackOnly() {
+        return this.rollbackOnly;
+    }
+
+    /**
+     * Mark this transaction as completed, that is, committed or rolled back.
+     */
+    public void setCompleted() {
+        this.completed = true;
+    }
+
+    @Override
+    public boolean isCompleted() {
+        return this.completed;
+    }
 
 }

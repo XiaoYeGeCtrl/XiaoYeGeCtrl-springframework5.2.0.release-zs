@@ -34,51 +34,50 @@ import org.springframework.util.MimeType;
  */
 public class StringMessageConverter extends AbstractMessageConverter {
 
-	private final Charset defaultCharset;
+    private final Charset defaultCharset;
 
 
-	public StringMessageConverter() {
-		this(StandardCharsets.UTF_8);
-	}
+    public StringMessageConverter() {
+        this(StandardCharsets.UTF_8);
+    }
 
-	public StringMessageConverter(Charset defaultCharset) {
-		super(new MimeType("text", "plain", defaultCharset));
-		Assert.notNull(defaultCharset, "Default Charset must not be null");
-		this.defaultCharset = defaultCharset;
-	}
+    public StringMessageConverter(Charset defaultCharset) {
+        super(new MimeType("text", "plain", defaultCharset));
+        Assert.notNull(defaultCharset, "Default Charset must not be null");
+        this.defaultCharset = defaultCharset;
+    }
 
 
-	@Override
-	protected boolean supports(Class<?> clazz) {
-		return (String.class == clazz);
-	}
+    @Override
+    protected boolean supports(Class<?> clazz) {
+        return (String.class == clazz);
+    }
 
-	@Override
-	protected Object convertFromInternal(Message<?> message, Class<?> targetClass, @Nullable Object conversionHint) {
-		Charset charset = getContentTypeCharset(getMimeType(message.getHeaders()));
-		Object payload = message.getPayload();
-		return (payload instanceof String ? payload : new String((byte[]) payload, charset));
-	}
+    @Override
+    protected Object convertFromInternal(Message<?> message, Class<?> targetClass, @Nullable Object conversionHint) {
+        Charset charset = getContentTypeCharset(getMimeType(message.getHeaders()));
+        Object payload = message.getPayload();
+        return (payload instanceof String ? payload : new String((byte[]) payload, charset));
+    }
 
-	@Override
-	@Nullable
-	protected Object convertToInternal(
-			Object payload, @Nullable MessageHeaders headers, @Nullable Object conversionHint) {
+    @Override
+    @Nullable
+    protected Object convertToInternal(
+            Object payload, @Nullable MessageHeaders headers, @Nullable Object conversionHint) {
 
-		if (byte[].class == getSerializedPayloadClass()) {
-			Charset charset = getContentTypeCharset(getMimeType(headers));
-			payload = ((String) payload).getBytes(charset);
-		}
-		return payload;
-	}
+        if (byte[].class == getSerializedPayloadClass()) {
+            Charset charset = getContentTypeCharset(getMimeType(headers));
+            payload = ((String) payload).getBytes(charset);
+        }
+        return payload;
+    }
 
-	private Charset getContentTypeCharset(@Nullable MimeType mimeType) {
-		if (mimeType != null && mimeType.getCharset() != null) {
-			return mimeType.getCharset();
-		}
-		else {
-			return this.defaultCharset;
-		}
-	}
+    private Charset getContentTypeCharset(@Nullable MimeType mimeType) {
+        if (mimeType != null && mimeType.getCharset() != null) {
+            return mimeType.getCharset();
+        } else {
+            return this.defaultCharset;
+        }
+    }
 
 }

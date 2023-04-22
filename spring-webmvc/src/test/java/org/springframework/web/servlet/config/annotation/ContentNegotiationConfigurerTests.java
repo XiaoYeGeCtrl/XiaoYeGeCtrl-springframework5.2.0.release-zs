@@ -34,99 +34,100 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Test fixture for {@link ContentNegotiationConfigurer} tests.
+ *
  * @author Rossen Stoyanchev
  */
 public class ContentNegotiationConfigurerTests {
 
-	private ContentNegotiationConfigurer configurer;
+    private ContentNegotiationConfigurer configurer;
 
-	private NativeWebRequest webRequest;
+    private NativeWebRequest webRequest;
 
-	private MockHttpServletRequest servletRequest;
-
-
-	@BeforeEach
-	public void setup() {
-		this.servletRequest = new MockHttpServletRequest();
-		this.webRequest = new ServletWebRequest(this.servletRequest);
-		this.configurer = new ContentNegotiationConfigurer(this.servletRequest.getServletContext());
-	}
+    private MockHttpServletRequest servletRequest;
 
 
-	@Test
-	public void defaultSettings() throws Exception {
-		ContentNegotiationManager manager = this.configurer.buildContentNegotiationManager();
+    @BeforeEach
+    public void setup() {
+        this.servletRequest = new MockHttpServletRequest();
+        this.webRequest = new ServletWebRequest(this.servletRequest);
+        this.configurer = new ContentNegotiationConfigurer(this.servletRequest.getServletContext());
+    }
 
-		this.servletRequest.setRequestURI("/flower.gif");
 
-		assertThat(manager.resolveMediaTypes(this.webRequest).get(0)).as("Should be able to resolve file extensions by default").isEqualTo(MediaType.IMAGE_GIF);
+    @Test
+    public void defaultSettings() throws Exception {
+        ContentNegotiationManager manager = this.configurer.buildContentNegotiationManager();
 
-		this.servletRequest.setRequestURI("/flower?format=gif");
-		this.servletRequest.addParameter("format", "gif");
+        this.servletRequest.setRequestURI("/flower.gif");
 
-		assertThat(manager.resolveMediaTypes(this.webRequest)).as("Should not resolve request parameters by default").isEqualTo(ContentNegotiationStrategy.MEDIA_TYPE_ALL_LIST);
+        assertThat(manager.resolveMediaTypes(this.webRequest).get(0)).as("Should be able to resolve file extensions by default").isEqualTo(MediaType.IMAGE_GIF);
 
-		this.servletRequest.setRequestURI("/flower");
-		this.servletRequest.addHeader("Accept", MediaType.IMAGE_GIF_VALUE);
+        this.servletRequest.setRequestURI("/flower?format=gif");
+        this.servletRequest.addParameter("format", "gif");
 
-		assertThat(manager.resolveMediaTypes(this.webRequest).get(0)).as("Should resolve Accept header by default").isEqualTo(MediaType.IMAGE_GIF);
-	}
+        assertThat(manager.resolveMediaTypes(this.webRequest)).as("Should not resolve request parameters by default").isEqualTo(ContentNegotiationStrategy.MEDIA_TYPE_ALL_LIST);
 
-	@Test
-	public void addMediaTypes() throws Exception {
-		this.configurer.mediaTypes(Collections.singletonMap("json", MediaType.APPLICATION_JSON));
-		ContentNegotiationManager manager = this.configurer.buildContentNegotiationManager();
+        this.servletRequest.setRequestURI("/flower");
+        this.servletRequest.addHeader("Accept", MediaType.IMAGE_GIF_VALUE);
 
-		this.servletRequest.setRequestURI("/flower.json");
-		assertThat(manager.resolveMediaTypes(this.webRequest).get(0)).isEqualTo(MediaType.APPLICATION_JSON);
-	}
+        assertThat(manager.resolveMediaTypes(this.webRequest).get(0)).as("Should resolve Accept header by default").isEqualTo(MediaType.IMAGE_GIF);
+    }
 
-	@Test
-	public void favorParameter() throws Exception {
-		this.configurer.favorParameter(true);
-		this.configurer.parameterName("f");
-		this.configurer.mediaTypes(Collections.singletonMap("json", MediaType.APPLICATION_JSON));
-		ContentNegotiationManager manager = this.configurer.buildContentNegotiationManager();
+    @Test
+    public void addMediaTypes() throws Exception {
+        this.configurer.mediaTypes(Collections.singletonMap("json", MediaType.APPLICATION_JSON));
+        ContentNegotiationManager manager = this.configurer.buildContentNegotiationManager();
 
-		this.servletRequest.setRequestURI("/flower");
-		this.servletRequest.addParameter("f", "json");
+        this.servletRequest.setRequestURI("/flower.json");
+        assertThat(manager.resolveMediaTypes(this.webRequest).get(0)).isEqualTo(MediaType.APPLICATION_JSON);
+    }
 
-		assertThat(manager.resolveMediaTypes(this.webRequest).get(0)).isEqualTo(MediaType.APPLICATION_JSON);
-	}
+    @Test
+    public void favorParameter() throws Exception {
+        this.configurer.favorParameter(true);
+        this.configurer.parameterName("f");
+        this.configurer.mediaTypes(Collections.singletonMap("json", MediaType.APPLICATION_JSON));
+        ContentNegotiationManager manager = this.configurer.buildContentNegotiationManager();
 
-	@Test
-	public void ignoreAcceptHeader() throws Exception {
-		this.configurer.ignoreAcceptHeader(true);
-		ContentNegotiationManager manager = this.configurer.buildContentNegotiationManager();
+        this.servletRequest.setRequestURI("/flower");
+        this.servletRequest.addParameter("f", "json");
 
-		this.servletRequest.setRequestURI("/flower");
-		this.servletRequest.addHeader("Accept", MediaType.IMAGE_GIF_VALUE);
+        assertThat(manager.resolveMediaTypes(this.webRequest).get(0)).isEqualTo(MediaType.APPLICATION_JSON);
+    }
 
-		assertThat(manager.resolveMediaTypes(this.webRequest)).isEqualTo(ContentNegotiationStrategy.MEDIA_TYPE_ALL_LIST);
-	}
+    @Test
+    public void ignoreAcceptHeader() throws Exception {
+        this.configurer.ignoreAcceptHeader(true);
+        ContentNegotiationManager manager = this.configurer.buildContentNegotiationManager();
 
-	@Test
-	public void setDefaultContentType() throws Exception {
-		this.configurer.defaultContentType(MediaType.APPLICATION_JSON);
-		ContentNegotiationManager manager = this.configurer.buildContentNegotiationManager();
+        this.servletRequest.setRequestURI("/flower");
+        this.servletRequest.addHeader("Accept", MediaType.IMAGE_GIF_VALUE);
 
-		assertThat(manager.resolveMediaTypes(this.webRequest).get(0)).isEqualTo(MediaType.APPLICATION_JSON);
-	}
+        assertThat(manager.resolveMediaTypes(this.webRequest)).isEqualTo(ContentNegotiationStrategy.MEDIA_TYPE_ALL_LIST);
+    }
 
-	@Test
-	public void setMultipleDefaultContentTypes() throws Exception {
-		this.configurer.defaultContentType(MediaType.APPLICATION_JSON, MediaType.ALL);
-		ContentNegotiationManager manager = this.configurer.buildContentNegotiationManager();
+    @Test
+    public void setDefaultContentType() throws Exception {
+        this.configurer.defaultContentType(MediaType.APPLICATION_JSON);
+        ContentNegotiationManager manager = this.configurer.buildContentNegotiationManager();
 
-		assertThat(manager.resolveMediaTypes(this.webRequest)).isEqualTo(Arrays.asList(MediaType.APPLICATION_JSON, MediaType.ALL));
-	}
+        assertThat(manager.resolveMediaTypes(this.webRequest).get(0)).isEqualTo(MediaType.APPLICATION_JSON);
+    }
 
-	@Test
-	public void setDefaultContentTypeStrategy() throws Exception {
-		this.configurer.defaultContentTypeStrategy(new FixedContentNegotiationStrategy(MediaType.APPLICATION_JSON));
-		ContentNegotiationManager manager = this.configurer.buildContentNegotiationManager();
+    @Test
+    public void setMultipleDefaultContentTypes() throws Exception {
+        this.configurer.defaultContentType(MediaType.APPLICATION_JSON, MediaType.ALL);
+        ContentNegotiationManager manager = this.configurer.buildContentNegotiationManager();
 
-		assertThat(manager.resolveMediaTypes(this.webRequest).get(0)).isEqualTo(MediaType.APPLICATION_JSON);
-	}
+        assertThat(manager.resolveMediaTypes(this.webRequest)).isEqualTo(Arrays.asList(MediaType.APPLICATION_JSON, MediaType.ALL));
+    }
+
+    @Test
+    public void setDefaultContentTypeStrategy() throws Exception {
+        this.configurer.defaultContentTypeStrategy(new FixedContentNegotiationStrategy(MediaType.APPLICATION_JSON));
+        ContentNegotiationManager manager = this.configurer.buildContentNegotiationManager();
+
+        assertThat(manager.resolveMediaTypes(this.webRequest).get(0)).isEqualTo(MediaType.APPLICATION_JSON);
+    }
 
 }

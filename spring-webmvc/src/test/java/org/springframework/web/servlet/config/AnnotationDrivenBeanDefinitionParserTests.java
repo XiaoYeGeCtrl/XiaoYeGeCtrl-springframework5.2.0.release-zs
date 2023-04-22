@@ -60,201 +60,202 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 public class AnnotationDrivenBeanDefinitionParserTests {
 
-	private final GenericWebApplicationContext appContext = new GenericWebApplicationContext();
+    private final GenericWebApplicationContext appContext = new GenericWebApplicationContext();
 
-	@Test
-	public void testMessageCodesResolver() {
-		loadBeanDefinitions("mvc-config-message-codes-resolver.xml");
-		RequestMappingHandlerAdapter adapter = this.appContext.getBean(RequestMappingHandlerAdapter.class);
-		assertThat(adapter).isNotNull();
-		Object initializer = adapter.getWebBindingInitializer();
-		assertThat(initializer).isNotNull();
-		MessageCodesResolver resolver =
-				((ConfigurableWebBindingInitializer) initializer).getMessageCodesResolver();
-		assertThat(resolver).isNotNull();
-		assertThat(resolver.getClass()).isEqualTo(TestMessageCodesResolver.class);
-		assertThat(new DirectFieldAccessor(adapter).getPropertyValue("ignoreDefaultModelOnRedirect")).isEqualTo(false);
-	}
+    @Test
+    public void testMessageCodesResolver() {
+        loadBeanDefinitions("mvc-config-message-codes-resolver.xml");
+        RequestMappingHandlerAdapter adapter = this.appContext.getBean(RequestMappingHandlerAdapter.class);
+        assertThat(adapter).isNotNull();
+        Object initializer = adapter.getWebBindingInitializer();
+        assertThat(initializer).isNotNull();
+        MessageCodesResolver resolver =
+                ((ConfigurableWebBindingInitializer) initializer).getMessageCodesResolver();
+        assertThat(resolver).isNotNull();
+        assertThat(resolver.getClass()).isEqualTo(TestMessageCodesResolver.class);
+        assertThat(new DirectFieldAccessor(adapter).getPropertyValue("ignoreDefaultModelOnRedirect")).isEqualTo(false);
+    }
 
-	@Test
-	public void testPathMatchingConfiguration() {
-		loadBeanDefinitions("mvc-config-path-matching.xml");
-		RequestMappingHandlerMapping hm = this.appContext.getBean(RequestMappingHandlerMapping.class);
-		assertThat(hm).isNotNull();
-		assertThat(hm.useSuffixPatternMatch()).isTrue();
-		assertThat(hm.useTrailingSlashMatch()).isFalse();
-		assertThat(hm.useRegisteredSuffixPatternMatch()).isTrue();
-		assertThat(hm.getUrlPathHelper()).isInstanceOf(TestPathHelper.class);
-		assertThat(hm.getPathMatcher()).isInstanceOf(TestPathMatcher.class);
-		List<String> fileExtensions = hm.getContentNegotiationManager().getAllFileExtensions();
-		assertThat(fileExtensions).containsExactly("xml");
-	}
+    @Test
+    public void testPathMatchingConfiguration() {
+        loadBeanDefinitions("mvc-config-path-matching.xml");
+        RequestMappingHandlerMapping hm = this.appContext.getBean(RequestMappingHandlerMapping.class);
+        assertThat(hm).isNotNull();
+        assertThat(hm.useSuffixPatternMatch()).isTrue();
+        assertThat(hm.useTrailingSlashMatch()).isFalse();
+        assertThat(hm.useRegisteredSuffixPatternMatch()).isTrue();
+        assertThat(hm.getUrlPathHelper()).isInstanceOf(TestPathHelper.class);
+        assertThat(hm.getPathMatcher()).isInstanceOf(TestPathMatcher.class);
+        List<String> fileExtensions = hm.getContentNegotiationManager().getAllFileExtensions();
+        assertThat(fileExtensions).containsExactly("xml");
+    }
 
-	@Test
-	public void testMessageConverters() {
-		loadBeanDefinitions("mvc-config-message-converters.xml");
-		verifyMessageConverters(this.appContext.getBean(RequestMappingHandlerAdapter.class), true);
-		verifyMessageConverters(this.appContext.getBean(ExceptionHandlerExceptionResolver.class), true);
-		verifyRequestResponseBodyAdvice(this.appContext.getBean(RequestMappingHandlerAdapter.class));
-		verifyResponseBodyAdvice(this.appContext.getBean(ExceptionHandlerExceptionResolver.class));
-	}
+    @Test
+    public void testMessageConverters() {
+        loadBeanDefinitions("mvc-config-message-converters.xml");
+        verifyMessageConverters(this.appContext.getBean(RequestMappingHandlerAdapter.class), true);
+        verifyMessageConverters(this.appContext.getBean(ExceptionHandlerExceptionResolver.class), true);
+        verifyRequestResponseBodyAdvice(this.appContext.getBean(RequestMappingHandlerAdapter.class));
+        verifyResponseBodyAdvice(this.appContext.getBean(ExceptionHandlerExceptionResolver.class));
+    }
 
-	@Test
-	public void testMessageConvertersWithoutDefaultRegistrations() {
-		loadBeanDefinitions("mvc-config-message-converters-defaults-off.xml");
-		verifyMessageConverters(this.appContext.getBean(RequestMappingHandlerAdapter.class), false);
-		verifyMessageConverters(this.appContext.getBean(ExceptionHandlerExceptionResolver.class), false);
-	}
+    @Test
+    public void testMessageConvertersWithoutDefaultRegistrations() {
+        loadBeanDefinitions("mvc-config-message-converters-defaults-off.xml");
+        verifyMessageConverters(this.appContext.getBean(RequestMappingHandlerAdapter.class), false);
+        verifyMessageConverters(this.appContext.getBean(ExceptionHandlerExceptionResolver.class), false);
+    }
 
-	@Test
-	public void testArgumentResolvers() {
-		loadBeanDefinitions("mvc-config-argument-resolvers.xml");
-		testArgumentResolvers(this.appContext.getBean(RequestMappingHandlerAdapter.class));
-		testArgumentResolvers(this.appContext.getBean(ExceptionHandlerExceptionResolver.class));
-	}
+    @Test
+    public void testArgumentResolvers() {
+        loadBeanDefinitions("mvc-config-argument-resolvers.xml");
+        testArgumentResolvers(this.appContext.getBean(RequestMappingHandlerAdapter.class));
+        testArgumentResolvers(this.appContext.getBean(ExceptionHandlerExceptionResolver.class));
+    }
 
-	private void testArgumentResolvers(Object bean) {
-		assertThat(bean).isNotNull();
-		Object value = new DirectFieldAccessor(bean).getPropertyValue("customArgumentResolvers");
-		assertThat(value).isNotNull();
-		assertThat(value instanceof List).isTrue();
-		@SuppressWarnings("unchecked")
-		List<HandlerMethodArgumentResolver> resolvers = (List<HandlerMethodArgumentResolver>) value;
-		assertThat(resolvers.size()).isEqualTo(3);
-		assertThat(resolvers.get(0) instanceof ServletWebArgumentResolverAdapter).isTrue();
-		assertThat(resolvers.get(1) instanceof TestHandlerMethodArgumentResolver).isTrue();
-		assertThat(resolvers.get(2) instanceof TestHandlerMethodArgumentResolver).isTrue();
-		assertThat(resolvers.get(2)).isNotSameAs(resolvers.get(1));
-	}
+    private void testArgumentResolvers(Object bean) {
+        assertThat(bean).isNotNull();
+        Object value = new DirectFieldAccessor(bean).getPropertyValue("customArgumentResolvers");
+        assertThat(value).isNotNull();
+        assertThat(value instanceof List).isTrue();
+        @SuppressWarnings("unchecked")
+        List<HandlerMethodArgumentResolver> resolvers = (List<HandlerMethodArgumentResolver>) value;
+        assertThat(resolvers.size()).isEqualTo(3);
+        assertThat(resolvers.get(0) instanceof ServletWebArgumentResolverAdapter).isTrue();
+        assertThat(resolvers.get(1) instanceof TestHandlerMethodArgumentResolver).isTrue();
+        assertThat(resolvers.get(2) instanceof TestHandlerMethodArgumentResolver).isTrue();
+        assertThat(resolvers.get(2)).isNotSameAs(resolvers.get(1));
+    }
 
-	@Test
-	public void testReturnValueHandlers() {
-		loadBeanDefinitions("mvc-config-return-value-handlers.xml");
-		testReturnValueHandlers(this.appContext.getBean(RequestMappingHandlerAdapter.class));
-		testReturnValueHandlers(this.appContext.getBean(ExceptionHandlerExceptionResolver.class));
-	}
+    @Test
+    public void testReturnValueHandlers() {
+        loadBeanDefinitions("mvc-config-return-value-handlers.xml");
+        testReturnValueHandlers(this.appContext.getBean(RequestMappingHandlerAdapter.class));
+        testReturnValueHandlers(this.appContext.getBean(ExceptionHandlerExceptionResolver.class));
+    }
 
-	private void testReturnValueHandlers(Object bean) {
-		assertThat(bean).isNotNull();
-		Object value = new DirectFieldAccessor(bean).getPropertyValue("customReturnValueHandlers");
-		assertThat(value).isNotNull();
-		assertThat(value instanceof List).isTrue();
-		@SuppressWarnings("unchecked")
-		List<HandlerMethodReturnValueHandler> handlers = (List<HandlerMethodReturnValueHandler>) value;
-		assertThat(handlers.size()).isEqualTo(2);
-		assertThat(handlers.get(0).getClass()).isEqualTo(TestHandlerMethodReturnValueHandler.class);
-		assertThat(handlers.get(1).getClass()).isEqualTo(TestHandlerMethodReturnValueHandler.class);
-		assertThat(handlers.get(1)).isNotSameAs(handlers.get(0));
-	}
+    private void testReturnValueHandlers(Object bean) {
+        assertThat(bean).isNotNull();
+        Object value = new DirectFieldAccessor(bean).getPropertyValue("customReturnValueHandlers");
+        assertThat(value).isNotNull();
+        assertThat(value instanceof List).isTrue();
+        @SuppressWarnings("unchecked")
+        List<HandlerMethodReturnValueHandler> handlers = (List<HandlerMethodReturnValueHandler>) value;
+        assertThat(handlers.size()).isEqualTo(2);
+        assertThat(handlers.get(0).getClass()).isEqualTo(TestHandlerMethodReturnValueHandler.class);
+        assertThat(handlers.get(1).getClass()).isEqualTo(TestHandlerMethodReturnValueHandler.class);
+        assertThat(handlers.get(1)).isNotSameAs(handlers.get(0));
+    }
 
-	@Test
-	public void beanNameUrlHandlerMapping() {
-		loadBeanDefinitions("mvc-config.xml");
-		BeanNameUrlHandlerMapping mapping = this.appContext.getBean(BeanNameUrlHandlerMapping.class);
-		assertThat(mapping).isNotNull();
-		assertThat(mapping.getOrder()).isEqualTo(2);
-	}
+    @Test
+    public void beanNameUrlHandlerMapping() {
+        loadBeanDefinitions("mvc-config.xml");
+        BeanNameUrlHandlerMapping mapping = this.appContext.getBean(BeanNameUrlHandlerMapping.class);
+        assertThat(mapping).isNotNull();
+        assertThat(mapping.getOrder()).isEqualTo(2);
+    }
 
-	private void loadBeanDefinitions(String fileName) {
-		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(this.appContext);
-		Resource resource = new ClassPathResource(fileName, AnnotationDrivenBeanDefinitionParserTests.class);
-		reader.loadBeanDefinitions(resource);
-		this.appContext.refresh();
-	}
+    private void loadBeanDefinitions(String fileName) {
+        XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(this.appContext);
+        Resource resource = new ClassPathResource(fileName, AnnotationDrivenBeanDefinitionParserTests.class);
+        reader.loadBeanDefinitions(resource);
+        this.appContext.refresh();
+    }
 
-	@SuppressWarnings("unchecked")
-	private void verifyMessageConverters(Object bean, boolean hasDefaultRegistrations) {
-		assertThat(bean).isNotNull();
-		Object value = new DirectFieldAccessor(bean).getPropertyValue("messageConverters");
-		assertThat(value).isNotNull();
-		assertThat(value instanceof List).isTrue();
-		List<HttpMessageConverter<?>> converters = (List<HttpMessageConverter<?>>) value;
-		if (hasDefaultRegistrations) {
-			assertThat(converters.size() > 2).as("Default and custom converter expected").isTrue();
-		}
-		else {
-			assertThat(converters.size() == 2).as("Only custom converters expected").isTrue();
-		}
-		assertThat(converters.get(0) instanceof StringHttpMessageConverter).isTrue();
-		assertThat(converters.get(1) instanceof ResourceHttpMessageConverter).isTrue();
-	}
+    @SuppressWarnings("unchecked")
+    private void verifyMessageConverters(Object bean, boolean hasDefaultRegistrations) {
+        assertThat(bean).isNotNull();
+        Object value = new DirectFieldAccessor(bean).getPropertyValue("messageConverters");
+        assertThat(value).isNotNull();
+        assertThat(value instanceof List).isTrue();
+        List<HttpMessageConverter<?>> converters = (List<HttpMessageConverter<?>>) value;
+        if (hasDefaultRegistrations) {
+            assertThat(converters.size() > 2).as("Default and custom converter expected").isTrue();
+        } else {
+            assertThat(converters.size() == 2).as("Only custom converters expected").isTrue();
+        }
+        assertThat(converters.get(0) instanceof StringHttpMessageConverter).isTrue();
+        assertThat(converters.get(1) instanceof ResourceHttpMessageConverter).isTrue();
+    }
 
-	@SuppressWarnings("unchecked")
-	private void verifyResponseBodyAdvice(Object bean) {
-		assertThat(bean).isNotNull();
-		Object value = new DirectFieldAccessor(bean).getPropertyValue("responseBodyAdvice");
-		assertThat(value).isNotNull();
-		assertThat(value instanceof List).isTrue();
-		List<ResponseBodyAdvice<?>> converters = (List<ResponseBodyAdvice<?>>) value;
-		assertThat(converters.get(0) instanceof JsonViewResponseBodyAdvice).isTrue();
-	}
+    @SuppressWarnings("unchecked")
+    private void verifyResponseBodyAdvice(Object bean) {
+        assertThat(bean).isNotNull();
+        Object value = new DirectFieldAccessor(bean).getPropertyValue("responseBodyAdvice");
+        assertThat(value).isNotNull();
+        assertThat(value instanceof List).isTrue();
+        List<ResponseBodyAdvice<?>> converters = (List<ResponseBodyAdvice<?>>) value;
+        assertThat(converters.get(0) instanceof JsonViewResponseBodyAdvice).isTrue();
+    }
 
-	@SuppressWarnings("unchecked")
-	private void verifyRequestResponseBodyAdvice(Object bean) {
-		assertThat(bean).isNotNull();
-		Object value = new DirectFieldAccessor(bean).getPropertyValue("requestResponseBodyAdvice");
-		assertThat(value).isNotNull();
-		assertThat(value instanceof List).isTrue();
-		List<ResponseBodyAdvice<?>> converters = (List<ResponseBodyAdvice<?>>) value;
-		assertThat(converters.get(0) instanceof JsonViewRequestBodyAdvice).isTrue();
-		assertThat(converters.get(1) instanceof JsonViewResponseBodyAdvice).isTrue();
-	}
+    @SuppressWarnings("unchecked")
+    private void verifyRequestResponseBodyAdvice(Object bean) {
+        assertThat(bean).isNotNull();
+        Object value = new DirectFieldAccessor(bean).getPropertyValue("requestResponseBodyAdvice");
+        assertThat(value).isNotNull();
+        assertThat(value instanceof List).isTrue();
+        List<ResponseBodyAdvice<?>> converters = (List<ResponseBodyAdvice<?>>) value;
+        assertThat(converters.get(0) instanceof JsonViewRequestBodyAdvice).isTrue();
+        assertThat(converters.get(1) instanceof JsonViewResponseBodyAdvice).isTrue();
+    }
 
 }
 
 class TestWebArgumentResolver implements WebArgumentResolver {
 
-	@Override
-	public Object resolveArgument(MethodParameter methodParameter, NativeWebRequest webRequest) throws Exception {
-		return null;
-	}
+    @Override
+    public Object resolveArgument(MethodParameter methodParameter, NativeWebRequest webRequest) throws Exception {
+        return null;
+    }
 
 }
 
 class TestHandlerMethodArgumentResolver implements HandlerMethodArgumentResolver {
 
-	@Override
-	public boolean supportsParameter(MethodParameter parameter) {
-		return false;
-	}
+    @Override
+    public boolean supportsParameter(MethodParameter parameter) {
+        return false;
+    }
 
-	@Override
-	public Object resolveArgument(MethodParameter parameter, ModelAndViewContainer mavContainer,
-			NativeWebRequest webRequest, WebDataBinderFactory binderFactory) throws Exception {
-		return null;
-	}
+    @Override
+    public Object resolveArgument(MethodParameter parameter, ModelAndViewContainer mavContainer,
+                                  NativeWebRequest webRequest, WebDataBinderFactory binderFactory) throws Exception {
+        return null;
+    }
 }
 
 class TestHandlerMethodReturnValueHandler implements HandlerMethodReturnValueHandler {
 
-	@Override
-	public boolean supportsReturnType(MethodParameter returnType) {
-		return false;
-	}
+    @Override
+    public boolean supportsReturnType(MethodParameter returnType) {
+        return false;
+    }
 
-	@Override
-	public void handleReturnValue(Object returnValue,
-			MethodParameter returnType, ModelAndViewContainer mavContainer,
-			NativeWebRequest webRequest) throws Exception {
-	}
+    @Override
+    public void handleReturnValue(Object returnValue,
+                                  MethodParameter returnType, ModelAndViewContainer mavContainer,
+                                  NativeWebRequest webRequest) throws Exception {
+    }
 
 }
 
 class TestMessageCodesResolver implements MessageCodesResolver {
 
-	@Override
-	public String[] resolveMessageCodes(String errorCode, String objectName) {
-		return new String[] { "test.foo.bar" };
-	}
+    @Override
+    public String[] resolveMessageCodes(String errorCode, String objectName) {
+        return new String[]{"test.foo.bar"};
+    }
 
-	@Override
-	@SuppressWarnings("rawtypes")
-	public String[] resolveMessageCodes(String errorCode, String objectName, String field, @Nullable Class fieldType) {
-		return new String[] { "test.foo.bar" };
-	}
+    @Override
+    @SuppressWarnings("rawtypes")
+    public String[] resolveMessageCodes(String errorCode, String objectName, String field, @Nullable Class fieldType) {
+        return new String[]{"test.foo.bar"};
+    }
 
 }
 
-class TestPathMatcher extends AntPathMatcher { }
+class TestPathMatcher extends AntPathMatcher {
+}
 
-class TestPathHelper extends UrlPathHelper { }
+class TestPathHelper extends UrlPathHelper {
+}

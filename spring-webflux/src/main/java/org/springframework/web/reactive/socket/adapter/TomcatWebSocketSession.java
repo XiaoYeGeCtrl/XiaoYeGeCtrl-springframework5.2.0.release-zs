@@ -36,42 +36,42 @@ import org.springframework.web.reactive.socket.WebSocketSession;
  */
 public class TomcatWebSocketSession extends StandardWebSocketSession {
 
-	private static final AtomicIntegerFieldUpdater<TomcatWebSocketSession> SUSPENDED =
-			AtomicIntegerFieldUpdater.newUpdater(TomcatWebSocketSession.class, "suspended");
+    private static final AtomicIntegerFieldUpdater<TomcatWebSocketSession> SUSPENDED =
+            AtomicIntegerFieldUpdater.newUpdater(TomcatWebSocketSession.class, "suspended");
 
-	@SuppressWarnings("unused")
-	private volatile int suspended;
-
-
-	public TomcatWebSocketSession(Session session, HandshakeInfo info, DataBufferFactory factory) {
-		super(session, info, factory);
-	}
-
-	public TomcatWebSocketSession(Session session, HandshakeInfo info, DataBufferFactory factory,
-			MonoProcessor<Void> completionMono) {
-
-		super(session, info, factory, completionMono);
-		suspendReceiving();
-	}
+    @SuppressWarnings("unused")
+    private volatile int suspended;
 
 
-	@Override
-	protected boolean canSuspendReceiving() {
-		return true;
-	}
+    public TomcatWebSocketSession(Session session, HandshakeInfo info, DataBufferFactory factory) {
+        super(session, info, factory);
+    }
 
-	@Override
-	protected void suspendReceiving() {
-		if (SUSPENDED.compareAndSet(this, 0, 1)) {
-			((WsSession) getDelegate()).suspend();
-		}
-	}
+    public TomcatWebSocketSession(Session session, HandshakeInfo info, DataBufferFactory factory,
+                                  MonoProcessor<Void> completionMono) {
 
-	@Override
-	protected void resumeReceiving() {
-		if (SUSPENDED.compareAndSet(this, 1, 0)) {
-			((WsSession) getDelegate()).resume();
-		}
-	}
+        super(session, info, factory, completionMono);
+        suspendReceiving();
+    }
+
+
+    @Override
+    protected boolean canSuspendReceiving() {
+        return true;
+    }
+
+    @Override
+    protected void suspendReceiving() {
+        if (SUSPENDED.compareAndSet(this, 0, 1)) {
+            ((WsSession) getDelegate()).suspend();
+        }
+    }
+
+    @Override
+    protected void resumeReceiving() {
+        if (SUSPENDED.compareAndSet(this, 1, 0)) {
+            ((WsSession) getDelegate()).resume();
+        }
+    }
 
 }

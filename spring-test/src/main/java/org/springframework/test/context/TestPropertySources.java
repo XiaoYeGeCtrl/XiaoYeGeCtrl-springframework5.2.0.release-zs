@@ -41,10 +41,10 @@ import java.lang.annotation.Target;
 @Inherited
 public @interface TestPropertySources {
 
-	/**
-	 * An array of one or more {@link TestPropertySource @TestPropertySource}
-	 * declarations.
-	 */
-	TestPropertySource[] value();
+    /**
+     * An array of one or more {@link TestPropertySource @TestPropertySource}
+     * declarations.
+     */
+    TestPropertySource[] value();
 
 }

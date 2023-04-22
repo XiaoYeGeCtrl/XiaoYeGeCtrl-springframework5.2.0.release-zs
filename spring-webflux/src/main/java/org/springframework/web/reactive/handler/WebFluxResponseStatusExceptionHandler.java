@@ -38,17 +38,17 @@ import org.springframework.web.server.handler.ResponseStatusExceptionHandler;
  */
 public class WebFluxResponseStatusExceptionHandler extends ResponseStatusExceptionHandler {
 
-	@Override
-	@Nullable
-	protected HttpStatus determineStatus(Throwable ex) {
-		HttpStatus status = super.determineStatus(ex);
-		if (status == null) {
-			ResponseStatus ann = AnnotatedElementUtils.findMergedAnnotation(ex.getClass(), ResponseStatus.class);
-			if (ann != null) {
-				status = ann.code();
-			}
-		}
-		return status;
-	}
+    @Override
+    @Nullable
+    protected HttpStatus determineStatus(Throwable ex) {
+        HttpStatus status = super.determineStatus(ex);
+        if (status == null) {
+            ResponseStatus ann = AnnotatedElementUtils.findMergedAnnotation(ex.getClass(), ResponseStatus.class);
+            if (ann != null) {
+                status = ann.code();
+            }
+        }
+        return status;
+    }
 
 }

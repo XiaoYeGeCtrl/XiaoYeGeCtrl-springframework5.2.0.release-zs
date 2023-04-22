@@ -59,7 +59,7 @@ import org.springframework.web.reactive.function.BodyExtractor;
  *     {@link #toEntity(ParameterizedTypeReference)}</li>
  * <li>{@link #toEntityList(Class)} or
  *     {@link #toEntityList(ParameterizedTypeReference)}</li>
-*  <li>{@link #toBodilessEntity()}</li>
+ *  <li>{@link #toBodilessEntity()}</li>
  * <li>{@link #releaseBody()}</li>
  * </ul>
  * You can use {@code bodyToMono(Void.class)} if no response content is
@@ -72,322 +72,353 @@ import org.springframework.web.reactive.function.BodyExtractor;
  */
 public interface ClientResponse {
 
-	/**
-	 * Return the HTTP status code as an {@link HttpStatus} enum value.
-	 * @return the HTTP status as an HttpStatus enum value (never {@code null})
-	 * @throws IllegalArgumentException in case of an unknown HTTP status code
-	 * @since #getRawStatusCode()
-	 * @see HttpStatus#valueOf(int)
-	 */
-	HttpStatus statusCode();
+    /**
+     * Create a builder with the status, headers, and cookies of the given response.
+     *
+     * @param other the response to copy the status, headers, and cookies from
+     * @return the created builder
+     */
+    static Builder from(ClientResponse other) {
+        return new DefaultClientResponseBuilder(other);
+    }
 
-	/**
-	 * Return the (potentially non-standard) status code of this response.
-	 * @return the HTTP status as an integer value
-	 * @since 5.1
-	 * @see #statusCode()
-	 * @see HttpStatus#resolve(int)
-	 */
-	int rawStatusCode();
+    /**
+     * Create a response builder with the given status code and using default strategies for
+     * reading the body.
+     *
+     * @param statusCode the status code
+     * @return the created builder
+     */
+    static Builder create(HttpStatus statusCode) {
+        return create(statusCode, ExchangeStrategies.withDefaults());
+    }
 
-	/**
-	 * Return the headers of this response.
-	 */
-	Headers headers();
+    /**
+     * Create a response builder with the given status code and strategies for reading the body.
+     *
+     * @param statusCode the status code
+     * @param strategies the strategies
+     * @return the created builder
+     */
+    static Builder create(HttpStatus statusCode, ExchangeStrategies strategies) {
+        return new DefaultClientResponseBuilder(strategies).statusCode(statusCode);
+    }
 
-	/**
-	 * Return cookies of this response.
-	 */
-	MultiValueMap<String, ResponseCookie> cookies();
+    /**
+     * Create a response builder with the given raw status code and strategies for reading the body.
+     *
+     * @param statusCode the status code
+     * @param strategies the strategies
+     * @return the created builder
+     * @since 5.1.9
+     */
+    static Builder create(int statusCode, ExchangeStrategies strategies) {
+        return new DefaultClientResponseBuilder(strategies).rawStatusCode(statusCode);
+    }
 
-	/**
-	 * Return the strategies used to convert the body of this response.
-	 */
-	ExchangeStrategies strategies();
+    /**
+     * Create a response builder with the given status code and message body readers.
+     *
+     * @param statusCode     the status code
+     * @param messageReaders the message readers
+     * @return the created builder
+     */
+    static Builder create(HttpStatus statusCode, List<HttpMessageReader<?>> messageReaders) {
+        return create(statusCode, new ExchangeStrategies() {
+            @Override
+            public List<HttpMessageReader<?>> messageReaders() {
+                return messageReaders;
+            }
 
-	/**
-	 * Extract the body with the given {@code BodyExtractor}.
-	 * @param extractor the {@code BodyExtractor} that reads from the response
-	 * @param <T> the type of the body returned
-	 * @return the extracted body
-	 */
-	<T> T body(BodyExtractor<T, ? super ClientHttpResponse> extractor);
+            @Override
+            public List<HttpMessageWriter<?>> messageWriters() {
+                // not used in the response
+                return Collections.emptyList();
+            }
+        });
+    }
 
-	/**
-	 * Extract the body to a {@code Mono}.
-	 * @param elementClass the class of element in the {@code Mono}
-	 * @param <T> the element type
-	 * @return a mono containing the body of the given type {@code T}
-	 */
-	<T> Mono<T> bodyToMono(Class<? extends T> elementClass);
+    /**
+     * Return the HTTP status code as an {@link HttpStatus} enum value.
+     *
+     * @return the HTTP status as an HttpStatus enum value (never {@code null})
+     * @throws IllegalArgumentException in case of an unknown HTTP status code
+     * @see HttpStatus#valueOf(int)
+     * @since #getRawStatusCode()
+     */
+    HttpStatus statusCode();
 
-	/**
-	 * Extract the body to a {@code Mono}.
-	 * @param elementTypeRef the type reference of element in the {@code Mono}
-	 * @param <T> the element type
-	 * @return a mono containing the body of the given type {@code T}
-	 */
-	<T> Mono<T> bodyToMono(ParameterizedTypeReference<T> elementTypeRef);
+    /**
+     * Return the (potentially non-standard) status code of this response.
+     *
+     * @return the HTTP status as an integer value
+     * @see #statusCode()
+     * @see HttpStatus#resolve(int)
+     * @since 5.1
+     */
+    int rawStatusCode();
 
-	/**
-	 * Extract the body to a {@code Flux}.
-	 * @param elementClass the class of elements in the {@code Flux}
-	 * @param <T> the element type
-	 * @return a flux containing the body of the given type {@code T}
-	 */
-	<T> Flux<T> bodyToFlux(Class<? extends T> elementClass);
+    /**
+     * Return the headers of this response.
+     */
+    Headers headers();
 
-	/**
-	 * Extract the body to a {@code Flux}.
-	 * @param elementTypeRef the type reference of elements in the {@code Flux}
-	 * @param <T> the element type
-	 * @return a flux containing the body of the given type {@code T}
-	 */
-	<T> Flux<T> bodyToFlux(ParameterizedTypeReference<T> elementTypeRef);
+    /**
+     * Return cookies of this response.
+     */
+    MultiValueMap<String, ResponseCookie> cookies();
 
-	/**
-	 * Releases the body of this response.
-	 * @return a completion signal
-	 * @since 5.2
-	 * @see org.springframework.core.io.buffer.DataBufferUtils#release(DataBuffer)
-	 */
-	Mono<Void> releaseBody();
+    /**
+     * Return the strategies used to convert the body of this response.
+     */
+    ExchangeStrategies strategies();
 
-	/**
-	 * Return this response as a delayed {@code ResponseEntity}.
-	 * @param bodyClass the expected response body type
-	 * @param <T> response body type
-	 * @return {@code Mono} with the {@code ResponseEntity}
-	 */
-	<T> Mono<ResponseEntity<T>> toEntity(Class<T> bodyClass);
+    /**
+     * Extract the body with the given {@code BodyExtractor}.
+     *
+     * @param extractor the {@code BodyExtractor} that reads from the response
+     * @param <T>       the type of the body returned
+     * @return the extracted body
+     */
+    <T> T body(BodyExtractor<T, ? super ClientHttpResponse> extractor);
 
-	/**
-	 * Return this response as a delayed {@code ResponseEntity}.
-	 * @param bodyTypeReference a type reference describing the expected response body type
-	 * @param <T> response body type
-	 * @return {@code Mono} with the {@code ResponseEntity}
-	 */
-	<T> Mono<ResponseEntity<T>> toEntity(ParameterizedTypeReference<T> bodyTypeReference);
+    /**
+     * Extract the body to a {@code Mono}.
+     *
+     * @param elementClass the class of element in the {@code Mono}
+     * @param <T>          the element type
+     * @return a mono containing the body of the given type {@code T}
+     */
+    <T> Mono<T> bodyToMono(Class<? extends T> elementClass);
 
-	/**
-	 * Return this response as a delayed list of {@code ResponseEntity}s.
-	 * @param elementClass the expected response body list element class
-	 * @param <T> the type of elements in the list
-	 * @return {@code Mono} with the list of {@code ResponseEntity}s
-	 */
-	<T> Mono<ResponseEntity<List<T>>> toEntityList(Class<T> elementClass);
+    /**
+     * Extract the body to a {@code Mono}.
+     *
+     * @param elementTypeRef the type reference of element in the {@code Mono}
+     * @param <T>            the element type
+     * @return a mono containing the body of the given type {@code T}
+     */
+    <T> Mono<T> bodyToMono(ParameterizedTypeReference<T> elementTypeRef);
 
-	/**
-	 * Return this response as a delayed list of {@code ResponseEntity}s.
-	 * @param elementTypeRef the expected response body list element reference type
-	 * @param <T> the type of elements in the list
-	 * @return {@code Mono} with the list of {@code ResponseEntity}s
-	 */
-	<T> Mono<ResponseEntity<List<T>>> toEntityList(ParameterizedTypeReference<T> elementTypeRef);
+    /**
+     * Extract the body to a {@code Flux}.
+     *
+     * @param elementClass the class of elements in the {@code Flux}
+     * @param <T>          the element type
+     * @return a flux containing the body of the given type {@code T}
+     */
+    <T> Flux<T> bodyToFlux(Class<? extends T> elementClass);
 
-	/**
-	 * Return this response as a delayed {@code ResponseEntity} containing
-	 * status and headers, but no body. Calling this method will
-	 * {@linkplain #releaseBody() release} the body of the response.
-	 * @return {@code Mono} with the bodiless {@code ResponseEntity}
-	 * @since 5.2
-	 */
-	Mono<ResponseEntity<Void>> toBodilessEntity();
+    /**
+     * Extract the body to a {@code Flux}.
+     *
+     * @param elementTypeRef the type reference of elements in the {@code Flux}
+     * @param <T>            the element type
+     * @return a flux containing the body of the given type {@code T}
+     */
+    <T> Flux<T> bodyToFlux(ParameterizedTypeReference<T> elementTypeRef);
 
-	/**
-	 * Creates a {@link WebClientResponseException} based on the status code,
-	 * headers, and body of this response as well as the corresponding request.
-	 * @return a {@code Mono} with a {@code WebClientResponseException} based on this response
-	 * @since 5.2
-	 */
-	Mono<WebClientResponseException> createException();
+    /**
+     * Releases the body of this response.
+     *
+     * @return a completion signal
+     * @see org.springframework.core.io.buffer.DataBufferUtils#release(DataBuffer)
+     * @since 5.2
+     */
+    Mono<Void> releaseBody();
 
-
-	// Static builder methods
-
-	/**
-	 * Create a builder with the status, headers, and cookies of the given response.
-	 * @param other the response to copy the status, headers, and cookies from
-	 * @return the created builder
-	 */
-	static Builder from(ClientResponse other) {
-		return new DefaultClientResponseBuilder(other);
-	}
-
-	/**
-	 * Create a response builder with the given status code and using default strategies for
-	 * reading the body.
-	 * @param statusCode the status code
-	 * @return the created builder
-	 */
-	static Builder create(HttpStatus statusCode) {
-		return create(statusCode, ExchangeStrategies.withDefaults());
-	}
-
-	/**
-	 * Create a response builder with the given status code and strategies for reading the body.
-	 * @param statusCode the status code
-	 * @param strategies the strategies
-	 * @return the created builder
-	 */
-	static Builder create(HttpStatus statusCode, ExchangeStrategies strategies) {
-		return new DefaultClientResponseBuilder(strategies).statusCode(statusCode);
-	}
-
-	/**
-	 * Create a response builder with the given raw status code and strategies for reading the body.
-	 * @param statusCode the status code
-	 * @param strategies the strategies
-	 * @return the created builder
-	 * @since 5.1.9
-	 */
-	static Builder create(int statusCode, ExchangeStrategies strategies) {
-		return new DefaultClientResponseBuilder(strategies).rawStatusCode(statusCode);
-	}
-
-	/**
-	 * Create a response builder with the given status code and message body readers.
-	 * @param statusCode the status code
-	 * @param messageReaders the message readers
-	 * @return the created builder
-	 */
-	static Builder create(HttpStatus statusCode, List<HttpMessageReader<?>> messageReaders) {
-		return create(statusCode, new ExchangeStrategies() {
-			@Override
-			public List<HttpMessageReader<?>> messageReaders() {
-				return messageReaders;
-			}
-			@Override
-			public List<HttpMessageWriter<?>> messageWriters() {
-				// not used in the response
-				return Collections.emptyList();
-			}
-		});
-	}
+    /**
+     * Return this response as a delayed {@code ResponseEntity}.
+     *
+     * @param bodyClass the expected response body type
+     * @param <T>       response body type
+     * @return {@code Mono} with the {@code ResponseEntity}
+     */
+    <T> Mono<ResponseEntity<T>> toEntity(Class<T> bodyClass);
 
 
-	/**
-	 * Represents the headers of the HTTP response.
-	 * @see ClientResponse#headers()
-	 */
-	interface Headers {
+    // Static builder methods
 
-		/**
-		 * Return the length of the body in bytes, as specified by the
-		 * {@code Content-Length} header.
-		 */
-		OptionalLong contentLength();
+    /**
+     * Return this response as a delayed {@code ResponseEntity}.
+     *
+     * @param bodyTypeReference a type reference describing the expected response body type
+     * @param <T>               response body type
+     * @return {@code Mono} with the {@code ResponseEntity}
+     */
+    <T> Mono<ResponseEntity<T>> toEntity(ParameterizedTypeReference<T> bodyTypeReference);
 
-		/**
-		 * Return the {@linkplain MediaType media type} of the body, as specified
-		 * by the {@code Content-Type} header.
-		 */
-		Optional<MediaType> contentType();
+    /**
+     * Return this response as a delayed list of {@code ResponseEntity}s.
+     *
+     * @param elementClass the expected response body list element class
+     * @param <T>          the type of elements in the list
+     * @return {@code Mono} with the list of {@code ResponseEntity}s
+     */
+    <T> Mono<ResponseEntity<List<T>>> toEntityList(Class<T> elementClass);
 
-		/**
-		 * Return the header value(s), if any, for the header of the given name.
-		 * <p>Return an empty list if no header values are found.
-		 * @param headerName the header name
-		 */
-		List<String> header(String headerName);
+    /**
+     * Return this response as a delayed list of {@code ResponseEntity}s.
+     *
+     * @param elementTypeRef the expected response body list element reference type
+     * @param <T>            the type of elements in the list
+     * @return {@code Mono} with the list of {@code ResponseEntity}s
+     */
+    <T> Mono<ResponseEntity<List<T>>> toEntityList(ParameterizedTypeReference<T> elementTypeRef);
 
-		/**
-		 * Return the headers as a {@link HttpHeaders} instance.
-		 */
-		HttpHeaders asHttpHeaders();
-	}
+    /**
+     * Return this response as a delayed {@code ResponseEntity} containing
+     * status and headers, but no body. Calling this method will
+     * {@linkplain #releaseBody() release} the body of the response.
+     *
+     * @return {@code Mono} with the bodiless {@code ResponseEntity}
+     * @since 5.2
+     */
+    Mono<ResponseEntity<Void>> toBodilessEntity();
+
+    /**
+     * Creates a {@link WebClientResponseException} based on the status code,
+     * headers, and body of this response as well as the corresponding request.
+     *
+     * @return a {@code Mono} with a {@code WebClientResponseException} based on this response
+     * @since 5.2
+     */
+    Mono<WebClientResponseException> createException();
 
 
-	/**
-	 * Defines a builder for a response.
-	 */
-	interface Builder {
+    /**
+     * Represents the headers of the HTTP response.
+     *
+     * @see ClientResponse#headers()
+     */
+    interface Headers {
 
-		/**
-		 * Set the status code of the response.
-		 * @param statusCode the new status code.
-		 * @return this builder
-		 */
-		Builder statusCode(HttpStatus statusCode);
+        /**
+         * Return the length of the body in bytes, as specified by the
+         * {@code Content-Length} header.
+         */
+        OptionalLong contentLength();
 
-		/**
-		 * Set the raw status code of the response.
-		 * @param statusCode the new status code.
-		 * @return this builder
-		 * @since 5.1.9
-		 */
-		Builder rawStatusCode(int statusCode);
+        /**
+         * Return the {@linkplain MediaType media type} of the body, as specified
+         * by the {@code Content-Type} header.
+         */
+        Optional<MediaType> contentType();
 
-		/**
-		 * Add the given header value(s) under the given name.
-		 * @param headerName  the header name
-		 * @param headerValues the header value(s)
-		 * @return this builder
-		 * @see HttpHeaders#add(String, String)
-		 */
-		Builder header(String headerName, String... headerValues);
+        /**
+         * Return the header value(s), if any, for the header of the given name.
+         * <p>Return an empty list if no header values are found.
+         *
+         * @param headerName the header name
+         */
+        List<String> header(String headerName);
 
-		/**
-		 * Manipulate this response's headers with the given consumer. The
-		 * headers provided to the consumer are "live", so that the consumer can be used to
-		 * {@linkplain HttpHeaders#set(String, String) overwrite} existing header values,
-		 * {@linkplain HttpHeaders#remove(Object) remove} values, or use any of the other
-		 * {@link HttpHeaders} methods.
-		 * @param headersConsumer a function that consumes the {@code HttpHeaders}
-		 * @return this builder
-		 */
-		Builder headers(Consumer<HttpHeaders> headersConsumer);
+        /**
+         * Return the headers as a {@link HttpHeaders} instance.
+         */
+        HttpHeaders asHttpHeaders();
+    }
 
-		/**
-		 * Add a cookie with the given name and value(s).
-		 * @param name the cookie name
-		 * @param values the cookie value(s)
-		 * @return this builder
-		 */
-		Builder cookie(String name, String... values);
 
-		/**
-		 * Manipulate this response's cookies with the given consumer. The
-		 * map provided to the consumer is "live", so that the consumer can be used to
-		 * {@linkplain MultiValueMap#set(Object, Object) overwrite} existing header values,
-		 * {@linkplain MultiValueMap#remove(Object) remove} values, or use any of the other
-		 * {@link MultiValueMap} methods.
-		 * @param cookiesConsumer a function that consumes the cookies map
-		 * @return this builder
-		 */
-		Builder cookies(Consumer<MultiValueMap<String, ResponseCookie>> cookiesConsumer);
+    /**
+     * Defines a builder for a response.
+     */
+    interface Builder {
 
-		/**
-		 * Set the body of the response. Calling this methods will
-		 * {@linkplain org.springframework.core.io.buffer.DataBufferUtils#release(DataBuffer) release}
-		 * the existing body of the builder.
-		 * @param body the new body.
-		 * @return this builder
-		 */
-		Builder body(Flux<DataBuffer> body);
+        /**
+         * Set the status code of the response.
+         *
+         * @param statusCode the new status code.
+         * @return this builder
+         */
+        Builder statusCode(HttpStatus statusCode);
 
-		/**
-		 * Set the body of the response to the UTF-8 encoded bytes of the given string.
-		 * Calling this methods will
-		 * {@linkplain org.springframework.core.io.buffer.DataBufferUtils#release(DataBuffer) release}
-		 * the existing body of the builder.
-		 * @param body the new body.
-		 * @return this builder
-		 */
-		Builder body(String body);
+        /**
+         * Set the raw status code of the response.
+         *
+         * @param statusCode the new status code.
+         * @return this builder
+         * @since 5.1.9
+         */
+        Builder rawStatusCode(int statusCode);
 
-		/**
-		 * Set the request associated with the response.
-		 * @param request the request
-		 * @return this builder
-		 * @since 5.2
-		 */
-		Builder request(HttpRequest request);
+        /**
+         * Add the given header value(s) under the given name.
+         *
+         * @param headerName   the header name
+         * @param headerValues the header value(s)
+         * @return this builder
+         * @see HttpHeaders#add(String, String)
+         */
+        Builder header(String headerName, String... headerValues);
 
-		/**
-		 * Build the response.
-		 */
-		ClientResponse build();
-	}
+        /**
+         * Manipulate this response's headers with the given consumer. The
+         * headers provided to the consumer are "live", so that the consumer can be used to
+         * {@linkplain HttpHeaders#set(String, String) overwrite} existing header values,
+         * {@linkplain HttpHeaders#remove(Object) remove} values, or use any of the other
+         * {@link HttpHeaders} methods.
+         *
+         * @param headersConsumer a function that consumes the {@code HttpHeaders}
+         * @return this builder
+         */
+        Builder headers(Consumer<HttpHeaders> headersConsumer);
+
+        /**
+         * Add a cookie with the given name and value(s).
+         *
+         * @param name   the cookie name
+         * @param values the cookie value(s)
+         * @return this builder
+         */
+        Builder cookie(String name, String... values);
+
+        /**
+         * Manipulate this response's cookies with the given consumer. The
+         * map provided to the consumer is "live", so that the consumer can be used to
+         * {@linkplain MultiValueMap#set(Object, Object) overwrite} existing header values,
+         * {@linkplain MultiValueMap#remove(Object) remove} values, or use any of the other
+         * {@link MultiValueMap} methods.
+         *
+         * @param cookiesConsumer a function that consumes the cookies map
+         * @return this builder
+         */
+        Builder cookies(Consumer<MultiValueMap<String, ResponseCookie>> cookiesConsumer);
+
+        /**
+         * Set the body of the response. Calling this methods will
+         * {@linkplain org.springframework.core.io.buffer.DataBufferUtils#release(DataBuffer) release}
+         * the existing body of the builder.
+         *
+         * @param body the new body.
+         * @return this builder
+         */
+        Builder body(Flux<DataBuffer> body);
+
+        /**
+         * Set the body of the response to the UTF-8 encoded bytes of the given string.
+         * Calling this methods will
+         * {@linkplain org.springframework.core.io.buffer.DataBufferUtils#release(DataBuffer) release}
+         * the existing body of the builder.
+         *
+         * @param body the new body.
+         * @return this builder
+         */
+        Builder body(String body);
+
+        /**
+         * Set the request associated with the response.
+         *
+         * @param request the request
+         * @return this builder
+         * @since 5.2
+         */
+        Builder request(HttpRequest request);
+
+        /**
+         * Build the response.
+         */
+        ClientResponse build();
+    }
 
 }

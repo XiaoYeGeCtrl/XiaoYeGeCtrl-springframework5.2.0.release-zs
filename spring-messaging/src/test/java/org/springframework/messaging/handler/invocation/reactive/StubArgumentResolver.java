@@ -32,43 +32,43 @@ import org.springframework.messaging.Message;
  */
 public class StubArgumentResolver implements HandlerMethodArgumentResolver {
 
-	private final Class<?> valueType;
+    private final Class<?> valueType;
 
-	@Nullable
-	private final Object value;
+    @Nullable
+    private final Object value;
 
-	private List<MethodParameter> resolvedParameters = new ArrayList<>();
-
-
-	public StubArgumentResolver(Object value) {
-		this(value.getClass(), value);
-	}
-
-	public StubArgumentResolver(Class<?> valueType) {
-		this(valueType, null);
-	}
-
-	public StubArgumentResolver(Class<?> valueType, Object value) {
-		this.valueType = valueType;
-		this.value = value;
-	}
+    private List<MethodParameter> resolvedParameters = new ArrayList<>();
 
 
-	public List<MethodParameter> getResolvedParameters() {
-		return resolvedParameters;
-	}
+    public StubArgumentResolver(Object value) {
+        this(value.getClass(), value);
+    }
+
+    public StubArgumentResolver(Class<?> valueType) {
+        this(valueType, null);
+    }
+
+    public StubArgumentResolver(Class<?> valueType, Object value) {
+        this.valueType = valueType;
+        this.value = value;
+    }
 
 
-	@Override
-	public boolean supportsParameter(MethodParameter parameter) {
-		return parameter.getParameterType().equals(this.valueType);
-	}
+    public List<MethodParameter> getResolvedParameters() {
+        return resolvedParameters;
+    }
 
-	@SuppressWarnings("unchecked")
-	@Override
-	public Mono<Object> resolveArgument(MethodParameter parameter, Message<?> message) {
-		this.resolvedParameters.add(parameter);
-		return Mono.justOrEmpty(this.value);
-	}
+
+    @Override
+    public boolean supportsParameter(MethodParameter parameter) {
+        return parameter.getParameterType().equals(this.valueType);
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public Mono<Object> resolveArgument(MethodParameter parameter, Message<?> message) {
+        this.resolvedParameters.add(parameter);
+        return Mono.justOrEmpty(this.value);
+    }
 
 }

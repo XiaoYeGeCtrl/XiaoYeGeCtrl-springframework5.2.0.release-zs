@@ -38,109 +38,104 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 public class Spr11202Tests {
 
-	@Test
-	public void testWithImporter() {
-		ApplicationContext context = new AnnotationConfigApplicationContext(Wrapper.class);
-		assertThat(context.getBean("value")).isEqualTo("foo");
-	}
+    @Test
+    public void testWithImporter() {
+        ApplicationContext context = new AnnotationConfigApplicationContext(Wrapper.class);
+        assertThat(context.getBean("value")).isEqualTo("foo");
+    }
 
-	@Test
-	public void testWithoutImporter() {
-		ApplicationContext context = new AnnotationConfigApplicationContext(Config.class);
-		assertThat(context.getBean("value")).isEqualTo("foo");
-	}
-
-
-	@Configuration
-	@Import(Selector.class)
-	protected static class Wrapper {
-	}
+    @Test
+    public void testWithoutImporter() {
+        ApplicationContext context = new AnnotationConfigApplicationContext(Config.class);
+        assertThat(context.getBean("value")).isEqualTo("foo");
+    }
 
 
-	protected static class Selector implements ImportSelector {
+    @Retention(RetentionPolicy.RUNTIME)
+    @Documented
+    @Target(ElementType.TYPE)
+    protected @interface Bar {
+    }
 
-		@Override
-		public String[] selectImports(AnnotationMetadata importingClassMetadata) {
-			return new String[] {Config.class.getName()};
-		}
-	}
+    @Configuration
+    @Import(Selector.class)
+    protected static class Wrapper {
+    }
+
+    protected static class Selector implements ImportSelector {
+
+        @Override
+        public String[] selectImports(AnnotationMetadata importingClassMetadata) {
+            return new String[]{Config.class.getName()};
+        }
+    }
+
+    @Configuration
+    protected static class Config {
+
+        @Bean
+        public FooFactoryBean foo() {
+            return new FooFactoryBean();
+        }
+
+        @Bean
+        public String value() throws Exception {
+            String name = foo().getObject().getName();
+            Assert.state(name != null, "Name cannot be null");
+            return name;
+        }
+
+        @Bean
+        @Conditional(NoBarCondition.class)
+        public String bar() throws Exception {
+            return "bar";
+        }
+    }
+
+    protected static class NoBarCondition implements Condition {
+
+        @Override
+        public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
+            if (context.getBeanFactory().getBeanNamesForAnnotation(Bar.class).length > 0) {
+                return false;
+            }
+            return true;
+        }
+    }
+
+    protected static class FooFactoryBean implements FactoryBean<Foo>, InitializingBean {
+
+        private Foo foo = new Foo();
+
+        @Override
+        public Foo getObject() throws Exception {
+            return foo;
+        }
+
+        @Override
+        public Class<?> getObjectType() {
+            return Foo.class;
+        }
+
+        @Override
+        public boolean isSingleton() {
+            return true;
+        }
+
+        @Override
+        public void afterPropertiesSet() throws Exception {
+            this.foo.name = "foo";
+        }
+    }
 
 
-	@Configuration
-	protected static class Config {
+    protected static class Foo {
 
-		@Bean
-		public FooFactoryBean foo() {
-			return new FooFactoryBean();
-		}
+        private String name;
 
-		@Bean
-		public String value() throws Exception {
-			String name = foo().getObject().getName();
-			Assert.state(name != null, "Name cannot be null");
-			return name;
-		}
-
-		@Bean
-		@Conditional(NoBarCondition.class)
-		public String bar() throws Exception {
-			return "bar";
-		}
-	}
-
-
-	protected static class NoBarCondition implements Condition {
-
-		@Override
-		public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
-			if (context.getBeanFactory().getBeanNamesForAnnotation(Bar.class).length > 0) {
-				return false;
-			}
-			return true;
-		}
-	}
-
-
-	@Retention(RetentionPolicy.RUNTIME)
-	@Documented
-	@Target(ElementType.TYPE)
-	protected @interface Bar {
-	}
-
-
-	protected static class FooFactoryBean implements FactoryBean<Foo>, InitializingBean {
-
-		private Foo foo = new Foo();
-
-		@Override
-		public Foo getObject() throws Exception {
-			return foo;
-		}
-
-		@Override
-		public Class<?> getObjectType() {
-			return Foo.class;
-		}
-
-		@Override
-		public boolean isSingleton() {
-			return true;
-		}
-
-		@Override
-		public void afterPropertiesSet() throws Exception {
-			this.foo.name = "foo";
-		}
-	}
-
-
-	protected static class Foo {
-
-		private String name;
-
-		public String getName() {
-			return name;
-		}
-	}
+        public String getName() {
+            return name;
+        }
+    }
 
 }

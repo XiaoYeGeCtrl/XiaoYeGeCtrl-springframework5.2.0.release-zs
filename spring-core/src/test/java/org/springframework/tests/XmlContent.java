@@ -29,26 +29,26 @@ import org.xmlunit.assertj.XmlAssert;
  */
 public class XmlContent implements AssertProvider<XmlContentAssert> {
 
-	private Object source;
+    private Object source;
 
-	private XmlContent(Object source) {
-		this.source = source;
-	}
+    private XmlContent(Object source) {
+        this.source = source;
+    }
 
-	@Override
-	public XmlContentAssert assertThat() {
-		return new XmlContentAssert(this.source);
-	}
+    public static XmlContent from(Object source) {
+        return of(source);
+    }
 
-	public static XmlContent from(Object source) {
-		return of(source);
-	}
+    public static XmlContent of(Object source) {
+        if (source instanceof StringWriter) {
+            return of(source.toString());
+        }
+        return new XmlContent(source);
+    }
 
-	public static XmlContent of(Object source) {
-		if (source instanceof StringWriter) {
-			return of(source.toString());
-		}
-		return new XmlContent(source);
-	}
+    @Override
+    public XmlContentAssert assertThat() {
+        return new XmlContentAssert(this.source);
+    }
 
 }

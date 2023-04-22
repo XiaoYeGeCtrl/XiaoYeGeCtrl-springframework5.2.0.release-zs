@@ -30,27 +30,28 @@ import org.springframework.util.Assert;
  * exposing a Spring {@link MessageSource} as localized {@link MessageSourceResourceBundle}.
  *
  * @author Juergen Hoeller
- * @since 3.0.4
  * @see ResourceBundleLocator
  * @see MessageSource
  * @see MessageSourceResourceBundle
+ * @since 3.0.4
  */
 public class MessageSourceResourceBundleLocator implements ResourceBundleLocator {
 
-	private final MessageSource messageSource;
+    private final MessageSource messageSource;
 
-	/**
-	 * Build a MessageSourceResourceBundleLocator for the given MessageSource.
-	 * @param messageSource the Spring MessageSource to wrap
-	 */
-	public MessageSourceResourceBundleLocator(MessageSource messageSource) {
-		Assert.notNull(messageSource, "MessageSource must not be null");
-		this.messageSource = messageSource;
-	}
+    /**
+     * Build a MessageSourceResourceBundleLocator for the given MessageSource.
+     *
+     * @param messageSource the Spring MessageSource to wrap
+     */
+    public MessageSourceResourceBundleLocator(MessageSource messageSource) {
+        Assert.notNull(messageSource, "MessageSource must not be null");
+        this.messageSource = messageSource;
+    }
 
-	@Override
-	public ResourceBundle getResourceBundle(Locale locale) {
-		return new MessageSourceResourceBundle(this.messageSource, locale);
-	}
+    @Override
+    public ResourceBundle getResourceBundle(Locale locale) {
+        return new MessageSourceResourceBundle(this.messageSource, locale);
+    }
 
 }

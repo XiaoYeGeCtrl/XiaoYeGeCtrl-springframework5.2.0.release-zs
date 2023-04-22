@@ -34,24 +34,24 @@ import static org.springframework.web.reactive.function.server.RouterFunctions.r
  */
 public class RouterFunctionTests {
 
-	private WebTestClient testClient;
+    private WebTestClient testClient;
 
 
-	@BeforeEach
-	public void setUp() throws Exception {
+    @BeforeEach
+    public void setUp() throws Exception {
 
-		RouterFunction<?> route = route(GET("/test"), request ->
-				ServerResponse.ok().bodyValue("It works!"));
+        RouterFunction<?> route = route(GET("/test"), request ->
+                ServerResponse.ok().bodyValue("It works!"));
 
-		this.testClient = WebTestClient.bindToRouterFunction(route).build();
-	}
+        this.testClient = WebTestClient.bindToRouterFunction(route).build();
+    }
 
-	@Test
-	public void test() throws Exception {
-		this.testClient.get().uri("/test")
-				.exchange()
-				.expectStatus().isOk()
-				.expectBody(String.class).isEqualTo("It works!");
-	}
+    @Test
+    public void test() throws Exception {
+        this.testClient.get().uri("/test")
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody(String.class).isEqualTo("It works!");
+    }
 
 }

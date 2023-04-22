@@ -42,48 +42,53 @@ import org.springframework.web.socket.WebSocketSession;
  */
 public interface SubProtocolHandler {
 
-	/**
-	 * Return the list of sub-protocols supported by this handler (never {@code null}).
-	 */
-	List<String> getSupportedProtocols();
+    /**
+     * Return the list of sub-protocols supported by this handler (never {@code null}).
+     */
+    List<String> getSupportedProtocols();
 
-	/**
-	 * Handle the given {@link WebSocketMessage} received from a client.
-	 * @param session the client session
-	 * @param message the client message
-	 * @param outputChannel an output channel to send messages to
-	 */
-	void handleMessageFromClient(WebSocketSession session, WebSocketMessage<?> message, MessageChannel outputChannel)
-			throws Exception;
+    /**
+     * Handle the given {@link WebSocketMessage} received from a client.
+     *
+     * @param session       the client session
+     * @param message       the client message
+     * @param outputChannel an output channel to send messages to
+     */
+    void handleMessageFromClient(WebSocketSession session, WebSocketMessage<?> message, MessageChannel outputChannel)
+            throws Exception;
 
-	/**
-	 * Handle the given {@link Message} to the client associated with the given WebSocket session.
-	 * @param session the client session
-	 * @param message the client message
-	 */
-	void handleMessageToClient(WebSocketSession session, Message<?> message) throws Exception;
+    /**
+     * Handle the given {@link Message} to the client associated with the given WebSocket session.
+     *
+     * @param session the client session
+     * @param message the client message
+     */
+    void handleMessageToClient(WebSocketSession session, Message<?> message) throws Exception;
 
-	/**
-	 * Resolve the session id from the given message or return {@code null}.
-	 * @param message the message to resolve the session id from
-	 */
-	@Nullable
-	String resolveSessionId(Message<?> message);
+    /**
+     * Resolve the session id from the given message or return {@code null}.
+     *
+     * @param message the message to resolve the session id from
+     */
+    @Nullable
+    String resolveSessionId(Message<?> message);
 
-	/**
-	 * Invoked after a {@link WebSocketSession} has started.
-	 * @param session the client session
-	 * @param outputChannel a channel
-	 */
-	void afterSessionStarted(WebSocketSession session, MessageChannel outputChannel) throws Exception;
+    /**
+     * Invoked after a {@link WebSocketSession} has started.
+     *
+     * @param session       the client session
+     * @param outputChannel a channel
+     */
+    void afterSessionStarted(WebSocketSession session, MessageChannel outputChannel) throws Exception;
 
-	/**
-	 * Invoked after a {@link WebSocketSession} has ended.
-	 * @param session the client session
-	 * @param closeStatus the reason why the session was closed
-	 * @param outputChannel a channel
-	 */
-	void afterSessionEnded(WebSocketSession session, CloseStatus closeStatus, MessageChannel outputChannel)
-			throws Exception;
+    /**
+     * Invoked after a {@link WebSocketSession} has ended.
+     *
+     * @param session       the client session
+     * @param closeStatus   the reason why the session was closed
+     * @param outputChannel a channel
+     */
+    void afterSessionEnded(WebSocketSession session, CloseStatus closeStatus, MessageChannel outputChannel)
+            throws Exception;
 
 }

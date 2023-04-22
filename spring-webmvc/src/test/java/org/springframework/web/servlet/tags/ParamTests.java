@@ -27,24 +27,24 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 public class ParamTests {
 
-	private final Param param = new Param();
+    private final Param param = new Param();
 
-	@Test
-	public void name() {
-		param.setName("name");
-		assertThat(param.getName()).isEqualTo("name");
-	}
+    @Test
+    public void name() {
+        param.setName("name");
+        assertThat(param.getName()).isEqualTo("name");
+    }
 
-	@Test
-	public void value() {
-		param.setValue("value");
-		assertThat(param.getValue()).isEqualTo("value");
-	}
+    @Test
+    public void value() {
+        param.setValue("value");
+        assertThat(param.getValue()).isEqualTo("value");
+    }
 
-	@Test
-	public void nullDefaults() {
-		assertThat(param.getName()).isNull();
-		assertThat(param.getValue()).isNull();
-	}
+    @Test
+    public void nullDefaults() {
+        assertThat(param.getName()).isNull();
+        assertThat(param.getValue()).isNull();
+    }
 
 }

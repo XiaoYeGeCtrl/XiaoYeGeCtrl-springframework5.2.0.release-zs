@@ -31,16 +31,16 @@ import javax.lang.model.element.ElementKind;
  */
 class PackageInfoStereotypesProvider implements StereotypesProvider {
 
-	public static final String STEREOTYPE = "package-info";
+    public static final String STEREOTYPE = "package-info";
 
 
-	@Override
-	public Set<String> getStereotypes(Element element) {
-		Set<String> stereotypes = new HashSet<>();
-		if (element.getKind() == ElementKind.PACKAGE) {
-			stereotypes.add(STEREOTYPE);
-		}
-		return stereotypes;
-	}
+    @Override
+    public Set<String> getStereotypes(Element element) {
+        Set<String> stereotypes = new HashSet<>();
+        if (element.getKind() == ElementKind.PACKAGE) {
+            stereotypes.add(STEREOTYPE);
+        }
+        return stereotypes;
+    }
 
 }

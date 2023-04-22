@@ -34,30 +34,30 @@ import static org.assertj.core.api.Assertions.assertThat;
 @ExtendWith(SpringExtension.class)
 @ContextHierarchy(@ContextConfiguration)
 class TestHierarchyLevelTwoWithSingleLevelContextHierarchyAndMixedConfigTypesTests extends
-		TestHierarchyLevelOneWithSingleLevelContextHierarchyTests {
+        TestHierarchyLevelOneWithSingleLevelContextHierarchyTests {
 
-	@Autowired
-	private String foo;
+    @Autowired
+    private String foo;
 
-	@Autowired
-	private String bar;
+    @Autowired
+    private String bar;
 
-	@Autowired
-	private String baz;
+    @Autowired
+    private String baz;
 
-	@Autowired
-	private ApplicationContext context;
+    @Autowired
+    private ApplicationContext context;
 
 
-	@Test
-	@Override
-	void loadContextHierarchy() {
-		assertThat(context).as("child ApplicationContext").isNotNull();
-		assertThat(context.getParent()).as("parent ApplicationContext").isNotNull();
-		assertThat(context.getParent().getParent()).as("grandparent ApplicationContext").isNull();
-		assertThat(foo).isEqualTo("foo-level-2");
-		assertThat(bar).isEqualTo("bar");
-		assertThat(baz).isEqualTo("baz");
-	}
+    @Test
+    @Override
+    void loadContextHierarchy() {
+        assertThat(context).as("child ApplicationContext").isNotNull();
+        assertThat(context.getParent()).as("parent ApplicationContext").isNotNull();
+        assertThat(context.getParent().getParent()).as("grandparent ApplicationContext").isNull();
+        assertThat(foo).isEqualTo("foo-level-2");
+        assertThat(bar).isEqualTo("bar");
+        assertThat(baz).isEqualTo("baz");
+    }
 
 }

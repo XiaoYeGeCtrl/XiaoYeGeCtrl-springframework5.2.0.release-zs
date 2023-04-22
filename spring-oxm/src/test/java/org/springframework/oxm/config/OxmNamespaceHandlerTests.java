@@ -33,20 +33,20 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 public class OxmNamespaceHandlerTests {
 
-	private final ApplicationContext applicationContext =
-			new ClassPathXmlApplicationContext("oxmNamespaceHandlerTest.xml", getClass());
+    private final ApplicationContext applicationContext =
+            new ClassPathXmlApplicationContext("oxmNamespaceHandlerTest.xml", getClass());
 
 
-	@Test
-	public void jaxb2ContextPathMarshaller() {
-		Jaxb2Marshaller jaxb2Marshaller = applicationContext.getBean("jaxb2ContextPathMarshaller", Jaxb2Marshaller.class);
-		assertThat(jaxb2Marshaller).isNotNull();
-	}
+    @Test
+    public void jaxb2ContextPathMarshaller() {
+        Jaxb2Marshaller jaxb2Marshaller = applicationContext.getBean("jaxb2ContextPathMarshaller", Jaxb2Marshaller.class);
+        assertThat(jaxb2Marshaller).isNotNull();
+    }
 
-	@Test
-	public void jaxb2ClassesToBeBoundMarshaller() {
-		Jaxb2Marshaller jaxb2Marshaller = applicationContext.getBean("jaxb2ClassesMarshaller", Jaxb2Marshaller.class);
-		assertThat(jaxb2Marshaller).isNotNull();
-	}
+    @Test
+    public void jaxb2ClassesToBeBoundMarshaller() {
+        Jaxb2Marshaller jaxb2Marshaller = applicationContext.getBean("jaxb2ClassesMarshaller", Jaxb2Marshaller.class);
+        assertThat(jaxb2Marshaller).isNotNull();
+    }
 
 }

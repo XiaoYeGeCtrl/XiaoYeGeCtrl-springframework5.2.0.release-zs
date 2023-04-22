@@ -28,39 +28,39 @@ import java.lang.annotation.RetentionPolicy;
 @AnnotationEnclosingClassSample.EnclosedOne
 public class AnnotationEnclosingClassSample {
 
-	@EnclosedTwo
-	public static class EnclosedStatic {
+    @Retention(RetentionPolicy.RUNTIME)
+    public static @interface EnclosedOne {
 
-		@EnclosedThree
-		public static class EnclosedStaticStatic {
+    }
 
-		}
+    @Retention(RetentionPolicy.RUNTIME)
+    public static @interface EnclosedTwo {
 
-	}
+    }
 
-	@EnclosedTwo
-	public class EnclosedInner {
+    @Retention(RetentionPolicy.RUNTIME)
+    public static @interface EnclosedThree {
 
-		@EnclosedThree
-		public class EnclosedInnerInner {
+    }
 
-		}
+    @EnclosedTwo
+    public static class EnclosedStatic {
 
-	}
+        @EnclosedThree
+        public static class EnclosedStaticStatic {
 
-	@Retention(RetentionPolicy.RUNTIME)
-	public static @interface EnclosedOne {
+        }
 
-	}
+    }
 
-	@Retention(RetentionPolicy.RUNTIME)
-	public static @interface EnclosedTwo {
+    @EnclosedTwo
+    public class EnclosedInner {
 
-	}
+        @EnclosedThree
+        public class EnclosedInnerInner {
 
-	@Retention(RetentionPolicy.RUNTIME)
-	public static @interface EnclosedThree {
+        }
 
-	}
+    }
 
 }

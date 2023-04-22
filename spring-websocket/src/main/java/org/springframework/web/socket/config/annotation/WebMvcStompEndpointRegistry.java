@@ -46,126 +46,121 @@ import org.springframework.web.util.UrlPathHelper;
  */
 public class WebMvcStompEndpointRegistry implements StompEndpointRegistry {
 
-	private final WebSocketHandler webSocketHandler;
+    private final WebSocketHandler webSocketHandler;
 
-	private final TaskScheduler sockJsScheduler;
-
-	private int order = 1;
-
-	@Nullable
-	private UrlPathHelper urlPathHelper;
-
-	private final SubProtocolWebSocketHandler subProtocolWebSocketHandler;
-
-	private final StompSubProtocolHandler stompHandler;
-
-	private final List<WebMvcStompWebSocketEndpointRegistration> registrations = new ArrayList<>();
+    private final TaskScheduler sockJsScheduler;
+    private final SubProtocolWebSocketHandler subProtocolWebSocketHandler;
+    private final StompSubProtocolHandler stompHandler;
+    private final List<WebMvcStompWebSocketEndpointRegistration> registrations = new ArrayList<>();
+    private int order = 1;
+    @Nullable
+    private UrlPathHelper urlPathHelper;
 
 
-	public WebMvcStompEndpointRegistry(WebSocketHandler webSocketHandler,
-			WebSocketTransportRegistration transportRegistration, TaskScheduler defaultSockJsTaskScheduler) {
+    public WebMvcStompEndpointRegistry(WebSocketHandler webSocketHandler,
+                                       WebSocketTransportRegistration transportRegistration, TaskScheduler defaultSockJsTaskScheduler) {
 
-		Assert.notNull(webSocketHandler, "WebSocketHandler is required ");
-		Assert.notNull(transportRegistration, "WebSocketTransportRegistration is required");
+        Assert.notNull(webSocketHandler, "WebSocketHandler is required ");
+        Assert.notNull(transportRegistration, "WebSocketTransportRegistration is required");
 
-		this.webSocketHandler = webSocketHandler;
-		this.subProtocolWebSocketHandler = unwrapSubProtocolWebSocketHandler(webSocketHandler);
+        this.webSocketHandler = webSocketHandler;
+        this.subProtocolWebSocketHandler = unwrapSubProtocolWebSocketHandler(webSocketHandler);
 
-		if (transportRegistration.getSendTimeLimit() != null) {
-			this.subProtocolWebSocketHandler.setSendTimeLimit(transportRegistration.getSendTimeLimit());
-		}
-		if (transportRegistration.getSendBufferSizeLimit() != null) {
-			this.subProtocolWebSocketHandler.setSendBufferSizeLimit(transportRegistration.getSendBufferSizeLimit());
-		}
-		if (transportRegistration.getTimeToFirstMessage() != null) {
-			this.subProtocolWebSocketHandler.setTimeToFirstMessage(transportRegistration.getTimeToFirstMessage());
-		}
+        if (transportRegistration.getSendTimeLimit() != null) {
+            this.subProtocolWebSocketHandler.setSendTimeLimit(transportRegistration.getSendTimeLimit());
+        }
+        if (transportRegistration.getSendBufferSizeLimit() != null) {
+            this.subProtocolWebSocketHandler.setSendBufferSizeLimit(transportRegistration.getSendBufferSizeLimit());
+        }
+        if (transportRegistration.getTimeToFirstMessage() != null) {
+            this.subProtocolWebSocketHandler.setTimeToFirstMessage(transportRegistration.getTimeToFirstMessage());
+        }
 
-		this.stompHandler = new StompSubProtocolHandler();
-		if (transportRegistration.getMessageSizeLimit() != null) {
-			this.stompHandler.setMessageSizeLimit(transportRegistration.getMessageSizeLimit());
-		}
+        this.stompHandler = new StompSubProtocolHandler();
+        if (transportRegistration.getMessageSizeLimit() != null) {
+            this.stompHandler.setMessageSizeLimit(transportRegistration.getMessageSizeLimit());
+        }
 
-		this.sockJsScheduler = defaultSockJsTaskScheduler;
-	}
+        this.sockJsScheduler = defaultSockJsTaskScheduler;
+    }
 
-	private static SubProtocolWebSocketHandler unwrapSubProtocolWebSocketHandler(WebSocketHandler handler) {
-		WebSocketHandler actual = WebSocketHandlerDecorator.unwrap(handler);
-		if (!(actual instanceof SubProtocolWebSocketHandler)) {
-			throw new IllegalArgumentException("No SubProtocolWebSocketHandler in " + handler);
-		}
-		return (SubProtocolWebSocketHandler) actual;
-	}
+    private static SubProtocolWebSocketHandler unwrapSubProtocolWebSocketHandler(WebSocketHandler handler) {
+        WebSocketHandler actual = WebSocketHandlerDecorator.unwrap(handler);
+        if (!(actual instanceof SubProtocolWebSocketHandler)) {
+            throw new IllegalArgumentException("No SubProtocolWebSocketHandler in " + handler);
+        }
+        return (SubProtocolWebSocketHandler) actual;
+    }
 
 
-	@Override
-	public StompWebSocketEndpointRegistration addEndpoint(String... paths) {
-		this.subProtocolWebSocketHandler.addProtocolHandler(this.stompHandler);
-		WebMvcStompWebSocketEndpointRegistration registration =
-				new WebMvcStompWebSocketEndpointRegistration(paths, this.webSocketHandler, this.sockJsScheduler);
-		this.registrations.add(registration);
-		return registration;
-	}
+    @Override
+    public StompWebSocketEndpointRegistration addEndpoint(String... paths) {
+        this.subProtocolWebSocketHandler.addProtocolHandler(this.stompHandler);
+        WebMvcStompWebSocketEndpointRegistration registration =
+                new WebMvcStompWebSocketEndpointRegistration(paths, this.webSocketHandler, this.sockJsScheduler);
+        this.registrations.add(registration);
+        return registration;
+    }
 
-	/**
-	 * Set the order for the resulting
-	 * {@link org.springframework.web.servlet.HandlerMapping}
-	 * relative to other handler mappings configured in Spring MVC.
-	 * <p>The default value is 1.
-	 */
-	@Override
-	public void setOrder(int order) {
-		this.order = order;
-	}
+    protected int getOrder() {
+        return this.order;
+    }
 
-	protected int getOrder() {
-		return this.order;
-	}
+    /**
+     * Set the order for the resulting
+     * {@link org.springframework.web.servlet.HandlerMapping}
+     * relative to other handler mappings configured in Spring MVC.
+     * <p>The default value is 1.
+     */
+    @Override
+    public void setOrder(int order) {
+        this.order = order;
+    }
 
-	/**
-	 * Set the UrlPathHelper to configure on the {@code HandlerMapping}
-	 * used to map handshake requests.
-	 */
-	@Override
-	public void setUrlPathHelper(@Nullable UrlPathHelper urlPathHelper) {
-		this.urlPathHelper = urlPathHelper;
-	}
+    @Nullable
+    protected UrlPathHelper getUrlPathHelper() {
+        return this.urlPathHelper;
+    }
 
-	@Nullable
-	protected UrlPathHelper getUrlPathHelper() {
-		return this.urlPathHelper;
-	}
+    /**
+     * Set the UrlPathHelper to configure on the {@code HandlerMapping}
+     * used to map handshake requests.
+     */
+    @Override
+    public void setUrlPathHelper(@Nullable UrlPathHelper urlPathHelper) {
+        this.urlPathHelper = urlPathHelper;
+    }
 
-	@Override
-	public WebMvcStompEndpointRegistry setErrorHandler(StompSubProtocolErrorHandler errorHandler) {
-		this.stompHandler.setErrorHandler(errorHandler);
-		return this;
-	}
+    @Override
+    public WebMvcStompEndpointRegistry setErrorHandler(StompSubProtocolErrorHandler errorHandler) {
+        this.stompHandler.setErrorHandler(errorHandler);
+        return this;
+    }
 
-	protected void setApplicationContext(ApplicationContext applicationContext) {
-		this.stompHandler.setApplicationEventPublisher(applicationContext);
-	}
+    protected void setApplicationContext(ApplicationContext applicationContext) {
+        this.stompHandler.setApplicationEventPublisher(applicationContext);
+    }
 
-	/**
-	 * Return a handler mapping with the mapped ViewControllers.
-	 */
-	public AbstractHandlerMapping getHandlerMapping() {
-		Map<String, Object> urlMap = new LinkedHashMap<>();
-		for (WebMvcStompWebSocketEndpointRegistration registration : this.registrations) {
-			MultiValueMap<HttpRequestHandler, String> mappings = registration.getMappings();
-			mappings.forEach((httpHandler, patterns) -> {
-				for (String pattern : patterns) {
-					urlMap.put(pattern, httpHandler);
-				}
-			});
-		}
-		WebSocketHandlerMapping hm = new WebSocketHandlerMapping();
-		hm.setUrlMap(urlMap);
-		hm.setOrder(this.order);
-		if (this.urlPathHelper != null) {
-			hm.setUrlPathHelper(this.urlPathHelper);
-		}
-		return hm;
-	}
+    /**
+     * Return a handler mapping with the mapped ViewControllers.
+     */
+    public AbstractHandlerMapping getHandlerMapping() {
+        Map<String, Object> urlMap = new LinkedHashMap<>();
+        for (WebMvcStompWebSocketEndpointRegistration registration : this.registrations) {
+            MultiValueMap<HttpRequestHandler, String> mappings = registration.getMappings();
+            mappings.forEach((httpHandler, patterns) -> {
+                for (String pattern : patterns) {
+                    urlMap.put(pattern, httpHandler);
+                }
+            });
+        }
+        WebSocketHandlerMapping hm = new WebSocketHandlerMapping();
+        hm.setUrlMap(urlMap);
+        hm.setOrder(this.order);
+        if (this.urlPathHelper != null) {
+            hm.setUrlPathHelper(this.urlPathHelper);
+        }
+        return hm;
+    }
 
 }

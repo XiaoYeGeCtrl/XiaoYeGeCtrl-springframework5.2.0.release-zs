@@ -36,263 +36,268 @@ import org.springframework.util.Assert;
  * <p>Explicit local configuration attributes override global configuration attributes.
  *
  * @author Sam Brannen
- * @since 4.1
  * @see SqlConfig
+ * @since 4.1
  */
 class MergedSqlConfig {
 
-	private static final String COMMENT_PREFIX = "commentPrefix";
+    private static final String COMMENT_PREFIX = "commentPrefix";
 
-	private static final String COMMENT_PREFIXES = "commentPrefixes";
-
-
-	private final String dataSource;
-
-	private final String transactionManager;
-
-	private final TransactionMode transactionMode;
-
-	private final String encoding;
-
-	private final String separator;
-
-	private final String[] commentPrefixes;
-
-	private final String blockCommentStartDelimiter;
-
-	private final String blockCommentEndDelimiter;
-
-	private final ErrorMode errorMode;
+    private static final String COMMENT_PREFIXES = "commentPrefixes";
 
 
-	/**
-	 * Construct a {@code MergedSqlConfig} instance by merging the configuration
-	 * from the supplied local (potentially method-level) {@code @SqlConfig} annotation
-	 * with class-level configuration discovered on the supplied {@code testClass}.
-	 * <p>Local configuration overrides class-level configuration.
-	 * <p>If the test class is not annotated with {@code @SqlConfig}, no merging
-	 * takes place and the local configuration is used "as is".
-	 */
-	MergedSqlConfig(SqlConfig localSqlConfig, Class<?> testClass) {
-		Assert.notNull(localSqlConfig, "Local @SqlConfig must not be null");
-		Assert.notNull(testClass, "testClass must not be null");
+    private final String dataSource;
 
-		AnnotationAttributes mergedAttributes = mergeAttributes(localSqlConfig, testClass);
+    private final String transactionManager;
 
-		this.dataSource = mergedAttributes.getString("dataSource");
-		this.transactionManager = mergedAttributes.getString("transactionManager");
-		this.transactionMode = getEnum(mergedAttributes, "transactionMode", TransactionMode.DEFAULT,
-				TransactionMode.INFERRED);
-		this.encoding = mergedAttributes.getString("encoding");
-		this.separator = getString(mergedAttributes, "separator", ScriptUtils.DEFAULT_STATEMENT_SEPARATOR);
-		this.commentPrefixes = getCommentPrefixes(mergedAttributes);
-		this.blockCommentStartDelimiter = getString(mergedAttributes, "blockCommentStartDelimiter",
-				ScriptUtils.DEFAULT_BLOCK_COMMENT_START_DELIMITER);
-		this.blockCommentEndDelimiter = getString(mergedAttributes, "blockCommentEndDelimiter",
-				ScriptUtils.DEFAULT_BLOCK_COMMENT_END_DELIMITER);
-		this.errorMode = getEnum(mergedAttributes, "errorMode", ErrorMode.DEFAULT, ErrorMode.FAIL_ON_ERROR);
-	}
+    private final TransactionMode transactionMode;
 
-	private AnnotationAttributes mergeAttributes(SqlConfig localSqlConfig, Class<?> testClass) {
-		AnnotationAttributes localAttributes = AnnotationUtils.getAnnotationAttributes(localSqlConfig, false, false);
+    private final String encoding;
 
-		// Enforce comment prefix aliases within the local @SqlConfig.
-		enforceCommentPrefixAliases(localAttributes);
+    private final String separator;
 
-		// Get global attributes, if any.
-		AnnotationAttributes globalAttributes = AnnotatedElementUtils.findMergedAnnotationAttributes(
-				testClass, SqlConfig.class.getName(), false, false);
+    private final String[] commentPrefixes;
 
-		// Use local attributes only?
-		if (globalAttributes == null) {
-			return localAttributes;
-		}
+    private final String blockCommentStartDelimiter;
 
-		// Enforce comment prefix aliases within the global @SqlConfig.
-		enforceCommentPrefixAliases(globalAttributes);
+    private final String blockCommentEndDelimiter;
 
-		for (String key : globalAttributes.keySet()) {
-			Object value = localAttributes.get(key);
-			if (isExplicitValue(value)) {
-				// Override global attribute with local attribute.
-				globalAttributes.put(key, value);
-
-				// Ensure comment prefix aliases are honored during the merge.
-				if (key.equals(COMMENT_PREFIX) && isEmptyArray(localAttributes.get(COMMENT_PREFIXES))) {
-					globalAttributes.put(COMMENT_PREFIXES, value);
-				}
-				else if (key.equals(COMMENT_PREFIXES) && isEmptyString(localAttributes.get(COMMENT_PREFIX))) {
-					globalAttributes.put(COMMENT_PREFIX, value);
-				}
-			}
-		}
-		return globalAttributes;
-	}
-
-	/**
-	 * Get the bean name of the {@link javax.sql.DataSource}.
-	 * @see SqlConfig#dataSource()
-	 */
-	String getDataSource() {
-		return this.dataSource;
-	}
-
-	/**
-	 * Get the bean name of the {@link org.springframework.transaction.PlatformTransactionManager}.
-	 * @see SqlConfig#transactionManager()
-	 */
-	String getTransactionManager() {
-		return this.transactionManager;
-	}
-
-	/**
-	 * Get the {@link TransactionMode}.
-	 * @see SqlConfig#transactionMode()
-	 */
-	TransactionMode getTransactionMode() {
-		return this.transactionMode;
-	}
-
-	/**
-	 * Get the encoding for the SQL scripts, if different from the platform
-	 * encoding.
-	 * @see SqlConfig#encoding()
-	 */
-	String getEncoding() {
-		return this.encoding;
-	}
-
-	/**
-	 * Get the character string used to separate individual statements within the
-	 * SQL scripts.
-	 * @see SqlConfig#separator()
-	 */
-	String getSeparator() {
-		return this.separator;
-	}
-
-	/**
-	 * Get the prefixes that identify single-line comments within the SQL scripts.
-	 * @see SqlConfig#commentPrefixes()
-	 * @since 5.2
-	 */
-	String[] getCommentPrefixes() {
-		return this.commentPrefixes;
-	}
-
-	/**
-	 * Get the start delimiter that identifies block comments within the SQL scripts.
-	 * @see SqlConfig#blockCommentStartDelimiter()
-	 */
-	String getBlockCommentStartDelimiter() {
-		return this.blockCommentStartDelimiter;
-	}
-
-	/**
-	 * Get the end delimiter that identifies block comments within the SQL scripts.
-	 * @see SqlConfig#blockCommentEndDelimiter()
-	 */
-	String getBlockCommentEndDelimiter() {
-		return this.blockCommentEndDelimiter;
-	}
-
-	/**
-	 * Get the {@link ErrorMode}.
-	 * @see SqlConfig#errorMode()
-	 */
-	ErrorMode getErrorMode() {
-		return this.errorMode;
-	}
-
-	/**
-	 * Provide a String representation of the merged SQL script configuration.
-	 */
-	@Override
-	public String toString() {
-		return new ToStringCreator(this)
-				.append("dataSource", this.dataSource)
-				.append("transactionManager", this.transactionManager)
-				.append("transactionMode", this.transactionMode)
-				.append("encoding", this.encoding)
-				.append("separator", this.separator)
-				.append("commentPrefixes", this.commentPrefixes)
-				.append("blockCommentStartDelimiter", this.blockCommentStartDelimiter)
-				.append("blockCommentEndDelimiter", this.blockCommentEndDelimiter)
-				.append("errorMode", this.errorMode)
-				.toString();
-	}
+    private final ErrorMode errorMode;
 
 
-	private static <E extends Enum<?>> E getEnum(AnnotationAttributes attributes, String attributeName,
-			E inheritedOrDefaultValue, E defaultValue) {
+    /**
+     * Construct a {@code MergedSqlConfig} instance by merging the configuration
+     * from the supplied local (potentially method-level) {@code @SqlConfig} annotation
+     * with class-level configuration discovered on the supplied {@code testClass}.
+     * <p>Local configuration overrides class-level configuration.
+     * <p>If the test class is not annotated with {@code @SqlConfig}, no merging
+     * takes place and the local configuration is used "as is".
+     */
+    MergedSqlConfig(SqlConfig localSqlConfig, Class<?> testClass) {
+        Assert.notNull(localSqlConfig, "Local @SqlConfig must not be null");
+        Assert.notNull(testClass, "testClass must not be null");
 
-		E value = attributes.getEnum(attributeName);
-		if (value == inheritedOrDefaultValue) {
-			value = defaultValue;
-		}
-		return value;
-	}
+        AnnotationAttributes mergedAttributes = mergeAttributes(localSqlConfig, testClass);
 
-	private static String getString(AnnotationAttributes attributes, String attributeName, String defaultValue) {
-		String value = attributes.getString(attributeName);
-		if ("".equals(value)) {
-			value = defaultValue;
-		}
-		return value;
-	}
+        this.dataSource = mergedAttributes.getString("dataSource");
+        this.transactionManager = mergedAttributes.getString("transactionManager");
+        this.transactionMode = getEnum(mergedAttributes, "transactionMode", TransactionMode.DEFAULT,
+                TransactionMode.INFERRED);
+        this.encoding = mergedAttributes.getString("encoding");
+        this.separator = getString(mergedAttributes, "separator", ScriptUtils.DEFAULT_STATEMENT_SEPARATOR);
+        this.commentPrefixes = getCommentPrefixes(mergedAttributes);
+        this.blockCommentStartDelimiter = getString(mergedAttributes, "blockCommentStartDelimiter",
+                ScriptUtils.DEFAULT_BLOCK_COMMENT_START_DELIMITER);
+        this.blockCommentEndDelimiter = getString(mergedAttributes, "blockCommentEndDelimiter",
+                ScriptUtils.DEFAULT_BLOCK_COMMENT_END_DELIMITER);
+        this.errorMode = getEnum(mergedAttributes, "errorMode", ErrorMode.DEFAULT, ErrorMode.FAIL_ON_ERROR);
+    }
 
-	private static void enforceCommentPrefixAliases(AnnotationAttributes attributes) {
-		String commentPrefix = attributes.getString(COMMENT_PREFIX);
-		String[] commentPrefixes = attributes.getStringArray(COMMENT_PREFIXES);
+    private static <E extends Enum<?>> E getEnum(AnnotationAttributes attributes, String attributeName,
+                                                 E inheritedOrDefaultValue, E defaultValue) {
 
-		boolean explicitCommentPrefix = !commentPrefix.isEmpty();
-		boolean explicitCommentPrefixes = (commentPrefixes.length != 0);
-		Assert.isTrue(!(explicitCommentPrefix && explicitCommentPrefixes),
-			"You may declare the 'commentPrefix' or 'commentPrefixes' attribute in @SqlConfig but not both");
+        E value = attributes.getEnum(attributeName);
+        if (value == inheritedOrDefaultValue) {
+            value = defaultValue;
+        }
+        return value;
+    }
 
-		if (explicitCommentPrefix) {
-			Assert.hasText(commentPrefix, "@SqlConfig(commentPrefix) must contain text");
-			attributes.put(COMMENT_PREFIXES, new String[] { commentPrefix });
-		}
-		else if (explicitCommentPrefixes) {
-			for (String prefix : commentPrefixes) {
-				Assert.hasText(prefix, "@SqlConfig(commentPrefixes) must not contain empty prefixes");
-			}
-			attributes.put(COMMENT_PREFIX, commentPrefixes);
-		}
-		else {
-			// We know commentPrefixes is an empty array, so make sure commentPrefix
-			// is set to that as well in order to honor the alias contract.
-			attributes.put(COMMENT_PREFIX, commentPrefixes);
-		}
-	}
+    private static String getString(AnnotationAttributes attributes, String attributeName, String defaultValue) {
+        String value = attributes.getString(attributeName);
+        if ("".equals(value)) {
+            value = defaultValue;
+        }
+        return value;
+    }
 
-	private static String[] getCommentPrefixes(AnnotationAttributes attributes) {
-		String[] commentPrefix = attributes.getStringArray(COMMENT_PREFIX);
-		String[] commentPrefixes = attributes.getStringArray(COMMENT_PREFIXES);
+    private static void enforceCommentPrefixAliases(AnnotationAttributes attributes) {
+        String commentPrefix = attributes.getString(COMMENT_PREFIX);
+        String[] commentPrefixes = attributes.getStringArray(COMMENT_PREFIXES);
 
-		Assert.state(Arrays.equals(commentPrefix, commentPrefixes),
-			"Failed to properly handle 'commentPrefix' and 'commentPrefixes' aliases");
+        boolean explicitCommentPrefix = !commentPrefix.isEmpty();
+        boolean explicitCommentPrefixes = (commentPrefixes.length != 0);
+        Assert.isTrue(!(explicitCommentPrefix && explicitCommentPrefixes),
+                "You may declare the 'commentPrefix' or 'commentPrefixes' attribute in @SqlConfig but not both");
 
-		return (commentPrefixes.length != 0 ? commentPrefixes : ScriptUtils.DEFAULT_COMMENT_PREFIXES);
-	}
+        if (explicitCommentPrefix) {
+            Assert.hasText(commentPrefix, "@SqlConfig(commentPrefix) must contain text");
+            attributes.put(COMMENT_PREFIXES, new String[]{commentPrefix});
+        } else if (explicitCommentPrefixes) {
+            for (String prefix : commentPrefixes) {
+                Assert.hasText(prefix, "@SqlConfig(commentPrefixes) must not contain empty prefixes");
+            }
+            attributes.put(COMMENT_PREFIX, commentPrefixes);
+        } else {
+            // We know commentPrefixes is an empty array, so make sure commentPrefix
+            // is set to that as well in order to honor the alias contract.
+            attributes.put(COMMENT_PREFIX, commentPrefixes);
+        }
+    }
 
-	/**
-	 * Determine if the supplied value is an explicit value (i.e., not a default).
-	 */
-	private static boolean isExplicitValue(@Nullable Object value) {
-		return !(isEmptyString(value) ||
-				isEmptyArray(value) ||
-				value == TransactionMode.DEFAULT ||
-				value == ErrorMode.DEFAULT);
-	}
+    private static String[] getCommentPrefixes(AnnotationAttributes attributes) {
+        String[] commentPrefix = attributes.getStringArray(COMMENT_PREFIX);
+        String[] commentPrefixes = attributes.getStringArray(COMMENT_PREFIXES);
 
-	private static boolean isEmptyString(@Nullable Object value) {
-		return (value instanceof String && ((String) value).isEmpty());
-	}
+        Assert.state(Arrays.equals(commentPrefix, commentPrefixes),
+                "Failed to properly handle 'commentPrefix' and 'commentPrefixes' aliases");
 
-	private static boolean isEmptyArray(@Nullable Object value) {
-		return (value != null && value.getClass().isArray() && Array.getLength(value) == 0);
-	}
+        return (commentPrefixes.length != 0 ? commentPrefixes : ScriptUtils.DEFAULT_COMMENT_PREFIXES);
+    }
+
+    /**
+     * Determine if the supplied value is an explicit value (i.e., not a default).
+     */
+    private static boolean isExplicitValue(@Nullable Object value) {
+        return !(isEmptyString(value) ||
+                isEmptyArray(value) ||
+                value == TransactionMode.DEFAULT ||
+                value == ErrorMode.DEFAULT);
+    }
+
+    private static boolean isEmptyString(@Nullable Object value) {
+        return (value instanceof String && ((String) value).isEmpty());
+    }
+
+    private static boolean isEmptyArray(@Nullable Object value) {
+        return (value != null && value.getClass().isArray() && Array.getLength(value) == 0);
+    }
+
+    private AnnotationAttributes mergeAttributes(SqlConfig localSqlConfig, Class<?> testClass) {
+        AnnotationAttributes localAttributes = AnnotationUtils.getAnnotationAttributes(localSqlConfig, false, false);
+
+        // Enforce comment prefix aliases within the local @SqlConfig.
+        enforceCommentPrefixAliases(localAttributes);
+
+        // Get global attributes, if any.
+        AnnotationAttributes globalAttributes = AnnotatedElementUtils.findMergedAnnotationAttributes(
+                testClass, SqlConfig.class.getName(), false, false);
+
+        // Use local attributes only?
+        if (globalAttributes == null) {
+            return localAttributes;
+        }
+
+        // Enforce comment prefix aliases within the global @SqlConfig.
+        enforceCommentPrefixAliases(globalAttributes);
+
+        for (String key : globalAttributes.keySet()) {
+            Object value = localAttributes.get(key);
+            if (isExplicitValue(value)) {
+                // Override global attribute with local attribute.
+                globalAttributes.put(key, value);
+
+                // Ensure comment prefix aliases are honored during the merge.
+                if (key.equals(COMMENT_PREFIX) && isEmptyArray(localAttributes.get(COMMENT_PREFIXES))) {
+                    globalAttributes.put(COMMENT_PREFIXES, value);
+                } else if (key.equals(COMMENT_PREFIXES) && isEmptyString(localAttributes.get(COMMENT_PREFIX))) {
+                    globalAttributes.put(COMMENT_PREFIX, value);
+                }
+            }
+        }
+        return globalAttributes;
+    }
+
+    /**
+     * Get the bean name of the {@link javax.sql.DataSource}.
+     *
+     * @see SqlConfig#dataSource()
+     */
+    String getDataSource() {
+        return this.dataSource;
+    }
+
+    /**
+     * Get the bean name of the {@link org.springframework.transaction.PlatformTransactionManager}.
+     *
+     * @see SqlConfig#transactionManager()
+     */
+    String getTransactionManager() {
+        return this.transactionManager;
+    }
+
+    /**
+     * Get the {@link TransactionMode}.
+     *
+     * @see SqlConfig#transactionMode()
+     */
+    TransactionMode getTransactionMode() {
+        return this.transactionMode;
+    }
+
+    /**
+     * Get the encoding for the SQL scripts, if different from the platform
+     * encoding.
+     *
+     * @see SqlConfig#encoding()
+     */
+    String getEncoding() {
+        return this.encoding;
+    }
+
+    /**
+     * Get the character string used to separate individual statements within the
+     * SQL scripts.
+     *
+     * @see SqlConfig#separator()
+     */
+    String getSeparator() {
+        return this.separator;
+    }
+
+    /**
+     * Get the prefixes that identify single-line comments within the SQL scripts.
+     *
+     * @see SqlConfig#commentPrefixes()
+     * @since 5.2
+     */
+    String[] getCommentPrefixes() {
+        return this.commentPrefixes;
+    }
+
+    /**
+     * Get the start delimiter that identifies block comments within the SQL scripts.
+     *
+     * @see SqlConfig#blockCommentStartDelimiter()
+     */
+    String getBlockCommentStartDelimiter() {
+        return this.blockCommentStartDelimiter;
+    }
+
+    /**
+     * Get the end delimiter that identifies block comments within the SQL scripts.
+     *
+     * @see SqlConfig#blockCommentEndDelimiter()
+     */
+    String getBlockCommentEndDelimiter() {
+        return this.blockCommentEndDelimiter;
+    }
+
+    /**
+     * Get the {@link ErrorMode}.
+     *
+     * @see SqlConfig#errorMode()
+     */
+    ErrorMode getErrorMode() {
+        return this.errorMode;
+    }
+
+    /**
+     * Provide a String representation of the merged SQL script configuration.
+     */
+    @Override
+    public String toString() {
+        return new ToStringCreator(this)
+                .append("dataSource", this.dataSource)
+                .append("transactionManager", this.transactionManager)
+                .append("transactionMode", this.transactionMode)
+                .append("encoding", this.encoding)
+                .append("separator", this.separator)
+                .append("commentPrefixes", this.commentPrefixes)
+                .append("blockCommentStartDelimiter", this.blockCommentStartDelimiter)
+                .append("blockCommentEndDelimiter", this.blockCommentEndDelimiter)
+                .append("errorMode", this.errorMode)
+                .toString();
+    }
 
 }

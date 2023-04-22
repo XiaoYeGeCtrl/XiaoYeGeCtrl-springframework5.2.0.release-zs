@@ -21,31 +21,33 @@ package org.springframework.mail;
  * for example when a FreeMarker template cannot be rendered for the mail text.
  *
  * @author Juergen Hoeller
- * @since 1.1
  * @see org.springframework.ui.freemarker.FreeMarkerTemplateUtils#processTemplateIntoString
+ * @since 1.1
  */
 @SuppressWarnings("serial")
 public class MailPreparationException extends MailException {
 
-	/**
-	 * Constructor for MailPreparationException.
-	 * @param msg the detail message
-	 */
-	public MailPreparationException(String msg) {
-		super(msg);
-	}
+    /**
+     * Constructor for MailPreparationException.
+     *
+     * @param msg the detail message
+     */
+    public MailPreparationException(String msg) {
+        super(msg);
+    }
 
-	/**
-	 * Constructor for MailPreparationException.
-	 * @param msg the detail message
-	 * @param cause the root cause from the mail API in use
-	 */
-	public MailPreparationException(String msg, Throwable cause) {
-		super(msg, cause);
-	}
+    /**
+     * Constructor for MailPreparationException.
+     *
+     * @param msg   the detail message
+     * @param cause the root cause from the mail API in use
+     */
+    public MailPreparationException(String msg, Throwable cause) {
+        super(msg, cause);
+    }
 
-	public MailPreparationException(Throwable cause) {
-		super("Could not prepare mail", cause);
-	}
+    public MailPreparationException(Throwable cause) {
+        super("Could not prepare mail", cause);
+    }
 
 }

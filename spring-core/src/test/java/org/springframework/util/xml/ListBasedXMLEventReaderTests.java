@@ -45,61 +45,61 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
  */
 class ListBasedXMLEventReaderTests {
 
-	private final XMLInputFactory inputFactory = XMLInputFactory.newInstance();
+    private final XMLInputFactory inputFactory = XMLInputFactory.newInstance();
 
-	private final XMLOutputFactory outputFactory = XMLOutputFactory.newFactory();
+    private final XMLOutputFactory outputFactory = XMLOutputFactory.newFactory();
 
 
-	@Test
-	void standard() throws Exception {
-		String xml = "<foo><bar>baz</bar></foo>";
-		List<XMLEvent> events = readEvents(xml);
+    @Test
+    void standard() throws Exception {
+        String xml = "<foo><bar>baz</bar></foo>";
+        List<XMLEvent> events = readEvents(xml);
 
-		ListBasedXMLEventReader reader = new ListBasedXMLEventReader(events);
+        ListBasedXMLEventReader reader = new ListBasedXMLEventReader(events);
 
-		StringWriter resultWriter = new StringWriter();
-		XMLEventWriter writer = this.outputFactory.createXMLEventWriter(resultWriter);
-		writer.add(reader);
+        StringWriter resultWriter = new StringWriter();
+        XMLEventWriter writer = this.outputFactory.createXMLEventWriter(resultWriter);
+        writer.add(reader);
 
-		assertThat(XmlContent.from(resultWriter)).isSimilarTo(xml);
-	}
+        assertThat(XmlContent.from(resultWriter)).isSimilarTo(xml);
+    }
 
-	@Test
-	void getElementText() throws Exception {
-		String xml = "<foo><bar>baz</bar></foo>";
-		List<XMLEvent> events = readEvents(xml);
+    @Test
+    void getElementText() throws Exception {
+        String xml = "<foo><bar>baz</bar></foo>";
+        List<XMLEvent> events = readEvents(xml);
 
-		ListBasedXMLEventReader reader = new ListBasedXMLEventReader(events);
+        ListBasedXMLEventReader reader = new ListBasedXMLEventReader(events);
 
-		assertThat(reader.nextEvent().getEventType()).isEqualTo(START_DOCUMENT);
-		assertThat(reader.nextEvent().getEventType()).isEqualTo(START_ELEMENT);
-		assertThat(reader.nextEvent().getEventType()).isEqualTo(START_ELEMENT);
-		assertThat(reader.getElementText()).isEqualTo("baz");
-		assertThat(reader.nextEvent().getEventType()).isEqualTo(END_ELEMENT);
-		assertThat(reader.nextEvent().getEventType()).isEqualTo(END_DOCUMENT);
-	}
+        assertThat(reader.nextEvent().getEventType()).isEqualTo(START_DOCUMENT);
+        assertThat(reader.nextEvent().getEventType()).isEqualTo(START_ELEMENT);
+        assertThat(reader.nextEvent().getEventType()).isEqualTo(START_ELEMENT);
+        assertThat(reader.getElementText()).isEqualTo("baz");
+        assertThat(reader.nextEvent().getEventType()).isEqualTo(END_ELEMENT);
+        assertThat(reader.nextEvent().getEventType()).isEqualTo(END_DOCUMENT);
+    }
 
-	@Test
-	void getElementTextThrowsExceptionAtWrongPosition() throws Exception {
-		String xml = "<foo><bar>baz</bar></foo>";
-		List<XMLEvent> events = readEvents(xml);
+    @Test
+    void getElementTextThrowsExceptionAtWrongPosition() throws Exception {
+        String xml = "<foo><bar>baz</bar></foo>";
+        List<XMLEvent> events = readEvents(xml);
 
-		ListBasedXMLEventReader reader = new ListBasedXMLEventReader(events);
+        ListBasedXMLEventReader reader = new ListBasedXMLEventReader(events);
 
-		assertThat(reader.nextEvent().getEventType()).isEqualTo(START_DOCUMENT);
+        assertThat(reader.nextEvent().getEventType()).isEqualTo(START_DOCUMENT);
 
-		assertThatExceptionOfType(XMLStreamException.class).isThrownBy(
-				reader::getElementText)
-			.withMessageStartingWith("Not at START_ELEMENT");
-	}
+        assertThatExceptionOfType(XMLStreamException.class).isThrownBy(
+                reader::getElementText)
+                .withMessageStartingWith("Not at START_ELEMENT");
+    }
 
-	private List<XMLEvent> readEvents(String xml) throws XMLStreamException {
-		XMLEventReader reader = this.inputFactory.createXMLEventReader(new StringReader(xml));
-		List<XMLEvent> events = new ArrayList<>();
-		while (reader.hasNext()) {
-			events.add(reader.nextEvent());
-		}
-		return events;
-	}
+    private List<XMLEvent> readEvents(String xml) throws XMLStreamException {
+        XMLEventReader reader = this.inputFactory.createXMLEventReader(new StringReader(xml));
+        List<XMLEvent> events = new ArrayList<>();
+        while (reader.hasNext()) {
+            events.add(reader.nextEvent());
+        }
+        return events;
+    }
 
 }

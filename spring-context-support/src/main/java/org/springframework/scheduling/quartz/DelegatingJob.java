@@ -31,38 +31,39 @@ import org.springframework.util.Assert;
  * that way instead of via the JobExecutionContext.
  *
  * @author Juergen Hoeller
- * @since 2.0
  * @see SpringBeanJobFactory
  * @see org.quartz.Job#execute(org.quartz.JobExecutionContext)
+ * @since 2.0
  */
 public class DelegatingJob implements Job {
 
-	private final Runnable delegate;
+    private final Runnable delegate;
 
 
-	/**
-	 * Create a new DelegatingJob.
-	 * @param delegate the Runnable implementation to delegate to
-	 */
-	public DelegatingJob(Runnable delegate) {
-		Assert.notNull(delegate, "Delegate must not be null");
-		this.delegate = delegate;
-	}
+    /**
+     * Create a new DelegatingJob.
+     *
+     * @param delegate the Runnable implementation to delegate to
+     */
+    public DelegatingJob(Runnable delegate) {
+        Assert.notNull(delegate, "Delegate must not be null");
+        this.delegate = delegate;
+    }
 
-	/**
-	 * Return the wrapped Runnable implementation.
-	 */
-	public final Runnable getDelegate() {
-		return this.delegate;
-	}
+    /**
+     * Return the wrapped Runnable implementation.
+     */
+    public final Runnable getDelegate() {
+        return this.delegate;
+    }
 
 
-	/**
-	 * Delegates execution to the underlying Runnable.
-	 */
-	@Override
-	public void execute(JobExecutionContext context) throws JobExecutionException {
-		this.delegate.run();
-	}
+    /**
+     * Delegates execution to the underlying Runnable.
+     */
+    @Override
+    public void execute(JobExecutionContext context) throws JobExecutionException {
+        this.delegate.run();
+    }
 
 }

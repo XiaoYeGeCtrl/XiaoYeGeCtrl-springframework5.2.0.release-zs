@@ -23,10 +23,10 @@ package org.springframework.core.type;
  */
 class StandardAnnotationMetadataTests extends AbstractAnnotationMetadataTests {
 
-	@Override
-	@SuppressWarnings("deprecation")
-	protected AnnotationMetadata get(Class<?> source) {
-		return new StandardAnnotationMetadata(source);
-	}
+    @Override
+    @SuppressWarnings("deprecation")
+    protected AnnotationMetadata get(Class<?> source) {
+        return new StandardAnnotationMetadata(source);
+    }
 
 }

@@ -38,114 +38,114 @@ import java.util.concurrent.CompletableFuture
 @Suppress("UnassignedFluxMonoInstance")
 class ServerResponseExtensionsTests {
 
-	private val bodyBuilder = mockk<ServerResponse.BodyBuilder>(relaxed = true)
+    private val bodyBuilder = mockk<ServerResponse.BodyBuilder>(relaxed = true)
 
 
-	@Test
-	fun `BodyBuilder#body with Publisher and reified type parameters`() {
-		val body = mockk<Publisher<List<Foo>>>()
-		bodyBuilder.body(body)
-		verify { bodyBuilder.body(body, object : ParameterizedTypeReference<List<Foo>>() {}) }
-	}
+    @Test
+    fun `BodyBuilder#body with Publisher and reified type parameters`() {
+        val body = mockk<Publisher<List<Foo>>>()
+        bodyBuilder.body(body)
+        verify { bodyBuilder.body(body, object : ParameterizedTypeReference<List<Foo>>() {}) }
+    }
 
-	@Test
-	fun `BodyBuilder#body with CompletableFuture and reified type parameters`() {
-		val body = mockk<CompletableFuture<List<Foo>>>()
-		bodyBuilder.body<List<Foo>>(body)
-		verify { bodyBuilder.body(body, object : ParameterizedTypeReference<List<Foo>>() {}) }
-	}
+    @Test
+    fun `BodyBuilder#body with CompletableFuture and reified type parameters`() {
+        val body = mockk<CompletableFuture<List<Foo>>>()
+        bodyBuilder.body<List<Foo>>(body)
+        verify { bodyBuilder.body(body, object : ParameterizedTypeReference<List<Foo>>() {}) }
+    }
 
-	@Test
-	fun `BodyBuilder#body with Flowable and reified type parameters`() {
-		val body = mockk<Flowable<List<Foo>>>()
-		bodyBuilder.body(body)
-		verify { bodyBuilder.body(body, object : ParameterizedTypeReference<List<Foo>>() {}) }
-	}
+    @Test
+    fun `BodyBuilder#body with Flowable and reified type parameters`() {
+        val body = mockk<Flowable<List<Foo>>>()
+        bodyBuilder.body(body)
+        verify { bodyBuilder.body(body, object : ParameterizedTypeReference<List<Foo>>() {}) }
+    }
 
-	@Test
-	fun `BodyBuilder#bodyAndAwait with object parameter`() {
-		val response = mockk<ServerResponse>()
-		val body = "foo"
-		every { bodyBuilder.bodyValue(ofType<String>()) } returns Mono.just(response)
-		runBlocking {
-			bodyBuilder.bodyValueAndAwait(body)
-		}
-		verify {
-			bodyBuilder.bodyValue(ofType<String>())
-		}
-	}
+    @Test
+    fun `BodyBuilder#bodyAndAwait with object parameter`() {
+        val response = mockk<ServerResponse>()
+        val body = "foo"
+        every { bodyBuilder.bodyValue(ofType<String>()) } returns Mono.just(response)
+        runBlocking {
+            bodyBuilder.bodyValueAndAwait(body)
+        }
+        verify {
+            bodyBuilder.bodyValue(ofType<String>())
+        }
+    }
 
-	@Test
-	fun `BodyBuilder#bodyAndAwait with flow parameter`() {
-		val response = mockk<ServerResponse>()
-		val body = mockk<Flow<List<Foo>>>()
-		every { bodyBuilder.body(ofType<Flow<List<Foo>>>(), object : ParameterizedTypeReference<List<Foo>>() {}) } returns Mono.just(response)
-		runBlocking {
-			bodyBuilder.bodyAndAwait(body)
-		}
-		verify {
-			bodyBuilder.body(ofType<Flow<List<Foo>>>(), object : ParameterizedTypeReference<List<Foo>>() {})
-		}
-	}
+    @Test
+    fun `BodyBuilder#bodyAndAwait with flow parameter`() {
+        val response = mockk<ServerResponse>()
+        val body = mockk<Flow<List<Foo>>>()
+        every { bodyBuilder.body(ofType<Flow<List<Foo>>>(), object : ParameterizedTypeReference<List<Foo>>() {}) } returns Mono.just(response)
+        runBlocking {
+            bodyBuilder.bodyAndAwait(body)
+        }
+        verify {
+            bodyBuilder.body(ofType<Flow<List<Foo>>>(), object : ParameterizedTypeReference<List<Foo>>() {})
+        }
+    }
 
-	@Test
-	fun `BodyBuilder#json`() {
-		bodyBuilder.json()
-		verify { bodyBuilder.contentType(APPLICATION_JSON) }
-	}
+    @Test
+    fun `BodyBuilder#json`() {
+        bodyBuilder.json()
+        verify { bodyBuilder.contentType(APPLICATION_JSON) }
+    }
 
-	@Test
-	fun `BodyBuilder#xml`() {
-		bodyBuilder.xml()
-		verify { bodyBuilder.contentType(APPLICATION_XML) }
-	}
+    @Test
+    fun `BodyBuilder#xml`() {
+        bodyBuilder.xml()
+        verify { bodyBuilder.contentType(APPLICATION_XML) }
+    }
 
-	@Test
-	fun `BodyBuilder#html`() {
-		bodyBuilder.html()
-		verify { bodyBuilder.contentType(TEXT_HTML) }
-	}
+    @Test
+    fun `BodyBuilder#html`() {
+        bodyBuilder.html()
+        verify { bodyBuilder.contentType(TEXT_HTML) }
+    }
 
-	@Test
-	fun `BodyBuilder#sse`() {
-		bodyBuilder.sse()
-		verify { bodyBuilder.contentType(TEXT_EVENT_STREAM) }
-	}
+    @Test
+    fun `BodyBuilder#sse`() {
+        bodyBuilder.sse()
+        verify { bodyBuilder.contentType(TEXT_EVENT_STREAM) }
+    }
 
-	@Test
-	fun `BodyBuilder#renderAndAwait with a vararg parameter`() {
-		val response = mockk<ServerResponse>()
-		every { bodyBuilder.render("foo", any(), any()) } returns Mono.just(response)
-		runBlocking {
-			bodyBuilder.renderAndAwait("foo", "bar", "baz")
-		}
-		verify {
-			bodyBuilder.render("foo", any(), any())
-		}
-	}
+    @Test
+    fun `BodyBuilder#renderAndAwait with a vararg parameter`() {
+        val response = mockk<ServerResponse>()
+        every { bodyBuilder.render("foo", any(), any()) } returns Mono.just(response)
+        runBlocking {
+            bodyBuilder.renderAndAwait("foo", "bar", "baz")
+        }
+        verify {
+            bodyBuilder.render("foo", any(), any())
+        }
+    }
 
-	@Test
-	fun `BodyBuilder#renderAndAwait with a Map parameter`() {
-		val response = mockk<ServerResponse>()
-		val map = mockk<Map<String, *>>()
-		every { bodyBuilder.render("foo", map) } returns Mono.just(response)
-		runBlocking {
-			bodyBuilder.renderAndAwait("foo", map)
-		}
-		verify {
-			bodyBuilder.render("foo", map)
-		}
-	}
+    @Test
+    fun `BodyBuilder#renderAndAwait with a Map parameter`() {
+        val response = mockk<ServerResponse>()
+        val map = mockk<Map<String, *>>()
+        every { bodyBuilder.render("foo", map) } returns Mono.just(response)
+        runBlocking {
+            bodyBuilder.renderAndAwait("foo", map)
+        }
+        verify {
+            bodyBuilder.render("foo", map)
+        }
+    }
 
-	@Test
-	fun `HeadersBuilder#buildAndAwait`() {
-		val response = mockk<ServerResponse>()
-		val builder = mockk<ServerResponse.HeadersBuilder<*>>()
-		every { builder.build() } returns Mono.just(response)
-		runBlocking {
-			assertThat(builder.buildAndAwait()).isEqualTo(response)
-		}
-	}
+    @Test
+    fun `HeadersBuilder#buildAndAwait`() {
+        val response = mockk<ServerResponse>()
+        val builder = mockk<ServerResponse.HeadersBuilder<*>>()
+        every { builder.build() } returns Mono.just(response)
+        runBlocking {
+            assertThat(builder.buildAndAwait()).isEqualTo(response)
+        }
+    }
 
-	class Foo
+    class Foo
 }

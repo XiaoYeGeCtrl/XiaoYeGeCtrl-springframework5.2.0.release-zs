@@ -39,121 +39,136 @@ import static org.springframework.test.context.BootstrapUtils.resolveTestContext
  */
 class BootstrapUtilsTests {
 
-	private final CacheAwareContextLoaderDelegate delegate = mock(CacheAwareContextLoaderDelegate.class);
+    private final CacheAwareContextLoaderDelegate delegate = mock(CacheAwareContextLoaderDelegate.class);
 
-	@Test
-	void resolveTestContextBootstrapperWithEmptyBootstrapWithAnnotation() {
-		BootstrapContext bootstrapContext = BootstrapTestUtils.buildBootstrapContext(EmptyBootstrapWithAnnotationClass.class, delegate);
-		assertThatIllegalStateException().isThrownBy(() ->
-				resolveTestContextBootstrapper(bootstrapContext))
-			.withMessageContaining("Specify @BootstrapWith's 'value' attribute");
-	}
+    @Test
+    void resolveTestContextBootstrapperWithEmptyBootstrapWithAnnotation() {
+        BootstrapContext bootstrapContext = BootstrapTestUtils.buildBootstrapContext(EmptyBootstrapWithAnnotationClass.class, delegate);
+        assertThatIllegalStateException().isThrownBy(() ->
+                resolveTestContextBootstrapper(bootstrapContext))
+                .withMessageContaining("Specify @BootstrapWith's 'value' attribute");
+    }
 
-	@Test
-	void resolveTestContextBootstrapperWithDoubleMetaBootstrapWithAnnotations() {
-		BootstrapContext bootstrapContext = BootstrapTestUtils.buildBootstrapContext(
-			DoubleMetaAnnotatedBootstrapWithAnnotationClass.class, delegate);
-		assertThatIllegalStateException().isThrownBy(() ->
-				resolveTestContextBootstrapper(bootstrapContext))
-			.withMessageContaining("Configuration error: found multiple declarations of @BootstrapWith")
-			.withMessageContaining(FooBootstrapper.class.getName())
-			.withMessageContaining(BarBootstrapper.class.getName());
-	}
+    @Test
+    void resolveTestContextBootstrapperWithDoubleMetaBootstrapWithAnnotations() {
+        BootstrapContext bootstrapContext = BootstrapTestUtils.buildBootstrapContext(
+                DoubleMetaAnnotatedBootstrapWithAnnotationClass.class, delegate);
+        assertThatIllegalStateException().isThrownBy(() ->
+                resolveTestContextBootstrapper(bootstrapContext))
+                .withMessageContaining("Configuration error: found multiple declarations of @BootstrapWith")
+                .withMessageContaining(FooBootstrapper.class.getName())
+                .withMessageContaining(BarBootstrapper.class.getName());
+    }
 
-	@Test
-	void resolveTestContextBootstrapperForNonAnnotatedClass() {
-		assertBootstrapper(NonAnnotatedClass.class, DefaultTestContextBootstrapper.class);
-	}
+    @Test
+    void resolveTestContextBootstrapperForNonAnnotatedClass() {
+        assertBootstrapper(NonAnnotatedClass.class, DefaultTestContextBootstrapper.class);
+    }
 
-	@Test
-	void resolveTestContextBootstrapperForWebAppConfigurationAnnotatedClass() {
-		assertBootstrapper(WebAppConfigurationAnnotatedClass.class, WebTestContextBootstrapper.class);
-	}
+    @Test
+    void resolveTestContextBootstrapperForWebAppConfigurationAnnotatedClass() {
+        assertBootstrapper(WebAppConfigurationAnnotatedClass.class, WebTestContextBootstrapper.class);
+    }
 
-	@Test
-	void resolveTestContextBootstrapperWithDirectBootstrapWithAnnotation() {
-		assertBootstrapper(DirectBootstrapWithAnnotationClass.class, FooBootstrapper.class);
-	}
+    @Test
+    void resolveTestContextBootstrapperWithDirectBootstrapWithAnnotation() {
+        assertBootstrapper(DirectBootstrapWithAnnotationClass.class, FooBootstrapper.class);
+    }
 
-	@Test
-	void resolveTestContextBootstrapperWithInheritedBootstrapWithAnnotation() {
-		assertBootstrapper(InheritedBootstrapWithAnnotationClass.class, FooBootstrapper.class);
-	}
+    @Test
+    void resolveTestContextBootstrapperWithInheritedBootstrapWithAnnotation() {
+        assertBootstrapper(InheritedBootstrapWithAnnotationClass.class, FooBootstrapper.class);
+    }
 
-	@Test
-	void resolveTestContextBootstrapperWithMetaBootstrapWithAnnotation() {
-		assertBootstrapper(MetaAnnotatedBootstrapWithAnnotationClass.class, BarBootstrapper.class);
-	}
+    @Test
+    void resolveTestContextBootstrapperWithMetaBootstrapWithAnnotation() {
+        assertBootstrapper(MetaAnnotatedBootstrapWithAnnotationClass.class, BarBootstrapper.class);
+    }
 
-	@Test
-	void resolveTestContextBootstrapperWithDuplicatingMetaBootstrapWithAnnotations() {
-		assertBootstrapper(DuplicateMetaAnnotatedBootstrapWithAnnotationClass.class, FooBootstrapper.class);
-	}
+    @Test
+    void resolveTestContextBootstrapperWithDuplicatingMetaBootstrapWithAnnotations() {
+        assertBootstrapper(DuplicateMetaAnnotatedBootstrapWithAnnotationClass.class, FooBootstrapper.class);
+    }
 
-	/**
-	 * @since 5.1
-	 */
-	@Test
-	void resolveTestContextBootstrapperWithLocalDeclarationThatOverridesMetaBootstrapWithAnnotations() {
-		assertBootstrapper(LocalDeclarationAndMetaAnnotatedBootstrapWithAnnotationClass.class, EnigmaBootstrapper.class);
-	}
+    /**
+     * @since 5.1
+     */
+    @Test
+    void resolveTestContextBootstrapperWithLocalDeclarationThatOverridesMetaBootstrapWithAnnotations() {
+        assertBootstrapper(LocalDeclarationAndMetaAnnotatedBootstrapWithAnnotationClass.class, EnigmaBootstrapper.class);
+    }
 
-	private void assertBootstrapper(Class<?> testClass, Class<?> expectedBootstrapper) {
-		BootstrapContext bootstrapContext = BootstrapTestUtils.buildBootstrapContext(testClass, delegate);
-		TestContextBootstrapper bootstrapper = resolveTestContextBootstrapper(bootstrapContext);
-		assertThat(bootstrapper).isNotNull();
-		assertThat(bootstrapper.getClass()).isEqualTo(expectedBootstrapper);
-	}
+    private void assertBootstrapper(Class<?> testClass, Class<?> expectedBootstrapper) {
+        BootstrapContext bootstrapContext = BootstrapTestUtils.buildBootstrapContext(testClass, delegate);
+        TestContextBootstrapper bootstrapper = resolveTestContextBootstrapper(bootstrapContext);
+        assertThat(bootstrapper).isNotNull();
+        assertThat(bootstrapper.getClass()).isEqualTo(expectedBootstrapper);
+    }
 
-	// -------------------------------------------------------------------
+    // -------------------------------------------------------------------
 
-	static class FooBootstrapper extends DefaultTestContextBootstrapper {}
+    @BootstrapWith(FooBootstrapper.class)
+    @Retention(RetentionPolicy.RUNTIME)
+    @interface BootWithFoo {
+    }
 
-	static class BarBootstrapper extends DefaultTestContextBootstrapper {}
+    @BootstrapWith(FooBootstrapper.class)
+    @Retention(RetentionPolicy.RUNTIME)
+    @interface BootWithFooAgain {
+    }
 
-	static class EnigmaBootstrapper extends DefaultTestContextBootstrapper {}
+    @BootstrapWith(BarBootstrapper.class)
+    @Retention(RetentionPolicy.RUNTIME)
+    @interface BootWithBar {
+    }
 
-	@BootstrapWith(FooBootstrapper.class)
-	@Retention(RetentionPolicy.RUNTIME)
-	@interface BootWithFoo {}
+    static class FooBootstrapper extends DefaultTestContextBootstrapper {
+    }
 
-	@BootstrapWith(FooBootstrapper.class)
-	@Retention(RetentionPolicy.RUNTIME)
-	@interface BootWithFooAgain {}
+    static class BarBootstrapper extends DefaultTestContextBootstrapper {
+    }
 
-	@BootstrapWith(BarBootstrapper.class)
-	@Retention(RetentionPolicy.RUNTIME)
-	@interface BootWithBar {}
+    static class EnigmaBootstrapper extends DefaultTestContextBootstrapper {
+    }
 
-	// Invalid
-	@BootstrapWith
-	static class EmptyBootstrapWithAnnotationClass {}
+    // Invalid
+    @BootstrapWith
+    static class EmptyBootstrapWithAnnotationClass {
+    }
 
-	// Invalid
-	@BootWithBar
-	@BootWithFoo
-	static class DoubleMetaAnnotatedBootstrapWithAnnotationClass {}
+    // Invalid
+    @BootWithBar
+    @BootWithFoo
+    static class DoubleMetaAnnotatedBootstrapWithAnnotationClass {
+    }
 
-	static class NonAnnotatedClass {}
+    static class NonAnnotatedClass {
+    }
 
-	@BootstrapWith(FooBootstrapper.class)
-	static class DirectBootstrapWithAnnotationClass {}
+    @BootstrapWith(FooBootstrapper.class)
+    static class DirectBootstrapWithAnnotationClass {
+    }
 
-	static class InheritedBootstrapWithAnnotationClass extends DirectBootstrapWithAnnotationClass {}
+    static class InheritedBootstrapWithAnnotationClass extends DirectBootstrapWithAnnotationClass {
+    }
 
-	@BootWithBar
-	static class MetaAnnotatedBootstrapWithAnnotationClass {}
+    @BootWithBar
+    static class MetaAnnotatedBootstrapWithAnnotationClass {
+    }
 
-	@BootWithFoo
-	@BootWithFooAgain
-	static class DuplicateMetaAnnotatedBootstrapWithAnnotationClass {}
+    @BootWithFoo
+    @BootWithFooAgain
+    static class DuplicateMetaAnnotatedBootstrapWithAnnotationClass {
+    }
 
-	@BootWithFoo
-	@BootWithBar
-	@BootstrapWith(EnigmaBootstrapper.class)
-	static class LocalDeclarationAndMetaAnnotatedBootstrapWithAnnotationClass {}
+    @BootWithFoo
+    @BootWithBar
+    @BootstrapWith(EnigmaBootstrapper.class)
+    static class LocalDeclarationAndMetaAnnotatedBootstrapWithAnnotationClass {
+    }
 
-	@WebAppConfiguration
-	static class WebAppConfigurationAnnotatedClass {}
+    @WebAppConfiguration
+    static class WebAppConfigurationAnnotatedClass {
+    }
 
 }

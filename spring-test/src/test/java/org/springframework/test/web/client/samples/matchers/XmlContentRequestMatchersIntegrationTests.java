@@ -51,87 +51,87 @@ import static org.springframework.test.web.client.response.MockRestResponseCreat
  */
 public class XmlContentRequestMatchersIntegrationTests {
 
-	private static final String PEOPLE_XML =
-			"<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>" +
-			"<people><composers>" +
-			"<composer><name>Johann Sebastian Bach</name><someBoolean>false</someBoolean><someDouble>21.0</someDouble></composer>" +
-			"<composer><name>Johannes Brahms</name><someBoolean>false</someBoolean><someDouble>0.0025</someDouble></composer>" +
-			"<composer><name>Edvard Grieg</name><someBoolean>false</someBoolean><someDouble>1.6035</someDouble></composer>" +
-			"<composer><name>Robert Schumann</name><someBoolean>false</someBoolean><someDouble>NaN</someDouble></composer>" +
-			"</composers></people>";
+    private static final String PEOPLE_XML =
+            "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>" +
+                    "<people><composers>" +
+                    "<composer><name>Johann Sebastian Bach</name><someBoolean>false</someBoolean><someDouble>21.0</someDouble></composer>" +
+                    "<composer><name>Johannes Brahms</name><someBoolean>false</someBoolean><someDouble>0.0025</someDouble></composer>" +
+                    "<composer><name>Edvard Grieg</name><someBoolean>false</someBoolean><someDouble>1.6035</someDouble></composer>" +
+                    "<composer><name>Robert Schumann</name><someBoolean>false</someBoolean><someDouble>NaN</someDouble></composer>" +
+                    "</composers></people>";
 
 
-	private MockRestServiceServer mockServer;
+    private MockRestServiceServer mockServer;
 
-	private RestTemplate restTemplate;
+    private RestTemplate restTemplate;
 
-	private PeopleWrapper people;
-
-
-	@BeforeEach
-	public void setup() {
-		List<Person> composers = Arrays.asList(
-				new Person("Johann Sebastian Bach").setSomeDouble(21),
-				new Person("Johannes Brahms").setSomeDouble(.0025),
-				new Person("Edvard Grieg").setSomeDouble(1.6035),
-				new Person("Robert Schumann").setSomeDouble(Double.NaN));
-
-		this.people = new PeopleWrapper(composers);
-
-		List<HttpMessageConverter<?>> converters = new ArrayList<>();
-		converters.add(new Jaxb2RootElementHttpMessageConverter());
-
-		this.restTemplate = new RestTemplate();
-		this.restTemplate.setMessageConverters(converters);
-
-		this.mockServer = MockRestServiceServer.createServer(this.restTemplate);
-	}
-
-	@Test
-	public void testXmlEqualTo() throws Exception {
-		this.mockServer.expect(requestTo("/composers"))
-			.andExpect(content().contentType("application/xml"))
-			.andExpect(content().xml(PEOPLE_XML))
-			.andRespond(withSuccess());
-
-		executeAndVerify();
-	}
-
-	@Test
-	public void testHamcrestNodeMatcher() throws Exception {
-		this.mockServer.expect(requestTo("/composers"))
-			.andExpect(content().contentType("application/xml"))
-			.andExpect(content().node(hasXPath("/people/composers/composer[1]")))
-			.andRespond(withSuccess());
-
-		executeAndVerify();
-	}
-
-	private void executeAndVerify() throws URISyntaxException {
-		this.restTemplate.put(new URI("/composers"), this.people);
-		this.mockServer.verify();
-	}
+    private PeopleWrapper people;
 
 
-	@SuppressWarnings("unused")
-	@XmlRootElement(name="people")
-	@XmlAccessorType(XmlAccessType.FIELD)
-	private static class PeopleWrapper {
+    @BeforeEach
+    public void setup() {
+        List<Person> composers = Arrays.asList(
+                new Person("Johann Sebastian Bach").setSomeDouble(21),
+                new Person("Johannes Brahms").setSomeDouble(.0025),
+                new Person("Edvard Grieg").setSomeDouble(1.6035),
+                new Person("Robert Schumann").setSomeDouble(Double.NaN));
 
-		@XmlElementWrapper(name="composers")
-		@XmlElement(name="composer")
-		private List<Person> composers;
+        this.people = new PeopleWrapper(composers);
 
-		public PeopleWrapper() {
-		}
+        List<HttpMessageConverter<?>> converters = new ArrayList<>();
+        converters.add(new Jaxb2RootElementHttpMessageConverter());
 
-		public PeopleWrapper(List<Person> composers) {
-			this.composers = composers;
-		}
+        this.restTemplate = new RestTemplate();
+        this.restTemplate.setMessageConverters(converters);
 
-		public List<Person> getComposers() {
-			return this.composers;
-		}
-	}
+        this.mockServer = MockRestServiceServer.createServer(this.restTemplate);
+    }
+
+    @Test
+    public void testXmlEqualTo() throws Exception {
+        this.mockServer.expect(requestTo("/composers"))
+                .andExpect(content().contentType("application/xml"))
+                .andExpect(content().xml(PEOPLE_XML))
+                .andRespond(withSuccess());
+
+        executeAndVerify();
+    }
+
+    @Test
+    public void testHamcrestNodeMatcher() throws Exception {
+        this.mockServer.expect(requestTo("/composers"))
+                .andExpect(content().contentType("application/xml"))
+                .andExpect(content().node(hasXPath("/people/composers/composer[1]")))
+                .andRespond(withSuccess());
+
+        executeAndVerify();
+    }
+
+    private void executeAndVerify() throws URISyntaxException {
+        this.restTemplate.put(new URI("/composers"), this.people);
+        this.mockServer.verify();
+    }
+
+
+    @SuppressWarnings("unused")
+    @XmlRootElement(name = "people")
+    @XmlAccessorType(XmlAccessType.FIELD)
+    private static class PeopleWrapper {
+
+        @XmlElementWrapper(name = "composers")
+        @XmlElement(name = "composer")
+        private List<Person> composers;
+
+        public PeopleWrapper() {
+        }
+
+        public PeopleWrapper(List<Person> composers) {
+            this.composers = composers;
+        }
+
+        public List<Person> getComposers() {
+            return this.composers;
+        }
+    }
 
 }

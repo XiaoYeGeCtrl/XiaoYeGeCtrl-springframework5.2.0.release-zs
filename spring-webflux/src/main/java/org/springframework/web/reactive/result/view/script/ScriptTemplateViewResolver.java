@@ -30,35 +30,36 @@ import org.springframework.web.reactive.result.view.UrlBasedViewResolver;
  * View object if a template is actually found.
  *
  * @author Sebastien Deleuze
- * @since 5.0
  * @see ScriptTemplateConfigurer
+ * @since 5.0
  */
 public class ScriptTemplateViewResolver extends UrlBasedViewResolver {
 
-	/**
-	 * Sets the default {@link #setViewClass view class} to {@link #requiredViewClass}:
-	 * by default {@link ScriptTemplateView}.
-	 */
-	public ScriptTemplateViewResolver() {
-		setViewClass(requiredViewClass());
-	}
+    /**
+     * Sets the default {@link #setViewClass view class} to {@link #requiredViewClass}:
+     * by default {@link ScriptTemplateView}.
+     */
+    public ScriptTemplateViewResolver() {
+        setViewClass(requiredViewClass());
+    }
 
-	/**
-	 * A convenience constructor that allows for specifying {@link #setPrefix prefix}
-	 * and {@link #setSuffix suffix} as constructor arguments.
-	 * @param prefix the prefix that gets prepended to view names when building a URL
-	 * @param suffix the suffix that gets appended to view names when building a URL
-	 */
-	public ScriptTemplateViewResolver(String prefix, String suffix) {
-		this();
-		setPrefix(prefix);
-		setSuffix(suffix);
-	}
+    /**
+     * A convenience constructor that allows for specifying {@link #setPrefix prefix}
+     * and {@link #setSuffix suffix} as constructor arguments.
+     *
+     * @param prefix the prefix that gets prepended to view names when building a URL
+     * @param suffix the suffix that gets appended to view names when building a URL
+     */
+    public ScriptTemplateViewResolver(String prefix, String suffix) {
+        this();
+        setPrefix(prefix);
+        setSuffix(suffix);
+    }
 
 
-	@Override
-	protected Class<?> requiredViewClass() {
-		return ScriptTemplateView.class;
-	}
+    @Override
+    protected Class<?> requiredViewClass() {
+        return ScriptTemplateView.class;
+    }
 
 }

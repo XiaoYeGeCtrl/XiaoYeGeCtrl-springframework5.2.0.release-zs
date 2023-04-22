@@ -38,145 +38,146 @@ import org.springframework.util.Assert;
  */
 public class CaffeineCache extends AbstractValueAdaptingCache {
 
-	private final String name;
+    private final String name;
 
-	private final com.github.benmanes.caffeine.cache.Cache<Object, Object> cache;
-
-
-	/**
-	 * Create a {@link CaffeineCache} instance with the specified name and the
-	 * given internal {@link com.github.benmanes.caffeine.cache.Cache} to use.
-	 * @param name the name of the cache
-	 * @param cache the backing Caffeine Cache instance
-	 */
-	public CaffeineCache(String name, com.github.benmanes.caffeine.cache.Cache<Object, Object> cache) {
-		this(name, cache, true);
-	}
-
-	/**
-	 * Create a {@link CaffeineCache} instance with the specified name and the
-	 * given internal {@link com.github.benmanes.caffeine.cache.Cache} to use.
-	 * @param name the name of the cache
-	 * @param cache the backing Caffeine Cache instance
-	 * @param allowNullValues whether to accept and convert {@code null}
-	 * values for this cache
-	 */
-	public CaffeineCache(String name, com.github.benmanes.caffeine.cache.Cache<Object, Object> cache,
-			boolean allowNullValues) {
-
-		super(allowNullValues);
-		Assert.notNull(name, "Name must not be null");
-		Assert.notNull(cache, "Cache must not be null");
-		this.name = name;
-		this.cache = cache;
-	}
+    private final com.github.benmanes.caffeine.cache.Cache<Object, Object> cache;
 
 
-	@Override
-	public final String getName() {
-		return this.name;
-	}
+    /**
+     * Create a {@link CaffeineCache} instance with the specified name and the
+     * given internal {@link com.github.benmanes.caffeine.cache.Cache} to use.
+     *
+     * @param name  the name of the cache
+     * @param cache the backing Caffeine Cache instance
+     */
+    public CaffeineCache(String name, com.github.benmanes.caffeine.cache.Cache<Object, Object> cache) {
+        this(name, cache, true);
+    }
 
-	@Override
-	public final com.github.benmanes.caffeine.cache.Cache<Object, Object> getNativeCache() {
-		return this.cache;
-	}
+    /**
+     * Create a {@link CaffeineCache} instance with the specified name and the
+     * given internal {@link com.github.benmanes.caffeine.cache.Cache} to use.
+     *
+     * @param name            the name of the cache
+     * @param cache           the backing Caffeine Cache instance
+     * @param allowNullValues whether to accept and convert {@code null}
+     *                        values for this cache
+     */
+    public CaffeineCache(String name, com.github.benmanes.caffeine.cache.Cache<Object, Object> cache,
+                         boolean allowNullValues) {
 
-	@Override
-	@Nullable
-	public ValueWrapper get(Object key) {
-		if (this.cache instanceof LoadingCache) {
-			Object value = ((LoadingCache<Object, Object>) this.cache).get(key);
-			return toValueWrapper(value);
-		}
-		return super.get(key);
-	}
-
-	@SuppressWarnings("unchecked")
-	@Override
-	@Nullable
-	public <T> T get(Object key, final Callable<T> valueLoader) {
-		return (T) fromStoreValue(this.cache.get(key, new LoadFunction(valueLoader)));
-	}
-
-	@Override
-	@Nullable
-	protected Object lookup(Object key) {
-		return this.cache.getIfPresent(key);
-	}
-
-	@Override
-	public void put(Object key, @Nullable Object value) {
-		this.cache.put(key, toStoreValue(value));
-	}
-
-	@Override
-	@Nullable
-	public ValueWrapper putIfAbsent(Object key, @Nullable final Object value) {
-		PutIfAbsentFunction callable = new PutIfAbsentFunction(value);
-		Object result = this.cache.get(key, callable);
-		return (callable.called ? null : toValueWrapper(result));
-	}
-
-	@Override
-	public void evict(Object key) {
-		this.cache.invalidate(key);
-	}
-
-	@Override
-	public boolean evictIfPresent(Object key) {
-		return (this.cache.asMap().remove(key) != null);
-	}
-
-	@Override
-	public void clear() {
-		this.cache.invalidateAll();
-	}
-
-	@Override
-	public boolean invalidate() {
-		boolean notEmpty = !this.cache.asMap().isEmpty();
-		this.cache.invalidateAll();
-		return notEmpty;
-	}
+        super(allowNullValues);
+        Assert.notNull(name, "Name must not be null");
+        Assert.notNull(cache, "Cache must not be null");
+        this.name = name;
+        this.cache = cache;
+    }
 
 
-	private class PutIfAbsentFunction implements Function<Object, Object> {
+    @Override
+    public final String getName() {
+        return this.name;
+    }
 
-		@Nullable
-		private final Object value;
+    @Override
+    public final com.github.benmanes.caffeine.cache.Cache<Object, Object> getNativeCache() {
+        return this.cache;
+    }
 
-		private boolean called;
+    @Override
+    @Nullable
+    public ValueWrapper get(Object key) {
+        if (this.cache instanceof LoadingCache) {
+            Object value = ((LoadingCache<Object, Object>) this.cache).get(key);
+            return toValueWrapper(value);
+        }
+        return super.get(key);
+    }
 
-		public PutIfAbsentFunction(@Nullable Object value) {
-			this.value = value;
-		}
+    @SuppressWarnings("unchecked")
+    @Override
+    @Nullable
+    public <T> T get(Object key, final Callable<T> valueLoader) {
+        return (T) fromStoreValue(this.cache.get(key, new LoadFunction(valueLoader)));
+    }
 
-		@Override
-		public Object apply(Object key) {
-			this.called = true;
-			return toStoreValue(this.value);
-		}
-	}
+    @Override
+    @Nullable
+    protected Object lookup(Object key) {
+        return this.cache.getIfPresent(key);
+    }
+
+    @Override
+    public void put(Object key, @Nullable Object value) {
+        this.cache.put(key, toStoreValue(value));
+    }
+
+    @Override
+    @Nullable
+    public ValueWrapper putIfAbsent(Object key, @Nullable final Object value) {
+        PutIfAbsentFunction callable = new PutIfAbsentFunction(value);
+        Object result = this.cache.get(key, callable);
+        return (callable.called ? null : toValueWrapper(result));
+    }
+
+    @Override
+    public void evict(Object key) {
+        this.cache.invalidate(key);
+    }
+
+    @Override
+    public boolean evictIfPresent(Object key) {
+        return (this.cache.asMap().remove(key) != null);
+    }
+
+    @Override
+    public void clear() {
+        this.cache.invalidateAll();
+    }
+
+    @Override
+    public boolean invalidate() {
+        boolean notEmpty = !this.cache.asMap().isEmpty();
+        this.cache.invalidateAll();
+        return notEmpty;
+    }
 
 
-	private class LoadFunction implements Function<Object, Object> {
+    private class PutIfAbsentFunction implements Function<Object, Object> {
 
-		private final Callable<?> valueLoader;
+        @Nullable
+        private final Object value;
 
-		public LoadFunction(Callable<?> valueLoader) {
-			this.valueLoader = valueLoader;
-		}
+        private boolean called;
 
-		@Override
-		public Object apply(Object o) {
-			try {
-				return toStoreValue(this.valueLoader.call());
-			}
-			catch (Exception ex) {
-				throw new ValueRetrievalException(o, this.valueLoader, ex);
-			}
-		}
-	}
+        public PutIfAbsentFunction(@Nullable Object value) {
+            this.value = value;
+        }
+
+        @Override
+        public Object apply(Object key) {
+            this.called = true;
+            return toStoreValue(this.value);
+        }
+    }
+
+
+    private class LoadFunction implements Function<Object, Object> {
+
+        private final Callable<?> valueLoader;
+
+        public LoadFunction(Callable<?> valueLoader) {
+            this.valueLoader = valueLoader;
+        }
+
+        @Override
+        public Object apply(Object o) {
+            try {
+                return toStoreValue(this.valueLoader.call());
+            } catch (Exception ex) {
+                throw new ValueRetrievalException(o, this.valueLoader, ex);
+            }
+        }
+    }
 
 }

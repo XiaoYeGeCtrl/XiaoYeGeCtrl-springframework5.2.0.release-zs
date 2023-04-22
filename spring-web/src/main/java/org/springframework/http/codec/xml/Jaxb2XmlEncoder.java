@@ -53,98 +53,94 @@ import org.springframework.util.MimeTypeUtils;
  *
  * @author Sebastien Deleuze
  * @author Arjen Poutsma
- * @since 5.0
  * @see Jaxb2XmlDecoder
+ * @since 5.0
  */
 public class Jaxb2XmlEncoder extends AbstractSingleValueEncoder<Object> {
 
-	private final JaxbContextContainer jaxbContexts = new JaxbContextContainer();
+    private final JaxbContextContainer jaxbContexts = new JaxbContextContainer();
 
-	private Function<Marshaller, Marshaller> marshallerProcessor = Function.identity();
-
-
-	public Jaxb2XmlEncoder() {
-		super(MimeTypeUtils.APPLICATION_XML, MimeTypeUtils.TEXT_XML);
-	}
+    private Function<Marshaller, Marshaller> marshallerProcessor = Function.identity();
 
 
-	/**
-	 * Configure a processor function to customize Marshaller instances.
-	 * @param processor the function to use
-	 * @since 5.1.3
-	 */
-	public void setMarshallerProcessor(Function<Marshaller, Marshaller> processor) {
-		this.marshallerProcessor = this.marshallerProcessor.andThen(processor);
-	}
+    public Jaxb2XmlEncoder() {
+        super(MimeTypeUtils.APPLICATION_XML, MimeTypeUtils.TEXT_XML);
+    }
 
-	/**
-	 * Return the configured processor for customizing Marshaller instances.
-	 * @since 5.1.3
-	 */
-	public Function<Marshaller, Marshaller> getMarshallerProcessor() {
-		return this.marshallerProcessor;
-	}
+    /**
+     * Return the configured processor for customizing Marshaller instances.
+     *
+     * @since 5.1.3
+     */
+    public Function<Marshaller, Marshaller> getMarshallerProcessor() {
+        return this.marshallerProcessor;
+    }
 
+    /**
+     * Configure a processor function to customize Marshaller instances.
+     *
+     * @param processor the function to use
+     * @since 5.1.3
+     */
+    public void setMarshallerProcessor(Function<Marshaller, Marshaller> processor) {
+        this.marshallerProcessor = this.marshallerProcessor.andThen(processor);
+    }
 
-	@Override
-	public boolean canEncode(ResolvableType elementType, @Nullable MimeType mimeType) {
-		if (super.canEncode(elementType, mimeType)) {
-			Class<?> outputClass = elementType.toClass();
-			return (outputClass.isAnnotationPresent(XmlRootElement.class) ||
-					outputClass.isAnnotationPresent(XmlType.class));
-		}
-		else {
-			return false;
-		}
-	}
+    @Override
+    public boolean canEncode(ResolvableType elementType, @Nullable MimeType mimeType) {
+        if (super.canEncode(elementType, mimeType)) {
+            Class<?> outputClass = elementType.toClass();
+            return (outputClass.isAnnotationPresent(XmlRootElement.class) ||
+                    outputClass.isAnnotationPresent(XmlType.class));
+        } else {
+            return false;
+        }
+    }
 
-	@Override
-	protected Flux<DataBuffer> encode(Object value, DataBufferFactory bufferFactory,
-			ResolvableType valueType, @Nullable MimeType mimeType, @Nullable Map<String, Object> hints) {
+    @Override
+    protected Flux<DataBuffer> encode(Object value, DataBufferFactory bufferFactory,
+                                      ResolvableType valueType, @Nullable MimeType mimeType, @Nullable Map<String, Object> hints) {
 
-		// we're relying on doOnDiscard in base class
-		return Mono.fromCallable(() -> encodeValue(value, bufferFactory, valueType, mimeType, hints)).flux();
-	}
+        // we're relying on doOnDiscard in base class
+        return Mono.fromCallable(() -> encodeValue(value, bufferFactory, valueType, mimeType, hints)).flux();
+    }
 
-	@Override
-	public DataBuffer encodeValue(Object value, DataBufferFactory bufferFactory,
-			ResolvableType valueType, @Nullable MimeType mimeType, @Nullable Map<String, Object> hints) {
+    @Override
+    public DataBuffer encodeValue(Object value, DataBufferFactory bufferFactory,
+                                  ResolvableType valueType, @Nullable MimeType mimeType, @Nullable Map<String, Object> hints) {
 
-		if (!Hints.isLoggingSuppressed(hints)) {
-			LogFormatUtils.traceDebug(logger, traceOn -> {
-				String formatted = LogFormatUtils.formatValue(value, !traceOn);
-				return Hints.getLogPrefix(hints) + "Encoding [" + formatted + "]";
-			});
-		}
+        if (!Hints.isLoggingSuppressed(hints)) {
+            LogFormatUtils.traceDebug(logger, traceOn -> {
+                String formatted = LogFormatUtils.formatValue(value, !traceOn);
+                return Hints.getLogPrefix(hints) + "Encoding [" + formatted + "]";
+            });
+        }
 
-		boolean release = true;
-		DataBuffer buffer = bufferFactory.allocateBuffer(1024);
-		try {
-			OutputStream outputStream = buffer.asOutputStream();
-			Class<?> clazz = ClassUtils.getUserClass(value);
-			Marshaller marshaller = initMarshaller(clazz);
-			marshaller.marshal(value, outputStream);
-			release = false;
-			return buffer;
-		}
-		catch (MarshalException ex) {
-			throw new EncodingException("Could not marshal " + value.getClass() + " to XML", ex);
-		}
-		catch (JAXBException ex) {
-			throw new CodecException("Invalid JAXB configuration", ex);
-		}
-		finally {
-			if (release) {
-				DataBufferUtils.release(buffer);
-			}
-		}
-	}
+        boolean release = true;
+        DataBuffer buffer = bufferFactory.allocateBuffer(1024);
+        try {
+            OutputStream outputStream = buffer.asOutputStream();
+            Class<?> clazz = ClassUtils.getUserClass(value);
+            Marshaller marshaller = initMarshaller(clazz);
+            marshaller.marshal(value, outputStream);
+            release = false;
+            return buffer;
+        } catch (MarshalException ex) {
+            throw new EncodingException("Could not marshal " + value.getClass() + " to XML", ex);
+        } catch (JAXBException ex) {
+            throw new CodecException("Invalid JAXB configuration", ex);
+        } finally {
+            if (release) {
+                DataBufferUtils.release(buffer);
+            }
+        }
+    }
 
-	private Marshaller initMarshaller(Class<?> clazz) throws JAXBException {
-		Marshaller marshaller = this.jaxbContexts.createMarshaller(clazz);
-		marshaller.setProperty(Marshaller.JAXB_ENCODING, StandardCharsets.UTF_8.name());
-		marshaller = this.marshallerProcessor.apply(marshaller);
-		return marshaller;
-	}
+    private Marshaller initMarshaller(Class<?> clazz) throws JAXBException {
+        Marshaller marshaller = this.jaxbContexts.createMarshaller(clazz);
+        marshaller.setProperty(Marshaller.JAXB_ENCODING, StandardCharsets.UTF_8.name());
+        marshaller = this.marshallerProcessor.apply(marshaller);
+        return marshaller;
+    }
 
 }

@@ -27,26 +27,25 @@ import org.aspectj.lang.annotation.Pointcut;
 @Aspect
 public class ServiceInvocationCounter {
 
-	private int useCount;
+    private static final ThreadLocal<Integer> threadLocalCount = new ThreadLocal<>();
+    private int useCount;
 
-	private static final ThreadLocal<Integer> threadLocalCount = new ThreadLocal<>();
+    public static Integer getThreadLocalCount() {
+        return threadLocalCount.get();
+    }
 
+    @Pointcut("execution(* example.scannable.FooService+.*(..))")
+    public void serviceExecution() {
+    }
 
-	@Pointcut("execution(* example.scannable.FooService+.*(..))")
-	public void serviceExecution() {}
+    @Before("serviceExecution()")
+    public void countUse() {
+        this.useCount++;
+        threadLocalCount.set(this.useCount);
+    }
 
-	@Before("serviceExecution()")
-	public void countUse() {
-		this.useCount++;
-		threadLocalCount.set(this.useCount);
-	}
-
-	public int getCount() {
-		return this.useCount;
-	}
-
-	public static Integer getThreadLocalCount() {
-		return threadLocalCount.get();
-	}
+    public int getCount() {
+        return this.useCount;
+    }
 
 }

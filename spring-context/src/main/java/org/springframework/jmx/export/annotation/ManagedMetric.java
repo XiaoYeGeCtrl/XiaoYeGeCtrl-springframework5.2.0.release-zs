@@ -30,28 +30,28 @@ import org.springframework.jmx.support.MetricType;
  * Only valid when used on a JavaBean getter.
  *
  * @author Jennifer Hickey
- * @since 3.0
  * @see org.springframework.jmx.export.metadata.ManagedMetric
+ * @since 3.0
  */
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 public @interface ManagedMetric {
 
-	String category() default "";
+    String category() default "";
 
-	int currencyTimeLimit() default -1;
+    int currencyTimeLimit() default -1;
 
-	String description() default "";
+    String description() default "";
 
-	String displayName() default "";
+    String displayName() default "";
 
-	MetricType metricType() default MetricType.GAUGE;
+    MetricType metricType() default MetricType.GAUGE;
 
-	int persistPeriod() default -1;
+    int persistPeriod() default -1;
 
-	String persistPolicy() default "";
+    String persistPolicy() default "";
 
-	String unit() default "";
+    String unit() default "";
 
 }

@@ -31,36 +31,35 @@ import static org.mockito.Mockito.mock;
  */
 public class DefaultScopedObjectTests {
 
-	private static final String GOOD_BEAN_NAME = "foo";
+    private static final String GOOD_BEAN_NAME = "foo";
 
+    private static void testBadTargetBeanName(final String badTargetBeanName) {
+        ConfigurableBeanFactory factory = mock(ConfigurableBeanFactory.class);
+        new DefaultScopedObject(factory, badTargetBeanName);
+    }
 
-	@Test
-	public void testCtorWithNullBeanFactory() throws Exception {
-		assertThatIllegalArgumentException().isThrownBy(() ->
-			new DefaultScopedObject(null, GOOD_BEAN_NAME));
-	}
+    @Test
+    public void testCtorWithNullBeanFactory() throws Exception {
+        assertThatIllegalArgumentException().isThrownBy(() ->
+                new DefaultScopedObject(null, GOOD_BEAN_NAME));
+    }
 
-	@Test
-	public void testCtorWithNullTargetBeanName() throws Exception {
-		assertThatIllegalArgumentException().isThrownBy(() ->
-				testBadTargetBeanName(null));
-	}
+    @Test
+    public void testCtorWithNullTargetBeanName() throws Exception {
+        assertThatIllegalArgumentException().isThrownBy(() ->
+                testBadTargetBeanName(null));
+    }
 
-	@Test
-	public void testCtorWithEmptyTargetBeanName() throws Exception {
-		assertThatIllegalArgumentException().isThrownBy(() ->
-				testBadTargetBeanName(""));
-	}
+    @Test
+    public void testCtorWithEmptyTargetBeanName() throws Exception {
+        assertThatIllegalArgumentException().isThrownBy(() ->
+                testBadTargetBeanName(""));
+    }
 
-	@Test
-	public void testCtorWithJustWhitespacedTargetBeanName() throws Exception {
-		assertThatIllegalArgumentException().isThrownBy(() ->
-				testBadTargetBeanName("   "));
-	}
-
-	private static void testBadTargetBeanName(final String badTargetBeanName) {
-		ConfigurableBeanFactory factory = mock(ConfigurableBeanFactory.class);
-		new DefaultScopedObject(factory, badTargetBeanName);
-	}
+    @Test
+    public void testCtorWithJustWhitespacedTargetBeanName() throws Exception {
+        assertThatIllegalArgumentException().isThrownBy(() ->
+                testBadTargetBeanName("   "));
+    }
 
 }

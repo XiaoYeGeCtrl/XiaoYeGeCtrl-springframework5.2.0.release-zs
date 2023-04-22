@@ -53,97 +53,97 @@ import static org.springframework.tests.TestGroup.PERFORMANCE;
 @ExtendWith(MockitoExtension.class)
 public class DelegatingWebConnectionTests {
 
-	private DelegatingWebConnection webConnection;
+    private DelegatingWebConnection webConnection;
 
-	private WebRequest request;
+    private WebRequest request;
 
-	private WebResponse expectedResponse;
-
-
-	@Mock
-	private WebRequestMatcher matcher1;
-
-	@Mock
-	private WebRequestMatcher matcher2;
-
-	@Mock
-	private WebConnection defaultConnection;
-
-	@Mock
-	private WebConnection connection1;
-
-	@Mock
-	private WebConnection connection2;
+    private WebResponse expectedResponse;
 
 
-	@BeforeEach
-	public void setup() throws Exception {
-		request = new WebRequest(new URL("http://localhost/"));
-		WebResponseData data = new WebResponseData("".getBytes("UTF-8"), 200, "", Collections.emptyList());
-		expectedResponse = new WebResponse(data, request, 100L);
-		webConnection = new DelegatingWebConnection(defaultConnection,
-				new DelegateWebConnection(matcher1, connection1), new DelegateWebConnection(matcher2, connection2));
-	}
+    @Mock
+    private WebRequestMatcher matcher1;
+
+    @Mock
+    private WebRequestMatcher matcher2;
+
+    @Mock
+    private WebConnection defaultConnection;
+
+    @Mock
+    private WebConnection connection1;
+
+    @Mock
+    private WebConnection connection2;
 
 
-	@Test
-	public void getResponseDefault() throws Exception {
-		given(defaultConnection.getResponse(request)).willReturn(expectedResponse);
-		WebResponse response = webConnection.getResponse(request);
-
-		assertThat(response).isSameAs(expectedResponse);
-		verify(matcher1).matches(request);
-		verify(matcher2).matches(request);
-		verifyNoMoreInteractions(connection1, connection2);
-		verify(defaultConnection).getResponse(request);
-	}
-
-	@Test
-	public void getResponseAllMatches() throws Exception {
-		given(matcher1.matches(request)).willReturn(true);
-		given(connection1.getResponse(request)).willReturn(expectedResponse);
-		WebResponse response = webConnection.getResponse(request);
-
-		assertThat(response).isSameAs(expectedResponse);
-		verify(matcher1).matches(request);
-		verifyNoMoreInteractions(matcher2, connection2, defaultConnection);
-		verify(connection1).getResponse(request);
-	}
-
-	@Test
-	public void getResponseSecondMatches() throws Exception {
-		given(matcher2.matches(request)).willReturn(true);
-		given(connection2.getResponse(request)).willReturn(expectedResponse);
-		WebResponse response = webConnection.getResponse(request);
-
-		assertThat(response).isSameAs(expectedResponse);
-		verify(matcher1).matches(request);
-		verify(matcher2).matches(request);
-		verifyNoMoreInteractions(connection1, defaultConnection);
-		verify(connection2).getResponse(request);
-	}
-
-	@Test
-	@EnabledForTestGroups(PERFORMANCE)
-	public void verifyExampleInClassLevelJavadoc() throws Exception {
-		WebClient webClient = new WebClient();
-
-		MockMvc mockMvc = MockMvcBuilders.standaloneSetup().build();
-		MockMvcWebConnection mockConnection = new MockMvcWebConnection(mockMvc, webClient);
-
-		WebRequestMatcher cdnMatcher = new UrlRegexRequestMatcher(".*?//code.jquery.com/.*");
-		WebConnection httpConnection = new HttpWebConnection(webClient);
-		webClient.setWebConnection(
-				new DelegatingWebConnection(mockConnection, new DelegateWebConnection(cdnMatcher, httpConnection)));
-
-		Page page = webClient.getPage("https://code.jquery.com/jquery-1.11.0.min.js");
-		assertThat(page.getWebResponse().getStatusCode()).isEqualTo(200);
-		assertThat(page.getWebResponse().getContentAsString()).isNotEmpty();
-	}
+    @BeforeEach
+    public void setup() throws Exception {
+        request = new WebRequest(new URL("http://localhost/"));
+        WebResponseData data = new WebResponseData("".getBytes("UTF-8"), 200, "", Collections.emptyList());
+        expectedResponse = new WebResponse(data, request, 100L);
+        webConnection = new DelegatingWebConnection(defaultConnection,
+                new DelegateWebConnection(matcher1, connection1), new DelegateWebConnection(matcher2, connection2));
+    }
 
 
-	@Controller
-	static class TestController {
-	}
+    @Test
+    public void getResponseDefault() throws Exception {
+        given(defaultConnection.getResponse(request)).willReturn(expectedResponse);
+        WebResponse response = webConnection.getResponse(request);
+
+        assertThat(response).isSameAs(expectedResponse);
+        verify(matcher1).matches(request);
+        verify(matcher2).matches(request);
+        verifyNoMoreInteractions(connection1, connection2);
+        verify(defaultConnection).getResponse(request);
+    }
+
+    @Test
+    public void getResponseAllMatches() throws Exception {
+        given(matcher1.matches(request)).willReturn(true);
+        given(connection1.getResponse(request)).willReturn(expectedResponse);
+        WebResponse response = webConnection.getResponse(request);
+
+        assertThat(response).isSameAs(expectedResponse);
+        verify(matcher1).matches(request);
+        verifyNoMoreInteractions(matcher2, connection2, defaultConnection);
+        verify(connection1).getResponse(request);
+    }
+
+    @Test
+    public void getResponseSecondMatches() throws Exception {
+        given(matcher2.matches(request)).willReturn(true);
+        given(connection2.getResponse(request)).willReturn(expectedResponse);
+        WebResponse response = webConnection.getResponse(request);
+
+        assertThat(response).isSameAs(expectedResponse);
+        verify(matcher1).matches(request);
+        verify(matcher2).matches(request);
+        verifyNoMoreInteractions(connection1, defaultConnection);
+        verify(connection2).getResponse(request);
+    }
+
+    @Test
+    @EnabledForTestGroups(PERFORMANCE)
+    public void verifyExampleInClassLevelJavadoc() throws Exception {
+        WebClient webClient = new WebClient();
+
+        MockMvc mockMvc = MockMvcBuilders.standaloneSetup().build();
+        MockMvcWebConnection mockConnection = new MockMvcWebConnection(mockMvc, webClient);
+
+        WebRequestMatcher cdnMatcher = new UrlRegexRequestMatcher(".*?//code.jquery.com/.*");
+        WebConnection httpConnection = new HttpWebConnection(webClient);
+        webClient.setWebConnection(
+                new DelegatingWebConnection(mockConnection, new DelegateWebConnection(cdnMatcher, httpConnection)));
+
+        Page page = webClient.getPage("https://code.jquery.com/jquery-1.11.0.min.js");
+        assertThat(page.getWebResponse().getStatusCode()).isEqualTo(200);
+        assertThat(page.getWebResponse().getContentAsString()).isNotEmpty();
+    }
+
+
+    @Controller
+    static class TestController {
+    }
 
 }

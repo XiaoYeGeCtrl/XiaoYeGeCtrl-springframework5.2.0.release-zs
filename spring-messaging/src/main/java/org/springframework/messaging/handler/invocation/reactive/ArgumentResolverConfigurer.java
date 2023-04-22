@@ -31,21 +31,22 @@ import org.springframework.util.Assert;
  */
 public class ArgumentResolverConfigurer {
 
-	private final List<HandlerMethodArgumentResolver> customResolvers = new ArrayList<>(8);
+    private final List<HandlerMethodArgumentResolver> customResolvers = new ArrayList<>(8);
 
 
-	/**
-	 * Configure resolvers for custom handler method arguments.
-	 * @param resolver the resolvers to add
-	 */
-	public void addCustomResolver(HandlerMethodArgumentResolver... resolver) {
-		Assert.notNull(resolver, "'resolvers' must not be null");
-		this.customResolvers.addAll(Arrays.asList(resolver));
-	}
+    /**
+     * Configure resolvers for custom handler method arguments.
+     *
+     * @param resolver the resolvers to add
+     */
+    public void addCustomResolver(HandlerMethodArgumentResolver... resolver) {
+        Assert.notNull(resolver, "'resolvers' must not be null");
+        this.customResolvers.addAll(Arrays.asList(resolver));
+    }
 
 
-	public List<HandlerMethodArgumentResolver> getCustomResolvers() {
-		return this.customResolvers;
-	}
+    public List<HandlerMethodArgumentResolver> getCustomResolvers() {
+        return this.customResolvers;
+    }
 
 }

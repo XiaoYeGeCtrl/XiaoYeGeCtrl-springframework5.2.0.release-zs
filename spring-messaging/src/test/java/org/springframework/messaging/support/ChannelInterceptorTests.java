@@ -39,226 +39,228 @@ import static org.mockito.Mockito.mock;
  */
 public class ChannelInterceptorTests {
 
-	private ExecutorSubscribableChannel channel;
+    private ExecutorSubscribableChannel channel;
 
-	private TestMessageHandler messageHandler;
-
-
-	@BeforeEach
-	public void setup() {
-		this.channel = new ExecutorSubscribableChannel();
-		this.messageHandler = new TestMessageHandler();
-		this.channel.subscribe(this.messageHandler);
-	}
+    private TestMessageHandler messageHandler;
 
 
-	@Test
-	public void preSendInterceptorReturningModifiedMessage() {
-		Message<?> expected = mock(Message.class);
-		PreSendInterceptor interceptor = new PreSendInterceptor();
-		interceptor.setMessageToReturn(expected);
-		this.channel.addInterceptor(interceptor);
-		this.channel.send(MessageBuilder.withPayload("test").build());
-
-		assertThat(this.messageHandler.getMessages().size()).isEqualTo(1);
-		Message<?> result = this.messageHandler.getMessages().get(0);
-
-		assertThat(result).isNotNull();
-		assertThat(result).isSameAs(expected);
-		assertThat(interceptor.wasAfterCompletionInvoked()).isTrue();
-	}
-
-	@Test
-	public void preSendInterceptorReturningNull() {
-		PreSendInterceptor interceptor1 = new PreSendInterceptor();
-		NullReturningPreSendInterceptor interceptor2 = new NullReturningPreSendInterceptor();
-		this.channel.addInterceptor(interceptor1);
-		this.channel.addInterceptor(interceptor2);
-		Message<?> message = MessageBuilder.withPayload("test").build();
-		this.channel.send(message);
-
-		assertThat(interceptor1.getCounter().get()).isEqualTo(1);
-		assertThat(interceptor2.getCounter().get()).isEqualTo(1);
-		assertThat(this.messageHandler.getMessages().size()).isEqualTo(0);
-		assertThat(interceptor1.wasAfterCompletionInvoked()).isTrue();
-		assertThat(interceptor2.wasAfterCompletionInvoked()).isFalse();
-	}
-
-	@Test
-	public void postSendInterceptorMessageWasSent() {
-		final AtomicBoolean preSendInvoked = new AtomicBoolean(false);
-		final AtomicBoolean completionInvoked = new AtomicBoolean(false);
-		this.channel.addInterceptor(new ChannelInterceptor() {
-			@Override
-			public void postSend(Message<?> message, MessageChannel channel, boolean sent) {
-				assertInput(message, channel, sent);
-				preSendInvoked.set(true);
-			}
-			@Override
-			public void afterSendCompletion(Message<?> message, MessageChannel channel, boolean sent, Exception ex) {
-				assertInput(message, channel, sent);
-				completionInvoked.set(true);
-			}
-			private void assertInput(Message<?> message, MessageChannel channel, boolean sent) {
-				assertThat(message).isNotNull();
-				assertThat(channel).isNotNull();
-				assertThat(channel).isSameAs(ChannelInterceptorTests.this.channel);
-				assertThat(sent).isTrue();
-			}
-		});
-		this.channel.send(MessageBuilder.withPayload("test").build());
-		assertThat(preSendInvoked.get()).isTrue();
-		assertThat(completionInvoked.get()).isTrue();
-	}
-
-	@Test
-	public void postSendInterceptorMessageWasNotSent() {
-		final AbstractMessageChannel testChannel = new AbstractMessageChannel() {
-			@Override
-			protected boolean sendInternal(Message<?> message, long timeout) {
-				return false;
-			}
-		};
-		final AtomicBoolean preSendInvoked = new AtomicBoolean(false);
-		final AtomicBoolean completionInvoked = new AtomicBoolean(false);
-		testChannel.addInterceptor(new ChannelInterceptor() {
-			@Override
-			public void postSend(Message<?> message, MessageChannel channel, boolean sent) {
-				assertInput(message, channel, sent);
-				preSendInvoked.set(true);
-			}
-			@Override
-			public void afterSendCompletion(Message<?> message, MessageChannel channel, boolean sent, Exception ex) {
-				assertInput(message, channel, sent);
-				completionInvoked.set(true);
-			}
-			private void assertInput(Message<?> message, MessageChannel channel, boolean sent) {
-				assertThat(message).isNotNull();
-				assertThat(channel).isNotNull();
-				assertThat(channel).isSameAs(testChannel);
-				assertThat(sent).isFalse();
-			}
-		});
-		testChannel.send(MessageBuilder.withPayload("test").build());
-		assertThat(preSendInvoked.get()).isTrue();
-		assertThat(completionInvoked.get()).isTrue();
-	}
-
-	@Test
-	public void afterCompletionWithSendException() {
-		final AbstractMessageChannel testChannel = new AbstractMessageChannel() {
-			@Override
-			protected boolean sendInternal(Message<?> message, long timeout) {
-				throw new RuntimeException("Simulated exception");
-			}
-		};
-		PreSendInterceptor interceptor1 = new PreSendInterceptor();
-		PreSendInterceptor interceptor2 = new PreSendInterceptor();
-		testChannel.addInterceptor(interceptor1);
-		testChannel.addInterceptor(interceptor2);
-		try {
-			testChannel.send(MessageBuilder.withPayload("test").build());
-		}
-		catch (Exception ex) {
-			assertThat(ex.getCause().getMessage()).isEqualTo("Simulated exception");
-		}
-		assertThat(interceptor1.wasAfterCompletionInvoked()).isTrue();
-		assertThat(interceptor2.wasAfterCompletionInvoked()).isTrue();
-	}
-
-	@Test
-	public void afterCompletionWithPreSendException() {
-		PreSendInterceptor interceptor1 = new PreSendInterceptor();
-		PreSendInterceptor interceptor2 = new PreSendInterceptor();
-		interceptor2.setExceptionToRaise(new RuntimeException("Simulated exception"));
-		this.channel.addInterceptor(interceptor1);
-		this.channel.addInterceptor(interceptor2);
-		try {
-			this.channel.send(MessageBuilder.withPayload("test").build());
-		}
-		catch (Exception ex) {
-			assertThat(ex.getCause().getMessage()).isEqualTo("Simulated exception");
-		}
-		assertThat(interceptor1.wasAfterCompletionInvoked()).isTrue();
-		assertThat(interceptor2.wasAfterCompletionInvoked()).isFalse();
-	}
+    @BeforeEach
+    public void setup() {
+        this.channel = new ExecutorSubscribableChannel();
+        this.messageHandler = new TestMessageHandler();
+        this.channel.subscribe(this.messageHandler);
+    }
 
 
-	private static class TestMessageHandler implements MessageHandler {
+    @Test
+    public void preSendInterceptorReturningModifiedMessage() {
+        Message<?> expected = mock(Message.class);
+        PreSendInterceptor interceptor = new PreSendInterceptor();
+        interceptor.setMessageToReturn(expected);
+        this.channel.addInterceptor(interceptor);
+        this.channel.send(MessageBuilder.withPayload("test").build());
 
-		private final List<Message<?>> messages = new ArrayList<>();
+        assertThat(this.messageHandler.getMessages().size()).isEqualTo(1);
+        Message<?> result = this.messageHandler.getMessages().get(0);
 
-		public List<Message<?>> getMessages() {
-			return this.messages;
-		}
+        assertThat(result).isNotNull();
+        assertThat(result).isSameAs(expected);
+        assertThat(interceptor.wasAfterCompletionInvoked()).isTrue();
+    }
 
-		@Override
-		public void handleMessage(Message<?> message) throws MessagingException {
-			this.messages.add(message);
-		}
-	}
+    @Test
+    public void preSendInterceptorReturningNull() {
+        PreSendInterceptor interceptor1 = new PreSendInterceptor();
+        NullReturningPreSendInterceptor interceptor2 = new NullReturningPreSendInterceptor();
+        this.channel.addInterceptor(interceptor1);
+        this.channel.addInterceptor(interceptor2);
+        Message<?> message = MessageBuilder.withPayload("test").build();
+        this.channel.send(message);
+
+        assertThat(interceptor1.getCounter().get()).isEqualTo(1);
+        assertThat(interceptor2.getCounter().get()).isEqualTo(1);
+        assertThat(this.messageHandler.getMessages().size()).isEqualTo(0);
+        assertThat(interceptor1.wasAfterCompletionInvoked()).isTrue();
+        assertThat(interceptor2.wasAfterCompletionInvoked()).isFalse();
+    }
+
+    @Test
+    public void postSendInterceptorMessageWasSent() {
+        final AtomicBoolean preSendInvoked = new AtomicBoolean(false);
+        final AtomicBoolean completionInvoked = new AtomicBoolean(false);
+        this.channel.addInterceptor(new ChannelInterceptor() {
+            @Override
+            public void postSend(Message<?> message, MessageChannel channel, boolean sent) {
+                assertInput(message, channel, sent);
+                preSendInvoked.set(true);
+            }
+
+            @Override
+            public void afterSendCompletion(Message<?> message, MessageChannel channel, boolean sent, Exception ex) {
+                assertInput(message, channel, sent);
+                completionInvoked.set(true);
+            }
+
+            private void assertInput(Message<?> message, MessageChannel channel, boolean sent) {
+                assertThat(message).isNotNull();
+                assertThat(channel).isNotNull();
+                assertThat(channel).isSameAs(ChannelInterceptorTests.this.channel);
+                assertThat(sent).isTrue();
+            }
+        });
+        this.channel.send(MessageBuilder.withPayload("test").build());
+        assertThat(preSendInvoked.get()).isTrue();
+        assertThat(completionInvoked.get()).isTrue();
+    }
+
+    @Test
+    public void postSendInterceptorMessageWasNotSent() {
+        final AbstractMessageChannel testChannel = new AbstractMessageChannel() {
+            @Override
+            protected boolean sendInternal(Message<?> message, long timeout) {
+                return false;
+            }
+        };
+        final AtomicBoolean preSendInvoked = new AtomicBoolean(false);
+        final AtomicBoolean completionInvoked = new AtomicBoolean(false);
+        testChannel.addInterceptor(new ChannelInterceptor() {
+            @Override
+            public void postSend(Message<?> message, MessageChannel channel, boolean sent) {
+                assertInput(message, channel, sent);
+                preSendInvoked.set(true);
+            }
+
+            @Override
+            public void afterSendCompletion(Message<?> message, MessageChannel channel, boolean sent, Exception ex) {
+                assertInput(message, channel, sent);
+                completionInvoked.set(true);
+            }
+
+            private void assertInput(Message<?> message, MessageChannel channel, boolean sent) {
+                assertThat(message).isNotNull();
+                assertThat(channel).isNotNull();
+                assertThat(channel).isSameAs(testChannel);
+                assertThat(sent).isFalse();
+            }
+        });
+        testChannel.send(MessageBuilder.withPayload("test").build());
+        assertThat(preSendInvoked.get()).isTrue();
+        assertThat(completionInvoked.get()).isTrue();
+    }
+
+    @Test
+    public void afterCompletionWithSendException() {
+        final AbstractMessageChannel testChannel = new AbstractMessageChannel() {
+            @Override
+            protected boolean sendInternal(Message<?> message, long timeout) {
+                throw new RuntimeException("Simulated exception");
+            }
+        };
+        PreSendInterceptor interceptor1 = new PreSendInterceptor();
+        PreSendInterceptor interceptor2 = new PreSendInterceptor();
+        testChannel.addInterceptor(interceptor1);
+        testChannel.addInterceptor(interceptor2);
+        try {
+            testChannel.send(MessageBuilder.withPayload("test").build());
+        } catch (Exception ex) {
+            assertThat(ex.getCause().getMessage()).isEqualTo("Simulated exception");
+        }
+        assertThat(interceptor1.wasAfterCompletionInvoked()).isTrue();
+        assertThat(interceptor2.wasAfterCompletionInvoked()).isTrue();
+    }
+
+    @Test
+    public void afterCompletionWithPreSendException() {
+        PreSendInterceptor interceptor1 = new PreSendInterceptor();
+        PreSendInterceptor interceptor2 = new PreSendInterceptor();
+        interceptor2.setExceptionToRaise(new RuntimeException("Simulated exception"));
+        this.channel.addInterceptor(interceptor1);
+        this.channel.addInterceptor(interceptor2);
+        try {
+            this.channel.send(MessageBuilder.withPayload("test").build());
+        } catch (Exception ex) {
+            assertThat(ex.getCause().getMessage()).isEqualTo("Simulated exception");
+        }
+        assertThat(interceptor1.wasAfterCompletionInvoked()).isTrue();
+        assertThat(interceptor2.wasAfterCompletionInvoked()).isFalse();
+    }
 
 
-	private abstract static class AbstractTestInterceptor implements ChannelInterceptor {
+    private static class TestMessageHandler implements MessageHandler {
 
-		private AtomicInteger counter = new AtomicInteger();
+        private final List<Message<?>> messages = new ArrayList<>();
 
-		private volatile boolean afterCompletionInvoked;
+        public List<Message<?>> getMessages() {
+            return this.messages;
+        }
 
-		public AtomicInteger getCounter() {
-			return this.counter;
-		}
-
-		public boolean wasAfterCompletionInvoked() {
-			return this.afterCompletionInvoked;
-		}
-
-		@Override
-		public Message<?> preSend(Message<?> message, MessageChannel channel) {
-			assertThat(message).isNotNull();
-			counter.incrementAndGet();
-			return message;
-		}
-
-		@Override
-		public void afterSendCompletion(Message<?> message, MessageChannel channel, boolean sent, Exception ex) {
-			this.afterCompletionInvoked = true;
-		}
-	}
+        @Override
+        public void handleMessage(Message<?> message) throws MessagingException {
+            this.messages.add(message);
+        }
+    }
 
 
-	private static class PreSendInterceptor extends AbstractTestInterceptor {
+    private abstract static class AbstractTestInterceptor implements ChannelInterceptor {
 
-		private Message<?> messageToReturn;
+        private AtomicInteger counter = new AtomicInteger();
 
-		private RuntimeException exceptionToRaise;
+        private volatile boolean afterCompletionInvoked;
 
-		public void setMessageToReturn(Message<?> messageToReturn) {
-			this.messageToReturn = messageToReturn;
-		}
+        public AtomicInteger getCounter() {
+            return this.counter;
+        }
 
-		public void setExceptionToRaise(RuntimeException exception) {
-			this.exceptionToRaise = exception;
-		}
+        public boolean wasAfterCompletionInvoked() {
+            return this.afterCompletionInvoked;
+        }
 
-		@Override
-		public Message<?> preSend(Message<?> message, MessageChannel channel) {
-			super.preSend(message, channel);
-			if (this.exceptionToRaise != null) {
-				throw this.exceptionToRaise;
-			}
-			return (this.messageToReturn != null ? this.messageToReturn : message);
-		}
-	}
+        @Override
+        public Message<?> preSend(Message<?> message, MessageChannel channel) {
+            assertThat(message).isNotNull();
+            counter.incrementAndGet();
+            return message;
+        }
+
+        @Override
+        public void afterSendCompletion(Message<?> message, MessageChannel channel, boolean sent, Exception ex) {
+            this.afterCompletionInvoked = true;
+        }
+    }
 
 
-	private static class NullReturningPreSendInterceptor extends AbstractTestInterceptor {
+    private static class PreSendInterceptor extends AbstractTestInterceptor {
 
-		@Override
-		public Message<?> preSend(Message<?> message, MessageChannel channel) {
-			super.preSend(message, channel);
-			return null;
-		}
-	}
+        private Message<?> messageToReturn;
+
+        private RuntimeException exceptionToRaise;
+
+        public void setMessageToReturn(Message<?> messageToReturn) {
+            this.messageToReturn = messageToReturn;
+        }
+
+        public void setExceptionToRaise(RuntimeException exception) {
+            this.exceptionToRaise = exception;
+        }
+
+        @Override
+        public Message<?> preSend(Message<?> message, MessageChannel channel) {
+            super.preSend(message, channel);
+            if (this.exceptionToRaise != null) {
+                throw this.exceptionToRaise;
+            }
+            return (this.messageToReturn != null ? this.messageToReturn : message);
+        }
+    }
+
+
+    private static class NullReturningPreSendInterceptor extends AbstractTestInterceptor {
+
+        @Override
+        public Message<?> preSend(Message<?> message, MessageChannel channel) {
+            super.preSend(message, channel);
+            return null;
+        }
+    }
 
 }

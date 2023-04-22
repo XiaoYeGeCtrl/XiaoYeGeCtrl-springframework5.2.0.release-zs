@@ -28,9 +28,9 @@ import io.rsocket.RSocketFactory;
 @FunctionalInterface
 public interface ClientRSocketFactoryConfigurer {
 
-	/**
-	 * Apply configuration to the given {@code ClientRSocketFactory}.
-	 */
-	void configure(RSocketFactory.ClientRSocketFactory rsocketFactory);
+    /**
+     * Apply configuration to the given {@code ClientRSocketFactory}.
+     */
+    void configure(RSocketFactory.ClientRSocketFactory rsocketFactory);
 
 }

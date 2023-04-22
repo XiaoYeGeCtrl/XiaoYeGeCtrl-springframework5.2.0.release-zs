@@ -41,65 +41,65 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 public class PathVariableMapMethodArgumentResolverTests {
 
-	private PathVariableMapMethodArgumentResolver resolver;
+    private PathVariableMapMethodArgumentResolver resolver;
 
-	private ModelAndViewContainer mavContainer;
+    private ModelAndViewContainer mavContainer;
 
-	private ServletWebRequest webRequest;
+    private ServletWebRequest webRequest;
 
-	private MockHttpServletRequest request;
+    private MockHttpServletRequest request;
 
-	private MethodParameter paramMap;
-	private MethodParameter paramNamedMap;
-	private MethodParameter paramMapNoAnnot;
-
-
-	@BeforeEach
-	public void setup() throws Exception {
-		resolver = new PathVariableMapMethodArgumentResolver();
-		mavContainer = new ModelAndViewContainer();
-		request = new MockHttpServletRequest();
-		webRequest = new ServletWebRequest(request, new MockHttpServletResponse());
-
-		Method method = getClass().getMethod("handle", Map.class, Map.class, Map.class);
-		paramMap = new MethodParameter(method, 0);
-		paramNamedMap = new MethodParameter(method, 1);
-		paramMapNoAnnot = new MethodParameter(method, 2);
-	}
+    private MethodParameter paramMap;
+    private MethodParameter paramNamedMap;
+    private MethodParameter paramMapNoAnnot;
 
 
-	@Test
-	public void supportsParameter() {
-		assertThat(resolver.supportsParameter(paramMap)).isTrue();
-		assertThat(resolver.supportsParameter(paramNamedMap)).isFalse();
-		assertThat(resolver.supportsParameter(paramMapNoAnnot)).isFalse();
-	}
+    @BeforeEach
+    public void setup() throws Exception {
+        resolver = new PathVariableMapMethodArgumentResolver();
+        mavContainer = new ModelAndViewContainer();
+        request = new MockHttpServletRequest();
+        webRequest = new ServletWebRequest(request, new MockHttpServletResponse());
 
-	@Test
-	public void resolveArgument() throws Exception {
-		Map<String, String> uriTemplateVars = new HashMap<>();
-		uriTemplateVars.put("name1", "value1");
-		uriTemplateVars.put("name2", "value2");
-		request.setAttribute(HandlerMapping.URI_TEMPLATE_VARIABLES_ATTRIBUTE, uriTemplateVars);
-
-		Object result = resolver.resolveArgument(paramMap, mavContainer, webRequest, null);
-
-		assertThat(result).isEqualTo(uriTemplateVars);
-	}
-
-	@Test
-	@SuppressWarnings("unchecked")
-	public void resolveArgumentNoUriVars() throws Exception {
-		Map<String, String> map = (Map<String, String>) resolver.resolveArgument(paramMap, mavContainer, webRequest, null);
-
-		assertThat(map).isEqualTo(Collections.emptyMap());
-	}
+        Method method = getClass().getMethod("handle", Map.class, Map.class, Map.class);
+        paramMap = new MethodParameter(method, 0);
+        paramNamedMap = new MethodParameter(method, 1);
+        paramMapNoAnnot = new MethodParameter(method, 2);
+    }
 
 
-	public void handle(
-			@PathVariable Map<String, String> map,
-			@PathVariable(value = "name") Map<String, String> namedMap,
-			Map<String, String> mapWithoutAnnotat) {
-	}
+    @Test
+    public void supportsParameter() {
+        assertThat(resolver.supportsParameter(paramMap)).isTrue();
+        assertThat(resolver.supportsParameter(paramNamedMap)).isFalse();
+        assertThat(resolver.supportsParameter(paramMapNoAnnot)).isFalse();
+    }
+
+    @Test
+    public void resolveArgument() throws Exception {
+        Map<String, String> uriTemplateVars = new HashMap<>();
+        uriTemplateVars.put("name1", "value1");
+        uriTemplateVars.put("name2", "value2");
+        request.setAttribute(HandlerMapping.URI_TEMPLATE_VARIABLES_ATTRIBUTE, uriTemplateVars);
+
+        Object result = resolver.resolveArgument(paramMap, mavContainer, webRequest, null);
+
+        assertThat(result).isEqualTo(uriTemplateVars);
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    public void resolveArgumentNoUriVars() throws Exception {
+        Map<String, String> map = (Map<String, String>) resolver.resolveArgument(paramMap, mavContainer, webRequest, null);
+
+        assertThat(map).isEqualTo(Collections.emptyMap());
+    }
+
+
+    public void handle(
+            @PathVariable Map<String, String> map,
+            @PathVariable(value = "name") Map<String, String> namedMap,
+            Map<String, String> mapWithoutAnnotat) {
+    }
 
 }

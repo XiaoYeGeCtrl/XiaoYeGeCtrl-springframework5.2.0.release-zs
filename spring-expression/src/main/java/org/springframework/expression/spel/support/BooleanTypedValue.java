@@ -26,24 +26,24 @@ import org.springframework.expression.TypedValue;
  */
 public final class BooleanTypedValue extends TypedValue {
 
-	/**
-	 * True.
-	 */
-	public static final BooleanTypedValue TRUE = new BooleanTypedValue(true);
+    /**
+     * True.
+     */
+    public static final BooleanTypedValue TRUE = new BooleanTypedValue(true);
 
-	/**
-	 * False.
-	 */
-	public static final BooleanTypedValue FALSE = new BooleanTypedValue(false);
-
-
-	private BooleanTypedValue(boolean b) {
-		super(b);
-	}
+    /**
+     * False.
+     */
+    public static final BooleanTypedValue FALSE = new BooleanTypedValue(false);
 
 
-	public static BooleanTypedValue forValue(boolean b) {
-		return (b ? TRUE : FALSE);
-	}
+    private BooleanTypedValue(boolean b) {
+        super(b);
+    }
+
+
+    public static BooleanTypedValue forValue(boolean b) {
+        return (b ? TRUE : FALSE);
+    }
 
 }

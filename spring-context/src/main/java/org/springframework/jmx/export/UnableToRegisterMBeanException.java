@@ -26,23 +26,25 @@ package org.springframework.jmx.export;
 @SuppressWarnings("serial")
 public class UnableToRegisterMBeanException extends MBeanExportException {
 
-	/**
-	 * Create a new {@code UnableToRegisterMBeanException} with the
-	 * specified error message.
-	 * @param msg the detail message
-	 */
-	public UnableToRegisterMBeanException(String msg) {
-		super(msg);
-	}
+    /**
+     * Create a new {@code UnableToRegisterMBeanException} with the
+     * specified error message.
+     *
+     * @param msg the detail message
+     */
+    public UnableToRegisterMBeanException(String msg) {
+        super(msg);
+    }
 
-	/**
-	 * Create a new {@code UnableToRegisterMBeanException} with the
-	 * specified error message and root cause.
-	 * @param msg the detail message
-	 * @param cause the root caus
-	 */
-	public UnableToRegisterMBeanException(String msg, Throwable cause) {
-		super(msg, cause);
-	}
+    /**
+     * Create a new {@code UnableToRegisterMBeanException} with the
+     * specified error message and root cause.
+     *
+     * @param msg   the detail message
+     * @param cause the root caus
+     */
+    public UnableToRegisterMBeanException(String msg, Throwable cause) {
+        super(msg, cause);
+    }
 
 }

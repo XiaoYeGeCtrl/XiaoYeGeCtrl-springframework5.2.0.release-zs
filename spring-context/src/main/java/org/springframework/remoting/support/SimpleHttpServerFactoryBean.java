@@ -47,148 +47,150 @@ import org.springframework.beans.factory.InitializingBean;
  *
  * @author Juergen Hoeller
  * @author Arjen Poutsma
- * @since 2.5.1
  * @see #setPort
  * @see #setContexts
+ * @since 2.5.1
  * @deprecated as of Spring Framework 5.1, in favor of embedded Tomcat/Jetty/Undertow
  */
 @Deprecated
 @org.springframework.lang.UsesSunHttpServer
 public class SimpleHttpServerFactoryBean implements FactoryBean<HttpServer>, InitializingBean, DisposableBean {
 
-	protected final Log logger = LogFactory.getLog(getClass());
+    protected final Log logger = LogFactory.getLog(getClass());
 
-	private int port = 8080;
+    private int port = 8080;
 
-	private String hostname;
+    private String hostname;
 
-	private int backlog = -1;
+    private int backlog = -1;
 
-	private int shutdownDelay = 0;
+    private int shutdownDelay = 0;
 
-	private Executor executor;
+    private Executor executor;
 
-	private Map<String, HttpHandler> contexts;
+    private Map<String, HttpHandler> contexts;
 
-	private List<Filter> filters;
+    private List<Filter> filters;
 
-	private Authenticator authenticator;
+    private Authenticator authenticator;
 
-	private HttpServer server;
-
-
-	/**
-	 * Specify the HTTP server's port. Default is 8080.
-	 */
-	public void setPort(int port) {
-		this.port = port;
-	}
-
-	/**
-	 * Specify the HTTP server's hostname to bind to. Default is localhost;
-	 * can be overridden with a specific network address to bind to.
-	 */
-	public void setHostname(String hostname) {
-		this.hostname = hostname;
-	}
-
-	/**
-	 * Specify the HTTP server's TCP backlog. Default is -1,
-	 * indicating the system's default value.
-	 */
-	public void setBacklog(int backlog) {
-		this.backlog = backlog;
-	}
-
-	/**
-	 * Specify the number of seconds to wait until HTTP exchanges have
-	 * completed when shutting down the HTTP server. Default is 0.
-	 */
-	public void setShutdownDelay(int shutdownDelay) {
-		this.shutdownDelay = shutdownDelay;
-	}
-
-	/**
-	 * Set the JDK concurrent executor to use for dispatching incoming requests.
-	 * @see com.sun.net.httpserver.HttpServer#setExecutor
-	 */
-	public void setExecutor(Executor executor) {
-		this.executor = executor;
-	}
-
-	/**
-	 * Register {@link com.sun.net.httpserver.HttpHandler HttpHandlers}
-	 * for specific context paths.
-	 * @param contexts a Map with context paths as keys and HttpHandler
-	 * objects as values
-	 * @see org.springframework.remoting.httpinvoker.SimpleHttpInvokerServiceExporter
-	 * @see org.springframework.remoting.caucho.SimpleHessianServiceExporter
-	 */
-	public void setContexts(Map<String, HttpHandler> contexts) {
-		this.contexts = contexts;
-	}
-
-	/**
-	 * Register common {@link com.sun.net.httpserver.Filter Filters} to be
-	 * applied to all locally registered {@link #setContexts contexts}.
-	 */
-	public void setFilters(List<Filter> filters) {
-		this.filters = filters;
-	}
-
-	/**
-	 * Register a common {@link com.sun.net.httpserver.Authenticator} to be
-	 * applied to all locally registered {@link #setContexts contexts}.
-	 */
-	public void setAuthenticator(Authenticator authenticator) {
-		this.authenticator = authenticator;
-	}
+    private HttpServer server;
 
 
-	@Override
-	public void afterPropertiesSet() throws IOException {
-		InetSocketAddress address = (this.hostname != null ?
-				new InetSocketAddress(this.hostname, this.port) : new InetSocketAddress(this.port));
-		this.server = HttpServer.create(address, this.backlog);
-		if (this.executor != null) {
-			this.server.setExecutor(this.executor);
-		}
-		if (this.contexts != null) {
-			this.contexts.forEach((key, context) -> {
-				HttpContext httpContext = this.server.createContext(key, context);
-				if (this.filters != null) {
-					httpContext.getFilters().addAll(this.filters);
-				}
-				if (this.authenticator != null) {
-					httpContext.setAuthenticator(this.authenticator);
-				}
-			});
-		}
-		if (logger.isInfoEnabled()) {
-			logger.info("Starting HttpServer at address " + address);
-		}
-		this.server.start();
-	}
+    /**
+     * Specify the HTTP server's port. Default is 8080.
+     */
+    public void setPort(int port) {
+        this.port = port;
+    }
 
-	@Override
-	public HttpServer getObject() {
-		return this.server;
-	}
+    /**
+     * Specify the HTTP server's hostname to bind to. Default is localhost;
+     * can be overridden with a specific network address to bind to.
+     */
+    public void setHostname(String hostname) {
+        this.hostname = hostname;
+    }
 
-	@Override
-	public Class<? extends HttpServer> getObjectType() {
-		return (this.server != null ? this.server.getClass() : HttpServer.class);
-	}
+    /**
+     * Specify the HTTP server's TCP backlog. Default is -1,
+     * indicating the system's default value.
+     */
+    public void setBacklog(int backlog) {
+        this.backlog = backlog;
+    }
 
-	@Override
-	public boolean isSingleton() {
-		return true;
-	}
+    /**
+     * Specify the number of seconds to wait until HTTP exchanges have
+     * completed when shutting down the HTTP server. Default is 0.
+     */
+    public void setShutdownDelay(int shutdownDelay) {
+        this.shutdownDelay = shutdownDelay;
+    }
 
-	@Override
-	public void destroy() {
-		logger.info("Stopping HttpServer");
-		this.server.stop(this.shutdownDelay);
-	}
+    /**
+     * Set the JDK concurrent executor to use for dispatching incoming requests.
+     *
+     * @see com.sun.net.httpserver.HttpServer#setExecutor
+     */
+    public void setExecutor(Executor executor) {
+        this.executor = executor;
+    }
+
+    /**
+     * Register {@link com.sun.net.httpserver.HttpHandler HttpHandlers}
+     * for specific context paths.
+     *
+     * @param contexts a Map with context paths as keys and HttpHandler
+     *                 objects as values
+     * @see org.springframework.remoting.httpinvoker.SimpleHttpInvokerServiceExporter
+     * @see org.springframework.remoting.caucho.SimpleHessianServiceExporter
+     */
+    public void setContexts(Map<String, HttpHandler> contexts) {
+        this.contexts = contexts;
+    }
+
+    /**
+     * Register common {@link com.sun.net.httpserver.Filter Filters} to be
+     * applied to all locally registered {@link #setContexts contexts}.
+     */
+    public void setFilters(List<Filter> filters) {
+        this.filters = filters;
+    }
+
+    /**
+     * Register a common {@link com.sun.net.httpserver.Authenticator} to be
+     * applied to all locally registered {@link #setContexts contexts}.
+     */
+    public void setAuthenticator(Authenticator authenticator) {
+        this.authenticator = authenticator;
+    }
+
+
+    @Override
+    public void afterPropertiesSet() throws IOException {
+        InetSocketAddress address = (this.hostname != null ?
+                new InetSocketAddress(this.hostname, this.port) : new InetSocketAddress(this.port));
+        this.server = HttpServer.create(address, this.backlog);
+        if (this.executor != null) {
+            this.server.setExecutor(this.executor);
+        }
+        if (this.contexts != null) {
+            this.contexts.forEach((key, context) -> {
+                HttpContext httpContext = this.server.createContext(key, context);
+                if (this.filters != null) {
+                    httpContext.getFilters().addAll(this.filters);
+                }
+                if (this.authenticator != null) {
+                    httpContext.setAuthenticator(this.authenticator);
+                }
+            });
+        }
+        if (logger.isInfoEnabled()) {
+            logger.info("Starting HttpServer at address " + address);
+        }
+        this.server.start();
+    }
+
+    @Override
+    public HttpServer getObject() {
+        return this.server;
+    }
+
+    @Override
+    public Class<? extends HttpServer> getObjectType() {
+        return (this.server != null ? this.server.getClass() : HttpServer.class);
+    }
+
+    @Override
+    public boolean isSingleton() {
+        return true;
+    }
+
+    @Override
+    public void destroy() {
+        logger.info("Stopping HttpServer");
+        this.server.stop(this.shutdownDelay);
+    }
 
 }

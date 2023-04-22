@@ -37,41 +37,41 @@ import static org.assertj.core.api.Assertions.assertThat;
 @SpringJUnitWebConfig
 class RequestAndSessionScopedBeansWacTests {
 
-	@Autowired
-	WebApplicationContext wac;
+    @Autowired
+    WebApplicationContext wac;
 
-	@Autowired
-	MockHttpServletRequest request;
+    @Autowired
+    MockHttpServletRequest request;
 
-	@Autowired
-	MockHttpSession session;
+    @Autowired
+    MockHttpSession session;
 
 
-	@Test
-	void requestScope() throws Exception {
-		String beanName = "requestScopedTestBean";
-		String contextPath = "/path";
+    @Test
+    void requestScope() throws Exception {
+        String beanName = "requestScopedTestBean";
+        String contextPath = "/path";
 
-		assertThat(request.getAttribute(beanName)).isNull();
+        assertThat(request.getAttribute(beanName)).isNull();
 
-		request.setContextPath(contextPath);
-		TestBean testBean = wac.getBean(beanName, TestBean.class);
+        request.setContextPath(contextPath);
+        TestBean testBean = wac.getBean(beanName, TestBean.class);
 
-		assertThat(testBean.getName()).isEqualTo(contextPath);
-		assertThat(request.getAttribute(beanName)).isSameAs(testBean);
-		assertThat(wac.getBean(beanName, TestBean.class)).isSameAs(testBean);
-	}
+        assertThat(testBean.getName()).isEqualTo(contextPath);
+        assertThat(request.getAttribute(beanName)).isSameAs(testBean);
+        assertThat(wac.getBean(beanName, TestBean.class)).isSameAs(testBean);
+    }
 
-	@Test
-	void sessionScope() throws Exception {
-		String beanName = "sessionScopedTestBean";
+    @Test
+    void sessionScope() throws Exception {
+        String beanName = "sessionScopedTestBean";
 
-		assertThat(session.getAttribute(beanName)).isNull();
+        assertThat(session.getAttribute(beanName)).isNull();
 
-		TestBean testBean = wac.getBean(beanName, TestBean.class);
+        TestBean testBean = wac.getBean(beanName, TestBean.class);
 
-		assertThat(session.getAttribute(beanName)).isSameAs(testBean);
-		assertThat(wac.getBean(beanName, TestBean.class)).isSameAs(testBean);
-	}
+        assertThat(session.getAttribute(beanName)).isSameAs(testBean);
+        assertThat(wac.getBean(beanName, TestBean.class)).isSameAs(testBean);
+    }
 
 }

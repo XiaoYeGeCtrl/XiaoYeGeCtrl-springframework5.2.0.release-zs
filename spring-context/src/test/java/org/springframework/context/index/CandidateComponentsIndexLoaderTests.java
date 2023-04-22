@@ -27,10 +27,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 
 
-
-
-
-
 /**
  * Tests for {@link CandidateComponentsIndexLoader}.
  *
@@ -38,73 +34,73 @@ import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
  */
 public class CandidateComponentsIndexLoaderTests {
 
-	@Test
-	public void validateIndexIsDisabledByDefault() {
-		CandidateComponentsIndex index = CandidateComponentsIndexLoader.loadIndex(null);
-		assertThat(index).as("No spring.components should be available at the default location").isNull();
-	}
+    @Test
+    public void validateIndexIsDisabledByDefault() {
+        CandidateComponentsIndex index = CandidateComponentsIndexLoader.loadIndex(null);
+        assertThat(index).as("No spring.components should be available at the default location").isNull();
+    }
 
-	@Test
-	public void loadIndexSeveralMatches() {
-		CandidateComponentsIndex index = CandidateComponentsIndexLoader.loadIndex(
-				CandidateComponentsTestClassLoader.index(getClass().getClassLoader(),
-						new ClassPathResource("spring.components", getClass())));
-		Set<String> components = index.getCandidateTypes("org.springframework", "foo");
-		assertThat(components).contains(
-				"org.springframework.context.index.Sample1",
-				"org.springframework.context.index.Sample2");
-	}
+    @Test
+    public void loadIndexSeveralMatches() {
+        CandidateComponentsIndex index = CandidateComponentsIndexLoader.loadIndex(
+                CandidateComponentsTestClassLoader.index(getClass().getClassLoader(),
+                        new ClassPathResource("spring.components", getClass())));
+        Set<String> components = index.getCandidateTypes("org.springframework", "foo");
+        assertThat(components).contains(
+                "org.springframework.context.index.Sample1",
+                "org.springframework.context.index.Sample2");
+    }
 
-	@Test
-	public void loadIndexSingleMatch() {
-		CandidateComponentsIndex index = CandidateComponentsIndexLoader.loadIndex(
-				CandidateComponentsTestClassLoader.index(getClass().getClassLoader(),
-						new ClassPathResource("spring.components", getClass())));
-		Set<String> components = index.getCandidateTypes("org.springframework", "biz");
-		assertThat(components).contains(
-				"org.springframework.context.index.Sample3");
-	}
+    @Test
+    public void loadIndexSingleMatch() {
+        CandidateComponentsIndex index = CandidateComponentsIndexLoader.loadIndex(
+                CandidateComponentsTestClassLoader.index(getClass().getClassLoader(),
+                        new ClassPathResource("spring.components", getClass())));
+        Set<String> components = index.getCandidateTypes("org.springframework", "biz");
+        assertThat(components).contains(
+                "org.springframework.context.index.Sample3");
+    }
 
-	@Test
-	public void loadIndexNoMatch() {
-		CandidateComponentsIndex index = CandidateComponentsIndexLoader.loadIndex(
-				CandidateComponentsTestClassLoader.index(getClass().getClassLoader(),
-						new ClassPathResource("spring.components", getClass())));
-		Set<String> components = index.getCandidateTypes("org.springframework", "none");
-		assertThat(components).isEmpty();
-	}
+    @Test
+    public void loadIndexNoMatch() {
+        CandidateComponentsIndex index = CandidateComponentsIndexLoader.loadIndex(
+                CandidateComponentsTestClassLoader.index(getClass().getClassLoader(),
+                        new ClassPathResource("spring.components", getClass())));
+        Set<String> components = index.getCandidateTypes("org.springframework", "none");
+        assertThat(components).isEmpty();
+    }
 
-	@Test
-	public void loadIndexNoPackage() {
-		CandidateComponentsIndex index = CandidateComponentsIndexLoader.loadIndex(
-				CandidateComponentsTestClassLoader.index(getClass().getClassLoader(),
-						new ClassPathResource("spring.components", getClass())));
-		Set<String> components = index.getCandidateTypes("com.example", "foo");
-		assertThat(components).isEmpty();
-	}
+    @Test
+    public void loadIndexNoPackage() {
+        CandidateComponentsIndex index = CandidateComponentsIndexLoader.loadIndex(
+                CandidateComponentsTestClassLoader.index(getClass().getClassLoader(),
+                        new ClassPathResource("spring.components", getClass())));
+        Set<String> components = index.getCandidateTypes("com.example", "foo");
+        assertThat(components).isEmpty();
+    }
 
-	@Test
-	public void loadIndexNoSpringComponentsResource() {
-		CandidateComponentsIndex index = CandidateComponentsIndexLoader.loadIndex(
-				CandidateComponentsTestClassLoader.disableIndex(getClass().getClassLoader()));
-		assertThat(index).isNull();
-	}
+    @Test
+    public void loadIndexNoSpringComponentsResource() {
+        CandidateComponentsIndex index = CandidateComponentsIndexLoader.loadIndex(
+                CandidateComponentsTestClassLoader.disableIndex(getClass().getClassLoader()));
+        assertThat(index).isNull();
+    }
 
-	@Test
-	public void loadIndexNoEntry() throws IOException {
-		CandidateComponentsIndex index = CandidateComponentsIndexLoader.loadIndex(
-				CandidateComponentsTestClassLoader.index(getClass().getClassLoader(),
-						new ClassPathResource("empty-spring.components", getClass())));
-		assertThat(index).isNull();
-	}
+    @Test
+    public void loadIndexNoEntry() throws IOException {
+        CandidateComponentsIndex index = CandidateComponentsIndexLoader.loadIndex(
+                CandidateComponentsTestClassLoader.index(getClass().getClassLoader(),
+                        new ClassPathResource("empty-spring.components", getClass())));
+        assertThat(index).isNull();
+    }
 
-	@Test
-	public void loadIndexWithException() throws IOException {
-		final IOException cause = new IOException("test exception");
-		assertThatIllegalStateException().isThrownBy(() -> {
-				CandidateComponentsTestClassLoader classLoader = new CandidateComponentsTestClassLoader(getClass().getClassLoader(), cause);
-				CandidateComponentsIndexLoader.loadIndex(classLoader);
-			}).withMessageContaining("Unable to load indexes").withCause(cause);
-	}
+    @Test
+    public void loadIndexWithException() throws IOException {
+        final IOException cause = new IOException("test exception");
+        assertThatIllegalStateException().isThrownBy(() -> {
+            CandidateComponentsTestClassLoader classLoader = new CandidateComponentsTestClassLoader(getClass().getClassLoader(), cause);
+            CandidateComponentsIndexLoader.loadIndex(classLoader);
+        }).withMessageContaining("Unable to load indexes").withCause(cause);
+    }
 
 }

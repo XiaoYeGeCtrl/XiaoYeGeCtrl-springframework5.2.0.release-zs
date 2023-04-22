@@ -38,24 +38,22 @@ import static org.assertj.core.api.Assertions.assertThat;
 @ContextConfiguration
 public class DefaultLoaderDefaultConfigClassesInheritedTests extends DefaultLoaderDefaultConfigClassesBaseTests {
 
-	@Configuration
-	static class Config {
+    @Autowired
+    private Pet pet;
 
-		@Bean
-		public Pet pet() {
-			return new Pet("Fido");
-		}
-	}
+    @Test
+    public void verifyPetSetFromExtendedContextConfig() {
+        assertThat(this.pet).as("The pet should have been autowired.").isNotNull();
+        assertThat(this.pet.getName()).isEqualTo("Fido");
+    }
 
+    @Configuration
+    static class Config {
 
-	@Autowired
-	private Pet pet;
-
-
-	@Test
-	public void verifyPetSetFromExtendedContextConfig() {
-		assertThat(this.pet).as("The pet should have been autowired.").isNotNull();
-		assertThat(this.pet.getName()).isEqualTo("Fido");
-	}
+        @Bean
+        public Pet pet() {
+            return new Pet("Fido");
+        }
+    }
 
 }

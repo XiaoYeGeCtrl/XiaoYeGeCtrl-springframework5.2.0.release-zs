@@ -32,38 +32,38 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 class ByteBufferEncoderTests extends AbstractEncoderTests<ByteBufferEncoder> {
 
-	private final byte[] fooBytes = "foo".getBytes(StandardCharsets.UTF_8);
+    private final byte[] fooBytes = "foo".getBytes(StandardCharsets.UTF_8);
 
-	private final byte[] barBytes = "bar".getBytes(StandardCharsets.UTF_8);
+    private final byte[] barBytes = "bar".getBytes(StandardCharsets.UTF_8);
 
-	ByteBufferEncoderTests() {
-		super(new ByteBufferEncoder());
-	}
+    ByteBufferEncoderTests() {
+        super(new ByteBufferEncoder());
+    }
 
-	@Override
-	@Test
-	public void canEncode() {
-		assertThat(this.encoder.canEncode(ResolvableType.forClass(ByteBuffer.class),
-				MimeTypeUtils.TEXT_PLAIN)).isTrue();
-		assertThat(this.encoder.canEncode(ResolvableType.forClass(Integer.class),
-				MimeTypeUtils.TEXT_PLAIN)).isFalse();
-		assertThat(this.encoder.canEncode(ResolvableType.forClass(ByteBuffer.class),
-				MimeTypeUtils.APPLICATION_JSON)).isTrue();
+    @Override
+    @Test
+    public void canEncode() {
+        assertThat(this.encoder.canEncode(ResolvableType.forClass(ByteBuffer.class),
+                MimeTypeUtils.TEXT_PLAIN)).isTrue();
+        assertThat(this.encoder.canEncode(ResolvableType.forClass(Integer.class),
+                MimeTypeUtils.TEXT_PLAIN)).isFalse();
+        assertThat(this.encoder.canEncode(ResolvableType.forClass(ByteBuffer.class),
+                MimeTypeUtils.APPLICATION_JSON)).isTrue();
 
-		// SPR-15464
-		assertThat(this.encoder.canEncode(ResolvableType.NONE, null)).isFalse();
-	}
+        // SPR-15464
+        assertThat(this.encoder.canEncode(ResolvableType.NONE, null)).isFalse();
+    }
 
-	@Override
-	@Test
-	public void encode() {
-		Flux<ByteBuffer> input = Flux.just(this.fooBytes, this.barBytes)
-				.map(ByteBuffer::wrap);
+    @Override
+    @Test
+    public void encode() {
+        Flux<ByteBuffer> input = Flux.just(this.fooBytes, this.barBytes)
+                .map(ByteBuffer::wrap);
 
-		testEncodeAll(input, ByteBuffer.class, step -> step
-				.consumeNextWith(expectBytes(this.fooBytes))
-				.consumeNextWith(expectBytes(this.barBytes))
-				.verifyComplete());
-	}
+        testEncodeAll(input, ByteBuffer.class, step -> step
+                .consumeNextWith(expectBytes(this.fooBytes))
+                .consumeNextWith(expectBytes(this.barBytes))
+                .verifyComplete());
+    }
 
 }

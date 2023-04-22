@@ -53,13 +53,12 @@ import org.springframework.util.ReflectionUtils;
  *
  * <pre class="code">&lt;property name="jndiEnvironment"&gt;
  * 	 &lt;props>
- *		 &lt;prop key="java.naming.factory.initial"&gt;com.sun.jndi.cosnaming.CNCtxFactory&lt;/prop&gt;
- *		 &lt;prop key="java.naming.provider.url"&gt;iiop://localhost:1050&lt;/prop&gt;
- *	 &lt;/props&gt;
+ * 		 &lt;prop key="java.naming.factory.initial"&gt;com.sun.jndi.cosnaming.CNCtxFactory&lt;/prop&gt;
+ * 		 &lt;prop key="java.naming.provider.url"&gt;iiop://localhost:1050&lt;/prop&gt;
+ * 	 &lt;/props&gt;
  * &lt;/property&gt;</pre>
  *
  * @author Juergen Hoeller
- * @since 1.1
  * @see #setService
  * @see #setJndiTemplate
  * @see #setJndiEnvironment
@@ -67,126 +66,128 @@ import org.springframework.util.ReflectionUtils;
  * @see JndiRmiClientInterceptor
  * @see JndiRmiProxyFactoryBean
  * @see javax.rmi.PortableRemoteObject#exportObject
+ * @since 1.1
  */
 public class JndiRmiServiceExporter extends RmiBasedExporter implements InitializingBean, DisposableBean {
 
-	@Nullable
-	private static Method exportObject;
+    @Nullable
+    private static Method exportObject;
 
-	@Nullable
-	private static Method unexportObject;
+    @Nullable
+    private static Method unexportObject;
 
-	static {
-		try {
-			Class<?> portableRemoteObject =
-					JndiRmiServiceExporter.class.getClassLoader().loadClass("javax.rmi.PortableRemoteObject");
-			exportObject = portableRemoteObject.getMethod("exportObject", Remote.class);
-			unexportObject = portableRemoteObject.getMethod("unexportObject", Remote.class);
-		}
-		catch (Throwable ex) {
-			// java.corba module not available on JDK 9+
-			exportObject = null;
-			unexportObject = null;
-		}
-	}
-
-
-	private JndiTemplate jndiTemplate = new JndiTemplate();
-
-	private String jndiName;
-
-	private Remote exportedObject;
+    static {
+        try {
+            Class<?> portableRemoteObject =
+                    JndiRmiServiceExporter.class.getClassLoader().loadClass("javax.rmi.PortableRemoteObject");
+            exportObject = portableRemoteObject.getMethod("exportObject", Remote.class);
+            unexportObject = portableRemoteObject.getMethod("unexportObject", Remote.class);
+        } catch (Throwable ex) {
+            // java.corba module not available on JDK 9+
+            exportObject = null;
+            unexportObject = null;
+        }
+    }
 
 
-	/**
-	 * Set the JNDI template to use for JNDI lookups.
-	 * You can also specify JNDI environment settings via "jndiEnvironment".
-	 * @see #setJndiEnvironment
-	 */
-	public void setJndiTemplate(JndiTemplate jndiTemplate) {
-		this.jndiTemplate = (jndiTemplate != null ? jndiTemplate : new JndiTemplate());
-	}
+    private JndiTemplate jndiTemplate = new JndiTemplate();
 
-	/**
-	 * Set the JNDI environment to use for JNDI lookups.
-	 * Creates a JndiTemplate with the given environment settings.
-	 * @see #setJndiTemplate
-	 */
-	public void setJndiEnvironment(Properties jndiEnvironment) {
-		this.jndiTemplate = new JndiTemplate(jndiEnvironment);
-	}
+    private String jndiName;
 
-	/**
-	 * Set the JNDI name of the exported RMI service.
-	 */
-	public void setJndiName(String jndiName) {
-		this.jndiName = jndiName;
-	}
+    private Remote exportedObject;
 
 
-	@Override
-	public void afterPropertiesSet() throws NamingException, RemoteException {
-		prepare();
-	}
+    /**
+     * Set the JNDI template to use for JNDI lookups.
+     * You can also specify JNDI environment settings via "jndiEnvironment".
+     *
+     * @see #setJndiEnvironment
+     */
+    public void setJndiTemplate(JndiTemplate jndiTemplate) {
+        this.jndiTemplate = (jndiTemplate != null ? jndiTemplate : new JndiTemplate());
+    }
 
-	/**
-	 * Initialize this service exporter, binding the specified service to JNDI.
-	 * @throws NamingException if service binding failed
-	 * @throws RemoteException if service export failed
-	 */
-	public void prepare() throws NamingException, RemoteException {
-		if (this.jndiName == null) {
-			throw new IllegalArgumentException("Property 'jndiName' is required");
-		}
+    /**
+     * Set the JNDI environment to use for JNDI lookups.
+     * Creates a JndiTemplate with the given environment settings.
+     *
+     * @see #setJndiTemplate
+     */
+    public void setJndiEnvironment(Properties jndiEnvironment) {
+        this.jndiTemplate = new JndiTemplate(jndiEnvironment);
+    }
 
-		// Initialize and cache exported object.
-		this.exportedObject = getObjectToExport();
-		invokePortableRemoteObject(exportObject);
-
-		rebind();
-	}
-
-	/**
-	 * Rebind the specified service to JNDI, for recovering in case
-	 * of the target registry having been restarted.
-	 * @throws NamingException if service binding failed
-	 */
-	public void rebind() throws NamingException {
-		if (logger.isDebugEnabled()) {
-			logger.debug("Binding RMI service to JNDI location [" + this.jndiName + "]");
-		}
-		this.jndiTemplate.rebind(this.jndiName, this.exportedObject);
-	}
-
-	/**
-	 * Unbind the RMI service from JNDI on bean factory shutdown.
-	 */
-	@Override
-	public void destroy() throws NamingException, RemoteException {
-		if (logger.isDebugEnabled()) {
-			logger.debug("Unbinding RMI service from JNDI location [" + this.jndiName + "]");
-		}
-		this.jndiTemplate.unbind(this.jndiName);
-		invokePortableRemoteObject(unexportObject);
-	}
+    /**
+     * Set the JNDI name of the exported RMI service.
+     */
+    public void setJndiName(String jndiName) {
+        this.jndiName = jndiName;
+    }
 
 
-	private void invokePortableRemoteObject(@Nullable Method method) throws RemoteException {
-		if (method != null) {
-			try {
-				method.invoke(null, this.exportedObject);
-			}
-			catch (InvocationTargetException ex) {
-				Throwable targetEx = ex.getTargetException();
-				if (targetEx instanceof RemoteException) {
-					throw (RemoteException) targetEx;
-				}
-				ReflectionUtils.rethrowRuntimeException(targetEx);
-			}
-			catch (Throwable ex) {
-				throw new IllegalStateException("PortableRemoteObject invocation failed", ex);
-			}
-		}
-	}
+    @Override
+    public void afterPropertiesSet() throws NamingException, RemoteException {
+        prepare();
+    }
+
+    /**
+     * Initialize this service exporter, binding the specified service to JNDI.
+     *
+     * @throws NamingException if service binding failed
+     * @throws RemoteException if service export failed
+     */
+    public void prepare() throws NamingException, RemoteException {
+        if (this.jndiName == null) {
+            throw new IllegalArgumentException("Property 'jndiName' is required");
+        }
+
+        // Initialize and cache exported object.
+        this.exportedObject = getObjectToExport();
+        invokePortableRemoteObject(exportObject);
+
+        rebind();
+    }
+
+    /**
+     * Rebind the specified service to JNDI, for recovering in case
+     * of the target registry having been restarted.
+     *
+     * @throws NamingException if service binding failed
+     */
+    public void rebind() throws NamingException {
+        if (logger.isDebugEnabled()) {
+            logger.debug("Binding RMI service to JNDI location [" + this.jndiName + "]");
+        }
+        this.jndiTemplate.rebind(this.jndiName, this.exportedObject);
+    }
+
+    /**
+     * Unbind the RMI service from JNDI on bean factory shutdown.
+     */
+    @Override
+    public void destroy() throws NamingException, RemoteException {
+        if (logger.isDebugEnabled()) {
+            logger.debug("Unbinding RMI service from JNDI location [" + this.jndiName + "]");
+        }
+        this.jndiTemplate.unbind(this.jndiName);
+        invokePortableRemoteObject(unexportObject);
+    }
+
+
+    private void invokePortableRemoteObject(@Nullable Method method) throws RemoteException {
+        if (method != null) {
+            try {
+                method.invoke(null, this.exportedObject);
+            } catch (InvocationTargetException ex) {
+                Throwable targetEx = ex.getTargetException();
+                if (targetEx instanceof RemoteException) {
+                    throw (RemoteException) targetEx;
+                }
+                ReflectionUtils.rethrowRuntimeException(targetEx);
+            } catch (Throwable ex) {
+                throw new IllegalStateException("PortableRemoteObject invocation failed", ex);
+            }
+        }
+    }
 
 }

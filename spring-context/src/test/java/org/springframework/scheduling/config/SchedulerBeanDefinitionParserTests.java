@@ -31,33 +31,33 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 public class SchedulerBeanDefinitionParserTests {
 
-	private ApplicationContext context;
+    private ApplicationContext context;
 
 
-	@BeforeEach
-	public void setup() {
-		this.context = new ClassPathXmlApplicationContext(
-				"schedulerContext.xml", SchedulerBeanDefinitionParserTests.class);
-	}
+    @BeforeEach
+    public void setup() {
+        this.context = new ClassPathXmlApplicationContext(
+                "schedulerContext.xml", SchedulerBeanDefinitionParserTests.class);
+    }
 
-	@Test
-	public void defaultScheduler() {
-		ThreadPoolTaskScheduler scheduler = (ThreadPoolTaskScheduler) this.context.getBean("defaultScheduler");
-		Integer size = (Integer) new DirectFieldAccessor(scheduler).getPropertyValue("poolSize");
-		assertThat(size).isEqualTo(new Integer(1));
-	}
+    @Test
+    public void defaultScheduler() {
+        ThreadPoolTaskScheduler scheduler = (ThreadPoolTaskScheduler) this.context.getBean("defaultScheduler");
+        Integer size = (Integer) new DirectFieldAccessor(scheduler).getPropertyValue("poolSize");
+        assertThat(size).isEqualTo(new Integer(1));
+    }
 
-	@Test
-	public void customScheduler() {
-		ThreadPoolTaskScheduler scheduler = (ThreadPoolTaskScheduler) this.context.getBean("customScheduler");
-		Integer size = (Integer) new DirectFieldAccessor(scheduler).getPropertyValue("poolSize");
-		assertThat(size).isEqualTo(new Integer(42));
-	}
+    @Test
+    public void customScheduler() {
+        ThreadPoolTaskScheduler scheduler = (ThreadPoolTaskScheduler) this.context.getBean("customScheduler");
+        Integer size = (Integer) new DirectFieldAccessor(scheduler).getPropertyValue("poolSize");
+        assertThat(size).isEqualTo(new Integer(42));
+    }
 
-	@Test
-	public void threadNamePrefix() {
-		ThreadPoolTaskScheduler scheduler = (ThreadPoolTaskScheduler) this.context.getBean("customScheduler");
-		assertThat(scheduler.getThreadNamePrefix()).isEqualTo("customScheduler-");
-	}
+    @Test
+    public void threadNamePrefix() {
+        ThreadPoolTaskScheduler scheduler = (ThreadPoolTaskScheduler) this.context.getBean("customScheduler");
+        assertThat(scheduler.getThreadNamePrefix()).isEqualTo("customScheduler-");
+    }
 
 }

@@ -46,124 +46,118 @@ import org.springframework.web.context.WebApplicationContext;
  * {@code WebApplicationContext} that will be passed to the
  * {@code DispatcherServlet}.
  *
+ * @param <B> a self reference to the builder type
  * @author Rossen Stoyanchev
  * @author Stephane Nicoll
  * @since 4.0
- * @param <B> a self reference to the builder type
  */
 public abstract class AbstractMockMvcBuilder<B extends AbstractMockMvcBuilder<B>>
-		extends MockMvcBuilderSupport implements ConfigurableMockMvcBuilder<B> {
+        extends MockMvcBuilderSupport implements ConfigurableMockMvcBuilder<B> {
 
-	private List<Filter> filters = new ArrayList<>();
+    private final List<ResultMatcher> globalResultMatchers = new ArrayList<>();
+    private final List<ResultHandler> globalResultHandlers = new ArrayList<>();
+    private final List<DispatcherServletCustomizer> dispatcherServletCustomizers = new ArrayList<>();
+    private final List<MockMvcConfigurer> configurers = new ArrayList<>(4);
+    private List<Filter> filters = new ArrayList<>();
+    @Nullable
+    private RequestBuilder defaultRequestBuilder;
 
-	@Nullable
-	private RequestBuilder defaultRequestBuilder;
+    @Override
+    public final <T extends B> T addFilters(Filter... filters) {
+        Assert.notNull(filters, "filters cannot be null");
+        for (Filter f : filters) {
+            Assert.notNull(f, "filters cannot contain null values");
+            this.filters.add(f);
+        }
+        return self();
+    }
 
-	private final List<ResultMatcher> globalResultMatchers = new ArrayList<>();
+    @Override
+    public final <T extends B> T addFilter(Filter filter, String... urlPatterns) {
+        Assert.notNull(filter, "filter cannot be null");
+        Assert.notNull(urlPatterns, "urlPatterns cannot be null");
+        if (urlPatterns.length > 0) {
+            filter = new PatternMappingFilterProxy(filter, urlPatterns);
+        }
+        this.filters.add(filter);
+        return self();
+    }
 
-	private final List<ResultHandler> globalResultHandlers = new ArrayList<>();
+    @Override
+    public final <T extends B> T defaultRequest(RequestBuilder requestBuilder) {
+        this.defaultRequestBuilder = requestBuilder;
+        return self();
+    }
 
-	private final List<DispatcherServletCustomizer> dispatcherServletCustomizers = new ArrayList<>();
+    @Override
+    public final <T extends B> T alwaysExpect(ResultMatcher resultMatcher) {
+        this.globalResultMatchers.add(resultMatcher);
+        return self();
+    }
 
-	private final List<MockMvcConfigurer> configurers = new ArrayList<>(4);
+    @Override
+    public final <T extends B> T alwaysDo(ResultHandler resultHandler) {
+        this.globalResultHandlers.add(resultHandler);
+        return self();
+    }
 
+    public final <T extends B> T addDispatcherServletCustomizer(DispatcherServletCustomizer customizer) {
+        this.dispatcherServletCustomizers.add(customizer);
+        return self();
+    }
 
-	@Override
-	public final <T extends B> T addFilters(Filter... filters) {
-		Assert.notNull(filters, "filters cannot be null");
-		for (Filter f : filters) {
-			Assert.notNull(f, "filters cannot contain null values");
-			this.filters.add(f);
-		}
-		return self();
-	}
+    @Override
+    public final <T extends B> T dispatchOptions(boolean dispatchOptions) {
+        return addDispatcherServletCustomizer(
+                dispatcherServlet -> dispatcherServlet.setDispatchOptionsRequest(dispatchOptions));
+    }
 
-	@Override
-	public final <T extends B> T addFilter(Filter filter, String... urlPatterns) {
-		Assert.notNull(filter, "filter cannot be null");
-		Assert.notNull(urlPatterns, "urlPatterns cannot be null");
-		if (urlPatterns.length > 0) {
-			filter = new PatternMappingFilterProxy(filter, urlPatterns);
-		}
-		this.filters.add(filter);
-		return self();
-	}
+    @Override
+    public final <T extends B> T apply(MockMvcConfigurer configurer) {
+        configurer.afterConfigurerAdded(this);
+        this.configurers.add(configurer);
+        return self();
+    }
 
-	@Override
-	public final <T extends B> T defaultRequest(RequestBuilder requestBuilder) {
-		this.defaultRequestBuilder = requestBuilder;
-		return self();
-	}
-
-	@Override
-	public final <T extends B> T alwaysExpect(ResultMatcher resultMatcher) {
-		this.globalResultMatchers.add(resultMatcher);
-		return self();
-	}
-
-	@Override
-	public final <T extends B> T alwaysDo(ResultHandler resultHandler) {
-		this.globalResultHandlers.add(resultHandler);
-		return self();
-	}
-
-	public final <T extends B> T addDispatcherServletCustomizer(DispatcherServletCustomizer customizer) {
-		this.dispatcherServletCustomizers.add(customizer);
-		return self();
-	}
-
-	@Override
-	public final <T extends B> T dispatchOptions(boolean dispatchOptions) {
-		return addDispatcherServletCustomizer(
-				dispatcherServlet -> dispatcherServlet.setDispatchOptionsRequest(dispatchOptions));
-	}
-
-	@Override
-	public final <T extends B> T apply(MockMvcConfigurer configurer) {
-		configurer.afterConfigurerAdded(this);
-		this.configurers.add(configurer);
-		return self();
-	}
-
-	@SuppressWarnings("unchecked")
-	protected <T extends B> T self() {
-		return (T) this;
-	}
+    @SuppressWarnings("unchecked")
+    protected <T extends B> T self() {
+        return (T) this;
+    }
 
 
-	/**
-	 * Build a {@link org.springframework.test.web.servlet.MockMvc} instance.
-	 */
-	@Override
-	@SuppressWarnings("rawtypes")
-	public final MockMvc build() {
-		WebApplicationContext wac = initWebAppContext();
-		ServletContext servletContext = wac.getServletContext();
-		MockServletConfig mockServletConfig = new MockServletConfig(servletContext);
+    /**
+     * Build a {@link org.springframework.test.web.servlet.MockMvc} instance.
+     */
+    @Override
+    @SuppressWarnings("rawtypes")
+    public final MockMvc build() {
+        WebApplicationContext wac = initWebAppContext();
+        ServletContext servletContext = wac.getServletContext();
+        MockServletConfig mockServletConfig = new MockServletConfig(servletContext);
 
-		for (MockMvcConfigurer configurer : this.configurers) {
-			RequestPostProcessor processor = configurer.beforeMockMvcCreated(this, wac);
-			if (processor != null) {
-				if (this.defaultRequestBuilder == null) {
-					this.defaultRequestBuilder = MockMvcRequestBuilders.get("/");
-				}
-				if (this.defaultRequestBuilder instanceof ConfigurableSmartRequestBuilder) {
-					((ConfigurableSmartRequestBuilder) this.defaultRequestBuilder).with(processor);
-				}
-			}
-		}
+        for (MockMvcConfigurer configurer : this.configurers) {
+            RequestPostProcessor processor = configurer.beforeMockMvcCreated(this, wac);
+            if (processor != null) {
+                if (this.defaultRequestBuilder == null) {
+                    this.defaultRequestBuilder = MockMvcRequestBuilders.get("/");
+                }
+                if (this.defaultRequestBuilder instanceof ConfigurableSmartRequestBuilder) {
+                    ((ConfigurableSmartRequestBuilder) this.defaultRequestBuilder).with(processor);
+                }
+            }
+        }
 
-		Filter[] filterArray = this.filters.toArray(new Filter[0]);
+        Filter[] filterArray = this.filters.toArray(new Filter[0]);
 
-		return super.createMockMvc(filterArray, mockServletConfig, wac, this.defaultRequestBuilder,
-				this.globalResultMatchers, this.globalResultHandlers, this.dispatcherServletCustomizers);
-	}
+        return super.createMockMvc(filterArray, mockServletConfig, wac, this.defaultRequestBuilder,
+                this.globalResultMatchers, this.globalResultHandlers, this.dispatcherServletCustomizers);
+    }
 
-	/**
-	 * A method to obtain the {@code WebApplicationContext} to be passed to the
-	 * {@code DispatcherServlet}. Invoked from {@link #build()} before the
-	 * {@link MockMvc} instance is created.
-	 */
-	protected abstract WebApplicationContext initWebAppContext();
+    /**
+     * A method to obtain the {@code WebApplicationContext} to be passed to the
+     * {@code DispatcherServlet}. Invoked from {@link #build()} before the
+     * {@link MockMvc} instance is created.
+     */
+    protected abstract WebApplicationContext initWebAppContext();
 
 }

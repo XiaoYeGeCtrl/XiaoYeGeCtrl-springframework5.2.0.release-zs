@@ -51,233 +51,232 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 public class BeanFactoryPostProcessorTests {
 
-	@Test
-	public void testRegisteredBeanFactoryPostProcessor() {
-		StaticApplicationContext ac = new StaticApplicationContext();
-		ac.registerSingleton("tb1", TestBean.class);
-		ac.registerSingleton("tb2", TestBean.class);
-		TestBeanFactoryPostProcessor bfpp = new TestBeanFactoryPostProcessor();
-		ac.addBeanFactoryPostProcessor(bfpp);
-		assertThat(bfpp.wasCalled).isFalse();
-		ac.refresh();
-		assertThat(bfpp.wasCalled).isTrue();
-	}
+    @Test
+    public void testRegisteredBeanFactoryPostProcessor() {
+        StaticApplicationContext ac = new StaticApplicationContext();
+        ac.registerSingleton("tb1", TestBean.class);
+        ac.registerSingleton("tb2", TestBean.class);
+        TestBeanFactoryPostProcessor bfpp = new TestBeanFactoryPostProcessor();
+        ac.addBeanFactoryPostProcessor(bfpp);
+        assertThat(bfpp.wasCalled).isFalse();
+        ac.refresh();
+        assertThat(bfpp.wasCalled).isTrue();
+    }
 
-	@Test
-	public void testDefinedBeanFactoryPostProcessor() {
-		StaticApplicationContext ac = new StaticApplicationContext();
-		ac.registerSingleton("tb1", TestBean.class);
-		ac.registerSingleton("tb2", TestBean.class);
-		ac.registerSingleton("bfpp", TestBeanFactoryPostProcessor.class);
-		ac.refresh();
-		TestBeanFactoryPostProcessor bfpp = (TestBeanFactoryPostProcessor) ac.getBean("bfpp");
-		assertThat(bfpp.wasCalled).isTrue();
-	}
+    @Test
+    public void testDefinedBeanFactoryPostProcessor() {
+        StaticApplicationContext ac = new StaticApplicationContext();
+        ac.registerSingleton("tb1", TestBean.class);
+        ac.registerSingleton("tb2", TestBean.class);
+        ac.registerSingleton("bfpp", TestBeanFactoryPostProcessor.class);
+        ac.refresh();
+        TestBeanFactoryPostProcessor bfpp = (TestBeanFactoryPostProcessor) ac.getBean("bfpp");
+        assertThat(bfpp.wasCalled).isTrue();
+    }
 
-	@Test
-	public void testMultipleDefinedBeanFactoryPostProcessors() {
-		StaticApplicationContext ac = new StaticApplicationContext();
-		ac.registerSingleton("tb1", TestBean.class);
-		ac.registerSingleton("tb2", TestBean.class);
-		MutablePropertyValues pvs1 = new MutablePropertyValues();
-		pvs1.add("initValue", "${key}");
-		ac.registerSingleton("bfpp1", TestBeanFactoryPostProcessor.class, pvs1);
-		MutablePropertyValues pvs2 = new MutablePropertyValues();
-		pvs2.add("properties", "key=value");
-		ac.registerSingleton("bfpp2", PropertyPlaceholderConfigurer.class, pvs2);
-		ac.refresh();
-		TestBeanFactoryPostProcessor bfpp = (TestBeanFactoryPostProcessor) ac.getBean("bfpp1");
-		assertThat(bfpp.initValue).isEqualTo("value");
-		assertThat(bfpp.wasCalled).isTrue();
-	}
+    @Test
+    public void testMultipleDefinedBeanFactoryPostProcessors() {
+        StaticApplicationContext ac = new StaticApplicationContext();
+        ac.registerSingleton("tb1", TestBean.class);
+        ac.registerSingleton("tb2", TestBean.class);
+        MutablePropertyValues pvs1 = new MutablePropertyValues();
+        pvs1.add("initValue", "${key}");
+        ac.registerSingleton("bfpp1", TestBeanFactoryPostProcessor.class, pvs1);
+        MutablePropertyValues pvs2 = new MutablePropertyValues();
+        pvs2.add("properties", "key=value");
+        ac.registerSingleton("bfpp2", PropertyPlaceholderConfigurer.class, pvs2);
+        ac.refresh();
+        TestBeanFactoryPostProcessor bfpp = (TestBeanFactoryPostProcessor) ac.getBean("bfpp1");
+        assertThat(bfpp.initValue).isEqualTo("value");
+        assertThat(bfpp.wasCalled).isTrue();
+    }
 
-	@Test
-	public void testBeanFactoryPostProcessorNotExecutedByBeanFactory() {
-		DefaultListableBeanFactory bf = new DefaultListableBeanFactory();
-		bf.registerBeanDefinition("tb1", new RootBeanDefinition(TestBean.class));
-		bf.registerBeanDefinition("tb2", new RootBeanDefinition(TestBean.class));
-		bf.registerBeanDefinition("bfpp", new RootBeanDefinition(TestBeanFactoryPostProcessor.class));
-		TestBeanFactoryPostProcessor bfpp = (TestBeanFactoryPostProcessor) bf.getBean("bfpp");
-		assertThat(bfpp.wasCalled).isFalse();
-	}
+    @Test
+    public void testBeanFactoryPostProcessorNotExecutedByBeanFactory() {
+        DefaultListableBeanFactory bf = new DefaultListableBeanFactory();
+        bf.registerBeanDefinition("tb1", new RootBeanDefinition(TestBean.class));
+        bf.registerBeanDefinition("tb2", new RootBeanDefinition(TestBean.class));
+        bf.registerBeanDefinition("bfpp", new RootBeanDefinition(TestBeanFactoryPostProcessor.class));
+        TestBeanFactoryPostProcessor bfpp = (TestBeanFactoryPostProcessor) bf.getBean("bfpp");
+        assertThat(bfpp.wasCalled).isFalse();
+    }
 
-	@Test
-	public void testBeanDefinitionRegistryPostProcessor() {
-		StaticApplicationContext ac = new StaticApplicationContext();
-		ac.registerSingleton("tb1", TestBean.class);
-		ac.registerSingleton("tb2", TestBean.class);
-		ac.addBeanFactoryPostProcessor(new PrioritizedBeanDefinitionRegistryPostProcessor());
-		TestBeanDefinitionRegistryPostProcessor bdrpp = new TestBeanDefinitionRegistryPostProcessor();
-		ac.addBeanFactoryPostProcessor(bdrpp);
-		assertThat(bdrpp.wasCalled).isFalse();
-		ac.refresh();
-		assertThat(bdrpp.wasCalled).isTrue();
-		assertThat(ac.getBean("bfpp1", TestBeanFactoryPostProcessor.class).wasCalled).isTrue();
-		assertThat(ac.getBean("bfpp2", TestBeanFactoryPostProcessor.class).wasCalled).isTrue();
-	}
+    @Test
+    public void testBeanDefinitionRegistryPostProcessor() {
+        StaticApplicationContext ac = new StaticApplicationContext();
+        ac.registerSingleton("tb1", TestBean.class);
+        ac.registerSingleton("tb2", TestBean.class);
+        ac.addBeanFactoryPostProcessor(new PrioritizedBeanDefinitionRegistryPostProcessor());
+        TestBeanDefinitionRegistryPostProcessor bdrpp = new TestBeanDefinitionRegistryPostProcessor();
+        ac.addBeanFactoryPostProcessor(bdrpp);
+        assertThat(bdrpp.wasCalled).isFalse();
+        ac.refresh();
+        assertThat(bdrpp.wasCalled).isTrue();
+        assertThat(ac.getBean("bfpp1", TestBeanFactoryPostProcessor.class).wasCalled).isTrue();
+        assertThat(ac.getBean("bfpp2", TestBeanFactoryPostProcessor.class).wasCalled).isTrue();
+    }
 
-	@Test
-	public void testBeanDefinitionRegistryPostProcessorRegisteringAnother() {
-		StaticApplicationContext ac = new StaticApplicationContext();
-		ac.registerSingleton("tb1", TestBean.class);
-		ac.registerSingleton("tb2", TestBean.class);
-		ac.registerBeanDefinition("bdrpp2", new RootBeanDefinition(OuterBeanDefinitionRegistryPostProcessor.class));
-		ac.refresh();
-		assertThat(ac.getBean("bfpp1", TestBeanFactoryPostProcessor.class).wasCalled).isTrue();
-		assertThat(ac.getBean("bfpp2", TestBeanFactoryPostProcessor.class).wasCalled).isTrue();
-	}
+    @Test
+    public void testBeanDefinitionRegistryPostProcessorRegisteringAnother() {
+        StaticApplicationContext ac = new StaticApplicationContext();
+        ac.registerSingleton("tb1", TestBean.class);
+        ac.registerSingleton("tb2", TestBean.class);
+        ac.registerBeanDefinition("bdrpp2", new RootBeanDefinition(OuterBeanDefinitionRegistryPostProcessor.class));
+        ac.refresh();
+        assertThat(ac.getBean("bfpp1", TestBeanFactoryPostProcessor.class).wasCalled).isTrue();
+        assertThat(ac.getBean("bfpp2", TestBeanFactoryPostProcessor.class).wasCalled).isTrue();
+    }
 
-	@Test
-	public void testPrioritizedBeanDefinitionRegistryPostProcessorRegisteringAnother() {
-		StaticApplicationContext ac = new StaticApplicationContext();
-		ac.registerSingleton("tb1", TestBean.class);
-		ac.registerSingleton("tb2", TestBean.class);
-		ac.registerBeanDefinition("bdrpp2", new RootBeanDefinition(PrioritizedOuterBeanDefinitionRegistryPostProcessor.class));
-		ac.refresh();
-		assertThat(ac.getBean("bfpp1", TestBeanFactoryPostProcessor.class).wasCalled).isTrue();
-		assertThat(ac.getBean("bfpp2", TestBeanFactoryPostProcessor.class).wasCalled).isTrue();
-	}
+    @Test
+    public void testPrioritizedBeanDefinitionRegistryPostProcessorRegisteringAnother() {
+        StaticApplicationContext ac = new StaticApplicationContext();
+        ac.registerSingleton("tb1", TestBean.class);
+        ac.registerSingleton("tb2", TestBean.class);
+        ac.registerBeanDefinition("bdrpp2", new RootBeanDefinition(PrioritizedOuterBeanDefinitionRegistryPostProcessor.class));
+        ac.refresh();
+        assertThat(ac.getBean("bfpp1", TestBeanFactoryPostProcessor.class).wasCalled).isTrue();
+        assertThat(ac.getBean("bfpp2", TestBeanFactoryPostProcessor.class).wasCalled).isTrue();
+    }
 
-	@Test
-	public void testBeanFactoryPostProcessorAsApplicationListener() {
-		StaticApplicationContext ac = new StaticApplicationContext();
-		ac.registerBeanDefinition("bfpp", new RootBeanDefinition(ListeningBeanFactoryPostProcessor.class));
-		ac.refresh();
-		boolean condition = ac.getBean(ListeningBeanFactoryPostProcessor.class).received instanceof ContextRefreshedEvent;
-		assertThat(condition).isTrue();
-	}
+    @Test
+    public void testBeanFactoryPostProcessorAsApplicationListener() {
+        StaticApplicationContext ac = new StaticApplicationContext();
+        ac.registerBeanDefinition("bfpp", new RootBeanDefinition(ListeningBeanFactoryPostProcessor.class));
+        ac.refresh();
+        boolean condition = ac.getBean(ListeningBeanFactoryPostProcessor.class).received instanceof ContextRefreshedEvent;
+        assertThat(condition).isTrue();
+    }
 
-	@Test
-	public void testBeanFactoryPostProcessorWithInnerBeanAsApplicationListener() {
-		StaticApplicationContext ac = new StaticApplicationContext();
-		RootBeanDefinition rbd = new RootBeanDefinition(NestingBeanFactoryPostProcessor.class);
-		rbd.getPropertyValues().add("listeningBean", new RootBeanDefinition(ListeningBean.class));
-		ac.registerBeanDefinition("bfpp", rbd);
-		ac.refresh();
-		boolean condition = ac.getBean(NestingBeanFactoryPostProcessor.class).getListeningBean().received instanceof ContextRefreshedEvent;
-		assertThat(condition).isTrue();
-	}
-
-
-	public static class TestBeanFactoryPostProcessor implements BeanFactoryPostProcessor {
-
-		public String initValue;
-
-		public void setInitValue(String initValue) {
-			this.initValue = initValue;
-		}
-
-		public boolean wasCalled = false;
-
-		@Override
-		public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) {
-			wasCalled = true;
-		}
-	}
+    @Test
+    public void testBeanFactoryPostProcessorWithInnerBeanAsApplicationListener() {
+        StaticApplicationContext ac = new StaticApplicationContext();
+        RootBeanDefinition rbd = new RootBeanDefinition(NestingBeanFactoryPostProcessor.class);
+        rbd.getPropertyValues().add("listeningBean", new RootBeanDefinition(ListeningBean.class));
+        ac.registerBeanDefinition("bfpp", rbd);
+        ac.refresh();
+        boolean condition = ac.getBean(NestingBeanFactoryPostProcessor.class).getListeningBean().received instanceof ContextRefreshedEvent;
+        assertThat(condition).isTrue();
+    }
 
 
-	public static class PrioritizedBeanDefinitionRegistryPostProcessor implements BeanDefinitionRegistryPostProcessor, Ordered {
+    public static class TestBeanFactoryPostProcessor implements BeanFactoryPostProcessor {
 
-		@Override
-		public int getOrder() {
-			return Ordered.HIGHEST_PRECEDENCE;
-		}
+        public String initValue;
+        public boolean wasCalled = false;
 
-		@Override
-		public void postProcessBeanDefinitionRegistry(BeanDefinitionRegistry registry) throws BeansException {
-			registry.registerBeanDefinition("bfpp1", new RootBeanDefinition(TestBeanFactoryPostProcessor.class));
-		}
+        public void setInitValue(String initValue) {
+            this.initValue = initValue;
+        }
 
-		@Override
-		public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
-		}
-	}
+        @Override
+        public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) {
+            wasCalled = true;
+        }
+    }
 
 
-	public static class TestBeanDefinitionRegistryPostProcessor implements BeanDefinitionRegistryPostProcessor {
+    public static class PrioritizedBeanDefinitionRegistryPostProcessor implements BeanDefinitionRegistryPostProcessor, Ordered {
 
-		public boolean wasCalled;
+        @Override
+        public int getOrder() {
+            return Ordered.HIGHEST_PRECEDENCE;
+        }
 
-		@Override
-		public void postProcessBeanDefinitionRegistry(BeanDefinitionRegistry registry) throws BeansException {
-			assertThat(registry.containsBeanDefinition("bfpp1")).isTrue();
-			registry.registerBeanDefinition("bfpp2", new RootBeanDefinition(TestBeanFactoryPostProcessor.class));
-		}
+        @Override
+        public void postProcessBeanDefinitionRegistry(BeanDefinitionRegistry registry) throws BeansException {
+            registry.registerBeanDefinition("bfpp1", new RootBeanDefinition(TestBeanFactoryPostProcessor.class));
+        }
 
-		@Override
-		public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
-			this.wasCalled = true;
-		}
-	}
-
-
-	public static class OuterBeanDefinitionRegistryPostProcessor implements BeanDefinitionRegistryPostProcessor {
-
-		@Override
-		public void postProcessBeanDefinitionRegistry(BeanDefinitionRegistry registry) throws BeansException {
-			registry.registerBeanDefinition("anotherpp", new RootBeanDefinition(TestBeanDefinitionRegistryPostProcessor.class));
-			registry.registerBeanDefinition("ppp", new RootBeanDefinition(PrioritizedBeanDefinitionRegistryPostProcessor.class));
-		}
-
-		@Override
-		public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
-		}
-	}
+        @Override
+        public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
+        }
+    }
 
 
-	public static class PrioritizedOuterBeanDefinitionRegistryPostProcessor extends OuterBeanDefinitionRegistryPostProcessor
-			implements PriorityOrdered {
+    public static class TestBeanDefinitionRegistryPostProcessor implements BeanDefinitionRegistryPostProcessor {
 
-		@Override
-		public int getOrder() {
-			return HIGHEST_PRECEDENCE;
-		}
-	}
+        public boolean wasCalled;
 
+        @Override
+        public void postProcessBeanDefinitionRegistry(BeanDefinitionRegistry registry) throws BeansException {
+            assertThat(registry.containsBeanDefinition("bfpp1")).isTrue();
+            registry.registerBeanDefinition("bfpp2", new RootBeanDefinition(TestBeanFactoryPostProcessor.class));
+        }
 
-	public static class ListeningBeanFactoryPostProcessor implements BeanFactoryPostProcessor, ApplicationListener<ApplicationEvent> {
-
-		public ApplicationEvent received;
-
-		@Override
-		public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
-		}
-
-		@Override
-		public void onApplicationEvent(ApplicationEvent event) {
-			Assert.state(this.received == null, "Just one ContextRefreshedEvent expected");
-			this.received = event;
-		}
-	}
+        @Override
+        public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
+            this.wasCalled = true;
+        }
+    }
 
 
-	public static class ListeningBean implements ApplicationListener<ApplicationEvent> {
+    public static class OuterBeanDefinitionRegistryPostProcessor implements BeanDefinitionRegistryPostProcessor {
 
-		public ApplicationEvent received;
+        @Override
+        public void postProcessBeanDefinitionRegistry(BeanDefinitionRegistry registry) throws BeansException {
+            registry.registerBeanDefinition("anotherpp", new RootBeanDefinition(TestBeanDefinitionRegistryPostProcessor.class));
+            registry.registerBeanDefinition("ppp", new RootBeanDefinition(PrioritizedBeanDefinitionRegistryPostProcessor.class));
+        }
 
-		@Override
-		public void onApplicationEvent(ApplicationEvent event) {
-			Assert.state(this.received == null, "Just one ContextRefreshedEvent expected");
-			this.received = event;
-		}
-	}
+        @Override
+        public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
+        }
+    }
 
 
-	public static class NestingBeanFactoryPostProcessor implements BeanFactoryPostProcessor {
+    public static class PrioritizedOuterBeanDefinitionRegistryPostProcessor extends OuterBeanDefinitionRegistryPostProcessor
+            implements PriorityOrdered {
 
-		private ListeningBean listeningBean;
+        @Override
+        public int getOrder() {
+            return HIGHEST_PRECEDENCE;
+        }
+    }
 
-		public void setListeningBean(ListeningBean listeningBean) {
-			this.listeningBean = listeningBean;
-		}
 
-		public ListeningBean getListeningBean() {
-			return listeningBean;
-		}
+    public static class ListeningBeanFactoryPostProcessor implements BeanFactoryPostProcessor, ApplicationListener<ApplicationEvent> {
 
-		@Override
-		public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
-		}
-	}
+        public ApplicationEvent received;
+
+        @Override
+        public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
+        }
+
+        @Override
+        public void onApplicationEvent(ApplicationEvent event) {
+            Assert.state(this.received == null, "Just one ContextRefreshedEvent expected");
+            this.received = event;
+        }
+    }
+
+
+    public static class ListeningBean implements ApplicationListener<ApplicationEvent> {
+
+        public ApplicationEvent received;
+
+        @Override
+        public void onApplicationEvent(ApplicationEvent event) {
+            Assert.state(this.received == null, "Just one ContextRefreshedEvent expected");
+            this.received = event;
+        }
+    }
+
+
+    public static class NestingBeanFactoryPostProcessor implements BeanFactoryPostProcessor {
+
+        private ListeningBean listeningBean;
+
+        public ListeningBean getListeningBean() {
+            return listeningBean;
+        }
+
+        public void setListeningBean(ListeningBean listeningBean) {
+            this.listeningBean = listeningBean;
+        }
+
+        @Override
+        public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
+        }
+    }
 
 }

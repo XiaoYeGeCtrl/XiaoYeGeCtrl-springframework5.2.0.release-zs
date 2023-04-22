@@ -25,9 +25,9 @@ import org.springframework.core.io.Resource;
  */
 public class ResourceConverter implements Converter<String, Resource> {
 
-	@Override
-	public Resource convert(String source) {
-		return new FileSystemResource(source + ".xml");
-	}
+    @Override
+    public Resource convert(String source) {
+        return new FileSystemResource(source + ".xml");
+    }
 
 }

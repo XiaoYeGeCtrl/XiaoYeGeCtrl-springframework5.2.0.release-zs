@@ -39,10 +39,10 @@ import java.lang.annotation.Target;
  *
  * @author Sam Brannen
  * @author Dmitry Semukhin
- * @since 5.2
  * @see Sql
  * @see MergeMode#MERGE
  * @see MergeMode#OVERRIDE
+ * @since 5.2
  */
 @Target({ElementType.TYPE, ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
@@ -50,33 +50,33 @@ import java.lang.annotation.Target;
 @Inherited
 public @interface SqlMergeMode {
 
-	/**
-	 * Indicates whether method-level {@code @Sql} annotations should be merged
-	 * with class-level {@code @Sql} annotations or override them.
-	 */
-	MergeMode value();
+    /**
+     * Indicates whether method-level {@code @Sql} annotations should be merged
+     * with class-level {@code @Sql} annotations or override them.
+     */
+    MergeMode value();
 
 
-	/**
-	 * Enumeration of <em>modes</em> that dictate whether method-level {@code @Sql}
-	 * declarations are merged with class-level {@code @Sql} declarations.
-	 */
-	enum MergeMode {
+    /**
+     * Enumeration of <em>modes</em> that dictate whether method-level {@code @Sql}
+     * declarations are merged with class-level {@code @Sql} declarations.
+     */
+    enum MergeMode {
 
-		/**
-		 * Indicates that method-level {@code @Sql} declarations should be merged
-		 * with class-level {@code @Sql} declarations, with class-level SQL
-		 * scripts and statements executed before method-level scripts and
-		 * statements.
-		 */
-		MERGE,
+        /**
+         * Indicates that method-level {@code @Sql} declarations should be merged
+         * with class-level {@code @Sql} declarations, with class-level SQL
+         * scripts and statements executed before method-level scripts and
+         * statements.
+         */
+        MERGE,
 
-		/**
-		 * Indicates that method-level {@code @Sql} declarations should override
-		 * class-level {@code @Sql} declarations.
-		 */
-		OVERRIDE
+        /**
+         * Indicates that method-level {@code @Sql} declarations should override
+         * class-level {@code @Sql} declarations.
+         */
+        OVERRIDE
 
-	}
+    }
 
 }

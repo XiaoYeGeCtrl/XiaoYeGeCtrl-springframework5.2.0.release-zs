@@ -52,106 +52,106 @@ import static org.springframework.http.MediaType.MULTIPART_FORM_DATA;
  */
 public class SynchronossPartHttpMessageReaderTests {
 
-	private final MultipartHttpMessageReader reader =
-			new MultipartHttpMessageReader(new SynchronossPartHttpMessageReader());
+    private final MultipartHttpMessageReader reader =
+            new MultipartHttpMessageReader(new SynchronossPartHttpMessageReader());
 
 
-	@Test
-	public void canRead() {
-		assertThat(this.reader.canRead(
-				forClassWithGenerics(MultiValueMap.class, String.class, Part.class),
-				MediaType.MULTIPART_FORM_DATA)).isTrue();
+    @Test
+    public void canRead() {
+        assertThat(this.reader.canRead(
+                forClassWithGenerics(MultiValueMap.class, String.class, Part.class),
+                MediaType.MULTIPART_FORM_DATA)).isTrue();
 
-		assertThat(this.reader.canRead(
-				forClassWithGenerics(MultiValueMap.class, String.class, Object.class),
-				MediaType.MULTIPART_FORM_DATA)).isFalse();
+        assertThat(this.reader.canRead(
+                forClassWithGenerics(MultiValueMap.class, String.class, Object.class),
+                MediaType.MULTIPART_FORM_DATA)).isFalse();
 
-		assertThat(this.reader.canRead(
-				forClassWithGenerics(MultiValueMap.class, String.class, String.class),
-				MediaType.MULTIPART_FORM_DATA)).isFalse();
+        assertThat(this.reader.canRead(
+                forClassWithGenerics(MultiValueMap.class, String.class, String.class),
+                MediaType.MULTIPART_FORM_DATA)).isFalse();
 
-		assertThat(this.reader.canRead(
-				forClassWithGenerics(Map.class, String.class, String.class),
-				MediaType.MULTIPART_FORM_DATA)).isFalse();
+        assertThat(this.reader.canRead(
+                forClassWithGenerics(Map.class, String.class, String.class),
+                MediaType.MULTIPART_FORM_DATA)).isFalse();
 
-		assertThat(this.reader.canRead(
-				forClassWithGenerics(MultiValueMap.class, String.class, Part.class),
-				MediaType.APPLICATION_FORM_URLENCODED)).isFalse();
-	}
+        assertThat(this.reader.canRead(
+                forClassWithGenerics(MultiValueMap.class, String.class, Part.class),
+                MediaType.APPLICATION_FORM_URLENCODED)).isFalse();
+    }
 
-	@Test
-	public void resolveParts() {
-		ServerHttpRequest request = generateMultipartRequest();
-		ResolvableType elementType = forClassWithGenerics(MultiValueMap.class, String.class, Part.class);
-		MultiValueMap<String, Part> parts = this.reader.readMono(elementType, request, emptyMap()).block();
-		assertThat(parts.size()).isEqualTo(2);
+    @Test
+    public void resolveParts() {
+        ServerHttpRequest request = generateMultipartRequest();
+        ResolvableType elementType = forClassWithGenerics(MultiValueMap.class, String.class, Part.class);
+        MultiValueMap<String, Part> parts = this.reader.readMono(elementType, request, emptyMap()).block();
+        assertThat(parts.size()).isEqualTo(2);
 
-		assertThat(parts.containsKey("fooPart")).isTrue();
-		Part part = parts.getFirst("fooPart");
-		boolean condition1 = part instanceof FilePart;
-		assertThat(condition1).isTrue();
-		assertThat(part.name()).isEqualTo("fooPart");
-		assertThat(((FilePart) part).filename()).isEqualTo("foo.txt");
-		DataBuffer buffer = DataBufferUtils.join(part.content()).block();
-		assertThat(buffer.readableByteCount()).isEqualTo(12);
-		byte[] byteContent = new byte[12];
-		buffer.read(byteContent);
-		assertThat(new String(byteContent)).isEqualTo("Lorem Ipsum.");
+        assertThat(parts.containsKey("fooPart")).isTrue();
+        Part part = parts.getFirst("fooPart");
+        boolean condition1 = part instanceof FilePart;
+        assertThat(condition1).isTrue();
+        assertThat(part.name()).isEqualTo("fooPart");
+        assertThat(((FilePart) part).filename()).isEqualTo("foo.txt");
+        DataBuffer buffer = DataBufferUtils.join(part.content()).block();
+        assertThat(buffer.readableByteCount()).isEqualTo(12);
+        byte[] byteContent = new byte[12];
+        buffer.read(byteContent);
+        assertThat(new String(byteContent)).isEqualTo("Lorem Ipsum.");
 
-		assertThat(parts.containsKey("barPart")).isTrue();
-		part = parts.getFirst("barPart");
-		boolean condition = part instanceof FormFieldPart;
-		assertThat(condition).isTrue();
-		assertThat(part.name()).isEqualTo("barPart");
-		assertThat(((FormFieldPart) part).value()).isEqualTo("bar");
-	}
+        assertThat(parts.containsKey("barPart")).isTrue();
+        part = parts.getFirst("barPart");
+        boolean condition = part instanceof FormFieldPart;
+        assertThat(condition).isTrue();
+        assertThat(part.name()).isEqualTo("barPart");
+        assertThat(((FormFieldPart) part).value()).isEqualTo("bar");
+    }
 
-	@Test // SPR-16545
-	public void transferTo() {
-		ServerHttpRequest request = generateMultipartRequest();
-		ResolvableType elementType = forClassWithGenerics(MultiValueMap.class, String.class, Part.class);
-		MultiValueMap<String, Part> parts = this.reader.readMono(elementType, request, emptyMap()).block();
+    @Test // SPR-16545
+    public void transferTo() {
+        ServerHttpRequest request = generateMultipartRequest();
+        ResolvableType elementType = forClassWithGenerics(MultiValueMap.class, String.class, Part.class);
+        MultiValueMap<String, Part> parts = this.reader.readMono(elementType, request, emptyMap()).block();
 
-		assertThat(parts).isNotNull();
-		FilePart part = (FilePart) parts.getFirst("fooPart");
-		assertThat(part).isNotNull();
+        assertThat(parts).isNotNull();
+        FilePart part = (FilePart) parts.getFirst("fooPart");
+        assertThat(part).isNotNull();
 
-		File dest = new File(System.getProperty("java.io.tmpdir") + "/" + part.filename());
-		part.transferTo(dest).block(Duration.ofSeconds(5));
+        File dest = new File(System.getProperty("java.io.tmpdir") + "/" + part.filename());
+        part.transferTo(dest).block(Duration.ofSeconds(5));
 
-		assertThat(dest.exists()).isTrue();
-		assertThat(dest.length()).isEqualTo(12);
-		assertThat(dest.delete()).isTrue();
-	}
+        assertThat(dest.exists()).isTrue();
+        assertThat(dest.length()).isEqualTo(12);
+        assertThat(dest.delete()).isTrue();
+    }
 
-	@Test
-	public void bodyError() {
-		ServerHttpRequest request = generateErrorMultipartRequest();
-		ResolvableType elementType = forClassWithGenerics(MultiValueMap.class, String.class, Part.class);
-		StepVerifier.create(this.reader.readMono(elementType, request, emptyMap())).verifyError();
-	}
+    @Test
+    public void bodyError() {
+        ServerHttpRequest request = generateErrorMultipartRequest();
+        ResolvableType elementType = forClassWithGenerics(MultiValueMap.class, String.class, Part.class);
+        StepVerifier.create(this.reader.readMono(elementType, request, emptyMap())).verifyError();
+    }
 
 
-	private ServerHttpRequest generateMultipartRequest() {
+    private ServerHttpRequest generateMultipartRequest() {
 
-		MultipartBodyBuilder partsBuilder = new MultipartBodyBuilder();
-		partsBuilder.part("fooPart", new ClassPathResource("org/springframework/http/codec/multipart/foo.txt"));
-		partsBuilder.part("barPart", "bar");
+        MultipartBodyBuilder partsBuilder = new MultipartBodyBuilder();
+        partsBuilder.part("fooPart", new ClassPathResource("org/springframework/http/codec/multipart/foo.txt"));
+        partsBuilder.part("barPart", "bar");
 
-		MockClientHttpRequest outputMessage = new MockClientHttpRequest(HttpMethod.POST, "/");
-		new MultipartHttpMessageWriter()
-				.write(Mono.just(partsBuilder.build()), null, MediaType.MULTIPART_FORM_DATA, outputMessage, null)
-				.block(Duration.ofSeconds(5));
+        MockClientHttpRequest outputMessage = new MockClientHttpRequest(HttpMethod.POST, "/");
+        new MultipartHttpMessageWriter()
+                .write(Mono.just(partsBuilder.build()), null, MediaType.MULTIPART_FORM_DATA, outputMessage, null)
+                .block(Duration.ofSeconds(5));
 
-		return MockServerHttpRequest.post("/")
-				.contentType(outputMessage.getHeaders().getContentType())
-				.body(outputMessage.getBody());
-	}
+        return MockServerHttpRequest.post("/")
+                .contentType(outputMessage.getHeaders().getContentType())
+                .body(outputMessage.getBody());
+    }
 
-	private ServerHttpRequest generateErrorMultipartRequest() {
-		return MockServerHttpRequest.post("/")
-				.header(CONTENT_TYPE, MULTIPART_FORM_DATA.toString())
-				.body(Flux.just(new DefaultDataBufferFactory().wrap("invalid content".getBytes())));
-	}
+    private ServerHttpRequest generateErrorMultipartRequest() {
+        return MockServerHttpRequest.post("/")
+                .header(CONTENT_TYPE, MULTIPART_FORM_DATA.toString())
+                .body(Flux.just(new DefaultDataBufferFactory().wrap("invalid content".getBytes())));
+    }
 
 }

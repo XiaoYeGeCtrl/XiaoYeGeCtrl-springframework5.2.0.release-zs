@@ -41,104 +41,104 @@ import org.springframework.web.reactive.function.BodyInserters;
  */
 class ResourceHandlerFunction implements HandlerFunction<ServerResponse> {
 
-	private static final Set<HttpMethod> SUPPORTED_METHODS =
-			EnumSet.of(HttpMethod.GET, HttpMethod.HEAD, HttpMethod.OPTIONS);
+    private static final Set<HttpMethod> SUPPORTED_METHODS =
+            EnumSet.of(HttpMethod.GET, HttpMethod.HEAD, HttpMethod.OPTIONS);
 
 
-	private final Resource resource;
+    private final Resource resource;
 
 
-	public ResourceHandlerFunction(Resource resource) {
-		this.resource = resource;
-	}
+    public ResourceHandlerFunction(Resource resource) {
+        this.resource = resource;
+    }
 
 
-	@Override
-	public Mono<ServerResponse> handle(ServerRequest request) {
-		HttpMethod method = request.method();
-		if (method != null) {
-			switch (method) {
-				case GET:
-					return EntityResponse.fromObject(this.resource).build()
-							.map(response -> response);
-				case HEAD:
-					Resource headResource = new HeadMethodResource(this.resource);
-					return EntityResponse.fromObject(headResource).build()
-							.map(response -> response);
-				case OPTIONS:
-					return ServerResponse.ok()
-							.allow(SUPPORTED_METHODS)
-							.body(BodyInserters.empty());
-			}
-		}
-		return ServerResponse.status(HttpStatus.METHOD_NOT_ALLOWED)
-				.allow(SUPPORTED_METHODS)
-				.body(BodyInserters.empty());
-	}
+    @Override
+    public Mono<ServerResponse> handle(ServerRequest request) {
+        HttpMethod method = request.method();
+        if (method != null) {
+            switch (method) {
+                case GET:
+                    return EntityResponse.fromObject(this.resource).build()
+                            .map(response -> response);
+                case HEAD:
+                    Resource headResource = new HeadMethodResource(this.resource);
+                    return EntityResponse.fromObject(headResource).build()
+                            .map(response -> response);
+                case OPTIONS:
+                    return ServerResponse.ok()
+                            .allow(SUPPORTED_METHODS)
+                            .body(BodyInserters.empty());
+            }
+        }
+        return ServerResponse.status(HttpStatus.METHOD_NOT_ALLOWED)
+                .allow(SUPPORTED_METHODS)
+                .body(BodyInserters.empty());
+    }
 
 
-	private static class HeadMethodResource implements Resource {
+    private static class HeadMethodResource implements Resource {
 
-		private static final byte[] EMPTY = new byte[0];
+        private static final byte[] EMPTY = new byte[0];
 
-		private final Resource delegate;
+        private final Resource delegate;
 
-		public HeadMethodResource(Resource delegate) {
-			this.delegate = delegate;
-		}
+        public HeadMethodResource(Resource delegate) {
+            this.delegate = delegate;
+        }
 
-		@Override
-		public InputStream getInputStream() throws IOException {
-			return new ByteArrayInputStream(EMPTY);
-		}
+        @Override
+        public InputStream getInputStream() throws IOException {
+            return new ByteArrayInputStream(EMPTY);
+        }
 
-		// delegation
+        // delegation
 
-		@Override
-		public boolean exists() {
-			return this.delegate.exists();
-		}
+        @Override
+        public boolean exists() {
+            return this.delegate.exists();
+        }
 
-		@Override
-		public URL getURL() throws IOException {
-			return this.delegate.getURL();
-		}
+        @Override
+        public URL getURL() throws IOException {
+            return this.delegate.getURL();
+        }
 
-		@Override
-		public URI getURI() throws IOException {
-			return this.delegate.getURI();
-		}
+        @Override
+        public URI getURI() throws IOException {
+            return this.delegate.getURI();
+        }
 
-		@Override
-		public File getFile() throws IOException {
-			return this.delegate.getFile();
-		}
+        @Override
+        public File getFile() throws IOException {
+            return this.delegate.getFile();
+        }
 
-		@Override
-		public long contentLength() throws IOException {
-			return this.delegate.contentLength();
-		}
+        @Override
+        public long contentLength() throws IOException {
+            return this.delegate.contentLength();
+        }
 
-		@Override
-		public long lastModified() throws IOException {
-			return this.delegate.lastModified();
-		}
+        @Override
+        public long lastModified() throws IOException {
+            return this.delegate.lastModified();
+        }
 
-		@Override
-		public Resource createRelative(String relativePath) throws IOException {
-			return this.delegate.createRelative(relativePath);
-		}
+        @Override
+        public Resource createRelative(String relativePath) throws IOException {
+            return this.delegate.createRelative(relativePath);
+        }
 
-		@Override
-		@Nullable
-		public String getFilename() {
-			return this.delegate.getFilename();
-		}
+        @Override
+        @Nullable
+        public String getFilename() {
+            return this.delegate.getFilename();
+        }
 
-		@Override
-		public String getDescription() {
-			return this.delegate.getDescription();
-		}
-	}
+        @Override
+        public String getDescription() {
+            return this.delegate.getDescription();
+        }
+    }
 
 }

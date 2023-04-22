@@ -33,18 +33,18 @@ import org.springframework.web.server.ServerWebExchange;
  */
 public class SessionStatusMethodArgumentResolver implements SyncHandlerMethodArgumentResolver {
 
-	@Override
-	public boolean supportsParameter(MethodParameter parameter) {
-		return SessionStatus.class == parameter.getParameterType();
-	}
+    @Override
+    public boolean supportsParameter(MethodParameter parameter) {
+        return SessionStatus.class == parameter.getParameterType();
+    }
 
-	@Nullable
-	@Override
-	public Object resolveArgumentValue(
-			MethodParameter parameter, BindingContext bindingContext, ServerWebExchange exchange) {
+    @Nullable
+    @Override
+    public Object resolveArgumentValue(
+            MethodParameter parameter, BindingContext bindingContext, ServerWebExchange exchange) {
 
-		Assert.isInstanceOf(InitBinderBindingContext.class, bindingContext);
-		return ((InitBinderBindingContext) bindingContext).getSessionStatus();
-	}
+        Assert.isInstanceOf(InitBinderBindingContext.class, bindingContext);
+        return ((InitBinderBindingContext) bindingContext).getSessionStatus();
+    }
 
 }

@@ -31,12 +31,12 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 abstract class AbstractWebRequestMatcherTests {
 
-	protected void assertMatches(WebRequestMatcher matcher, String url) throws MalformedURLException {
-		assertThat(matcher.matches(new WebRequest(new URL(url)))).isTrue();
-	}
+    protected void assertMatches(WebRequestMatcher matcher, String url) throws MalformedURLException {
+        assertThat(matcher.matches(new WebRequest(new URL(url)))).isTrue();
+    }
 
-	protected void assertDoesNotMatch(WebRequestMatcher matcher, String url) throws MalformedURLException {
-		assertThat(matcher.matches(new WebRequest(new URL(url)))).isFalse();
-	}
+    protected void assertDoesNotMatch(WebRequestMatcher matcher, String url) throws MalformedURLException {
+        assertThat(matcher.matches(new WebRequest(new URL(url)))).isFalse();
+    }
 
 }

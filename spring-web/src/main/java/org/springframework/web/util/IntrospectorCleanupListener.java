@@ -64,22 +64,22 @@ import org.springframework.beans.CachedIntrospectionResults;
  * This allows the listener to take full effect at the right time of the lifecycle.
  *
  * @author Juergen Hoeller
- * @since 1.1
  * @see java.beans.Introspector#flushCaches()
  * @see org.springframework.beans.CachedIntrospectionResults#acceptClassLoader
  * @see org.springframework.beans.CachedIntrospectionResults#clearClassLoader
+ * @since 1.1
  */
 public class IntrospectorCleanupListener implements ServletContextListener {
 
-	@Override
-	public void contextInitialized(ServletContextEvent event) {
-		CachedIntrospectionResults.acceptClassLoader(Thread.currentThread().getContextClassLoader());
-	}
+    @Override
+    public void contextInitialized(ServletContextEvent event) {
+        CachedIntrospectionResults.acceptClassLoader(Thread.currentThread().getContextClassLoader());
+    }
 
-	@Override
-	public void contextDestroyed(ServletContextEvent event) {
-		CachedIntrospectionResults.clearClassLoader(Thread.currentThread().getContextClassLoader());
-		Introspector.flushCaches();
-	}
+    @Override
+    public void contextDestroyed(ServletContextEvent event) {
+        CachedIntrospectionResults.clearClassLoader(Thread.currentThread().getContextClassLoader());
+        Introspector.flushCaches();
+    }
 
 }

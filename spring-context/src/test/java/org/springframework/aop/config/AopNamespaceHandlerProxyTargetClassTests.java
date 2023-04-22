@@ -30,11 +30,11 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 public class AopNamespaceHandlerProxyTargetClassTests extends AopNamespaceHandlerTests {
 
-	@Test
-	public void testIsClassProxy() {
-		ITestBean bean = getTestBean();
-		assertThat(AopUtils.isCglibProxy(bean)).as("Should be a CGLIB proxy").isTrue();
-		assertThat(((Advised) bean).isExposeProxy()).as("Should expose proxy").isTrue();
-	}
+    @Test
+    public void testIsClassProxy() {
+        ITestBean bean = getTestBean();
+        assertThat(AopUtils.isCglibProxy(bean)).as("Should be a CGLIB proxy").isTrue();
+        assertThat(((Advised) bean).isExposeProxy()).as("Should expose proxy").isTrue();
+    }
 
 }

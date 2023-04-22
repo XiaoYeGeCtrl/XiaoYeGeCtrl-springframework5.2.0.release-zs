@@ -41,57 +41,56 @@ import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
  */
 public class RequestContextFilterTests {
 
-	@Test
-	public void happyPath() throws Exception {
-		testFilterInvocation(null);
-	}
+    @Test
+    public void happyPath() throws Exception {
+        testFilterInvocation(null);
+    }
 
-	@Test
-	public void withException() throws Exception {
-		testFilterInvocation(new ServletException());
-	}
+    @Test
+    public void withException() throws Exception {
+        testFilterInvocation(new ServletException());
+    }
 
-	private void testFilterInvocation(final ServletException sex) throws Exception {
-		final MockHttpServletRequest req = new MockHttpServletRequest();
-		req.setAttribute("myAttr", "myValue");
-		final MockHttpServletResponse resp = new MockHttpServletResponse();
+    private void testFilterInvocation(final ServletException sex) throws Exception {
+        final MockHttpServletRequest req = new MockHttpServletRequest();
+        req.setAttribute("myAttr", "myValue");
+        final MockHttpServletResponse resp = new MockHttpServletResponse();
 
-		// Expect one invocation by the filter being tested
-		class DummyFilterChain implements FilterChain {
-			public int invocations = 0;
-			@Override
-			public void doFilter(ServletRequest req, ServletResponse resp) throws IOException, ServletException {
-				++invocations;
-				if (invocations == 1) {
-					assertThat(RequestContextHolder.currentRequestAttributes().getAttribute("myAttr", RequestAttributes.SCOPE_REQUEST)).isSameAs("myValue");
-					if (sex != null) {
-						throw sex;
-					}
-				}
-				else {
-					throw new IllegalStateException("Too many invocations");
-				}
-			}
-		}
+        // Expect one invocation by the filter being tested
+        class DummyFilterChain implements FilterChain {
+            public int invocations = 0;
 
-		DummyFilterChain fc = new DummyFilterChain();
-		MockFilterConfig mfc = new MockFilterConfig(new MockServletContext(), "foo");
+            @Override
+            public void doFilter(ServletRequest req, ServletResponse resp) throws IOException, ServletException {
+                ++invocations;
+                if (invocations == 1) {
+                    assertThat(RequestContextHolder.currentRequestAttributes().getAttribute("myAttr", RequestAttributes.SCOPE_REQUEST)).isSameAs("myValue");
+                    if (sex != null) {
+                        throw sex;
+                    }
+                } else {
+                    throw new IllegalStateException("Too many invocations");
+                }
+            }
+        }
 
-		RequestContextFilter rbf = new RequestContextFilter();
-		rbf.init(mfc);
+        DummyFilterChain fc = new DummyFilterChain();
+        MockFilterConfig mfc = new MockFilterConfig(new MockServletContext(), "foo");
 
-		try {
-			rbf.doFilter(req, resp, fc);
-			assertThat(sex).isNull();
-		}
-		catch (ServletException ex) {
-			assertThat(sex).isNotNull();
-		}
+        RequestContextFilter rbf = new RequestContextFilter();
+        rbf.init(mfc);
 
-		assertThatIllegalStateException().isThrownBy(
-				RequestContextHolder::currentRequestAttributes);
+        try {
+            rbf.doFilter(req, resp, fc);
+            assertThat(sex).isNull();
+        } catch (ServletException ex) {
+            assertThat(sex).isNotNull();
+        }
 
-		assertThat(fc.invocations).isEqualTo(1);
-	}
+        assertThatIllegalStateException().isThrownBy(
+                RequestContextHolder::currentRequestAttributes);
+
+        assertThat(fc.invocations).isEqualTo(1);
+    }
 
 }

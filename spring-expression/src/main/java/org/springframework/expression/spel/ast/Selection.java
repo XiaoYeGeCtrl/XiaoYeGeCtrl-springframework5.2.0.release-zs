@@ -49,172 +49,171 @@ import org.springframework.util.ObjectUtils;
  */
 public class Selection extends SpelNodeImpl {
 
-	/**
-	 * All items ({@code ?[]}).
-	 */
-	public static final int ALL = 0;
+    /**
+     * All items ({@code ?[]}).
+     */
+    public static final int ALL = 0;
 
-	/**
-	 * The first item ({@code ^[]}).
-	 */
-	public static final int FIRST = 1;
+    /**
+     * The first item ({@code ^[]}).
+     */
+    public static final int FIRST = 1;
 
-	/**
-	 * The last item ({@code $[]}).
-	 */
-	public static final int LAST = 2;
+    /**
+     * The last item ({@code $[]}).
+     */
+    public static final int LAST = 2;
 
-	private final int variant;
+    private final int variant;
 
-	private final boolean nullSafe;
-
-
-	public Selection(boolean nullSafe, int variant, int startPos, int endPos, SpelNodeImpl expression) {
-		super(startPos, endPos, expression);
-		this.nullSafe = nullSafe;
-		this.variant = variant;
-	}
+    private final boolean nullSafe;
 
 
-	@Override
-	public TypedValue getValueInternal(ExpressionState state) throws EvaluationException {
-		return getValueRef(state).getValue();
-	}
+    public Selection(boolean nullSafe, int variant, int startPos, int endPos, SpelNodeImpl expression) {
+        super(startPos, endPos, expression);
+        this.nullSafe = nullSafe;
+        this.variant = variant;
+    }
 
-	@Override
-	protected ValueRef getValueRef(ExpressionState state) throws EvaluationException {
-		TypedValue op = state.getActiveContextObject();
-		Object operand = op.getValue();
-		SpelNodeImpl selectionCriteria = this.children[0];
 
-		if (operand instanceof Map) {
-			Map<?, ?> mapdata = (Map<?, ?>) operand;
-			// TODO don't lose generic info for the new map
-			Map<Object, Object> result = new HashMap<>();
-			Object lastKey = null;
+    @Override
+    public TypedValue getValueInternal(ExpressionState state) throws EvaluationException {
+        return getValueRef(state).getValue();
+    }
 
-			for (Map.Entry<?, ?> entry : mapdata.entrySet()) {
-				try {
-					TypedValue kvPair = new TypedValue(entry);
-					state.pushActiveContextObject(kvPair);
-					state.enterScope();
-					Object val = selectionCriteria.getValueInternal(state).getValue();
-					if (val instanceof Boolean) {
-						if ((Boolean) val) {
-							if (this.variant == FIRST) {
-								result.put(entry.getKey(), entry.getValue());
-								return new ValueRef.TypedValueHolderValueRef(new TypedValue(result), this);
-							}
-							result.put(entry.getKey(), entry.getValue());
-							lastKey = entry.getKey();
-						}
-					}
-					else {
-						throw new SpelEvaluationException(selectionCriteria.getStartPosition(),
-								SpelMessage.RESULT_OF_SELECTION_CRITERIA_IS_NOT_BOOLEAN);
-					}
-				}
-				finally {
-					state.popActiveContextObject();
-					state.exitScope();
-				}
-			}
+    @Override
+    protected ValueRef getValueRef(ExpressionState state) throws EvaluationException {
+        TypedValue op = state.getActiveContextObject();
+        Object operand = op.getValue();
+        SpelNodeImpl selectionCriteria = this.children[0];
 
-			if ((this.variant == FIRST || this.variant == LAST) && result.isEmpty()) {
-				return new ValueRef.TypedValueHolderValueRef(new TypedValue(null), this);
-			}
+        if (operand instanceof Map) {
+            Map<?, ?> mapdata = (Map<?, ?>) operand;
+            // TODO don't lose generic info for the new map
+            Map<Object, Object> result = new HashMap<>();
+            Object lastKey = null;
 
-			if (this.variant == LAST) {
-				Map<Object, Object> resultMap = new HashMap<>();
-				Object lastValue = result.get(lastKey);
-				resultMap.put(lastKey,lastValue);
-				return new ValueRef.TypedValueHolderValueRef(new TypedValue(resultMap),this);
-			}
+            for (Map.Entry<?, ?> entry : mapdata.entrySet()) {
+                try {
+                    TypedValue kvPair = new TypedValue(entry);
+                    state.pushActiveContextObject(kvPair);
+                    state.enterScope();
+                    Object val = selectionCriteria.getValueInternal(state).getValue();
+                    if (val instanceof Boolean) {
+                        if ((Boolean) val) {
+                            if (this.variant == FIRST) {
+                                result.put(entry.getKey(), entry.getValue());
+                                return new ValueRef.TypedValueHolderValueRef(new TypedValue(result), this);
+                            }
+                            result.put(entry.getKey(), entry.getValue());
+                            lastKey = entry.getKey();
+                        }
+                    } else {
+                        throw new SpelEvaluationException(selectionCriteria.getStartPosition(),
+                                SpelMessage.RESULT_OF_SELECTION_CRITERIA_IS_NOT_BOOLEAN);
+                    }
+                } finally {
+                    state.popActiveContextObject();
+                    state.exitScope();
+                }
+            }
 
-			return new ValueRef.TypedValueHolderValueRef(new TypedValue(result),this);
-		}
+            if ((this.variant == FIRST || this.variant == LAST) && result.isEmpty()) {
+                return new ValueRef.TypedValueHolderValueRef(new TypedValue(null), this);
+            }
 
-		if (operand instanceof Iterable || ObjectUtils.isArray(operand)) {
-			Iterable<?> data = (operand instanceof Iterable ?
-					(Iterable<?>) operand : Arrays.asList(ObjectUtils.toObjectArray(operand)));
+            if (this.variant == LAST) {
+                Map<Object, Object> resultMap = new HashMap<>();
+                Object lastValue = result.get(lastKey);
+                resultMap.put(lastKey, lastValue);
+                return new ValueRef.TypedValueHolderValueRef(new TypedValue(resultMap), this);
+            }
 
-			List<Object> result = new ArrayList<>();
-			int index = 0;
-			for (Object element : data) {
-				try {
-					state.pushActiveContextObject(new TypedValue(element));
-					state.enterScope("index", index);
-					Object val = selectionCriteria.getValueInternal(state).getValue();
-					if (val instanceof Boolean) {
-						if ((Boolean) val) {
-							if (this.variant == FIRST) {
-								return new ValueRef.TypedValueHolderValueRef(new TypedValue(element), this);
-							}
-							result.add(element);
-						}
-					}
-					else {
-						throw new SpelEvaluationException(selectionCriteria.getStartPosition(),
-								SpelMessage.RESULT_OF_SELECTION_CRITERIA_IS_NOT_BOOLEAN);
-					}
-					index++;
-				}
-				finally {
-					state.exitScope();
-					state.popActiveContextObject();
-				}
-			}
+            return new ValueRef.TypedValueHolderValueRef(new TypedValue(result), this);
+        }
 
-			if ((this.variant == FIRST || this.variant == LAST) && result.isEmpty()) {
-				return ValueRef.NullValueRef.INSTANCE;
-			}
+        if (operand instanceof Iterable || ObjectUtils.isArray(operand)) {
+            Iterable<?> data = (operand instanceof Iterable ?
+                    (Iterable<?>) operand : Arrays.asList(ObjectUtils.toObjectArray(operand)));
 
-			if (this.variant == LAST) {
-				return new ValueRef.TypedValueHolderValueRef(new TypedValue(CollectionUtils.lastElement(result)), this);
-			}
+            List<Object> result = new ArrayList<>();
+            int index = 0;
+            for (Object element : data) {
+                try {
+                    state.pushActiveContextObject(new TypedValue(element));
+                    state.enterScope("index", index);
+                    Object val = selectionCriteria.getValueInternal(state).getValue();
+                    if (val instanceof Boolean) {
+                        if ((Boolean) val) {
+                            if (this.variant == FIRST) {
+                                return new ValueRef.TypedValueHolderValueRef(new TypedValue(element), this);
+                            }
+                            result.add(element);
+                        }
+                    } else {
+                        throw new SpelEvaluationException(selectionCriteria.getStartPosition(),
+                                SpelMessage.RESULT_OF_SELECTION_CRITERIA_IS_NOT_BOOLEAN);
+                    }
+                    index++;
+                } finally {
+                    state.exitScope();
+                    state.popActiveContextObject();
+                }
+            }
 
-			if (operand instanceof Iterable) {
-				return new ValueRef.TypedValueHolderValueRef(new TypedValue(result), this);
-			}
+            if ((this.variant == FIRST || this.variant == LAST) && result.isEmpty()) {
+                return ValueRef.NullValueRef.INSTANCE;
+            }
 
-			Class<?> elementType = null;
-			TypeDescriptor typeDesc = op.getTypeDescriptor();
-			if (typeDesc != null) {
-				TypeDescriptor elementTypeDesc = typeDesc.getElementTypeDescriptor();
-				if (elementTypeDesc != null) {
-					elementType = ClassUtils.resolvePrimitiveIfNecessary(elementTypeDesc.getType());
-				}
-			}
-			Assert.state(elementType != null, "Unresolvable element type");
+            if (this.variant == LAST) {
+                return new ValueRef.TypedValueHolderValueRef(new TypedValue(CollectionUtils.lastElement(result)), this);
+            }
 
-			Object resultArray = Array.newInstance(elementType, result.size());
-			System.arraycopy(result.toArray(), 0, resultArray, 0, result.size());
-			return new ValueRef.TypedValueHolderValueRef(new TypedValue(resultArray), this);
-		}
+            if (operand instanceof Iterable) {
+                return new ValueRef.TypedValueHolderValueRef(new TypedValue(result), this);
+            }
 
-		if (operand == null) {
-			if (this.nullSafe) {
-				return ValueRef.NullValueRef.INSTANCE;
-			}
-			throw new SpelEvaluationException(getStartPosition(), SpelMessage.INVALID_TYPE_FOR_SELECTION, "null");
-		}
+            Class<?> elementType = null;
+            TypeDescriptor typeDesc = op.getTypeDescriptor();
+            if (typeDesc != null) {
+                TypeDescriptor elementTypeDesc = typeDesc.getElementTypeDescriptor();
+                if (elementTypeDesc != null) {
+                    elementType = ClassUtils.resolvePrimitiveIfNecessary(elementTypeDesc.getType());
+                }
+            }
+            Assert.state(elementType != null, "Unresolvable element type");
 
-		throw new SpelEvaluationException(getStartPosition(), SpelMessage.INVALID_TYPE_FOR_SELECTION,
-				operand.getClass().getName());
-	}
+            Object resultArray = Array.newInstance(elementType, result.size());
+            System.arraycopy(result.toArray(), 0, resultArray, 0, result.size());
+            return new ValueRef.TypedValueHolderValueRef(new TypedValue(resultArray), this);
+        }
 
-	@Override
-	public String toStringAST() {
-		return prefix() + getChild(0).toStringAST() + "]";
-	}
+        if (operand == null) {
+            if (this.nullSafe) {
+                return ValueRef.NullValueRef.INSTANCE;
+            }
+            throw new SpelEvaluationException(getStartPosition(), SpelMessage.INVALID_TYPE_FOR_SELECTION, "null");
+        }
 
-	private String prefix() {
-		switch (this.variant) {
-			case ALL:   return "?[";
-			case FIRST: return "^[";
-			case LAST:  return "$[";
-		}
-		return "";
-	}
+        throw new SpelEvaluationException(getStartPosition(), SpelMessage.INVALID_TYPE_FOR_SELECTION,
+                operand.getClass().getName());
+    }
+
+    @Override
+    public String toStringAST() {
+        return prefix() + getChild(0).toStringAST() + "]";
+    }
+
+    private String prefix() {
+        switch (this.variant) {
+            case ALL:
+                return "?[";
+            case FIRST:
+                return "^[";
+            case LAST:
+                return "$[";
+        }
+        return "";
+    }
 
 }

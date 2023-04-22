@@ -39,153 +39,154 @@ import static org.springframework.web.reactive.function.server.RouterFunctions.r
  */
 class SseHandlerFunctionIntegrationTests extends AbstractRouterFunctionIntegrationTests {
 
-	private WebClient webClient;
+    private WebClient webClient;
 
 
-	@Override
-	protected void startServer(HttpServer httpServer) throws Exception {
-		super.startServer(httpServer);
-		this.webClient = WebClient.create("http://localhost:" + this.port);
-	}
+    @Override
+    protected void startServer(HttpServer httpServer) throws Exception {
+        super.startServer(httpServer);
+        this.webClient = WebClient.create("http://localhost:" + this.port);
+    }
 
-	@Override
-	protected RouterFunction<?> routerFunction() {
-		SseHandler sseHandler = new SseHandler();
-		return route(RequestPredicates.GET("/string"), sseHandler::string)
-				.and(route(RequestPredicates.GET("/person"), sseHandler::person))
-				.and(route(RequestPredicates.GET("/event"), sseHandler::sse));
-	}
-
-
-	@ParameterizedHttpServerTest
-	void sseAsString(HttpServer httpServer) throws Exception {
-		startServer(httpServer);
-
-		Flux<String> result = this.webClient.get()
-				.uri("/string")
-				.accept(TEXT_EVENT_STREAM)
-				.retrieve()
-				.bodyToFlux(String.class);
-
-		StepVerifier.create(result)
-				.expectNext("foo 0")
-				.expectNext("foo 1")
-				.expectComplete()
-				.verify(Duration.ofSeconds(5L));
-	}
-
-	@ParameterizedHttpServerTest
-	void sseAsPerson(HttpServer httpServer) throws Exception {
-		startServer(httpServer);
-
-		Flux<Person> result = this.webClient.get()
-				.uri("/person")
-				.accept(TEXT_EVENT_STREAM)
-				.retrieve()
-				.bodyToFlux(Person.class);
-
-		StepVerifier.create(result)
-				.expectNext(new Person("foo 0"))
-				.expectNext(new Person("foo 1"))
-				.expectComplete()
-				.verify(Duration.ofSeconds(5L));
-	}
-
-	@ParameterizedHttpServerTest
-	void sseAsEvent(HttpServer httpServer) throws Exception {
-		startServer(httpServer);
-
-		Flux<ServerSentEvent<String>> result = this.webClient.get()
-				.uri("/event")
-				.accept(TEXT_EVENT_STREAM)
-				.retrieve()
-				.bodyToFlux(new ParameterizedTypeReference<ServerSentEvent<String>>() {});
-
-		StepVerifier.create(result)
-				.consumeNextWith( event -> {
-					assertThat(event.id()).isEqualTo("0");
-					assertThat(event.data()).isEqualTo("foo");
-					assertThat(event.comment()).isEqualTo("bar");
-					assertThat(event.event()).isNull();
-					assertThat(event.retry()).isNull();
-				})
-				.consumeNextWith( event -> {
-					assertThat(event.id()).isEqualTo("1");
-					assertThat(event.data()).isEqualTo("foo");
-					assertThat(event.comment()).isEqualTo("bar");
-					assertThat(event.event()).isNull();
-					assertThat(event.retry()).isNull();
-				})
-				.expectComplete()
-				.verify(Duration.ofSeconds(5L));
-	}
+    @Override
+    protected RouterFunction<?> routerFunction() {
+        SseHandler sseHandler = new SseHandler();
+        return route(RequestPredicates.GET("/string"), sseHandler::string)
+                .and(route(RequestPredicates.GET("/person"), sseHandler::person))
+                .and(route(RequestPredicates.GET("/event"), sseHandler::sse));
+    }
 
 
-	private static class SseHandler {
+    @ParameterizedHttpServerTest
+    void sseAsString(HttpServer httpServer) throws Exception {
+        startServer(httpServer);
 
-		private static final Flux<Long> INTERVAL = testInterval(Duration.ofMillis(100), 2);
+        Flux<String> result = this.webClient.get()
+                .uri("/string")
+                .accept(TEXT_EVENT_STREAM)
+                .retrieve()
+                .bodyToFlux(String.class);
 
-		Mono<ServerResponse> string(ServerRequest request) {
-			return ServerResponse.ok()
-					.contentType(MediaType.TEXT_EVENT_STREAM)
-					.body(INTERVAL.map(aLong -> "foo " + aLong), String.class);
-		}
+        StepVerifier.create(result)
+                .expectNext("foo 0")
+                .expectNext("foo 1")
+                .expectComplete()
+                .verify(Duration.ofSeconds(5L));
+    }
 
-		Mono<ServerResponse> person(ServerRequest request) {
-			return ServerResponse.ok()
-					.contentType(MediaType.TEXT_EVENT_STREAM)
-					.body(INTERVAL.map(aLong -> new Person("foo " + aLong)), Person.class);
-		}
+    @ParameterizedHttpServerTest
+    void sseAsPerson(HttpServer httpServer) throws Exception {
+        startServer(httpServer);
 
-		Mono<ServerResponse> sse(ServerRequest request) {
-			Flux<ServerSentEvent<String>> body = INTERVAL
-					.map(aLong -> ServerSentEvent.builder("foo").id("" + aLong).comment("bar").build());
-			return ServerResponse.ok().body(fromServerSentEvents(body));
-		}
-	}
+        Flux<Person> result = this.webClient.get()
+                .uri("/person")
+                .accept(TEXT_EVENT_STREAM)
+                .retrieve()
+                .bodyToFlux(Person.class);
+
+        StepVerifier.create(result)
+                .expectNext(new Person("foo 0"))
+                .expectNext(new Person("foo 1"))
+                .expectComplete()
+                .verify(Duration.ofSeconds(5L));
+    }
+
+    @ParameterizedHttpServerTest
+    void sseAsEvent(HttpServer httpServer) throws Exception {
+        startServer(httpServer);
+
+        Flux<ServerSentEvent<String>> result = this.webClient.get()
+                .uri("/event")
+                .accept(TEXT_EVENT_STREAM)
+                .retrieve()
+                .bodyToFlux(new ParameterizedTypeReference<ServerSentEvent<String>>() {
+                });
+
+        StepVerifier.create(result)
+                .consumeNextWith(event -> {
+                    assertThat(event.id()).isEqualTo("0");
+                    assertThat(event.data()).isEqualTo("foo");
+                    assertThat(event.comment()).isEqualTo("bar");
+                    assertThat(event.event()).isNull();
+                    assertThat(event.retry()).isNull();
+                })
+                .consumeNextWith(event -> {
+                    assertThat(event.id()).isEqualTo("1");
+                    assertThat(event.data()).isEqualTo("foo");
+                    assertThat(event.comment()).isEqualTo("bar");
+                    assertThat(event.event()).isNull();
+                    assertThat(event.retry()).isNull();
+                })
+                .expectComplete()
+                .verify(Duration.ofSeconds(5L));
+    }
 
 
-	@SuppressWarnings("unused")
-	private static class Person {
+    private static class SseHandler {
 
-		private String name;
+        private static final Flux<Long> INTERVAL = testInterval(Duration.ofMillis(100), 2);
 
-		public Person() {
-		}
+        Mono<ServerResponse> string(ServerRequest request) {
+            return ServerResponse.ok()
+                    .contentType(MediaType.TEXT_EVENT_STREAM)
+                    .body(INTERVAL.map(aLong -> "foo " + aLong), String.class);
+        }
 
-		public Person(String name) {
-			this.name = name;
-		}
+        Mono<ServerResponse> person(ServerRequest request) {
+            return ServerResponse.ok()
+                    .contentType(MediaType.TEXT_EVENT_STREAM)
+                    .body(INTERVAL.map(aLong -> new Person("foo " + aLong)), Person.class);
+        }
 
-		public String getName() {
-			return name;
-		}
+        Mono<ServerResponse> sse(ServerRequest request) {
+            Flux<ServerSentEvent<String>> body = INTERVAL
+                    .map(aLong -> ServerSentEvent.builder("foo").id("" + aLong).comment("bar").build());
+            return ServerResponse.ok().body(fromServerSentEvents(body));
+        }
+    }
 
-		public void setName(String name) {
-			this.name = name;
-		}
 
-		@Override
-		public boolean equals(Object o) {
-			if (this == o) {
-				return true;
-			}
-			if (o == null || getClass() != o.getClass()) {
-				return false;
-			}
-			Person person = (Person) o;
-			return !(this.name != null ? !this.name.equals(person.name) : person.name != null);
-		}
+    @SuppressWarnings("unused")
+    private static class Person {
 
-		@Override
-		public int hashCode() {
-			return this.name != null ? this.name.hashCode() : 0;
-		}
+        private String name;
 
-		@Override
-		public String toString() {
-			return "Person{" + "name='" + name + '\'' + '}';
-		}
-	}
+        public Person() {
+        }
+
+        public Person(String name) {
+            this.name = name;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public void setName(String name) {
+            this.name = name;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+            Person person = (Person) o;
+            return !(this.name != null ? !this.name.equals(person.name) : person.name != null);
+        }
+
+        @Override
+        public int hashCode() {
+            return this.name != null ? this.name.hashCode() : 0;
+        }
+
+        @Override
+        public String toString() {
+            return "Person{" + "name='" + name + '\'' + '}';
+        }
+    }
 
 }

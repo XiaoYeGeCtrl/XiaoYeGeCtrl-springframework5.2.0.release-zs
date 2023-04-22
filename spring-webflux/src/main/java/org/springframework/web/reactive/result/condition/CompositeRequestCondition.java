@@ -40,147 +40,141 @@ import org.springframework.web.server.ServerWebExchange;
  */
 public class CompositeRequestCondition extends AbstractRequestCondition<CompositeRequestCondition> {
 
-	private final RequestConditionHolder[] requestConditions;
+    private final RequestConditionHolder[] requestConditions;
 
 
-	/**
-	 * Create an instance with 0 or more {@code RequestCondition} types. It is
-	 * important to create {@code CompositeRequestCondition} instances with the
-	 * same number of conditions so they may be compared and combined.
-	 * It is acceptable to provide {@code null} conditions.
-	 */
-	public CompositeRequestCondition(RequestCondition<?>... requestConditions) {
-		this.requestConditions = wrap(requestConditions);
-	}
+    /**
+     * Create an instance with 0 or more {@code RequestCondition} types. It is
+     * important to create {@code CompositeRequestCondition} instances with the
+     * same number of conditions so they may be compared and combined.
+     * It is acceptable to provide {@code null} conditions.
+     */
+    public CompositeRequestCondition(RequestCondition<?>... requestConditions) {
+        this.requestConditions = wrap(requestConditions);
+    }
 
-	private CompositeRequestCondition(RequestConditionHolder[] requestConditions) {
-		this.requestConditions = requestConditions;
-	}
+    private CompositeRequestCondition(RequestConditionHolder[] requestConditions) {
+        this.requestConditions = requestConditions;
+    }
 
 
-	private RequestConditionHolder[] wrap(RequestCondition<?>... rawConditions) {
-		RequestConditionHolder[] wrappedConditions = new RequestConditionHolder[rawConditions.length];
-		for (int i = 0; i < rawConditions.length; i++) {
-			wrappedConditions[i] = new RequestConditionHolder(rawConditions[i]);
-		}
-		return wrappedConditions;
-	}
+    private RequestConditionHolder[] wrap(RequestCondition<?>... rawConditions) {
+        RequestConditionHolder[] wrappedConditions = new RequestConditionHolder[rawConditions.length];
+        for (int i = 0; i < rawConditions.length; i++) {
+            wrappedConditions[i] = new RequestConditionHolder(rawConditions[i]);
+        }
+        return wrappedConditions;
+    }
 
-	/**
-	 * Whether this instance contains 0 conditions or not.
-	 */
-	@Override
-	public boolean isEmpty() {
-		return ObjectUtils.isEmpty(this.requestConditions);
-	}
+    /**
+     * Whether this instance contains 0 conditions or not.
+     */
+    @Override
+    public boolean isEmpty() {
+        return ObjectUtils.isEmpty(this.requestConditions);
+    }
 
-	/**
-	 * Return the underlying conditions, possibly empty but never {@code null}.
-	 */
-	public List<RequestCondition<?>> getConditions() {
-		return unwrap();
-	}
+    /**
+     * Return the underlying conditions, possibly empty but never {@code null}.
+     */
+    public List<RequestCondition<?>> getConditions() {
+        return unwrap();
+    }
 
-	private List<RequestCondition<?>> unwrap() {
-		List<RequestCondition<?>> result = new ArrayList<>();
-		for (RequestConditionHolder holder : this.requestConditions) {
-			result.add(holder.getCondition());
-		}
-		return result;
-	}
+    private List<RequestCondition<?>> unwrap() {
+        List<RequestCondition<?>> result = new ArrayList<>();
+        for (RequestConditionHolder holder : this.requestConditions) {
+            result.add(holder.getCondition());
+        }
+        return result;
+    }
 
-	@Override
-	protected Collection<?> getContent() {
-		return (!isEmpty() ? getConditions() : Collections.emptyList());
-	}
+    @Override
+    protected Collection<?> getContent() {
+        return (!isEmpty() ? getConditions() : Collections.emptyList());
+    }
 
-	@Override
-	protected String getToStringInfix() {
-		return " && ";
-	}
+    @Override
+    protected String getToStringInfix() {
+        return " && ";
+    }
 
-	private int getLength() {
-		return this.requestConditions.length;
-	}
+    private int getLength() {
+        return this.requestConditions.length;
+    }
 
-	/**
-	 * If one instance is empty, return the other.
-	 * If both instances have conditions, combine the individual conditions
-	 * after ensuring they are of the same type and number.
-	 */
-	@Override
-	public CompositeRequestCondition combine(CompositeRequestCondition other) {
-		if (isEmpty() && other.isEmpty()) {
-			return this;
-		}
-		else if (other.isEmpty()) {
-			return this;
-		}
-		else if (isEmpty()) {
-			return other;
-		}
-		else {
-			assertNumberOfConditions(other);
-			RequestConditionHolder[] combinedConditions = new RequestConditionHolder[getLength()];
-			for (int i = 0; i < getLength(); i++) {
-				combinedConditions[i] = this.requestConditions[i].combine(other.requestConditions[i]);
-			}
-			return new CompositeRequestCondition(combinedConditions);
-		}
-	}
+    /**
+     * If one instance is empty, return the other.
+     * If both instances have conditions, combine the individual conditions
+     * after ensuring they are of the same type and number.
+     */
+    @Override
+    public CompositeRequestCondition combine(CompositeRequestCondition other) {
+        if (isEmpty() && other.isEmpty()) {
+            return this;
+        } else if (other.isEmpty()) {
+            return this;
+        } else if (isEmpty()) {
+            return other;
+        } else {
+            assertNumberOfConditions(other);
+            RequestConditionHolder[] combinedConditions = new RequestConditionHolder[getLength()];
+            for (int i = 0; i < getLength(); i++) {
+                combinedConditions[i] = this.requestConditions[i].combine(other.requestConditions[i]);
+            }
+            return new CompositeRequestCondition(combinedConditions);
+        }
+    }
 
-	private void assertNumberOfConditions(CompositeRequestCondition other) {
-		Assert.isTrue(getLength() == other.getLength(),
-				"Cannot combine CompositeRequestConditions with a different number of conditions. " +
-				ObjectUtils.nullSafeToString(this.requestConditions) + " and  " +
-				ObjectUtils.nullSafeToString(other.requestConditions));
-	}
+    private void assertNumberOfConditions(CompositeRequestCondition other) {
+        Assert.isTrue(getLength() == other.getLength(),
+                "Cannot combine CompositeRequestConditions with a different number of conditions. " +
+                        ObjectUtils.nullSafeToString(this.requestConditions) + " and  " +
+                        ObjectUtils.nullSafeToString(other.requestConditions));
+    }
 
-	/**
-	 * Delegate to <em>all</em> contained conditions to match the request and return the
-	 * resulting "matching" condition instances.
-	 * <p>An empty {@code CompositeRequestCondition} matches to all requests.
-	 */
-	@Override
-	public CompositeRequestCondition getMatchingCondition(ServerWebExchange exchange) {
-		if (isEmpty()) {
-			return this;
-		}
-		RequestConditionHolder[] matchingConditions = new RequestConditionHolder[getLength()];
-		for (int i = 0; i < getLength(); i++) {
-			matchingConditions[i] = this.requestConditions[i].getMatchingCondition(exchange);
-			if (matchingConditions[i] == null) {
-				return null;
-			}
-		}
-		return new CompositeRequestCondition(matchingConditions);
-	}
+    /**
+     * Delegate to <em>all</em> contained conditions to match the request and return the
+     * resulting "matching" condition instances.
+     * <p>An empty {@code CompositeRequestCondition} matches to all requests.
+     */
+    @Override
+    public CompositeRequestCondition getMatchingCondition(ServerWebExchange exchange) {
+        if (isEmpty()) {
+            return this;
+        }
+        RequestConditionHolder[] matchingConditions = new RequestConditionHolder[getLength()];
+        for (int i = 0; i < getLength(); i++) {
+            matchingConditions[i] = this.requestConditions[i].getMatchingCondition(exchange);
+            if (matchingConditions[i] == null) {
+                return null;
+            }
+        }
+        return new CompositeRequestCondition(matchingConditions);
+    }
 
-	/**
-	 * If one instance is empty, the other "wins". If both instances have
-	 * conditions, compare them in the order in which they were provided.
-	 */
-	@Override
-	public int compareTo(CompositeRequestCondition other, ServerWebExchange exchange) {
-		if (isEmpty() && other.isEmpty()) {
-			return 0;
-		}
-		else if (isEmpty()) {
-			return 1;
-		}
-		else if (other.isEmpty()) {
-			return -1;
-		}
-		else {
-			assertNumberOfConditions(other);
-			for (int i = 0; i < getLength(); i++) {
-				int result = this.requestConditions[i].compareTo(other.requestConditions[i], exchange);
-				if (result != 0) {
-					return result;
-				}
-			}
-			return 0;
-		}
-	}
+    /**
+     * If one instance is empty, the other "wins". If both instances have
+     * conditions, compare them in the order in which they were provided.
+     */
+    @Override
+    public int compareTo(CompositeRequestCondition other, ServerWebExchange exchange) {
+        if (isEmpty() && other.isEmpty()) {
+            return 0;
+        } else if (isEmpty()) {
+            return 1;
+        } else if (other.isEmpty()) {
+            return -1;
+        } else {
+            assertNumberOfConditions(other);
+            for (int i = 0; i < getLength(); i++) {
+                int result = this.requestConditions[i].compareTo(other.requestConditions[i], exchange);
+                if (result != 0) {
+                    return result;
+                }
+            }
+            return 0;
+        }
+    }
 
 }

@@ -44,13 +44,12 @@ import org.springframework.util.ClassUtils;
  *
  * <pre class="code">&lt;property name="jndiEnvironment"&gt;
  * 	 &lt;props>
- *		 &lt;prop key="java.naming.factory.initial"&gt;com.sun.jndi.cosnaming.CNCtxFactory&lt;/prop&gt;
- *		 &lt;prop key="java.naming.provider.url"&gt;iiop://localhost:1050&lt;/prop&gt;
- *	 &lt;/props&gt;
+ * 		 &lt;prop key="java.naming.factory.initial"&gt;com.sun.jndi.cosnaming.CNCtxFactory&lt;/prop&gt;
+ * 		 &lt;prop key="java.naming.provider.url"&gt;iiop://localhost:1050&lt;/prop&gt;
+ * 	 &lt;/props&gt;
  * &lt;/property&gt;</pre>
  *
  * @author Juergen Hoeller
- * @since 1.1
  * @see #setServiceInterface
  * @see #setJndiName
  * @see #setJndiTemplate
@@ -61,42 +60,43 @@ import org.springframework.util.ClassUtils;
  * @see java.rmi.RemoteException
  * @see java.rmi.Remote
  * @see javax.rmi.PortableRemoteObject#narrow
+ * @since 1.1
  */
 public class JndiRmiProxyFactoryBean extends JndiRmiClientInterceptor
-		implements FactoryBean<Object>, BeanClassLoaderAware {
+        implements FactoryBean<Object>, BeanClassLoaderAware {
 
-	private ClassLoader beanClassLoader = ClassUtils.getDefaultClassLoader();
+    private ClassLoader beanClassLoader = ClassUtils.getDefaultClassLoader();
 
-	private Object serviceProxy;
-
-
-	@Override
-	public void setBeanClassLoader(ClassLoader classLoader) {
-		this.beanClassLoader = classLoader;
-	}
-
-	@Override
-	public void afterPropertiesSet() throws NamingException {
-		super.afterPropertiesSet();
-		Class<?> ifc = getServiceInterface();
-		Assert.notNull(ifc, "Property 'serviceInterface' is required");
-		this.serviceProxy = new ProxyFactory(ifc, this).getProxy(this.beanClassLoader);
-	}
+    private Object serviceProxy;
 
 
-	@Override
-	public Object getObject() {
-		return this.serviceProxy;
-	}
+    @Override
+    public void setBeanClassLoader(ClassLoader classLoader) {
+        this.beanClassLoader = classLoader;
+    }
 
-	@Override
-	public Class<?> getObjectType() {
-		return getServiceInterface();
-	}
+    @Override
+    public void afterPropertiesSet() throws NamingException {
+        super.afterPropertiesSet();
+        Class<?> ifc = getServiceInterface();
+        Assert.notNull(ifc, "Property 'serviceInterface' is required");
+        this.serviceProxy = new ProxyFactory(ifc, this).getProxy(this.beanClassLoader);
+    }
 
-	@Override
-	public boolean isSingleton() {
-		return true;
-	}
+
+    @Override
+    public Object getObject() {
+        return this.serviceProxy;
+    }
+
+    @Override
+    public Class<?> getObjectType() {
+        return getServiceInterface();
+    }
+
+    @Override
+    public boolean isSingleton() {
+        return true;
+    }
 
 }

@@ -32,16 +32,16 @@ import org.junit.jupiter.api.extension.ExtendWith;
  * @author Sam Brannen
  * @since 5.2
  */
-@Target({ ElementType.TYPE, ElementType.METHOD })
+@Target({ElementType.TYPE, ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 @Inherited
 @ExtendWith(TestGroupsCondition.class)
 public @interface EnabledForTestGroups {
 
-	/**
-	 * One or more {@link TestGroup}s that must be active.
-	 */
-	TestGroup[] value();
+    /**
+     * One or more {@link TestGroup}s that must be active.
+     */
+    TestGroup[] value();
 
 }

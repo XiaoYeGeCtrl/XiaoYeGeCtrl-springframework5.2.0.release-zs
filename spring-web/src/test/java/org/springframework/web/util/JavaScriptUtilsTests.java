@@ -29,39 +29,39 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 public class JavaScriptUtilsTests {
 
-	@Test
-	public void escape() {
-		StringBuilder sb = new StringBuilder();
-		sb.append('"');
-		sb.append("'");
-		sb.append("\\");
-		sb.append("/");
-		sb.append("\t");
-		sb.append("\n");
-		sb.append("\r");
-		sb.append("\f");
-		sb.append("\b");
-		sb.append("\013");
-		assertThat(JavaScriptUtils.javaScriptEscape(sb.toString())).isEqualTo("\\\"\\'\\\\\\/\\t\\n\\n\\f\\b\\v");
-	}
+    @Test
+    public void escape() {
+        StringBuilder sb = new StringBuilder();
+        sb.append('"');
+        sb.append("'");
+        sb.append("\\");
+        sb.append("/");
+        sb.append("\t");
+        sb.append("\n");
+        sb.append("\r");
+        sb.append("\f");
+        sb.append("\b");
+        sb.append("\013");
+        assertThat(JavaScriptUtils.javaScriptEscape(sb.toString())).isEqualTo("\\\"\\'\\\\\\/\\t\\n\\n\\f\\b\\v");
+    }
 
-	// SPR-9983
+    // SPR-9983
 
-	@Test
-	public void escapePsLsLineTerminators() {
-		StringBuilder sb = new StringBuilder();
-		sb.append('\u2028');
-		sb.append('\u2029');
-		String result = JavaScriptUtils.javaScriptEscape(sb.toString());
+    @Test
+    public void escapePsLsLineTerminators() {
+        StringBuilder sb = new StringBuilder();
+        sb.append('\u2028');
+        sb.append('\u2029');
+        String result = JavaScriptUtils.javaScriptEscape(sb.toString());
 
-		assertThat(result).isEqualTo("\\u2028\\u2029");
-	}
+        assertThat(result).isEqualTo("\\u2028\\u2029");
+    }
 
-	// SPR-9983
+    // SPR-9983
 
-	@Test
-	public void escapeLessThanGreaterThanSigns() throws UnsupportedEncodingException {
-		assertThat(JavaScriptUtils.javaScriptEscape("<>")).isEqualTo("\\u003C\\u003E");
-	}
+    @Test
+    public void escapeLessThanGreaterThanSigns() throws UnsupportedEncodingException {
+        assertThat(JavaScriptUtils.javaScriptEscape("<>")).isEqualTo("\\u003C\\u003E");
+    }
 
 }

@@ -28,9 +28,9 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class HelloController {
 
-	@RequestMapping("/a")
-	public String header(HttpServletRequest request) {
-		return "hello";
-	}
+    @RequestMapping("/a")
+    public String header(HttpServletRequest request) {
+        return "hello";
+    }
 
 }

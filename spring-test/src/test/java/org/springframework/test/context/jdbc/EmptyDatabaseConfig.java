@@ -34,21 +34,21 @@ import org.springframework.transaction.PlatformTransactionManager;
 @Configuration
 public class EmptyDatabaseConfig {
 
-	@Bean
-	JdbcTemplate jdbcTemplate(DataSource dataSource) {
-		return new JdbcTemplate(dataSource);
-	}
+    @Bean
+    JdbcTemplate jdbcTemplate(DataSource dataSource) {
+        return new JdbcTemplate(dataSource);
+    }
 
-	@Bean
-	PlatformTransactionManager transactionManager(DataSource dataSource) {
-		return new DataSourceTransactionManager(dataSource);
-	}
+    @Bean
+    PlatformTransactionManager transactionManager(DataSource dataSource) {
+        return new DataSourceTransactionManager(dataSource);
+    }
 
-	@Bean
-	DataSource dataSource() {
-		return new EmbeddedDatabaseBuilder()//
-		.setName("empty-sql-scripts-test-db")//
-		.build();
-	}
+    @Bean
+    DataSource dataSource() {
+        return new EmbeddedDatabaseBuilder()//
+                .setName("empty-sql-scripts-test-db")//
+                .build();
+    }
 
 }

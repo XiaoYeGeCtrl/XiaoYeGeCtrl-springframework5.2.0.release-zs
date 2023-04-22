@@ -26,41 +26,42 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Unit tests for {@link CookieWebSessionIdResolver}.
+ *
  * @author Rossen Stoyanchev
  */
 public class CookieWebSessionIdResolverTests {
 
-	private final CookieWebSessionIdResolver resolver = new CookieWebSessionIdResolver();
+    private final CookieWebSessionIdResolver resolver = new CookieWebSessionIdResolver();
 
 
-	@Test
-	public void setSessionId() {
-		MockServerHttpRequest request = MockServerHttpRequest.get("https://example.org/path").build();
-		MockServerWebExchange exchange = MockServerWebExchange.from(request);
-		this.resolver.setSessionId(exchange, "123");
+    @Test
+    public void setSessionId() {
+        MockServerHttpRequest request = MockServerHttpRequest.get("https://example.org/path").build();
+        MockServerWebExchange exchange = MockServerWebExchange.from(request);
+        this.resolver.setSessionId(exchange, "123");
 
-		MultiValueMap<String, ResponseCookie> cookies = exchange.getResponse().getCookies();
-		assertThat(cookies.size()).isEqualTo(1);
-		ResponseCookie cookie = cookies.getFirst(this.resolver.getCookieName());
-		assertThat(cookie).isNotNull();
-		assertThat(cookie.toString()).isEqualTo("SESSION=123; Path=/; Secure; HttpOnly; SameSite=Lax");
-	}
+        MultiValueMap<String, ResponseCookie> cookies = exchange.getResponse().getCookies();
+        assertThat(cookies.size()).isEqualTo(1);
+        ResponseCookie cookie = cookies.getFirst(this.resolver.getCookieName());
+        assertThat(cookie).isNotNull();
+        assertThat(cookie.toString()).isEqualTo("SESSION=123; Path=/; Secure; HttpOnly; SameSite=Lax");
+    }
 
-	@Test
-	public void cookieInitializer() {
-		this.resolver.addCookieInitializer(builder -> builder.domain("example.org"));
-		this.resolver.addCookieInitializer(builder -> builder.sameSite("Strict"));
-		this.resolver.addCookieInitializer(builder -> builder.secure(false));
+    @Test
+    public void cookieInitializer() {
+        this.resolver.addCookieInitializer(builder -> builder.domain("example.org"));
+        this.resolver.addCookieInitializer(builder -> builder.sameSite("Strict"));
+        this.resolver.addCookieInitializer(builder -> builder.secure(false));
 
-		MockServerHttpRequest request = MockServerHttpRequest.get("https://example.org/path").build();
-		MockServerWebExchange exchange = MockServerWebExchange.from(request);
-		this.resolver.setSessionId(exchange, "123");
+        MockServerHttpRequest request = MockServerHttpRequest.get("https://example.org/path").build();
+        MockServerWebExchange exchange = MockServerWebExchange.from(request);
+        this.resolver.setSessionId(exchange, "123");
 
-		MultiValueMap<String, ResponseCookie> cookies = exchange.getResponse().getCookies();
-		assertThat(cookies.size()).isEqualTo(1);
-		ResponseCookie cookie = cookies.getFirst(this.resolver.getCookieName());
-		assertThat(cookie).isNotNull();
-		assertThat(cookie.toString()).isEqualTo("SESSION=123; Path=/; Domain=example.org; HttpOnly; SameSite=Strict");
-	}
+        MultiValueMap<String, ResponseCookie> cookies = exchange.getResponse().getCookies();
+        assertThat(cookies.size()).isEqualTo(1);
+        ResponseCookie cookie = cookies.getFirst(this.resolver.getCookieName());
+        assertThat(cookie).isNotNull();
+        assertThat(cookie.toString()).isEqualTo("SESSION=123; Path=/; Domain=example.org; HttpOnly; SameSite=Strict");
+    }
 
 }

@@ -50,56 +50,56 @@ import org.springframework.lang.Nullable;
  */
 public class ConversionServiceFactoryBean implements FactoryBean<ConversionService>, InitializingBean {
 
-	@Nullable
-	private Set<?> converters;
+    @Nullable
+    private Set<?> converters;
 
-	@Nullable
-	private GenericConversionService conversionService;
-
-
-	/**
-	 * Configure the set of custom converter objects that should be added:
-	 * implementing {@link org.springframework.core.convert.converter.Converter},
-	 * {@link org.springframework.core.convert.converter.ConverterFactory},
-	 * or {@link org.springframework.core.convert.converter.GenericConverter}.
-	 */
-	public void setConverters(Set<?> converters) {
-		this.converters = converters;
-	}
-
-	@Override
-	public void afterPropertiesSet() {
-		this.conversionService = createConversionService();
-		ConversionServiceFactory.registerConverters(this.converters, this.conversionService);
-	}
-
-	/**
-	 * Create the ConversionService instance returned by this factory bean.
-	 * <p>Creates a simple {@link GenericConversionService} instance by default.
-	 * Subclasses may override to customize the ConversionService instance that
-	 * gets created.
-	 */
-	protected GenericConversionService createConversionService() {
-		return new DefaultConversionService();
-	}
+    @Nullable
+    private GenericConversionService conversionService;
 
 
-	// implementing FactoryBean
+    /**
+     * Configure the set of custom converter objects that should be added:
+     * implementing {@link org.springframework.core.convert.converter.Converter},
+     * {@link org.springframework.core.convert.converter.ConverterFactory},
+     * or {@link org.springframework.core.convert.converter.GenericConverter}.
+     */
+    public void setConverters(Set<?> converters) {
+        this.converters = converters;
+    }
 
-	@Override
-	@Nullable
-	public ConversionService getObject() {
-		return this.conversionService;
-	}
+    @Override
+    public void afterPropertiesSet() {
+        this.conversionService = createConversionService();
+        ConversionServiceFactory.registerConverters(this.converters, this.conversionService);
+    }
 
-	@Override
-	public Class<? extends ConversionService> getObjectType() {
-		return GenericConversionService.class;
-	}
+    /**
+     * Create the ConversionService instance returned by this factory bean.
+     * <p>Creates a simple {@link GenericConversionService} instance by default.
+     * Subclasses may override to customize the ConversionService instance that
+     * gets created.
+     */
+    protected GenericConversionService createConversionService() {
+        return new DefaultConversionService();
+    }
 
-	@Override
-	public boolean isSingleton() {
-		return true;
-	}
+
+    // implementing FactoryBean
+
+    @Override
+    @Nullable
+    public ConversionService getObject() {
+        return this.conversionService;
+    }
+
+    @Override
+    public Class<? extends ConversionService> getObjectType() {
+        return GenericConversionService.class;
+    }
+
+    @Override
+    public boolean isSingleton() {
+        return true;
+    }
 
 }

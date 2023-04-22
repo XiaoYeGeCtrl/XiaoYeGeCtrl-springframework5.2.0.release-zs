@@ -33,122 +33,122 @@ import static org.mockito.Mockito.verify;
  */
 public class DeferredResultTests {
 
-	@Test
-	public void setResult() {
-		DeferredResultHandler handler = mock(DeferredResultHandler.class);
+    @Test
+    public void setResult() {
+        DeferredResultHandler handler = mock(DeferredResultHandler.class);
 
-		DeferredResult<String> result = new DeferredResult<>();
-		result.setResultHandler(handler);
+        DeferredResult<String> result = new DeferredResult<>();
+        result.setResultHandler(handler);
 
-		assertThat(result.setResult("hello")).isTrue();
-		verify(handler).handleResult("hello");
-	}
+        assertThat(result.setResult("hello")).isTrue();
+        verify(handler).handleResult("hello");
+    }
 
-	@Test
-	public void setResultTwice() {
-		DeferredResultHandler handler = mock(DeferredResultHandler.class);
+    @Test
+    public void setResultTwice() {
+        DeferredResultHandler handler = mock(DeferredResultHandler.class);
 
-		DeferredResult<String> result = new DeferredResult<>();
-		result.setResultHandler(handler);
+        DeferredResult<String> result = new DeferredResult<>();
+        result.setResultHandler(handler);
 
-		assertThat(result.setResult("hello")).isTrue();
-		assertThat(result.setResult("hi")).isFalse();
+        assertThat(result.setResult("hello")).isTrue();
+        assertThat(result.setResult("hi")).isFalse();
 
-		verify(handler).handleResult("hello");
-	}
+        verify(handler).handleResult("hello");
+    }
 
-	@Test
-	public void isSetOrExpired() {
-		DeferredResultHandler handler = mock(DeferredResultHandler.class);
+    @Test
+    public void isSetOrExpired() {
+        DeferredResultHandler handler = mock(DeferredResultHandler.class);
 
-		DeferredResult<String> result = new DeferredResult<>();
-		result.setResultHandler(handler);
+        DeferredResult<String> result = new DeferredResult<>();
+        result.setResultHandler(handler);
 
-		assertThat(result.isSetOrExpired()).isFalse();
+        assertThat(result.isSetOrExpired()).isFalse();
 
-		result.setResult("hello");
+        result.setResult("hello");
 
-		assertThat(result.isSetOrExpired()).isTrue();
+        assertThat(result.isSetOrExpired()).isTrue();
 
-		verify(handler).handleResult("hello");
-	}
+        verify(handler).handleResult("hello");
+    }
 
-	@Test
-	public void hasResult() {
-		DeferredResultHandler handler = mock(DeferredResultHandler.class);
+    @Test
+    public void hasResult() {
+        DeferredResultHandler handler = mock(DeferredResultHandler.class);
 
-		DeferredResult<String> result = new DeferredResult<>();
-		result.setResultHandler(handler);
+        DeferredResult<String> result = new DeferredResult<>();
+        result.setResultHandler(handler);
 
-		assertThat(result.hasResult()).isFalse();
-		assertThat(result.getResult()).isNull();
+        assertThat(result.hasResult()).isFalse();
+        assertThat(result.getResult()).isNull();
 
-		result.setResult("hello");
+        result.setResult("hello");
 
-		assertThat(result.getResult()).isEqualTo("hello");
-	}
+        assertThat(result.getResult()).isEqualTo("hello");
+    }
 
-	@Test
-	public void onCompletion() throws Exception {
-		final StringBuilder sb = new StringBuilder();
+    @Test
+    public void onCompletion() throws Exception {
+        final StringBuilder sb = new StringBuilder();
 
-		DeferredResult<String> result = new DeferredResult<>();
-		result.onCompletion(new Runnable() {
-			@Override
-			public void run() {
-				sb.append("completion event");
-			}
-		});
+        DeferredResult<String> result = new DeferredResult<>();
+        result.onCompletion(new Runnable() {
+            @Override
+            public void run() {
+                sb.append("completion event");
+            }
+        });
 
-		result.getInterceptor().afterCompletion(null, null);
+        result.getInterceptor().afterCompletion(null, null);
 
-		assertThat(result.isSetOrExpired()).isTrue();
-		assertThat(sb.toString()).isEqualTo("completion event");
-	}
+        assertThat(result.isSetOrExpired()).isTrue();
+        assertThat(sb.toString()).isEqualTo("completion event");
+    }
 
-	@Test
-	public void onTimeout() throws Exception {
-		final StringBuilder sb = new StringBuilder();
+    @Test
+    public void onTimeout() throws Exception {
+        final StringBuilder sb = new StringBuilder();
 
-		DeferredResultHandler handler = mock(DeferredResultHandler.class);
+        DeferredResultHandler handler = mock(DeferredResultHandler.class);
 
-		DeferredResult<String> result = new DeferredResult<>(null, "timeout result");
-		result.setResultHandler(handler);
-		result.onTimeout(new Runnable() {
-			@Override
-			public void run() {
-				sb.append("timeout event");
-			}
-		});
+        DeferredResult<String> result = new DeferredResult<>(null, "timeout result");
+        result.setResultHandler(handler);
+        result.onTimeout(new Runnable() {
+            @Override
+            public void run() {
+                sb.append("timeout event");
+            }
+        });
 
-		result.getInterceptor().handleTimeout(null, null);
+        result.getInterceptor().handleTimeout(null, null);
 
-		assertThat(sb.toString()).isEqualTo("timeout event");
-		assertThat(result.setResult("hello")).as("Should not be able to set result a second time").isFalse();
-		verify(handler).handleResult("timeout result");
-	}
+        assertThat(sb.toString()).isEqualTo("timeout event");
+        assertThat(result.setResult("hello")).as("Should not be able to set result a second time").isFalse();
+        verify(handler).handleResult("timeout result");
+    }
 
-	@Test
-	public void onError() throws Exception {
-		final StringBuilder sb = new StringBuilder();
+    @Test
+    public void onError() throws Exception {
+        final StringBuilder sb = new StringBuilder();
 
-		DeferredResultHandler handler = mock(DeferredResultHandler.class);
+        DeferredResultHandler handler = mock(DeferredResultHandler.class);
 
-		DeferredResult<String> result = new DeferredResult<>(null, "error result");
-		result.setResultHandler(handler);
-		Exception e = new Exception();
-		result.onError(new Consumer<Throwable>() {
-			@Override
-			public void accept(Throwable t) {
-				sb.append("error event");
-			}
-		});
+        DeferredResult<String> result = new DeferredResult<>(null, "error result");
+        result.setResultHandler(handler);
+        Exception e = new Exception();
+        result.onError(new Consumer<Throwable>() {
+            @Override
+            public void accept(Throwable t) {
+                sb.append("error event");
+            }
+        });
 
-		result.getInterceptor().handleError(null, null, e);
+        result.getInterceptor().handleError(null, null, e);
 
-		assertThat(sb.toString()).isEqualTo("error event");
-		assertThat(result.setResult("hello")).as("Should not be able to set result a second time").isFalse();
-		verify(handler).handleResult(e);
-	}
+        assertThat(sb.toString()).isEqualTo("error event");
+        assertThat(result.setResult("hello")).as("Should not be able to set result a second time").isFalse();
+        verify(handler).handleResult(e);
+    }
 
 }

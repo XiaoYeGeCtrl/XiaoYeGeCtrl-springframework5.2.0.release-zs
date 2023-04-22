@@ -55,196 +55,187 @@ import static org.springframework.tests.TestGroup.PERFORMANCE;
 @EnabledForTestGroups(PERFORMANCE)
 class ScheduledAndTransactionalAnnotationIntegrationTests {
 
-	@Test
-	void failsWhenJdkProxyAndScheduledMethodNotPresentOnInterface() {
-		AnnotationConfigApplicationContext ctx = new AnnotationConfigApplicationContext();
-		ctx.register(Config.class, JdkProxyTxConfig.class, RepoConfigA.class);
-		assertThatExceptionOfType(BeanCreationException.class)
-			.isThrownBy(ctx::refresh)
-			.satisfies(ex -> assertThat(ex.getRootCause()).isInstanceOf(IllegalStateException.class));
-	}
+    @Test
+    void failsWhenJdkProxyAndScheduledMethodNotPresentOnInterface() {
+        AnnotationConfigApplicationContext ctx = new AnnotationConfigApplicationContext();
+        ctx.register(Config.class, JdkProxyTxConfig.class, RepoConfigA.class);
+        assertThatExceptionOfType(BeanCreationException.class)
+                .isThrownBy(ctx::refresh)
+                .satisfies(ex -> assertThat(ex.getRootCause()).isInstanceOf(IllegalStateException.class));
+    }
 
-	@Test
-	void succeedsWhenSubclassProxyAndScheduledMethodNotPresentOnInterface() throws InterruptedException {
-		AnnotationConfigApplicationContext ctx = new AnnotationConfigApplicationContext();
-		ctx.register(Config.class, SubclassProxyTxConfig.class, RepoConfigA.class);
-		ctx.refresh();
+    @Test
+    void succeedsWhenSubclassProxyAndScheduledMethodNotPresentOnInterface() throws InterruptedException {
+        AnnotationConfigApplicationContext ctx = new AnnotationConfigApplicationContext();
+        ctx.register(Config.class, SubclassProxyTxConfig.class, RepoConfigA.class);
+        ctx.refresh();
 
-		Thread.sleep(100);  // allow @Scheduled method to be called several times
+        Thread.sleep(100);  // allow @Scheduled method to be called several times
 
-		MyRepository repository = ctx.getBean(MyRepository.class);
-		CallCountingTransactionManager txManager = ctx.getBean(CallCountingTransactionManager.class);
-		assertThat(AopUtils.isCglibProxy(repository)).isEqualTo(true);
-		assertThat(repository.getInvocationCount()).isGreaterThan(0);
-		assertThat(txManager.commits).isGreaterThan(0);
-	}
+        MyRepository repository = ctx.getBean(MyRepository.class);
+        CallCountingTransactionManager txManager = ctx.getBean(CallCountingTransactionManager.class);
+        assertThat(AopUtils.isCglibProxy(repository)).isEqualTo(true);
+        assertThat(repository.getInvocationCount()).isGreaterThan(0);
+        assertThat(txManager.commits).isGreaterThan(0);
+    }
 
-	@Test
-	void succeedsWhenJdkProxyAndScheduledMethodIsPresentOnInterface() throws InterruptedException {
-		AnnotationConfigApplicationContext ctx = new AnnotationConfigApplicationContext();
-		ctx.register(Config.class, JdkProxyTxConfig.class, RepoConfigB.class);
-		ctx.refresh();
+    @Test
+    void succeedsWhenJdkProxyAndScheduledMethodIsPresentOnInterface() throws InterruptedException {
+        AnnotationConfigApplicationContext ctx = new AnnotationConfigApplicationContext();
+        ctx.register(Config.class, JdkProxyTxConfig.class, RepoConfigB.class);
+        ctx.refresh();
 
-		Thread.sleep(100);  // allow @Scheduled method to be called several times
+        Thread.sleep(100);  // allow @Scheduled method to be called several times
 
-		MyRepositoryWithScheduledMethod repository = ctx.getBean(MyRepositoryWithScheduledMethod.class);
-		CallCountingTransactionManager txManager = ctx.getBean(CallCountingTransactionManager.class);
-		assertThat(AopUtils.isJdkDynamicProxy(repository)).isTrue();
-		assertThat(repository.getInvocationCount()).isGreaterThan(0);
-		assertThat(txManager.commits).isGreaterThan(0);
-	}
+        MyRepositoryWithScheduledMethod repository = ctx.getBean(MyRepositoryWithScheduledMethod.class);
+        CallCountingTransactionManager txManager = ctx.getBean(CallCountingTransactionManager.class);
+        assertThat(AopUtils.isJdkDynamicProxy(repository)).isTrue();
+        assertThat(repository.getInvocationCount()).isGreaterThan(0);
+        assertThat(txManager.commits).isGreaterThan(0);
+    }
 
-	@Test
-	void withAspectConfig() throws InterruptedException {
-		AnnotationConfigApplicationContext ctx = new AnnotationConfigApplicationContext();
-		ctx.register(AspectConfig.class, MyRepositoryWithScheduledMethodImpl.class);
-		ctx.refresh();
+    @Test
+    void withAspectConfig() throws InterruptedException {
+        AnnotationConfigApplicationContext ctx = new AnnotationConfigApplicationContext();
+        ctx.register(AspectConfig.class, MyRepositoryWithScheduledMethodImpl.class);
+        ctx.refresh();
 
-		Thread.sleep(100);  // allow @Scheduled method to be called several times
+        Thread.sleep(100);  // allow @Scheduled method to be called several times
 
-		MyRepositoryWithScheduledMethod repository = ctx.getBean(MyRepositoryWithScheduledMethod.class);
-		assertThat(AopUtils.isCglibProxy(repository)).isTrue();
-		assertThat(repository.getInvocationCount()).isGreaterThan(0);
-	}
-
-
-	@Configuration
-	@EnableTransactionManagement
-	static class JdkProxyTxConfig {
-	}
+        MyRepositoryWithScheduledMethod repository = ctx.getBean(MyRepositoryWithScheduledMethod.class);
+        assertThat(AopUtils.isCglibProxy(repository)).isTrue();
+        assertThat(repository.getInvocationCount()).isGreaterThan(0);
+    }
 
 
-	@Configuration
-	@EnableTransactionManagement(proxyTargetClass = true)
-	static class SubclassProxyTxConfig {
-	}
+    public interface MyRepository {
+
+        int getInvocationCount();
+    }
 
 
-	@Configuration
-	static class RepoConfigA {
+    public interface MyRepositoryWithScheduledMethod {
 
-		@Bean
-		MyRepository repository() {
-			return new MyRepositoryImpl();
-		}
-	}
+        int getInvocationCount();
 
+        void scheduled();
+    }
 
-	@Configuration
-	static class RepoConfigB {
+    @Configuration
+    @EnableTransactionManagement
+    static class JdkProxyTxConfig {
+    }
 
-		@Bean
-		MyRepositoryWithScheduledMethod repository() {
-			return new MyRepositoryWithScheduledMethodImpl();
-		}
-	}
+    @Configuration
+    @EnableTransactionManagement(proxyTargetClass = true)
+    static class SubclassProxyTxConfig {
+    }
 
+    @Configuration
+    static class RepoConfigA {
 
-	@Configuration
-	@EnableScheduling
-	static class Config {
+        @Bean
+        MyRepository repository() {
+            return new MyRepositoryImpl();
+        }
+    }
 
-		@Bean
-		PlatformTransactionManager txManager() {
-			return new CallCountingTransactionManager();
-		}
+    @Configuration
+    static class RepoConfigB {
 
-		@Bean
-		PersistenceExceptionTranslator peTranslator() {
-			return mock(PersistenceExceptionTranslator.class);
-		}
+        @Bean
+        MyRepositoryWithScheduledMethod repository() {
+            return new MyRepositoryWithScheduledMethodImpl();
+        }
+    }
 
-		@Bean
-		static PersistenceExceptionTranslationPostProcessor peTranslationPostProcessor() {
-			return new PersistenceExceptionTranslationPostProcessor();
-		}
-	}
+    @Configuration
+    @EnableScheduling
+    static class Config {
 
+        @Bean
+        static PersistenceExceptionTranslationPostProcessor peTranslationPostProcessor() {
+            return new PersistenceExceptionTranslationPostProcessor();
+        }
 
-	@Configuration
-	@EnableScheduling
-	static class AspectConfig {
+        @Bean
+        PlatformTransactionManager txManager() {
+            return new CallCountingTransactionManager();
+        }
 
-		@Bean
-		static AnnotationAwareAspectJAutoProxyCreator autoProxyCreator() {
-			AnnotationAwareAspectJAutoProxyCreator apc = new AnnotationAwareAspectJAutoProxyCreator();
-			apc.setProxyTargetClass(true);
-			return apc;
-		}
+        @Bean
+        PersistenceExceptionTranslator peTranslator() {
+            return mock(PersistenceExceptionTranslator.class);
+        }
+    }
 
-		@Bean
-		static MyAspect myAspect() {
-			return new MyAspect();
-		}
-	}
+    @Configuration
+    @EnableScheduling
+    static class AspectConfig {
 
+        @Bean
+        static AnnotationAwareAspectJAutoProxyCreator autoProxyCreator() {
+            AnnotationAwareAspectJAutoProxyCreator apc = new AnnotationAwareAspectJAutoProxyCreator();
+            apc.setProxyTargetClass(true);
+            return apc;
+        }
 
-	@Aspect
-	public static class MyAspect {
+        @Bean
+        static MyAspect myAspect() {
+            return new MyAspect();
+        }
+    }
 
-		private final AtomicInteger count = new AtomicInteger(0);
+    @Aspect
+    public static class MyAspect {
 
-		@org.aspectj.lang.annotation.Before("execution(* scheduled())")
-		public void checkTransaction() {
-			this.count.incrementAndGet();
-		}
-	}
+        private final AtomicInteger count = new AtomicInteger(0);
 
+        @org.aspectj.lang.annotation.Before("execution(* scheduled())")
+        public void checkTransaction() {
+            this.count.incrementAndGet();
+        }
+    }
 
-	public interface MyRepository {
+    @Repository
+    static class MyRepositoryImpl implements MyRepository {
 
-		int getInvocationCount();
-	}
+        private final AtomicInteger count = new AtomicInteger(0);
 
+        @Transactional
+        @Scheduled(fixedDelay = 5)
+        public void scheduled() {
+            this.count.incrementAndGet();
+        }
 
-	@Repository
-	static class MyRepositoryImpl implements MyRepository {
+        @Override
+        public int getInvocationCount() {
+            return this.count.get();
+        }
+    }
 
-		private final AtomicInteger count = new AtomicInteger(0);
+    @Repository
+    static class MyRepositoryWithScheduledMethodImpl implements MyRepositoryWithScheduledMethod {
 
-		@Transactional
-		@Scheduled(fixedDelay = 5)
-		public void scheduled() {
-			this.count.incrementAndGet();
-		}
+        private final AtomicInteger count = new AtomicInteger(0);
 
-		@Override
-		public int getInvocationCount() {
-			return this.count.get();
-		}
-	}
+        @Autowired(required = false)
+        private MyAspect myAspect;
 
+        @Override
+        @Transactional
+        @Scheduled(fixedDelay = 5)
+        public void scheduled() {
+            this.count.incrementAndGet();
+        }
 
-	public interface MyRepositoryWithScheduledMethod {
-
-		int getInvocationCount();
-
-		void scheduled();
-	}
-
-
-	@Repository
-	static class MyRepositoryWithScheduledMethodImpl implements MyRepositoryWithScheduledMethod {
-
-		private final AtomicInteger count = new AtomicInteger(0);
-
-		@Autowired(required = false)
-		private MyAspect myAspect;
-
-		@Override
-		@Transactional
-		@Scheduled(fixedDelay = 5)
-		public void scheduled() {
-			this.count.incrementAndGet();
-		}
-
-		@Override
-		public int getInvocationCount() {
-			if (this.myAspect != null) {
-				assertThat(this.myAspect.count.get()).isEqualTo(this.count.get());
-			}
-			return this.count.get();
-		}
-	}
+        @Override
+        public int getInvocationCount() {
+            if (this.myAspect != null) {
+                assertThat(this.myAspect.count.get()).isEqualTo(this.count.get());
+            }
+            return this.count.get();
+        }
+    }
 
 }

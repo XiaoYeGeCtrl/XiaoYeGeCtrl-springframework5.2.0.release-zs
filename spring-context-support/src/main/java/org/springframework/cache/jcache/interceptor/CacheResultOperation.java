@@ -29,63 +29,65 @@ import org.springframework.util.StringUtils;
  * The {@link JCacheOperation} implementation for a {@link CacheResult} operation.
  *
  * @author Stephane Nicoll
- * @since 4.1
  * @see CacheResult
+ * @since 4.1
  */
 class CacheResultOperation extends AbstractJCacheKeyOperation<CacheResult> {
 
-	private final ExceptionTypeFilter exceptionTypeFilter;
+    private final ExceptionTypeFilter exceptionTypeFilter;
 
-	@Nullable
-	private final CacheResolver exceptionCacheResolver;
+    @Nullable
+    private final CacheResolver exceptionCacheResolver;
 
-	@Nullable
-	private final String exceptionCacheName;
-
-
-	public CacheResultOperation(CacheMethodDetails<CacheResult> methodDetails, CacheResolver cacheResolver,
-			KeyGenerator keyGenerator, @Nullable CacheResolver exceptionCacheResolver) {
-
-		super(methodDetails, cacheResolver, keyGenerator);
-
-		CacheResult ann = methodDetails.getCacheAnnotation();
-		this.exceptionTypeFilter = createExceptionTypeFilter(ann.cachedExceptions(), ann.nonCachedExceptions());
-		this.exceptionCacheResolver = exceptionCacheResolver;
-		this.exceptionCacheName = (StringUtils.hasText(ann.exceptionCacheName()) ? ann.exceptionCacheName() : null);
-	}
+    @Nullable
+    private final String exceptionCacheName;
 
 
-	@Override
-	public ExceptionTypeFilter getExceptionTypeFilter() {
-		return this.exceptionTypeFilter;
-	}
+    public CacheResultOperation(CacheMethodDetails<CacheResult> methodDetails, CacheResolver cacheResolver,
+                                KeyGenerator keyGenerator, @Nullable CacheResolver exceptionCacheResolver) {
 
-	/**
-	 * Specify if the method should always be invoked regardless of a cache hit.
-	 * By default, the method is only invoked in case of a cache miss.
-	 * @see javax.cache.annotation.CacheResult#skipGet()
-	 */
-	public boolean isAlwaysInvoked() {
-		return getCacheAnnotation().skipGet();
-	}
+        super(methodDetails, cacheResolver, keyGenerator);
 
-	/**
-	 * Return the {@link CacheResolver} instance to use to resolve the cache to
-	 * use for matching exceptions thrown by this operation.
-	 */
-	@Nullable
-	public CacheResolver getExceptionCacheResolver() {
-		return this.exceptionCacheResolver;
-	}
+        CacheResult ann = methodDetails.getCacheAnnotation();
+        this.exceptionTypeFilter = createExceptionTypeFilter(ann.cachedExceptions(), ann.nonCachedExceptions());
+        this.exceptionCacheResolver = exceptionCacheResolver;
+        this.exceptionCacheName = (StringUtils.hasText(ann.exceptionCacheName()) ? ann.exceptionCacheName() : null);
+    }
 
-	/**
-	 * Return the name of the cache to cache exceptions, or {@code null} if
-	 * caching exceptions should be disabled.
-	 * @see javax.cache.annotation.CacheResult#exceptionCacheName()
-	 */
-	@Nullable
-	public String getExceptionCacheName() {
-		return this.exceptionCacheName;
-	}
+
+    @Override
+    public ExceptionTypeFilter getExceptionTypeFilter() {
+        return this.exceptionTypeFilter;
+    }
+
+    /**
+     * Specify if the method should always be invoked regardless of a cache hit.
+     * By default, the method is only invoked in case of a cache miss.
+     *
+     * @see javax.cache.annotation.CacheResult#skipGet()
+     */
+    public boolean isAlwaysInvoked() {
+        return getCacheAnnotation().skipGet();
+    }
+
+    /**
+     * Return the {@link CacheResolver} instance to use to resolve the cache to
+     * use for matching exceptions thrown by this operation.
+     */
+    @Nullable
+    public CacheResolver getExceptionCacheResolver() {
+        return this.exceptionCacheResolver;
+    }
+
+    /**
+     * Return the name of the cache to cache exceptions, or {@code null} if
+     * caching exceptions should be disabled.
+     *
+     * @see javax.cache.annotation.CacheResult#exceptionCacheName()
+     */
+    @Nullable
+    public String getExceptionCacheName() {
+        return this.exceptionCacheName;
+    }
 
 }

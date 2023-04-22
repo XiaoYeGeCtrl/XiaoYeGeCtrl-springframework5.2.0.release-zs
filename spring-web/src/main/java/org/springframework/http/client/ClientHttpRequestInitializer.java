@@ -30,16 +30,17 @@ import org.springframework.http.client.support.HttpAccessor;
  * customizations without needing to read the entire request body into memory.
  *
  * @author Phillip Webb
- * @since 5.2
  * @see HttpAccessor#getClientHttpRequestInitializers()
+ * @since 5.2
  */
 @FunctionalInterface
 public interface ClientHttpRequestInitializer {
 
-	/**
-	 * Initialize the given client HTTP request.
-	 * @param request the request to configure
-	 */
-	void initialize(ClientHttpRequest request);
+    /**
+     * Initialize the given client HTTP request.
+     *
+     * @param request the request to configure
+     */
+    void initialize(ClientHttpRequest request);
 
 }

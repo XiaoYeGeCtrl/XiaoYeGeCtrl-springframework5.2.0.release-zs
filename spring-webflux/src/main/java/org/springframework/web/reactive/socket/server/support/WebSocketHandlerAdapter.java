@@ -36,43 +36,43 @@ import org.springframework.web.server.ServerWebExchange;
  */
 public class WebSocketHandlerAdapter implements HandlerAdapter {
 
-	private final WebSocketService webSocketService;
+    private final WebSocketService webSocketService;
 
 
-	/**
-	 * Default constructor that creates and uses a
-	 * {@link HandshakeWebSocketService}.
-	 */
-	public WebSocketHandlerAdapter() {
-		this(new HandshakeWebSocketService());
-	}
+    /**
+     * Default constructor that creates and uses a
+     * {@link HandshakeWebSocketService}.
+     */
+    public WebSocketHandlerAdapter() {
+        this(new HandshakeWebSocketService());
+    }
 
-	/**
-	 * Alternative constructor with the {@link WebSocketService} to use.
-	 */
-	public WebSocketHandlerAdapter(WebSocketService webSocketService) {
-		Assert.notNull(webSocketService, "'webSocketService' is required");
-		this.webSocketService = webSocketService;
-	}
-
-
-	/**
-	 * Return the configured {@code WebSocketService} to handle requests.
-	 */
-	public WebSocketService getWebSocketService() {
-		return this.webSocketService;
-	}
+    /**
+     * Alternative constructor with the {@link WebSocketService} to use.
+     */
+    public WebSocketHandlerAdapter(WebSocketService webSocketService) {
+        Assert.notNull(webSocketService, "'webSocketService' is required");
+        this.webSocketService = webSocketService;
+    }
 
 
-	@Override
-	public boolean supports(Object handler) {
-		return WebSocketHandler.class.isAssignableFrom(handler.getClass());
-	}
+    /**
+     * Return the configured {@code WebSocketService} to handle requests.
+     */
+    public WebSocketService getWebSocketService() {
+        return this.webSocketService;
+    }
 
-	@Override
-	public Mono<HandlerResult> handle(ServerWebExchange exchange, Object handler) {
-		WebSocketHandler webSocketHandler = (WebSocketHandler) handler;
-		return getWebSocketService().handleRequest(exchange, webSocketHandler).then(Mono.empty());
-	}
+
+    @Override
+    public boolean supports(Object handler) {
+        return WebSocketHandler.class.isAssignableFrom(handler.getClass());
+    }
+
+    @Override
+    public Mono<HandlerResult> handle(ServerWebExchange exchange, Object handler) {
+        WebSocketHandler webSocketHandler = (WebSocketHandler) handler;
+        return getWebSocketService().handleRequest(exchange, webSocketHandler).then(Mono.empty());
+    }
 
 }

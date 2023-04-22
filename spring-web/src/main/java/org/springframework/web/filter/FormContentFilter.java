@@ -56,128 +56,125 @@ import org.springframework.util.StringUtils;
  */
 public class FormContentFilter extends OncePerRequestFilter {
 
-	private static final List<String> HTTP_METHODS = Arrays.asList("PUT", "PATCH", "DELETE");
+    private static final List<String> HTTP_METHODS = Arrays.asList("PUT", "PATCH", "DELETE");
 
-	private FormHttpMessageConverter formConverter = new AllEncompassingFormHttpMessageConverter();
-
-
-	/**
-	 * Set the converter to use for parsing form content.
-	 * <p>By default this is an instance of {@link AllEncompassingFormHttpMessageConverter}.
-	 */
-	public void setFormConverter(FormHttpMessageConverter converter) {
-		Assert.notNull(converter, "FormHttpMessageConverter is required");
-		this.formConverter = converter;
-	}
-
-	/**
-	 * The default character set to use for reading form data.
-	 * This is a shortcut for:<br>
-	 * {@code getFormConverter.setCharset(charset)}.
-	 */
-	public void setCharset(Charset charset) {
-		this.formConverter.setCharset(charset);
-	}
+    private FormHttpMessageConverter formConverter = new AllEncompassingFormHttpMessageConverter();
 
 
-	@Override
-	protected void doFilterInternal(
-			HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
-			throws ServletException, IOException {
+    /**
+     * Set the converter to use for parsing form content.
+     * <p>By default this is an instance of {@link AllEncompassingFormHttpMessageConverter}.
+     */
+    public void setFormConverter(FormHttpMessageConverter converter) {
+        Assert.notNull(converter, "FormHttpMessageConverter is required");
+        this.formConverter = converter;
+    }
 
-		MultiValueMap<String, String> params = parseIfNecessary(request);
-		if (!CollectionUtils.isEmpty(params)) {
-			filterChain.doFilter(new FormContentRequestWrapper(request, params), response);
-		}
-		else {
-			filterChain.doFilter(request, response);
-		}
-	}
-
-	@Nullable
-	private MultiValueMap<String, String> parseIfNecessary(HttpServletRequest request) throws IOException {
-		if (!shouldParse(request)) {
-			return null;
-		}
-
-		HttpInputMessage inputMessage = new ServletServerHttpRequest(request) {
-			@Override
-			public InputStream getBody() throws IOException {
-				return request.getInputStream();
-			}
-		};
-		return this.formConverter.read(null, inputMessage);
-	}
-
-	private boolean shouldParse(HttpServletRequest request) {
-		String contentType = request.getContentType();
-		String method = request.getMethod();
-		if (StringUtils.hasLength(contentType) && HTTP_METHODS.contains(method)) {
-			try {
-				MediaType mediaType = MediaType.parseMediaType(contentType);
-				return MediaType.APPLICATION_FORM_URLENCODED.includes(mediaType);
-			}
-			catch (IllegalArgumentException ex) {
-			}
-		}
-		return false;
-	}
+    /**
+     * The default character set to use for reading form data.
+     * This is a shortcut for:<br>
+     * {@code getFormConverter.setCharset(charset)}.
+     */
+    public void setCharset(Charset charset) {
+        this.formConverter.setCharset(charset);
+    }
 
 
-	private static class FormContentRequestWrapper extends HttpServletRequestWrapper {
+    @Override
+    protected void doFilterInternal(
+            HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+            throws ServletException, IOException {
 
-		private MultiValueMap<String, String> formParams;
+        MultiValueMap<String, String> params = parseIfNecessary(request);
+        if (!CollectionUtils.isEmpty(params)) {
+            filterChain.doFilter(new FormContentRequestWrapper(request, params), response);
+        } else {
+            filterChain.doFilter(request, response);
+        }
+    }
 
-		public FormContentRequestWrapper(HttpServletRequest request, MultiValueMap<String, String> params) {
-			super(request);
-			this.formParams = params;
-		}
+    @Nullable
+    private MultiValueMap<String, String> parseIfNecessary(HttpServletRequest request) throws IOException {
+        if (!shouldParse(request)) {
+            return null;
+        }
 
-		@Override
-		@Nullable
-		public String getParameter(String name) {
-			String queryStringValue = super.getParameter(name);
-			String formValue = this.formParams.getFirst(name);
-			return (queryStringValue != null ? queryStringValue : formValue);
-		}
+        HttpInputMessage inputMessage = new ServletServerHttpRequest(request) {
+            @Override
+            public InputStream getBody() throws IOException {
+                return request.getInputStream();
+            }
+        };
+        return this.formConverter.read(null, inputMessage);
+    }
 
-		@Override
-		public Map<String, String[]> getParameterMap() {
-			Map<String, String[]> result = new LinkedHashMap<>();
-			Enumeration<String> names = getParameterNames();
-			while (names.hasMoreElements()) {
-				String name = names.nextElement();
-				result.put(name, getParameterValues(name));
-			}
-			return result;
-		}
+    private boolean shouldParse(HttpServletRequest request) {
+        String contentType = request.getContentType();
+        String method = request.getMethod();
+        if (StringUtils.hasLength(contentType) && HTTP_METHODS.contains(method)) {
+            try {
+                MediaType mediaType = MediaType.parseMediaType(contentType);
+                return MediaType.APPLICATION_FORM_URLENCODED.includes(mediaType);
+            } catch (IllegalArgumentException ex) {
+            }
+        }
+        return false;
+    }
 
-		@Override
-		public Enumeration<String> getParameterNames() {
-			Set<String> names = new LinkedHashSet<>();
-			names.addAll(Collections.list(super.getParameterNames()));
-			names.addAll(this.formParams.keySet());
-			return Collections.enumeration(names);
-		}
 
-		@Override
-		@Nullable
-		public String[] getParameterValues(String name) {
-			String[] parameterValues = super.getParameterValues(name);
-			List<String> formParam = this.formParams.get(name);
-			if (formParam == null) {
-				return parameterValues;
-			}
-			if (parameterValues == null || getQueryString() == null) {
-				return StringUtils.toStringArray(formParam);
-			}
-			else {
-				List<String> result = new ArrayList<>(parameterValues.length + formParam.size());
-				result.addAll(Arrays.asList(parameterValues));
-				result.addAll(formParam);
-				return StringUtils.toStringArray(result);
-			}
-		}
-	}
+    private static class FormContentRequestWrapper extends HttpServletRequestWrapper {
+
+        private MultiValueMap<String, String> formParams;
+
+        public FormContentRequestWrapper(HttpServletRequest request, MultiValueMap<String, String> params) {
+            super(request);
+            this.formParams = params;
+        }
+
+        @Override
+        @Nullable
+        public String getParameter(String name) {
+            String queryStringValue = super.getParameter(name);
+            String formValue = this.formParams.getFirst(name);
+            return (queryStringValue != null ? queryStringValue : formValue);
+        }
+
+        @Override
+        public Map<String, String[]> getParameterMap() {
+            Map<String, String[]> result = new LinkedHashMap<>();
+            Enumeration<String> names = getParameterNames();
+            while (names.hasMoreElements()) {
+                String name = names.nextElement();
+                result.put(name, getParameterValues(name));
+            }
+            return result;
+        }
+
+        @Override
+        public Enumeration<String> getParameterNames() {
+            Set<String> names = new LinkedHashSet<>();
+            names.addAll(Collections.list(super.getParameterNames()));
+            names.addAll(this.formParams.keySet());
+            return Collections.enumeration(names);
+        }
+
+        @Override
+        @Nullable
+        public String[] getParameterValues(String name) {
+            String[] parameterValues = super.getParameterValues(name);
+            List<String> formParam = this.formParams.get(name);
+            if (formParam == null) {
+                return parameterValues;
+            }
+            if (parameterValues == null || getQueryString() == null) {
+                return StringUtils.toStringArray(formParam);
+            } else {
+                List<String> result = new ArrayList<>(parameterValues.length + formParam.size());
+                result.addAll(Arrays.asList(parameterValues));
+                result.addAll(formParam);
+                return StringUtils.toStringArray(result);
+            }
+        }
+    }
 
 }

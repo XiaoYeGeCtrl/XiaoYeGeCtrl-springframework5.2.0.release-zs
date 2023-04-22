@@ -83,268 +83,262 @@ import org.springframework.web.server.ServerWebExchange;
  */
 public class ViewResolutionResultHandler extends HandlerResultHandlerSupport implements HandlerResultHandler, Ordered {
 
-	private static final Object NO_VALUE = new Object();
+    private static final Object NO_VALUE = new Object();
 
-	private static final Mono<Object> NO_VALUE_MONO = Mono.just(NO_VALUE);
-
-
-	private final List<ViewResolver> viewResolvers = new ArrayList<>(4);
-
-	private final List<View> defaultViews = new ArrayList<>(4);
+    private static final Mono<Object> NO_VALUE_MONO = Mono.just(NO_VALUE);
 
 
-	/**
-	 * Basic constructor with a default {@link ReactiveAdapterRegistry}.
-	 * @param viewResolvers the resolver to use
-	 * @param contentTypeResolver to determine the requested content type
-	 */
-	public ViewResolutionResultHandler(List<ViewResolver> viewResolvers,
-			RequestedContentTypeResolver contentTypeResolver) {
+    private final List<ViewResolver> viewResolvers = new ArrayList<>(4);
 
-		this(viewResolvers, contentTypeResolver, ReactiveAdapterRegistry.getSharedInstance());
-	}
-
-	/**
-	 * Constructor with an {@link ReactiveAdapterRegistry} instance.
-	 * @param viewResolvers the view resolver to use
-	 * @param contentTypeResolver to determine the requested content type
-	 * @param registry for adaptation to reactive types
-	 */
-	public ViewResolutionResultHandler(List<ViewResolver> viewResolvers,
-			RequestedContentTypeResolver contentTypeResolver, ReactiveAdapterRegistry registry) {
-
-		super(contentTypeResolver, registry);
-		this.viewResolvers.addAll(viewResolvers);
-		AnnotationAwareOrderComparator.sort(this.viewResolvers);
-	}
+    private final List<View> defaultViews = new ArrayList<>(4);
 
 
-	/**
-	 * Return a read-only list of view resolvers.
-	 */
-	public List<ViewResolver> getViewResolvers() {
-		return Collections.unmodifiableList(this.viewResolvers);
-	}
+    /**
+     * Basic constructor with a default {@link ReactiveAdapterRegistry}.
+     *
+     * @param viewResolvers       the resolver to use
+     * @param contentTypeResolver to determine the requested content type
+     */
+    public ViewResolutionResultHandler(List<ViewResolver> viewResolvers,
+                                       RequestedContentTypeResolver contentTypeResolver) {
 
-	/**
-	 * Set the default views to consider always when resolving view names and
-	 * trying to satisfy the best matching content type.
-	 */
-	public void setDefaultViews(@Nullable List<View> defaultViews) {
-		this.defaultViews.clear();
-		if (defaultViews != null) {
-			this.defaultViews.addAll(defaultViews);
-		}
-	}
+        this(viewResolvers, contentTypeResolver, ReactiveAdapterRegistry.getSharedInstance());
+    }
 
-	/**
-	 * Return the configured default {@code View}'s.
-	 */
-	public List<View> getDefaultViews() {
-		return this.defaultViews;
-	}
+    /**
+     * Constructor with an {@link ReactiveAdapterRegistry} instance.
+     *
+     * @param viewResolvers       the view resolver to use
+     * @param contentTypeResolver to determine the requested content type
+     * @param registry            for adaptation to reactive types
+     */
+    public ViewResolutionResultHandler(List<ViewResolver> viewResolvers,
+                                       RequestedContentTypeResolver contentTypeResolver, ReactiveAdapterRegistry registry) {
 
-
-	@Override
-	public boolean supports(HandlerResult result) {
-		if (hasModelAnnotation(result.getReturnTypeSource())) {
-			return true;
-		}
-
-		Class<?> type = result.getReturnType().toClass();
-		ReactiveAdapter adapter = getAdapter(result);
-		if (adapter != null) {
-			if (adapter.isNoValue()) {
-				return true;
-			}
-			type = result.getReturnType().getGeneric().toClass();
-		}
-
-		return (CharSequence.class.isAssignableFrom(type) ||
-				Rendering.class.isAssignableFrom(type) ||
-				Model.class.isAssignableFrom(type) ||
-				Map.class.isAssignableFrom(type) ||
-				View.class.isAssignableFrom(type) ||
-				!BeanUtils.isSimpleProperty(type));
-	}
-
-	@Override
-	@SuppressWarnings("unchecked")
-	public Mono<Void> handleResult(ServerWebExchange exchange, HandlerResult result) {
-		Mono<Object> valueMono;
-		ResolvableType valueType;
-		ReactiveAdapter adapter = getAdapter(result);
-
-		if (adapter != null) {
-			if (adapter.isMultiValue()) {
-				throw new IllegalArgumentException(
-						"Multi-value reactive types not supported in view resolution: " + result.getReturnType());
-			}
-
-			valueMono = (result.getReturnValue() != null ?
-					Mono.from(adapter.toPublisher(result.getReturnValue())) : Mono.empty());
-
-			valueType = (adapter.isNoValue() ? ResolvableType.forClass(Void.class) :
-					result.getReturnType().getGeneric());
-		}
-		else {
-			valueMono = Mono.justOrEmpty(result.getReturnValue());
-			valueType = result.getReturnType();
-		}
-
-		return valueMono
-				.switchIfEmpty(exchange.isNotModified() ? Mono.empty() : NO_VALUE_MONO)
-				.flatMap(returnValue -> {
-
-					Mono<List<View>> viewsMono;
-					Model model = result.getModel();
-					MethodParameter parameter = result.getReturnTypeSource();
-					Locale locale = LocaleContextHolder.getLocale(exchange.getLocaleContext());
-
-					Class<?> clazz = valueType.toClass();
-					if (clazz == Object.class) {
-						clazz = returnValue.getClass();
-					}
-
-					if (returnValue == NO_VALUE || clazz == void.class || clazz == Void.class) {
-						viewsMono = resolveViews(getDefaultViewName(exchange), locale);
-					}
-					else if (CharSequence.class.isAssignableFrom(clazz) && !hasModelAnnotation(parameter)) {
-						viewsMono = resolveViews(returnValue.toString(), locale);
-					}
-					else if (Rendering.class.isAssignableFrom(clazz)) {
-						Rendering render = (Rendering) returnValue;
-						HttpStatus status = render.status();
-						if (status != null) {
-							exchange.getResponse().setStatusCode(status);
-						}
-						exchange.getResponse().getHeaders().putAll(render.headers());
-						model.addAllAttributes(render.modelAttributes());
-						Object view = render.view();
-						if (view == null) {
-							view = getDefaultViewName(exchange);
-						}
-						viewsMono = (view instanceof String ? resolveViews((String) view, locale) :
-								Mono.just(Collections.singletonList((View) view)));
-					}
-					else if (Model.class.isAssignableFrom(clazz)) {
-						model.addAllAttributes(((Model) returnValue).asMap());
-						viewsMono = resolveViews(getDefaultViewName(exchange), locale);
-					}
-					else if (Map.class.isAssignableFrom(clazz) && !hasModelAnnotation(parameter)) {
-						model.addAllAttributes((Map<String, ?>) returnValue);
-						viewsMono = resolveViews(getDefaultViewName(exchange), locale);
-					}
-					else if (View.class.isAssignableFrom(clazz)) {
-						viewsMono = Mono.just(Collections.singletonList((View) returnValue));
-					}
-					else {
-						String name = getNameForReturnValue(parameter);
-						model.addAttribute(name, returnValue);
-						viewsMono = resolveViews(getDefaultViewName(exchange), locale);
-					}
-					BindingContext bindingContext = result.getBindingContext();
-					updateBindingResult(bindingContext, exchange);
-					return viewsMono.flatMap(views -> render(views, model.asMap(), bindingContext, exchange));
-				});
-	}
+        super(contentTypeResolver, registry);
+        this.viewResolvers.addAll(viewResolvers);
+        AnnotationAwareOrderComparator.sort(this.viewResolvers);
+    }
 
 
-	private boolean hasModelAnnotation(MethodParameter parameter) {
-		return parameter.hasMethodAnnotation(ModelAttribute.class);
-	}
+    /**
+     * Return a read-only list of view resolvers.
+     */
+    public List<ViewResolver> getViewResolvers() {
+        return Collections.unmodifiableList(this.viewResolvers);
+    }
 
-	/**
-	 * Select a default view name when a controller did not specify it.
-	 * Use the request path the leading and trailing slash stripped.
-	 */
-	private String getDefaultViewName(ServerWebExchange exchange) {
-		String path = exchange.getRequest().getPath().pathWithinApplication().value();
-		if (path.startsWith("/")) {
-			path = path.substring(1);
-		}
-		if (path.endsWith("/")) {
-			path = path.substring(0, path.length() - 1);
-		}
-		return StringUtils.stripFilenameExtension(path);
-	}
+    /**
+     * Return the configured default {@code View}'s.
+     */
+    public List<View> getDefaultViews() {
+        return this.defaultViews;
+    }
 
-	private Mono<List<View>> resolveViews(String viewName, Locale locale) {
-		return Flux.fromIterable(getViewResolvers())
-				.concatMap(resolver -> resolver.resolveViewName(viewName, locale))
-				.collectList()
-				.map(views -> {
-					if (views.isEmpty()) {
-						throw new IllegalStateException(
-								"Could not resolve view with name '" + viewName + "'.");
-					}
-					views.addAll(getDefaultViews());
-					return views;
-				});
-	}
+    /**
+     * Set the default views to consider always when resolving view names and
+     * trying to satisfy the best matching content type.
+     */
+    public void setDefaultViews(@Nullable List<View> defaultViews) {
+        this.defaultViews.clear();
+        if (defaultViews != null) {
+            this.defaultViews.addAll(defaultViews);
+        }
+    }
 
-	private String getNameForReturnValue(MethodParameter returnType) {
-		return Optional.ofNullable(returnType.getMethodAnnotation(ModelAttribute.class))
-				.filter(ann -> StringUtils.hasText(ann.value()))
-				.map(ModelAttribute::value)
-				.orElseGet(() -> Conventions.getVariableNameForParameter(returnType));
-	}
+    @Override
+    public boolean supports(HandlerResult result) {
+        if (hasModelAnnotation(result.getReturnTypeSource())) {
+            return true;
+        }
 
-	private void updateBindingResult(BindingContext context, ServerWebExchange exchange) {
-		Map<String, Object> model = context.getModel().asMap();
-		for (Map.Entry<String, Object> entry : model.entrySet()) {
-			String name = entry.getKey();
-			Object value = entry.getValue();
-			if (isBindingCandidate(name, value)) {
-				if (!model.containsKey(BindingResult.MODEL_KEY_PREFIX + name)) {
-					WebExchangeDataBinder binder = context.createDataBinder(exchange, value, name);
-					model.put(BindingResult.MODEL_KEY_PREFIX + name, binder.getBindingResult());
-				}
-			}
-		}
-	}
+        Class<?> type = result.getReturnType().toClass();
+        ReactiveAdapter adapter = getAdapter(result);
+        if (adapter != null) {
+            if (adapter.isNoValue()) {
+                return true;
+            }
+            type = result.getReturnType().getGeneric().toClass();
+        }
 
-	private boolean isBindingCandidate(String name, @Nullable Object value) {
-		return (!name.startsWith(BindingResult.MODEL_KEY_PREFIX) && value != null &&
-				!value.getClass().isArray() && !(value instanceof Collection) && !(value instanceof Map) &&
-				getAdapterRegistry().getAdapter(null, value) == null &&
-				!BeanUtils.isSimpleValueType(value.getClass()));
-	}
+        return (CharSequence.class.isAssignableFrom(type) ||
+                Rendering.class.isAssignableFrom(type) ||
+                Model.class.isAssignableFrom(type) ||
+                Map.class.isAssignableFrom(type) ||
+                View.class.isAssignableFrom(type) ||
+                !BeanUtils.isSimpleProperty(type));
+    }
 
-	private Mono<? extends Void> render(List<View> views, Map<String, Object> model,
-			BindingContext bindingContext, ServerWebExchange exchange) {
+    @Override
+    @SuppressWarnings("unchecked")
+    public Mono<Void> handleResult(ServerWebExchange exchange, HandlerResult result) {
+        Mono<Object> valueMono;
+        ResolvableType valueType;
+        ReactiveAdapter adapter = getAdapter(result);
 
-		for (View view : views) {
-			if (view.isRedirectView()) {
-				return renderWith(view, model, null, exchange, bindingContext);
-			}
-		}
-		List<MediaType> mediaTypes = getMediaTypes(views);
-		MediaType bestMediaType = selectMediaType(exchange, () -> mediaTypes);
-		if (bestMediaType != null) {
-			for (View view : views) {
-				for (MediaType mediaType : view.getSupportedMediaTypes()) {
-					if (mediaType.isCompatibleWith(bestMediaType)) {
-						return renderWith(view, model, mediaType, exchange, bindingContext);
-					}
-				}
-			}
-		}
-		throw new NotAcceptableStatusException(mediaTypes);
-	}
+        if (adapter != null) {
+            if (adapter.isMultiValue()) {
+                throw new IllegalArgumentException(
+                        "Multi-value reactive types not supported in view resolution: " + result.getReturnType());
+            }
 
-	private Mono<? extends Void> renderWith(View view, Map<String, Object> model,
-			@Nullable MediaType mediaType, ServerWebExchange exchange, BindingContext bindingContext) {
+            valueMono = (result.getReturnValue() != null ?
+                    Mono.from(adapter.toPublisher(result.getReturnValue())) : Mono.empty());
 
-		exchange.getAttributes().put(View.BINDING_CONTEXT_ATTRIBUTE, bindingContext);
-		return view.render(model, mediaType, exchange)
-				.doOnTerminate(() -> exchange.getAttributes().remove(View.BINDING_CONTEXT_ATTRIBUTE));
-	}
+            valueType = (adapter.isNoValue() ? ResolvableType.forClass(Void.class) :
+                    result.getReturnType().getGeneric());
+        } else {
+            valueMono = Mono.justOrEmpty(result.getReturnValue());
+            valueType = result.getReturnType();
+        }
 
-	private List<MediaType> getMediaTypes(List<View> views) {
-		return views.stream()
-				.flatMap(view -> view.getSupportedMediaTypes().stream())
-				.collect(Collectors.toList());
-	}
+        return valueMono
+                .switchIfEmpty(exchange.isNotModified() ? Mono.empty() : NO_VALUE_MONO)
+                .flatMap(returnValue -> {
+
+                    Mono<List<View>> viewsMono;
+                    Model model = result.getModel();
+                    MethodParameter parameter = result.getReturnTypeSource();
+                    Locale locale = LocaleContextHolder.getLocale(exchange.getLocaleContext());
+
+                    Class<?> clazz = valueType.toClass();
+                    if (clazz == Object.class) {
+                        clazz = returnValue.getClass();
+                    }
+
+                    if (returnValue == NO_VALUE || clazz == void.class || clazz == Void.class) {
+                        viewsMono = resolveViews(getDefaultViewName(exchange), locale);
+                    } else if (CharSequence.class.isAssignableFrom(clazz) && !hasModelAnnotation(parameter)) {
+                        viewsMono = resolveViews(returnValue.toString(), locale);
+                    } else if (Rendering.class.isAssignableFrom(clazz)) {
+                        Rendering render = (Rendering) returnValue;
+                        HttpStatus status = render.status();
+                        if (status != null) {
+                            exchange.getResponse().setStatusCode(status);
+                        }
+                        exchange.getResponse().getHeaders().putAll(render.headers());
+                        model.addAllAttributes(render.modelAttributes());
+                        Object view = render.view();
+                        if (view == null) {
+                            view = getDefaultViewName(exchange);
+                        }
+                        viewsMono = (view instanceof String ? resolveViews((String) view, locale) :
+                                Mono.just(Collections.singletonList((View) view)));
+                    } else if (Model.class.isAssignableFrom(clazz)) {
+                        model.addAllAttributes(((Model) returnValue).asMap());
+                        viewsMono = resolveViews(getDefaultViewName(exchange), locale);
+                    } else if (Map.class.isAssignableFrom(clazz) && !hasModelAnnotation(parameter)) {
+                        model.addAllAttributes((Map<String, ?>) returnValue);
+                        viewsMono = resolveViews(getDefaultViewName(exchange), locale);
+                    } else if (View.class.isAssignableFrom(clazz)) {
+                        viewsMono = Mono.just(Collections.singletonList((View) returnValue));
+                    } else {
+                        String name = getNameForReturnValue(parameter);
+                        model.addAttribute(name, returnValue);
+                        viewsMono = resolveViews(getDefaultViewName(exchange), locale);
+                    }
+                    BindingContext bindingContext = result.getBindingContext();
+                    updateBindingResult(bindingContext, exchange);
+                    return viewsMono.flatMap(views -> render(views, model.asMap(), bindingContext, exchange));
+                });
+    }
+
+
+    private boolean hasModelAnnotation(MethodParameter parameter) {
+        return parameter.hasMethodAnnotation(ModelAttribute.class);
+    }
+
+    /**
+     * Select a default view name when a controller did not specify it.
+     * Use the request path the leading and trailing slash stripped.
+     */
+    private String getDefaultViewName(ServerWebExchange exchange) {
+        String path = exchange.getRequest().getPath().pathWithinApplication().value();
+        if (path.startsWith("/")) {
+            path = path.substring(1);
+        }
+        if (path.endsWith("/")) {
+            path = path.substring(0, path.length() - 1);
+        }
+        return StringUtils.stripFilenameExtension(path);
+    }
+
+    private Mono<List<View>> resolveViews(String viewName, Locale locale) {
+        return Flux.fromIterable(getViewResolvers())
+                .concatMap(resolver -> resolver.resolveViewName(viewName, locale))
+                .collectList()
+                .map(views -> {
+                    if (views.isEmpty()) {
+                        throw new IllegalStateException(
+                                "Could not resolve view with name '" + viewName + "'.");
+                    }
+                    views.addAll(getDefaultViews());
+                    return views;
+                });
+    }
+
+    private String getNameForReturnValue(MethodParameter returnType) {
+        return Optional.ofNullable(returnType.getMethodAnnotation(ModelAttribute.class))
+                .filter(ann -> StringUtils.hasText(ann.value()))
+                .map(ModelAttribute::value)
+                .orElseGet(() -> Conventions.getVariableNameForParameter(returnType));
+    }
+
+    private void updateBindingResult(BindingContext context, ServerWebExchange exchange) {
+        Map<String, Object> model = context.getModel().asMap();
+        for (Map.Entry<String, Object> entry : model.entrySet()) {
+            String name = entry.getKey();
+            Object value = entry.getValue();
+            if (isBindingCandidate(name, value)) {
+                if (!model.containsKey(BindingResult.MODEL_KEY_PREFIX + name)) {
+                    WebExchangeDataBinder binder = context.createDataBinder(exchange, value, name);
+                    model.put(BindingResult.MODEL_KEY_PREFIX + name, binder.getBindingResult());
+                }
+            }
+        }
+    }
+
+    private boolean isBindingCandidate(String name, @Nullable Object value) {
+        return (!name.startsWith(BindingResult.MODEL_KEY_PREFIX) && value != null &&
+                !value.getClass().isArray() && !(value instanceof Collection) && !(value instanceof Map) &&
+                getAdapterRegistry().getAdapter(null, value) == null &&
+                !BeanUtils.isSimpleValueType(value.getClass()));
+    }
+
+    private Mono<? extends Void> render(List<View> views, Map<String, Object> model,
+                                        BindingContext bindingContext, ServerWebExchange exchange) {
+
+        for (View view : views) {
+            if (view.isRedirectView()) {
+                return renderWith(view, model, null, exchange, bindingContext);
+            }
+        }
+        List<MediaType> mediaTypes = getMediaTypes(views);
+        MediaType bestMediaType = selectMediaType(exchange, () -> mediaTypes);
+        if (bestMediaType != null) {
+            for (View view : views) {
+                for (MediaType mediaType : view.getSupportedMediaTypes()) {
+                    if (mediaType.isCompatibleWith(bestMediaType)) {
+                        return renderWith(view, model, mediaType, exchange, bindingContext);
+                    }
+                }
+            }
+        }
+        throw new NotAcceptableStatusException(mediaTypes);
+    }
+
+    private Mono<? extends Void> renderWith(View view, Map<String, Object> model,
+                                            @Nullable MediaType mediaType, ServerWebExchange exchange, BindingContext bindingContext) {
+
+        exchange.getAttributes().put(View.BINDING_CONTEXT_ATTRIBUTE, bindingContext);
+        return view.render(model, mediaType, exchange)
+                .doOnTerminate(() -> exchange.getAttributes().remove(View.BINDING_CONTEXT_ATTRIBUTE));
+    }
+
+    private List<MediaType> getMediaTypes(List<View> views) {
+        return views.stream()
+                .flatMap(view -> view.getSupportedMediaTypes().stream())
+                .collect(Collectors.toList());
+    }
 
 }

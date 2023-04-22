@@ -30,54 +30,54 @@ import org.springframework.util.concurrent.MonoToListenableFutureAdapter;
 /**
  * Reactor Netty based implementation of {@link TcpConnection}.
  *
+ * @param <P> the type of payload for outbound messages
  * @author Rossen Stoyanchev
  * @since 5.0
- * @param <P> the type of payload for outbound messages
  */
 public class ReactorNettyTcpConnection<P> implements TcpConnection<P> {
 
-	private final NettyInbound inbound;
+    private final NettyInbound inbound;
 
-	private final NettyOutbound outbound;
+    private final NettyOutbound outbound;
 
-	private final ReactorNettyCodec<P> codec;
+    private final ReactorNettyCodec<P> codec;
 
-	private final DirectProcessor<Void> closeProcessor;
-
-
-	public ReactorNettyTcpConnection(NettyInbound inbound, NettyOutbound outbound,
-			ReactorNettyCodec<P> codec, DirectProcessor<Void> closeProcessor) {
-
-		this.inbound = inbound;
-		this.outbound = outbound;
-		this.codec = codec;
-		this.closeProcessor = closeProcessor;
-	}
+    private final DirectProcessor<Void> closeProcessor;
 
 
-	@Override
-	public ListenableFuture<Void> send(Message<P> message) {
-		ByteBuf byteBuf = this.outbound.alloc().buffer();
-		this.codec.encode(message, byteBuf);
-		Mono<Void> sendCompletion = this.outbound.send(Mono.just(byteBuf)).then();
-		return new MonoToListenableFutureAdapter<>(sendCompletion);
-	}
+    public ReactorNettyTcpConnection(NettyInbound inbound, NettyOutbound outbound,
+                                     ReactorNettyCodec<P> codec, DirectProcessor<Void> closeProcessor) {
 
-	@Override
-	@SuppressWarnings("deprecation")
-	public void onReadInactivity(Runnable runnable, long inactivityDuration) {
-		this.inbound.withConnection(conn -> conn.onReadIdle(inactivityDuration, runnable));
-	}
+        this.inbound = inbound;
+        this.outbound = outbound;
+        this.codec = codec;
+        this.closeProcessor = closeProcessor;
+    }
 
-	@Override
-	@SuppressWarnings("deprecation")
-	public void onWriteInactivity(Runnable runnable, long inactivityDuration) {
-		this.inbound.withConnection(conn -> conn.onWriteIdle(inactivityDuration, runnable));
-	}
 
-	@Override
-	public void close() {
-		this.closeProcessor.onComplete();
-	}
+    @Override
+    public ListenableFuture<Void> send(Message<P> message) {
+        ByteBuf byteBuf = this.outbound.alloc().buffer();
+        this.codec.encode(message, byteBuf);
+        Mono<Void> sendCompletion = this.outbound.send(Mono.just(byteBuf)).then();
+        return new MonoToListenableFutureAdapter<>(sendCompletion);
+    }
+
+    @Override
+    @SuppressWarnings("deprecation")
+    public void onReadInactivity(Runnable runnable, long inactivityDuration) {
+        this.inbound.withConnection(conn -> conn.onReadIdle(inactivityDuration, runnable));
+    }
+
+    @Override
+    @SuppressWarnings("deprecation")
+    public void onWriteInactivity(Runnable runnable, long inactivityDuration) {
+        this.inbound.withConnection(conn -> conn.onWriteIdle(inactivityDuration, runnable));
+    }
+
+    @Override
+    public void close() {
+        this.closeProcessor.onComplete();
+    }
 
 }

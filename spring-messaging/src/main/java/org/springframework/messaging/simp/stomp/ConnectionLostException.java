@@ -25,8 +25,8 @@ package org.springframework.messaging.simp.stomp;
 @SuppressWarnings("serial")
 public class ConnectionLostException extends RuntimeException {
 
-	public ConnectionLostException(String message) {
-		super(message);
-	}
+    public ConnectionLostException(String message) {
+        super(message);
+    }
 
 }

@@ -35,37 +35,37 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 public class DefaultServerWebExchangeTests {
 
-	@Test
-	public void transformUrlDefault() {
-		ServerWebExchange exchange = createExchange();
-		assertThat(exchange.transformUrl("/foo")).isEqualTo("/foo");
-	}
+    @Test
+    public void transformUrlDefault() {
+        ServerWebExchange exchange = createExchange();
+        assertThat(exchange.transformUrl("/foo")).isEqualTo("/foo");
+    }
 
-	@Test
-	public void transformUrlWithEncoder() {
-		ServerWebExchange exchange = createExchange();
-		exchange.addUrlTransformer(s -> s + "?nonce=123");
-		assertThat(exchange.transformUrl("/foo")).isEqualTo("/foo?nonce=123");
-	}
+    @Test
+    public void transformUrlWithEncoder() {
+        ServerWebExchange exchange = createExchange();
+        exchange.addUrlTransformer(s -> s + "?nonce=123");
+        assertThat(exchange.transformUrl("/foo")).isEqualTo("/foo?nonce=123");
+    }
 
-	@Test
-	public void transformUrlWithMultipleEncoders() {
-		ServerWebExchange exchange = createExchange();
-		exchange.addUrlTransformer(s -> s + ";p=abc");
-		exchange.addUrlTransformer(s -> s + "?q=123");
-		assertThat(exchange.transformUrl("/foo")).isEqualTo("/foo;p=abc?q=123");
-	}
+    @Test
+    public void transformUrlWithMultipleEncoders() {
+        ServerWebExchange exchange = createExchange();
+        exchange.addUrlTransformer(s -> s + ";p=abc");
+        exchange.addUrlTransformer(s -> s + "?q=123");
+        assertThat(exchange.transformUrl("/foo")).isEqualTo("/foo;p=abc?q=123");
+    }
 
 
-	private DefaultServerWebExchange createExchange() {
-		MockServerHttpRequest request = MockServerHttpRequest.get("https://example.com").build();
-		return createExchange(request);
-	}
+    private DefaultServerWebExchange createExchange() {
+        MockServerHttpRequest request = MockServerHttpRequest.get("https://example.com").build();
+        return createExchange(request);
+    }
 
-	private DefaultServerWebExchange createExchange(MockServerHttpRequest request) {
-		return new DefaultServerWebExchange(request, new MockServerHttpResponse(),
-				new DefaultWebSessionManager(), ServerCodecConfigurer.create(),
-				new AcceptHeaderLocaleContextResolver());
-	}
+    private DefaultServerWebExchange createExchange(MockServerHttpRequest request) {
+        return new DefaultServerWebExchange(request, new MockServerHttpResponse(),
+                new DefaultWebSessionManager(), ServerCodecConfigurer.create(),
+                new AcceptHeaderLocaleContextResolver());
+    }
 
 }

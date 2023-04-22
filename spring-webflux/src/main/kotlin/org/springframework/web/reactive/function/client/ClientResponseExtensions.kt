@@ -34,7 +34,7 @@ import reactor.core.publisher.Mono
  * @since 5.0
  */
 inline fun <reified T : Any> ClientResponse.bodyToMono(): Mono<T> =
-		bodyToMono(object : ParameterizedTypeReference<T>() {})
+        bodyToMono(object : ParameterizedTypeReference<T>() {})
 
 /**
  * Extension for [ClientResponse.bodyToFlux] providing a `bodyToFlux<Foo>()` variant
@@ -45,7 +45,7 @@ inline fun <reified T : Any> ClientResponse.bodyToMono(): Mono<T> =
  * @since 5.0
  */
 inline fun <reified T : Any> ClientResponse.bodyToFlux(): Flux<T> =
-		bodyToFlux(object : ParameterizedTypeReference<T>() {})
+        bodyToFlux(object : ParameterizedTypeReference<T>() {})
 
 /**
  * Coroutines [kotlinx.coroutines.flow.Flow] based variant of [ClientResponse.bodyToFlux].
@@ -54,7 +54,7 @@ inline fun <reified T : Any> ClientResponse.bodyToFlux(): Flux<T> =
  * @since 5.2
  */
 inline fun <reified T : Any> ClientResponse.bodyToFlow(): Flow<T> =
-		bodyToFlux<T>().asFlow()
+        bodyToFlux<T>().asFlow()
 
 /**
  * Extension for [ClientResponse.toEntity] providing a `toEntity<Foo>()` variant
@@ -65,7 +65,7 @@ inline fun <reified T : Any> ClientResponse.bodyToFlow(): Flow<T> =
  * @since 5.0
  */
 inline fun <reified T : Any> ClientResponse.toEntity(): Mono<ResponseEntity<T>> =
-		toEntity(object : ParameterizedTypeReference<T>() {})
+        toEntity(object : ParameterizedTypeReference<T>() {})
 
 /**
  * Extension for [ClientResponse.toEntityList] providing a `bodyToEntityList<Foo>()` variant
@@ -76,7 +76,7 @@ inline fun <reified T : Any> ClientResponse.toEntity(): Mono<ResponseEntity<T>> 
  * @since 5.0
  */
 inline fun <reified T : Any> ClientResponse.toEntityList(): Mono<ResponseEntity<List<T>>> =
-		toEntityList(object : ParameterizedTypeReference<T>() {})
+        toEntityList(object : ParameterizedTypeReference<T>() {})
 
 /**
  * Non-nullable Coroutines variant of [ClientResponse.bodyToMono].
@@ -85,7 +85,7 @@ inline fun <reified T : Any> ClientResponse.toEntityList(): Mono<ResponseEntity<
  * @since 5.2
  */
 suspend inline fun <reified T : Any> ClientResponse.awaitBody(): T =
-		bodyToMono<T>().awaitSingle()
+        bodyToMono<T>().awaitSingle()
 
 /**
  * Nullable coroutines variant of [ClientResponse.bodyToMono].
@@ -94,7 +94,7 @@ suspend inline fun <reified T : Any> ClientResponse.awaitBody(): T =
  * @since 5.2
  */
 suspend inline fun <reified T : Any> ClientResponse.awaitBodyOrNull(): T? =
-		bodyToMono<T>().awaitFirstOrNull()
+        bodyToMono<T>().awaitFirstOrNull()
 
 /**
  * Coroutines variant of [ClientResponse.toEntity].
@@ -103,7 +103,7 @@ suspend inline fun <reified T : Any> ClientResponse.awaitBodyOrNull(): T? =
  * @since 5.2
  */
 suspend inline fun <reified T : Any> ClientResponse.awaitEntity(): ResponseEntity<T> =
-		toEntity<T>().awaitSingle()
+        toEntity<T>().awaitSingle()
 
 /**
  * Coroutines variant of [ClientResponse.toEntityList].
@@ -112,4 +112,4 @@ suspend inline fun <reified T : Any> ClientResponse.awaitEntity(): ResponseEntit
  * @since 5.2
  */
 suspend inline fun <reified T : Any> ClientResponse.awaitEntityList(): ResponseEntity<List<T>> =
-		toEntityList<T>().awaitSingle()
+        toEntityList<T>().awaitSingle()

@@ -26,14 +26,15 @@ package org.springframework.expression;
  */
 public interface BeanResolver {
 
-	/**
-	 * Look up a bean by the given name and return a corresponding instance for it.
-	 * For attempting access to a factory bean, the name needs a <tt>&</tt> prefix.
-	 * @param context the current evaluation context
-	 * @param beanName the name of the bean to look up
-	 * @return an object representing the bean
-	 * @throws AccessException if there is an unexpected problem resolving the bean
-	 */
-	Object resolve(EvaluationContext context, String beanName) throws AccessException;
+    /**
+     * Look up a bean by the given name and return a corresponding instance for it.
+     * For attempting access to a factory bean, the name needs a <tt>&</tt> prefix.
+     *
+     * @param context  the current evaluation context
+     * @param beanName the name of the bean to look up
+     * @return an object representing the bean
+     * @throws AccessException if there is an unexpected problem resolving the bean
+     */
+    Object resolve(EvaluationContext context, String beanName) throws AccessException;
 
 }

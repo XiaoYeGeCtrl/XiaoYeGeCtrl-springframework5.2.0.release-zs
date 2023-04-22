@@ -42,85 +42,83 @@ import org.springframework.lang.Nullable;
  * @since 2.5
  */
 public class AspectJWeavingEnabler
-		implements BeanFactoryPostProcessor, BeanClassLoaderAware, LoadTimeWeaverAware, Ordered {
+        implements BeanFactoryPostProcessor, BeanClassLoaderAware, LoadTimeWeaverAware, Ordered {
 
-	/**
-	 * The {@code aop.xml} resource location.
-	 */
-	public static final String ASPECTJ_AOP_XML_RESOURCE = "META-INF/aop.xml";
-
-
-	@Nullable
-	private ClassLoader beanClassLoader;
-
-	@Nullable
-	private LoadTimeWeaver loadTimeWeaver;
+    /**
+     * The {@code aop.xml} resource location.
+     */
+    public static final String ASPECTJ_AOP_XML_RESOURCE = "META-INF/aop.xml";
 
 
-	@Override
-	public void setBeanClassLoader(ClassLoader classLoader) {
-		this.beanClassLoader = classLoader;
-	}
+    @Nullable
+    private ClassLoader beanClassLoader;
 
-	@Override
-	public void setLoadTimeWeaver(LoadTimeWeaver loadTimeWeaver) {
-		this.loadTimeWeaver = loadTimeWeaver;
-	}
+    @Nullable
+    private LoadTimeWeaver loadTimeWeaver;
 
-	@Override
-	public int getOrder() {
-		return HIGHEST_PRECEDENCE;
-	}
+    /**
+     * Enable AspectJ weaving with the given {@link LoadTimeWeaver}.
+     *
+     * @param weaverToUse     the LoadTimeWeaver to apply to (or {@code null} for a default weaver)
+     * @param beanClassLoader the class loader to create a default weaver for (if necessary)
+     */
+    public static void enableAspectJWeaving(
+            @Nullable LoadTimeWeaver weaverToUse, @Nullable ClassLoader beanClassLoader) {
 
-	@Override
-	public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
-		enableAspectJWeaving(this.loadTimeWeaver, this.beanClassLoader);
-	}
+        if (weaverToUse == null) {
+            if (InstrumentationLoadTimeWeaver.isInstrumentationAvailable()) {
+                weaverToUse = new InstrumentationLoadTimeWeaver(beanClassLoader);
+            } else {
+                throw new IllegalStateException("No LoadTimeWeaver available");
+            }
+        }
+        weaverToUse.addTransformer(
+                new AspectJClassBypassingClassFileTransformer(new ClassPreProcessorAgentAdapter()));
+    }
 
+    @Override
+    public void setBeanClassLoader(ClassLoader classLoader) {
+        this.beanClassLoader = classLoader;
+    }
 
-	/**
-	 * Enable AspectJ weaving with the given {@link LoadTimeWeaver}.
-	 * @param weaverToUse the LoadTimeWeaver to apply to (or {@code null} for a default weaver)
-	 * @param beanClassLoader the class loader to create a default weaver for (if necessary)
-	 */
-	public static void enableAspectJWeaving(
-			@Nullable LoadTimeWeaver weaverToUse, @Nullable ClassLoader beanClassLoader) {
+    @Override
+    public void setLoadTimeWeaver(LoadTimeWeaver loadTimeWeaver) {
+        this.loadTimeWeaver = loadTimeWeaver;
+    }
 
-		if (weaverToUse == null) {
-			if (InstrumentationLoadTimeWeaver.isInstrumentationAvailable()) {
-				weaverToUse = new InstrumentationLoadTimeWeaver(beanClassLoader);
-			}
-			else {
-				throw new IllegalStateException("No LoadTimeWeaver available");
-			}
-		}
-		weaverToUse.addTransformer(
-				new AspectJClassBypassingClassFileTransformer(new ClassPreProcessorAgentAdapter()));
-	}
+    @Override
+    public int getOrder() {
+        return HIGHEST_PRECEDENCE;
+    }
 
+    @Override
+    public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
+        enableAspectJWeaving(this.loadTimeWeaver, this.beanClassLoader);
+    }
 
-	/**
-	 * ClassFileTransformer decorator that suppresses processing of AspectJ
-	 * classes in order to avoid potential LinkageErrors.
-	 * @see org.springframework.context.annotation.LoadTimeWeavingConfiguration
-	 */
-	private static class AspectJClassBypassingClassFileTransformer implements ClassFileTransformer {
+    /**
+     * ClassFileTransformer decorator that suppresses processing of AspectJ
+     * classes in order to avoid potential LinkageErrors.
+     *
+     * @see org.springframework.context.annotation.LoadTimeWeavingConfiguration
+     */
+    private static class AspectJClassBypassingClassFileTransformer implements ClassFileTransformer {
 
-		private final ClassFileTransformer delegate;
+        private final ClassFileTransformer delegate;
 
-		public AspectJClassBypassingClassFileTransformer(ClassFileTransformer delegate) {
-			this.delegate = delegate;
-		}
+        public AspectJClassBypassingClassFileTransformer(ClassFileTransformer delegate) {
+            this.delegate = delegate;
+        }
 
-		@Override
-		public byte[] transform(ClassLoader loader, String className, Class<?> classBeingRedefined,
-				ProtectionDomain protectionDomain, byte[] classfileBuffer) throws IllegalClassFormatException {
+        @Override
+        public byte[] transform(ClassLoader loader, String className, Class<?> classBeingRedefined,
+                                ProtectionDomain protectionDomain, byte[] classfileBuffer) throws IllegalClassFormatException {
 
-			if (className.startsWith("org.aspectj") || className.startsWith("org/aspectj")) {
-				return classfileBuffer;
-			}
-			return this.delegate.transform(loader, className, classBeingRedefined, protectionDomain, classfileBuffer);
-		}
-	}
+            if (className.startsWith("org.aspectj") || className.startsWith("org/aspectj")) {
+                return classfileBuffer;
+            }
+            return this.delegate.transform(loader, className, classBeingRedefined, protectionDomain, classfileBuffer);
+        }
+    }
 
 }

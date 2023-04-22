@@ -38,97 +38,95 @@ import static org.springframework.tests.TestGroup.PERFORMANCE;
 @EnabledForTestGroups(PERFORMANCE)
 public class PerformanceTests {
 
-	public static final int ITERATIONS = 10000;
-	public static final boolean report = true;
+    public static final int ITERATIONS = 10000;
+    public static final boolean report = true;
+    private static final boolean DEBUG = false;
+    private static ExpressionParser parser = new SpelExpressionParser();
+    private static EvaluationContext eContext = TestScenarioCreator.getTestEvaluationContext();
 
-	private static ExpressionParser parser = new SpelExpressionParser();
-	private static EvaluationContext eContext = TestScenarioCreator.getTestEvaluationContext();
+    @Test
+    public void testPerformanceOfPropertyAccess() throws Exception {
+        long starttime = 0;
+        long endtime = 0;
 
-	private static final boolean DEBUG = false;
+        // warmup
+        for (int i = 0; i < ITERATIONS; i++) {
+            Expression expr = parser.parseExpression("placeOfBirth.city");
+            assertThat(expr).isNotNull();
+            expr.getValue(eContext);
+        }
 
-	@Test
-	public void testPerformanceOfPropertyAccess() throws Exception {
-		long starttime = 0;
-		long endtime = 0;
+        starttime = System.currentTimeMillis();
+        for (int i = 0; i < ITERATIONS; i++) {
+            Expression expr = parser.parseExpression("placeOfBirth.city");
+            assertThat(expr).isNotNull();
+            expr.getValue(eContext);
+        }
+        endtime = System.currentTimeMillis();
+        long freshParseTime = endtime - starttime;
+        if (DEBUG) {
+            System.out.println("PropertyAccess: Time for parsing and evaluation x 10000: " + freshParseTime + "ms");
+        }
 
-		// warmup
-		for (int i = 0; i < ITERATIONS; i++) {
-			Expression expr = parser.parseExpression("placeOfBirth.city");
-			assertThat(expr).isNotNull();
-			expr.getValue(eContext);
-		}
+        Expression expr = parser.parseExpression("placeOfBirth.city");
+        assertThat(expr).isNotNull();
+        starttime = System.currentTimeMillis();
+        for (int i = 0; i < ITERATIONS; i++) {
+            expr.getValue(eContext);
+        }
+        endtime = System.currentTimeMillis();
+        long reuseTime = endtime - starttime;
+        if (DEBUG) {
+            System.out.println("PropertyAccess: Time for just evaluation x 10000: " + reuseTime + "ms");
+        }
+        if (reuseTime > freshParseTime) {
+            System.out.println("Fresh parse every time, ITERATIONS iterations = " + freshParseTime + "ms");
+            System.out.println("Reuse SpelExpression, ITERATIONS iterations = " + reuseTime + "ms");
+            fail("Should have been quicker to reuse!");
+        }
+    }
 
-		starttime = System.currentTimeMillis();
-		for (int i = 0; i < ITERATIONS; i++) {
-			Expression expr = parser.parseExpression("placeOfBirth.city");
-			assertThat(expr).isNotNull();
-			expr.getValue(eContext);
-		}
-		endtime = System.currentTimeMillis();
-		long freshParseTime = endtime - starttime;
-		if (DEBUG) {
-			System.out.println("PropertyAccess: Time for parsing and evaluation x 10000: "+freshParseTime+"ms");
-		}
+    @Test
+    public void testPerformanceOfMethodAccess() throws Exception {
+        long starttime = 0;
+        long endtime = 0;
 
-		Expression expr = parser.parseExpression("placeOfBirth.city");
-		assertThat(expr).isNotNull();
-		starttime = System.currentTimeMillis();
-		for (int i = 0; i < ITERATIONS; i++) {
-			expr.getValue(eContext);
-		}
-		endtime = System.currentTimeMillis();
-		long reuseTime = endtime - starttime;
-		if (DEBUG) {
-			System.out.println("PropertyAccess: Time for just evaluation x 10000: "+reuseTime+"ms");
-		}
-		if (reuseTime > freshParseTime) {
-			System.out.println("Fresh parse every time, ITERATIONS iterations = " + freshParseTime + "ms");
-			System.out.println("Reuse SpelExpression, ITERATIONS iterations = " + reuseTime + "ms");
-			fail("Should have been quicker to reuse!");
-		}
-	}
+        // warmup
+        for (int i = 0; i < ITERATIONS; i++) {
+            Expression expr = parser.parseExpression("getPlaceOfBirth().getCity()");
+            assertThat(expr).isNotNull();
+            expr.getValue(eContext);
+        }
 
-	@Test
-	public void testPerformanceOfMethodAccess() throws Exception {
-		long starttime = 0;
-		long endtime = 0;
+        starttime = System.currentTimeMillis();
+        for (int i = 0; i < ITERATIONS; i++) {
+            Expression expr = parser.parseExpression("getPlaceOfBirth().getCity()");
+            assertThat(expr).isNotNull();
+            expr.getValue(eContext);
+        }
+        endtime = System.currentTimeMillis();
+        long freshParseTime = endtime - starttime;
+        if (DEBUG) {
+            System.out.println("MethodExpression: Time for parsing and evaluation x 10000: " + freshParseTime + "ms");
+        }
 
-		// warmup
-		for (int i = 0; i < ITERATIONS; i++) {
-			Expression expr = parser.parseExpression("getPlaceOfBirth().getCity()");
-			assertThat(expr).isNotNull();
-			expr.getValue(eContext);
-		}
+        Expression expr = parser.parseExpression("getPlaceOfBirth().getCity()");
+        assertThat(expr).isNotNull();
+        starttime = System.currentTimeMillis();
+        for (int i = 0; i < ITERATIONS; i++) {
+            expr.getValue(eContext);
+        }
+        endtime = System.currentTimeMillis();
+        long reuseTime = endtime - starttime;
+        if (DEBUG) {
+            System.out.println("MethodExpression: Time for just evaluation x 10000: " + reuseTime + "ms");
+        }
 
-		starttime = System.currentTimeMillis();
-		for (int i = 0; i < ITERATIONS; i++) {
-			Expression expr = parser.parseExpression("getPlaceOfBirth().getCity()");
-			assertThat(expr).isNotNull();
-			expr.getValue(eContext);
-		}
-		endtime = System.currentTimeMillis();
-		long freshParseTime = endtime - starttime;
-		if (DEBUG) {
-			System.out.println("MethodExpression: Time for parsing and evaluation x 10000: "+freshParseTime+"ms");
-		}
-
-		Expression expr = parser.parseExpression("getPlaceOfBirth().getCity()");
-		assertThat(expr).isNotNull();
-		starttime = System.currentTimeMillis();
-		for (int i = 0; i < ITERATIONS; i++) {
-			expr.getValue(eContext);
-		}
-		endtime = System.currentTimeMillis();
-		long reuseTime = endtime - starttime;
-		if (DEBUG) {
-			System.out.println("MethodExpression: Time for just evaluation x 10000: "+reuseTime+"ms");
-		}
-
-		if (reuseTime > freshParseTime) {
-			System.out.println("Fresh parse every time, ITERATIONS iterations = " + freshParseTime + "ms");
-			System.out.println("Reuse SpelExpression, ITERATIONS iterations = " + reuseTime + "ms");
-			fail("Should have been quicker to reuse!");
-		}
-	}
+        if (reuseTime > freshParseTime) {
+            System.out.println("Fresh parse every time, ITERATIONS iterations = " + freshParseTime + "ms");
+            System.out.println("Reuse SpelExpression, ITERATIONS iterations = " + reuseTime + "ms");
+            fail("Should have been quicker to reuse!");
+        }
+    }
 
 }

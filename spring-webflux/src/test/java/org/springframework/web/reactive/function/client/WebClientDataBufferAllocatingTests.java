@@ -54,185 +54,188 @@ import static org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS;
 @TestInstance(PER_CLASS)
 class WebClientDataBufferAllocatingTests extends AbstractDataBufferAllocatingTests {
 
-	private static final Duration DELAY = Duration.ofSeconds(5);
+    private static final Duration DELAY = Duration.ofSeconds(5);
 
-	private final ReactorResourceFactory factory = new ReactorResourceFactory();
-	private MockWebServer server;
-	private WebClient webClient;
-
-
-	@BeforeAll
-	void setUpReactorResourceFactory() {
-		this.factory.afterPropertiesSet();
-	}
-
-	@AfterAll
-	void destroyReactorResourceFactory() {
-		this.factory.destroy();
-	}
-
-	private void setUp(DataBufferFactory bufferFactory) {
-		super.bufferFactory = bufferFactory;
-		this.server = new MockWebServer();
-		this.webClient = WebClient
-				.builder()
-				.clientConnector(initConnector())
-				.baseUrl(this.server.url("/").toString())
-				.build();
-	}
-
-	private ReactorClientHttpConnector initConnector() {
-		assertThat(super.bufferFactory).isNotNull();
-
-		if (super.bufferFactory instanceof NettyDataBufferFactory) {
-			ByteBufAllocator allocator = ((NettyDataBufferFactory) super.bufferFactory).getByteBufAllocator();
-			return new ReactorClientHttpConnector(this.factory, httpClient ->
-					httpClient.tcpConfiguration(tcpClient -> tcpClient.option(ChannelOption.ALLOCATOR, allocator)));
-		}
-		else {
-			return new ReactorClientHttpConnector();
-		}
-	}
+    private final ReactorResourceFactory factory = new ReactorResourceFactory();
+    private MockWebServer server;
+    private WebClient webClient;
 
 
-	@ParameterizedDataBufferAllocatingTest
-	void bodyToMonoVoid(String displayName, DataBufferFactory bufferFactory) {
-		setUp(bufferFactory);
+    @BeforeAll
+    void setUpReactorResourceFactory() {
+        this.factory.afterPropertiesSet();
+    }
 
-		this.server.enqueue(new MockResponse()
-				.setResponseCode(201)
-				.setHeader("Content-Type", "application/json")
-				.setChunkedBody("{\"foo\" : {\"bar\" : \"123\", \"baz\" : \"456\"}}", 5));
+    @AfterAll
+    void destroyReactorResourceFactory() {
+        this.factory.destroy();
+    }
 
-		Mono<Void> mono = this.webClient.get()
-				.uri("/json").accept(MediaType.APPLICATION_JSON)
-				.retrieve()
-				.bodyToMono(Void.class);
+    private void setUp(DataBufferFactory bufferFactory) {
+        super.bufferFactory = bufferFactory;
+        this.server = new MockWebServer();
+        this.webClient = WebClient
+                .builder()
+                .clientConnector(initConnector())
+                .baseUrl(this.server.url("/").toString())
+                .build();
+    }
 
-		StepVerifier.create(mono).expectComplete().verify(Duration.ofSeconds(3));
-		assertThat(this.server.getRequestCount()).isEqualTo(1);
-	}
+    private ReactorClientHttpConnector initConnector() {
+        assertThat(super.bufferFactory).isNotNull();
 
-	@ParameterizedDataBufferAllocatingTest // SPR-17482
-	void bodyToMonoVoidWithoutContentType(String displayName, DataBufferFactory bufferFactory) {
-		setUp(bufferFactory);
-
-		this.server.enqueue(new MockResponse()
-				.setResponseCode(HttpStatus.ACCEPTED.value())
-				.setChunkedBody("{\"foo\" : \"123\",  \"baz\" : \"456\", \"baz\" : \"456\"}", 5));
-
-		Mono<Map<String, String>> mono = this.webClient.get()
-				.uri("/sample").accept(MediaType.APPLICATION_JSON)
-				.retrieve()
-				.bodyToMono(new ParameterizedTypeReference<Map<String, String>>() {});
-
-		StepVerifier.create(mono).expectError(UnsupportedMediaTypeException.class).verify(Duration.ofSeconds(3));
-		assertThat(this.server.getRequestCount()).isEqualTo(1);
-	}
-
-	@ParameterizedDataBufferAllocatingTest
-	void onStatusWithBodyNotConsumed(String displayName, DataBufferFactory bufferFactory) {
-		setUp(bufferFactory);
-
-		RuntimeException ex = new RuntimeException("response error");
-		testOnStatus(ex, response -> Mono.just(ex));
-	}
-
-	@ParameterizedDataBufferAllocatingTest
-	void onStatusWithBodyConsumed(String displayName, DataBufferFactory bufferFactory) {
-		setUp(bufferFactory);
-
-		RuntimeException ex = new RuntimeException("response error");
-		testOnStatus(ex, response -> response.bodyToMono(Void.class).thenReturn(ex));
-	}
-
-	@ParameterizedDataBufferAllocatingTest // SPR-17473
-	void onStatusWithMonoErrorAndBodyNotConsumed(String displayName, DataBufferFactory bufferFactory) {
-		setUp(bufferFactory);
-
-		RuntimeException ex = new RuntimeException("response error");
-		testOnStatus(ex, response -> Mono.error(ex));
-	}
-
-	@ParameterizedDataBufferAllocatingTest
-	void onStatusWithMonoErrorAndBodyConsumed(String displayName, DataBufferFactory bufferFactory) {
-		setUp(bufferFactory);
-
-		RuntimeException ex = new RuntimeException("response error");
-		testOnStatus(ex, response -> response.bodyToMono(Void.class).then(Mono.error(ex)));
-	}
-
-	@ParameterizedDataBufferAllocatingTest // gh-23230
-	void onStatusWithImmediateErrorAndBodyNotConsumed(String displayName, DataBufferFactory bufferFactory) {
-		setUp(bufferFactory);
-
-		RuntimeException ex = new RuntimeException("response error");
-		testOnStatus(ex, response -> {
-			throw ex;
-		});
-	}
-
-	@ParameterizedDataBufferAllocatingTest
-	void releaseBody(String displayName, DataBufferFactory bufferFactory) {
-		setUp(bufferFactory);
-
-		this.server.enqueue(new MockResponse()
-				.setResponseCode(200)
-				.setHeader("Content-Type", "text/plain")
-				.setBody("foo bar"));
-
-		Mono<Void> result  = this.webClient.get()
-				.exchange()
-				.flatMap(ClientResponse::releaseBody);
+        if (super.bufferFactory instanceof NettyDataBufferFactory) {
+            ByteBufAllocator allocator = ((NettyDataBufferFactory) super.bufferFactory).getByteBufAllocator();
+            return new ReactorClientHttpConnector(this.factory, httpClient ->
+                    httpClient.tcpConfiguration(tcpClient -> tcpClient.option(ChannelOption.ALLOCATOR, allocator)));
+        } else {
+            return new ReactorClientHttpConnector();
+        }
+    }
 
 
-		StepVerifier.create(result)
-				.expectComplete()
-				.verify(Duration.ofSeconds(3));
-	}
+    @ParameterizedDataBufferAllocatingTest
+    void bodyToMonoVoid(String displayName, DataBufferFactory bufferFactory) {
+        setUp(bufferFactory);
 
-	@ParameterizedDataBufferAllocatingTest
-	void exchangeToBodilessEntity(String displayName, DataBufferFactory bufferFactory) {
-		setUp(bufferFactory);
+        this.server.enqueue(new MockResponse()
+                .setResponseCode(201)
+                .setHeader("Content-Type", "application/json")
+                .setChunkedBody("{\"foo\" : {\"bar\" : \"123\", \"baz\" : \"456\"}}", 5));
 
-		this.server.enqueue(new MockResponse()
-				.setResponseCode(201)
-				.setHeader("Foo", "bar")
-				.setBody("foo bar"));
+        Mono<Void> mono = this.webClient.get()
+                .uri("/json").accept(MediaType.APPLICATION_JSON)
+                .retrieve()
+                .bodyToMono(Void.class);
 
-		Mono<ResponseEntity<Void>> result  = this.webClient.get()
-				.exchange()
-				.flatMap(ClientResponse::toBodilessEntity);
+        StepVerifier.create(mono).expectComplete().verify(Duration.ofSeconds(3));
+        assertThat(this.server.getRequestCount()).isEqualTo(1);
+    }
 
-		StepVerifier.create(result)
-				.assertNext(entity -> {
-					assertThat(entity.getStatusCode()).isEqualTo(HttpStatus.CREATED);
-					assertThat(entity.getHeaders()).containsEntry("Foo", Collections.singletonList("bar"));
-					assertThat(entity.getBody()).isNull();
-				})
-				.expectComplete()
-				.verify(Duration.ofSeconds(3));
-	}
+    @ParameterizedDataBufferAllocatingTest
+        // SPR-17482
+    void bodyToMonoVoidWithoutContentType(String displayName, DataBufferFactory bufferFactory) {
+        setUp(bufferFactory);
+
+        this.server.enqueue(new MockResponse()
+                .setResponseCode(HttpStatus.ACCEPTED.value())
+                .setChunkedBody("{\"foo\" : \"123\",  \"baz\" : \"456\", \"baz\" : \"456\"}", 5));
+
+        Mono<Map<String, String>> mono = this.webClient.get()
+                .uri("/sample").accept(MediaType.APPLICATION_JSON)
+                .retrieve()
+                .bodyToMono(new ParameterizedTypeReference<Map<String, String>>() {
+                });
+
+        StepVerifier.create(mono).expectError(UnsupportedMediaTypeException.class).verify(Duration.ofSeconds(3));
+        assertThat(this.server.getRequestCount()).isEqualTo(1);
+    }
+
+    @ParameterizedDataBufferAllocatingTest
+    void onStatusWithBodyNotConsumed(String displayName, DataBufferFactory bufferFactory) {
+        setUp(bufferFactory);
+
+        RuntimeException ex = new RuntimeException("response error");
+        testOnStatus(ex, response -> Mono.just(ex));
+    }
+
+    @ParameterizedDataBufferAllocatingTest
+    void onStatusWithBodyConsumed(String displayName, DataBufferFactory bufferFactory) {
+        setUp(bufferFactory);
+
+        RuntimeException ex = new RuntimeException("response error");
+        testOnStatus(ex, response -> response.bodyToMono(Void.class).thenReturn(ex));
+    }
+
+    @ParameterizedDataBufferAllocatingTest
+        // SPR-17473
+    void onStatusWithMonoErrorAndBodyNotConsumed(String displayName, DataBufferFactory bufferFactory) {
+        setUp(bufferFactory);
+
+        RuntimeException ex = new RuntimeException("response error");
+        testOnStatus(ex, response -> Mono.error(ex));
+    }
+
+    @ParameterizedDataBufferAllocatingTest
+    void onStatusWithMonoErrorAndBodyConsumed(String displayName, DataBufferFactory bufferFactory) {
+        setUp(bufferFactory);
+
+        RuntimeException ex = new RuntimeException("response error");
+        testOnStatus(ex, response -> response.bodyToMono(Void.class).then(Mono.error(ex)));
+    }
+
+    @ParameterizedDataBufferAllocatingTest
+        // gh-23230
+    void onStatusWithImmediateErrorAndBodyNotConsumed(String displayName, DataBufferFactory bufferFactory) {
+        setUp(bufferFactory);
+
+        RuntimeException ex = new RuntimeException("response error");
+        testOnStatus(ex, response -> {
+            throw ex;
+        });
+    }
+
+    @ParameterizedDataBufferAllocatingTest
+    void releaseBody(String displayName, DataBufferFactory bufferFactory) {
+        setUp(bufferFactory);
+
+        this.server.enqueue(new MockResponse()
+                .setResponseCode(200)
+                .setHeader("Content-Type", "text/plain")
+                .setBody("foo bar"));
+
+        Mono<Void> result = this.webClient.get()
+                .exchange()
+                .flatMap(ClientResponse::releaseBody);
 
 
-	private void testOnStatus(Throwable expected,
-			Function<ClientResponse, Mono<? extends Throwable>> exceptionFunction) {
+        StepVerifier.create(result)
+                .expectComplete()
+                .verify(Duration.ofSeconds(3));
+    }
 
-		HttpStatus errorStatus = HttpStatus.BAD_GATEWAY;
+    @ParameterizedDataBufferAllocatingTest
+    void exchangeToBodilessEntity(String displayName, DataBufferFactory bufferFactory) {
+        setUp(bufferFactory);
 
-		this.server.enqueue(new MockResponse()
-				.setResponseCode(errorStatus.value())
-				.setHeader("Content-Type", "application/json")
-				.setChunkedBody("{\"error\" : {\"status\" : 502, \"message\" : \"Bad gateway.\"}}", 5));
+        this.server.enqueue(new MockResponse()
+                .setResponseCode(201)
+                .setHeader("Foo", "bar")
+                .setBody("foo bar"));
 
-		Mono<String> mono = this.webClient.get()
-				.uri("/json").accept(MediaType.APPLICATION_JSON)
-				.retrieve()
-				.onStatus(status -> status.equals(errorStatus), exceptionFunction)
-				.bodyToMono(String.class);
+        Mono<ResponseEntity<Void>> result = this.webClient.get()
+                .exchange()
+                .flatMap(ClientResponse::toBodilessEntity);
 
-		StepVerifier.create(mono).expectErrorSatisfies(actual -> assertThat(actual).isSameAs(expected)).verify(DELAY);
-		assertThat(this.server.getRequestCount()).isEqualTo(1);
-	}
+        StepVerifier.create(result)
+                .assertNext(entity -> {
+                    assertThat(entity.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+                    assertThat(entity.getHeaders()).containsEntry("Foo", Collections.singletonList("bar"));
+                    assertThat(entity.getBody()).isNull();
+                })
+                .expectComplete()
+                .verify(Duration.ofSeconds(3));
+    }
+
+
+    private void testOnStatus(Throwable expected,
+                              Function<ClientResponse, Mono<? extends Throwable>> exceptionFunction) {
+
+        HttpStatus errorStatus = HttpStatus.BAD_GATEWAY;
+
+        this.server.enqueue(new MockResponse()
+                .setResponseCode(errorStatus.value())
+                .setHeader("Content-Type", "application/json")
+                .setChunkedBody("{\"error\" : {\"status\" : 502, \"message\" : \"Bad gateway.\"}}", 5));
+
+        Mono<String> mono = this.webClient.get()
+                .uri("/json").accept(MediaType.APPLICATION_JSON)
+                .retrieve()
+                .onStatus(status -> status.equals(errorStatus), exceptionFunction)
+                .bodyToMono(String.class);
+
+        StepVerifier.create(mono).expectErrorSatisfies(actual -> assertThat(actual).isSameAs(expected)).verify(DELAY);
+        assertThat(this.server.getRequestCount()).isEqualTo(1);
+    }
 
 }

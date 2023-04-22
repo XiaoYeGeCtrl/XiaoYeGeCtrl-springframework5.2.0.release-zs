@@ -40,20 +40,20 @@ import org.springframework.test.context.ContextConfiguration;
 @DirtiesContext
 class RepeatableSqlAnnotationSqlScriptsTests extends AbstractTransactionalTests {
 
-	@Test
-	@Order(1)
-	void classLevelScripts() {
-		assertNumUsers(1);
-	}
+    @Test
+    @Order(1)
+    void classLevelScripts() {
+        assertNumUsers(1);
+    }
 
-	@Test
-	@Sql("drop-schema.sql")
-	@Sql("schema.sql")
-	@Sql("data.sql")
-	@Sql("data-add-dogbert.sql")
-	@Order(1)
-	void methodLevelScripts() {
-		assertNumUsers(2);
-	}
+    @Test
+    @Sql("drop-schema.sql")
+    @Sql("schema.sql")
+    @Sql("data.sql")
+    @Sql("data-add-dogbert.sql")
+    @Order(1)
+    void methodLevelScripts() {
+        assertNumUsers(2);
+    }
 
 }

@@ -59,240 +59,238 @@ import static org.springframework.test.web.servlet.setup.MockMvcBuilders.standal
  */
 public class AsyncTests {
 
-	private final AsyncController asyncController = new AsyncController();
+    private final AsyncController asyncController = new AsyncController();
 
-	private final MockMvc mockMvc = standaloneSetup(this.asyncController).build();
-
-
-	@Test
-	public void callable() throws Exception {
-		MvcResult mvcResult = this.mockMvc.perform(get("/1").param("callable", "true"))
-				.andExpect(request().asyncStarted())
-				.andExpect(request().asyncResult(new Person("Joe")))
-				.andReturn();
-
-		this.mockMvc.perform(asyncDispatch(mvcResult))
-				.andExpect(status().isOk())
-				.andExpect(content().contentType(MediaType.APPLICATION_JSON))
-				.andExpect(content().string("{\"name\":\"Joe\",\"someDouble\":0.0,\"someBoolean\":false}"));
-	}
-
-	@Test
-	public void streaming() throws Exception {
-		this.mockMvc.perform(get("/1").param("streaming", "true"))
-				.andExpect(request().asyncStarted())
-				.andDo(MvcResult::getAsyncResult) // fetch async result similar to "asyncDispatch" builder
-				.andExpect(status().isOk())
-				.andExpect(content().string("name=Joe"));
-	}
-
-	@Test
-	public void streamingSlow() throws Exception {
-		this.mockMvc.perform(get("/1").param("streamingSlow", "true"))
-				.andExpect(request().asyncStarted())
-				.andDo(MvcResult::getAsyncResult)
-				.andExpect(status().isOk())
-				.andExpect(content().string("name=Joe&someBoolean=true"));
-	}
-
-	@Test
-	public void streamingJson() throws Exception {
-		this.mockMvc.perform(get("/1").param("streamingJson", "true"))
-				.andExpect(request().asyncStarted())
-				.andDo(MvcResult::getAsyncResult)
-				.andExpect(status().isOk())
-				.andExpect(content().contentType(MediaType.APPLICATION_JSON))
-				.andExpect(content().string("{\"name\":\"Joe\",\"someDouble\":0.5}"));
-	}
-
-	@Test
-	public void deferredResult() throws Exception {
-		MvcResult mvcResult = this.mockMvc.perform(get("/1").param("deferredResult", "true"))
-				.andExpect(request().asyncStarted())
-				.andReturn();
-
-		this.asyncController.onMessage("Joe");
-
-		this.mockMvc.perform(asyncDispatch(mvcResult))
-				.andExpect(status().isOk())
-				.andExpect(content().contentType(MediaType.APPLICATION_JSON))
-				.andExpect(content().string("{\"name\":\"Joe\",\"someDouble\":0.0,\"someBoolean\":false}"));
-	}
-
-	@Test
-	public void deferredResultWithImmediateValue() throws Exception {
-		MvcResult mvcResult = this.mockMvc.perform(get("/1").param("deferredResultWithImmediateValue", "true"))
-				.andExpect(request().asyncStarted())
-				.andExpect(request().asyncResult(new Person("Joe")))
-				.andReturn();
-
-		this.mockMvc.perform(asyncDispatch(mvcResult))
-				.andExpect(status().isOk())
-				.andExpect(content().contentType(MediaType.APPLICATION_JSON))
-				.andExpect(content().string("{\"name\":\"Joe\",\"someDouble\":0.0,\"someBoolean\":false}"));
-	}
-
-	@Test  // SPR-13079
-	public void deferredResultWithDelayedError() throws Exception {
-		MvcResult mvcResult = this.mockMvc.perform(get("/1").param("deferredResultWithDelayedError", "true"))
-				.andExpect(request().asyncStarted())
-				.andReturn();
-
-		this.mockMvc.perform(asyncDispatch(mvcResult))
-				.andExpect(status().is5xxServerError())
-				.andExpect(content().string("Delayed Error"));
-	}
-
-	@Test
-	public void listenableFuture() throws Exception {
-		MvcResult mvcResult = this.mockMvc.perform(get("/1").param("listenableFuture", "true"))
-				.andExpect(request().asyncStarted())
-				.andReturn();
-
-		this.asyncController.onMessage("Joe");
-
-		this.mockMvc.perform(asyncDispatch(mvcResult))
-				.andExpect(status().isOk())
-				.andExpect(content().contentType(MediaType.APPLICATION_JSON))
-				.andExpect(content().string("{\"name\":\"Joe\",\"someDouble\":0.0,\"someBoolean\":false}"));
-	}
-
-	@Test  // SPR-12597
-	public void completableFutureWithImmediateValue() throws Exception {
-		MvcResult mvcResult = this.mockMvc.perform(get("/1").param("completableFutureWithImmediateValue", "true"))
-				.andExpect(request().asyncStarted())
-				.andReturn();
-
-		this.mockMvc.perform(asyncDispatch(mvcResult))
-				.andExpect(status().isOk())
-				.andExpect(content().contentType(MediaType.APPLICATION_JSON))
-				.andExpect(content().string("{\"name\":\"Joe\",\"someDouble\":0.0,\"someBoolean\":false}"));
-	}
-
-	@Test  // SPR-12735
-	public void printAsyncResult() throws Exception {
-		StringWriter writer = new StringWriter();
-
-		MvcResult mvcResult = this.mockMvc.perform(get("/1").param("deferredResult", "true"))
-				.andDo(print(writer))
-				.andExpect(request().asyncStarted())
-				.andReturn();
-
-		assertThat(writer.toString().contains("Async started = true")).isTrue();
-		writer = new StringWriter();
-
-		this.asyncController.onMessage("Joe");
-
-		this.mockMvc.perform(asyncDispatch(mvcResult))
-				.andDo(print(writer))
-				.andExpect(status().isOk())
-				.andExpect(content().contentType(MediaType.APPLICATION_JSON))
-				.andExpect(content().string("{\"name\":\"Joe\",\"someDouble\":0.0,\"someBoolean\":false}"));
-
-		assertThat(writer.toString().contains("Async started = false")).isTrue();
-	}
+    private final MockMvc mockMvc = standaloneSetup(this.asyncController).build();
 
 
-	@RestController
-	@RequestMapping(path = "/{id}", produces = "application/json")
-	private static class AsyncController {
+    @Test
+    public void callable() throws Exception {
+        MvcResult mvcResult = this.mockMvc.perform(get("/1").param("callable", "true"))
+                .andExpect(request().asyncStarted())
+                .andExpect(request().asyncResult(new Person("Joe")))
+                .andReturn();
 
-		private final Collection<DeferredResult<Person>> deferredResults = new CopyOnWriteArrayList<>();
+        this.mockMvc.perform(asyncDispatch(mvcResult))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(content().string("{\"name\":\"Joe\",\"someDouble\":0.0,\"someBoolean\":false}"));
+    }
 
-		private final Collection<ListenableFutureTask<Person>> futureTasks = new CopyOnWriteArrayList<>();
+    @Test
+    public void streaming() throws Exception {
+        this.mockMvc.perform(get("/1").param("streaming", "true"))
+                .andExpect(request().asyncStarted())
+                .andDo(MvcResult::getAsyncResult) // fetch async result similar to "asyncDispatch" builder
+                .andExpect(status().isOk())
+                .andExpect(content().string("name=Joe"));
+    }
 
-		@RequestMapping(params = "callable")
-		public Callable<Person> getCallable() {
-			return () -> new Person("Joe");
-		}
+    @Test
+    public void streamingSlow() throws Exception {
+        this.mockMvc.perform(get("/1").param("streamingSlow", "true"))
+                .andExpect(request().asyncStarted())
+                .andDo(MvcResult::getAsyncResult)
+                .andExpect(status().isOk())
+                .andExpect(content().string("name=Joe&someBoolean=true"));
+    }
 
-		@RequestMapping(params = "streaming")
-		public StreamingResponseBody getStreaming() {
-			return os -> os.write("name=Joe".getBytes(StandardCharsets.UTF_8));
-		}
+    @Test
+    public void streamingJson() throws Exception {
+        this.mockMvc.perform(get("/1").param("streamingJson", "true"))
+                .andExpect(request().asyncStarted())
+                .andDo(MvcResult::getAsyncResult)
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(content().string("{\"name\":\"Joe\",\"someDouble\":0.5}"));
+    }
 
-		@RequestMapping(params = "streamingSlow")
-		public StreamingResponseBody getStreamingSlow() {
-			return os -> {
-				os.write("name=Joe".getBytes());
-				try {
-					Thread.sleep(200);
-					os.write("&someBoolean=true".getBytes(StandardCharsets.UTF_8));
-				}
-				catch (InterruptedException e) {
-					/* no-op */
-				}
-			};
-		}
+    @Test
+    public void deferredResult() throws Exception {
+        MvcResult mvcResult = this.mockMvc.perform(get("/1").param("deferredResult", "true"))
+                .andExpect(request().asyncStarted())
+                .andReturn();
 
-		@RequestMapping(params = "streamingJson")
-		public ResponseEntity<StreamingResponseBody> getStreamingJson() {
-			return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON)
-					.body(os -> os.write("{\"name\":\"Joe\",\"someDouble\":0.5}".getBytes(StandardCharsets.UTF_8)));
-		}
+        this.asyncController.onMessage("Joe");
 
-		@RequestMapping(params = "deferredResult")
-		public DeferredResult<Person> getDeferredResult() {
-			DeferredResult<Person> deferredResult = new DeferredResult<>();
-			this.deferredResults.add(deferredResult);
-			return deferredResult;
-		}
+        this.mockMvc.perform(asyncDispatch(mvcResult))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(content().string("{\"name\":\"Joe\",\"someDouble\":0.0,\"someBoolean\":false}"));
+    }
 
-		@RequestMapping(params = "deferredResultWithImmediateValue")
-		public DeferredResult<Person> getDeferredResultWithImmediateValue() {
-			DeferredResult<Person> deferredResult = new DeferredResult<>();
-			deferredResult.setResult(new Person("Joe"));
-			return deferredResult;
-		}
+    @Test
+    public void deferredResultWithImmediateValue() throws Exception {
+        MvcResult mvcResult = this.mockMvc.perform(get("/1").param("deferredResultWithImmediateValue", "true"))
+                .andExpect(request().asyncStarted())
+                .andExpect(request().asyncResult(new Person("Joe")))
+                .andReturn();
 
-		@RequestMapping(params = "deferredResultWithDelayedError")
-		public DeferredResult<Person> getDeferredResultWithDelayedError() {
-			final DeferredResult<Person> deferredResult = new DeferredResult<>();
-			new Thread() {
-				@Override
-				public void run() {
-					try {
-						Thread.sleep(100);
-						deferredResult.setErrorResult(new RuntimeException("Delayed Error"));
-					}
-					catch (InterruptedException e) {
-						/* no-op */
-					}
-				}
-			}.start();
-			return deferredResult;
-		}
+        this.mockMvc.perform(asyncDispatch(mvcResult))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(content().string("{\"name\":\"Joe\",\"someDouble\":0.0,\"someBoolean\":false}"));
+    }
 
-		@RequestMapping(params = "listenableFuture")
-		public ListenableFuture<Person> getListenableFuture() {
-			ListenableFutureTask<Person> futureTask = new ListenableFutureTask<>(() -> new Person("Joe"));
-			this.futureTasks.add(futureTask);
-			return futureTask;
-		}
+    @Test  // SPR-13079
+    public void deferredResultWithDelayedError() throws Exception {
+        MvcResult mvcResult = this.mockMvc.perform(get("/1").param("deferredResultWithDelayedError", "true"))
+                .andExpect(request().asyncStarted())
+                .andReturn();
 
-		@RequestMapping(params = "completableFutureWithImmediateValue")
-		public CompletableFuture<Person> getCompletableFutureWithImmediateValue() {
-			CompletableFuture<Person> future = new CompletableFuture<>();
-			future.complete(new Person("Joe"));
-			return future;
-		}
+        this.mockMvc.perform(asyncDispatch(mvcResult))
+                .andExpect(status().is5xxServerError())
+                .andExpect(content().string("Delayed Error"));
+    }
 
-		@ExceptionHandler(Exception.class)
-		@ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-		public String errorHandler(Exception e) {
-			return e.getMessage();
-		}
+    @Test
+    public void listenableFuture() throws Exception {
+        MvcResult mvcResult = this.mockMvc.perform(get("/1").param("listenableFuture", "true"))
+                .andExpect(request().asyncStarted())
+                .andReturn();
 
-		void onMessage(String name) {
-			for (DeferredResult<Person> deferredResult : this.deferredResults) {
-				deferredResult.setResult(new Person(name));
-				this.deferredResults.remove(deferredResult);
-			}
-			for (ListenableFutureTask<Person> futureTask : this.futureTasks) {
-				futureTask.run();
-				this.futureTasks.remove(futureTask);
-			}
-		}
-	}
+        this.asyncController.onMessage("Joe");
+
+        this.mockMvc.perform(asyncDispatch(mvcResult))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(content().string("{\"name\":\"Joe\",\"someDouble\":0.0,\"someBoolean\":false}"));
+    }
+
+    @Test  // SPR-12597
+    public void completableFutureWithImmediateValue() throws Exception {
+        MvcResult mvcResult = this.mockMvc.perform(get("/1").param("completableFutureWithImmediateValue", "true"))
+                .andExpect(request().asyncStarted())
+                .andReturn();
+
+        this.mockMvc.perform(asyncDispatch(mvcResult))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(content().string("{\"name\":\"Joe\",\"someDouble\":0.0,\"someBoolean\":false}"));
+    }
+
+    @Test  // SPR-12735
+    public void printAsyncResult() throws Exception {
+        StringWriter writer = new StringWriter();
+
+        MvcResult mvcResult = this.mockMvc.perform(get("/1").param("deferredResult", "true"))
+                .andDo(print(writer))
+                .andExpect(request().asyncStarted())
+                .andReturn();
+
+        assertThat(writer.toString().contains("Async started = true")).isTrue();
+        writer = new StringWriter();
+
+        this.asyncController.onMessage("Joe");
+
+        this.mockMvc.perform(asyncDispatch(mvcResult))
+                .andDo(print(writer))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(content().string("{\"name\":\"Joe\",\"someDouble\":0.0,\"someBoolean\":false}"));
+
+        assertThat(writer.toString().contains("Async started = false")).isTrue();
+    }
+
+
+    @RestController
+    @RequestMapping(path = "/{id}", produces = "application/json")
+    private static class AsyncController {
+
+        private final Collection<DeferredResult<Person>> deferredResults = new CopyOnWriteArrayList<>();
+
+        private final Collection<ListenableFutureTask<Person>> futureTasks = new CopyOnWriteArrayList<>();
+
+        @RequestMapping(params = "callable")
+        public Callable<Person> getCallable() {
+            return () -> new Person("Joe");
+        }
+
+        @RequestMapping(params = "streaming")
+        public StreamingResponseBody getStreaming() {
+            return os -> os.write("name=Joe".getBytes(StandardCharsets.UTF_8));
+        }
+
+        @RequestMapping(params = "streamingSlow")
+        public StreamingResponseBody getStreamingSlow() {
+            return os -> {
+                os.write("name=Joe".getBytes());
+                try {
+                    Thread.sleep(200);
+                    os.write("&someBoolean=true".getBytes(StandardCharsets.UTF_8));
+                } catch (InterruptedException e) {
+                    /* no-op */
+                }
+            };
+        }
+
+        @RequestMapping(params = "streamingJson")
+        public ResponseEntity<StreamingResponseBody> getStreamingJson() {
+            return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON)
+                    .body(os -> os.write("{\"name\":\"Joe\",\"someDouble\":0.5}".getBytes(StandardCharsets.UTF_8)));
+        }
+
+        @RequestMapping(params = "deferredResult")
+        public DeferredResult<Person> getDeferredResult() {
+            DeferredResult<Person> deferredResult = new DeferredResult<>();
+            this.deferredResults.add(deferredResult);
+            return deferredResult;
+        }
+
+        @RequestMapping(params = "deferredResultWithImmediateValue")
+        public DeferredResult<Person> getDeferredResultWithImmediateValue() {
+            DeferredResult<Person> deferredResult = new DeferredResult<>();
+            deferredResult.setResult(new Person("Joe"));
+            return deferredResult;
+        }
+
+        @RequestMapping(params = "deferredResultWithDelayedError")
+        public DeferredResult<Person> getDeferredResultWithDelayedError() {
+            final DeferredResult<Person> deferredResult = new DeferredResult<>();
+            new Thread() {
+                @Override
+                public void run() {
+                    try {
+                        Thread.sleep(100);
+                        deferredResult.setErrorResult(new RuntimeException("Delayed Error"));
+                    } catch (InterruptedException e) {
+                        /* no-op */
+                    }
+                }
+            }.start();
+            return deferredResult;
+        }
+
+        @RequestMapping(params = "listenableFuture")
+        public ListenableFuture<Person> getListenableFuture() {
+            ListenableFutureTask<Person> futureTask = new ListenableFutureTask<>(() -> new Person("Joe"));
+            this.futureTasks.add(futureTask);
+            return futureTask;
+        }
+
+        @RequestMapping(params = "completableFutureWithImmediateValue")
+        public CompletableFuture<Person> getCompletableFutureWithImmediateValue() {
+            CompletableFuture<Person> future = new CompletableFuture<>();
+            future.complete(new Person("Joe"));
+            return future;
+        }
+
+        @ExceptionHandler(Exception.class)
+        @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+        public String errorHandler(Exception e) {
+            return e.getMessage();
+        }
+
+        void onMessage(String name) {
+            for (DeferredResult<Person> deferredResult : this.deferredResults) {
+                deferredResult.setResult(new Person(name));
+                this.deferredResults.remove(deferredResult);
+            }
+            for (ListenableFutureTask<Person> futureTask : this.futureTasks) {
+                futureTask.run();
+                this.futureTasks.remove(futureTask);
+            }
+        }
+    }
 
 }

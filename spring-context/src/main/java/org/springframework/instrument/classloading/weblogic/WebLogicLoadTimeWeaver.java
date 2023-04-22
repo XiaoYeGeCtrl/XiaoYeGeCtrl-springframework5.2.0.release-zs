@@ -36,43 +36,45 @@ import org.springframework.util.ClassUtils;
  */
 public class WebLogicLoadTimeWeaver implements LoadTimeWeaver {
 
-	private final WebLogicClassLoaderAdapter classLoader;
+    private final WebLogicClassLoaderAdapter classLoader;
 
 
-	/**
-	 * Creates a new instance of the {@link WebLogicLoadTimeWeaver} class using
-	 * the default {@link ClassLoader class loader}.
-	 * @see org.springframework.util.ClassUtils#getDefaultClassLoader()
-	 */
-	public WebLogicLoadTimeWeaver() {
-		this(ClassUtils.getDefaultClassLoader());
-	}
+    /**
+     * Creates a new instance of the {@link WebLogicLoadTimeWeaver} class using
+     * the default {@link ClassLoader class loader}.
+     *
+     * @see org.springframework.util.ClassUtils#getDefaultClassLoader()
+     */
+    public WebLogicLoadTimeWeaver() {
+        this(ClassUtils.getDefaultClassLoader());
+    }
 
-	/**
-	 * Creates a new instance of the {@link WebLogicLoadTimeWeaver} class using
-	 * the supplied {@link ClassLoader}.
-	 * @param classLoader the {@code ClassLoader} to delegate to for weaving
-	 */
-	public WebLogicLoadTimeWeaver(@Nullable ClassLoader classLoader) {
-		Assert.notNull(classLoader, "ClassLoader must not be null");
-		this.classLoader = new WebLogicClassLoaderAdapter(classLoader);
-	}
+    /**
+     * Creates a new instance of the {@link WebLogicLoadTimeWeaver} class using
+     * the supplied {@link ClassLoader}.
+     *
+     * @param classLoader the {@code ClassLoader} to delegate to for weaving
+     */
+    public WebLogicLoadTimeWeaver(@Nullable ClassLoader classLoader) {
+        Assert.notNull(classLoader, "ClassLoader must not be null");
+        this.classLoader = new WebLogicClassLoaderAdapter(classLoader);
+    }
 
 
-	@Override
-	public void addTransformer(ClassFileTransformer transformer) {
-		this.classLoader.addTransformer(transformer);
-	}
+    @Override
+    public void addTransformer(ClassFileTransformer transformer) {
+        this.classLoader.addTransformer(transformer);
+    }
 
-	@Override
-	public ClassLoader getInstrumentableClassLoader() {
-		return this.classLoader.getClassLoader();
-	}
+    @Override
+    public ClassLoader getInstrumentableClassLoader() {
+        return this.classLoader.getClassLoader();
+    }
 
-	@Override
-	public ClassLoader getThrowawayClassLoader() {
-		return new OverridingClassLoader(this.classLoader.getClassLoader(),
-				this.classLoader.getThrowawayClassLoader());
-	}
+    @Override
+    public ClassLoader getThrowawayClassLoader() {
+        return new OverridingClassLoader(this.classLoader.getClassLoader(),
+                this.classLoader.getThrowawayClassLoader());
+    }
 
 }

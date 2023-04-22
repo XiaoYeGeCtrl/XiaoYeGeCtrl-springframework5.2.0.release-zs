@@ -36,57 +36,57 @@ import static org.assertj.core.api.Assertions.assertThat;
 @ContextHierarchy(@ContextConfiguration)
 public class DispatcherWacRootWacEarTests extends RootWacEarTests {
 
-	@Autowired
-	private WebApplicationContext wac;
+    @Autowired
+    private WebApplicationContext wac;
 
-	@Autowired
-	private String ear;
+    @Autowired
+    private String ear;
 
-	@Autowired
-	private String root;
+    @Autowired
+    private String root;
 
-	@Autowired
-	private String dispatcher;
+    @Autowired
+    private String dispatcher;
 
 
-	@Disabled("Superseded by verifyDispatcherWacConfig()")
-	@Test
-	@Override
-	void verifyEarConfig() {
-		/* no-op */
-	}
+    @Disabled("Superseded by verifyDispatcherWacConfig()")
+    @Test
+    @Override
+    void verifyEarConfig() {
+        /* no-op */
+    }
 
-	@Disabled("Superseded by verifyDispatcherWacConfig()")
-	@Test
-	@Override
-	void verifyRootWacConfig() {
-		/* no-op */
-	}
+    @Disabled("Superseded by verifyDispatcherWacConfig()")
+    @Test
+    @Override
+    void verifyRootWacConfig() {
+        /* no-op */
+    }
 
-	@Test
-	void verifyDispatcherWacConfig() {
-		ApplicationContext parent = wac.getParent();
-		assertThat(parent).isNotNull();
-		boolean condition = parent instanceof WebApplicationContext;
-		assertThat(condition).isTrue();
+    @Test
+    void verifyDispatcherWacConfig() {
+        ApplicationContext parent = wac.getParent();
+        assertThat(parent).isNotNull();
+        boolean condition = parent instanceof WebApplicationContext;
+        assertThat(condition).isTrue();
 
-		ApplicationContext grandParent = parent.getParent();
-		assertThat(grandParent).isNotNull();
-		boolean condition1 = grandParent instanceof WebApplicationContext;
-		assertThat(condition1).isFalse();
+        ApplicationContext grandParent = parent.getParent();
+        assertThat(grandParent).isNotNull();
+        boolean condition1 = grandParent instanceof WebApplicationContext;
+        assertThat(condition1).isFalse();
 
-		ServletContext dispatcherServletContext = wac.getServletContext();
-		assertThat(dispatcherServletContext).isNotNull();
-		ServletContext rootServletContext = ((WebApplicationContext) parent).getServletContext();
-		assertThat(rootServletContext).isNotNull();
-		assertThat(rootServletContext).isSameAs(dispatcherServletContext);
+        ServletContext dispatcherServletContext = wac.getServletContext();
+        assertThat(dispatcherServletContext).isNotNull();
+        ServletContext rootServletContext = ((WebApplicationContext) parent).getServletContext();
+        assertThat(rootServletContext).isNotNull();
+        assertThat(rootServletContext).isSameAs(dispatcherServletContext);
 
-		assertThat(rootServletContext.getAttribute(WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE)).isSameAs(parent);
-		assertThat(dispatcherServletContext.getAttribute(WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE)).isSameAs(parent);
+        assertThat(rootServletContext.getAttribute(WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE)).isSameAs(parent);
+        assertThat(dispatcherServletContext.getAttribute(WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE)).isSameAs(parent);
 
-		assertThat(ear).isEqualTo("ear");
-		assertThat(root).isEqualTo("root");
-		assertThat(dispatcher).isEqualTo("dispatcher");
-	}
+        assertThat(ear).isEqualTo("ear");
+        assertThat(root).isEqualTo("root");
+        assertThat(dispatcher).isEqualTo("dispatcher");
+    }
 
 }

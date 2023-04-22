@@ -38,113 +38,113 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
  */
 public class ParamTagTests extends AbstractTagTests {
 
-	private final ParamTag tag = new ParamTag();
+    private final ParamTag tag = new ParamTag();
 
-	private MockParamSupportTag parent = new MockParamSupportTag();
+    private MockParamSupportTag parent = new MockParamSupportTag();
 
-	@BeforeEach
-	public void setUp() throws Exception {
-		PageContext context = createPageContext();
-		tag.setPageContext(context);
-		tag.setParent(parent);
-	}
+    @BeforeEach
+    public void setUp() throws Exception {
+        PageContext context = createPageContext();
+        tag.setPageContext(context);
+        tag.setParent(parent);
+    }
 
-	@Test
-	public void paramWithNameAndValue() throws JspException {
-		tag.setName("name");
-		tag.setValue("value");
+    @Test
+    public void paramWithNameAndValue() throws JspException {
+        tag.setName("name");
+        tag.setValue("value");
 
-		int action = tag.doEndTag();
+        int action = tag.doEndTag();
 
-		assertThat(action).isEqualTo(Tag.EVAL_PAGE);
-		assertThat(parent.getParam().getName()).isEqualTo("name");
-		assertThat(parent.getParam().getValue()).isEqualTo("value");
-	}
+        assertThat(action).isEqualTo(Tag.EVAL_PAGE);
+        assertThat(parent.getParam().getName()).isEqualTo("name");
+        assertThat(parent.getParam().getValue()).isEqualTo("value");
+    }
 
-	@Test
-	public void paramWithBodyValue() throws JspException {
-		tag.setName("name");
-		tag.setBodyContent(new MockBodyContent("value", new MockHttpServletResponse()));
+    @Test
+    public void paramWithBodyValue() throws JspException {
+        tag.setName("name");
+        tag.setBodyContent(new MockBodyContent("value", new MockHttpServletResponse()));
 
-		int action = tag.doEndTag();
+        int action = tag.doEndTag();
 
-		assertThat(action).isEqualTo(Tag.EVAL_PAGE);
-		assertThat(parent.getParam().getName()).isEqualTo("name");
-		assertThat(parent.getParam().getValue()).isEqualTo("value");
-	}
+        assertThat(action).isEqualTo(Tag.EVAL_PAGE);
+        assertThat(parent.getParam().getName()).isEqualTo("name");
+        assertThat(parent.getParam().getValue()).isEqualTo("value");
+    }
 
-	@Test
-	public void paramWithImplicitNullValue() throws JspException {
-		tag.setName("name");
+    @Test
+    public void paramWithImplicitNullValue() throws JspException {
+        tag.setName("name");
 
-		int action = tag.doEndTag();
+        int action = tag.doEndTag();
 
-		assertThat(action).isEqualTo(Tag.EVAL_PAGE);
-		assertThat(parent.getParam().getName()).isEqualTo("name");
-		assertThat(parent.getParam().getValue()).isNull();
-	}
+        assertThat(action).isEqualTo(Tag.EVAL_PAGE);
+        assertThat(parent.getParam().getName()).isEqualTo("name");
+        assertThat(parent.getParam().getValue()).isNull();
+    }
 
-	@Test
-	public void paramWithExplicitNullValue() throws JspException {
-		tag.setName("name");
-		tag.setValue(null);
+    @Test
+    public void paramWithExplicitNullValue() throws JspException {
+        tag.setName("name");
+        tag.setValue(null);
 
-		int action = tag.doEndTag();
+        int action = tag.doEndTag();
 
-		assertThat(action).isEqualTo(Tag.EVAL_PAGE);
-		assertThat(parent.getParam().getName()).isEqualTo("name");
-		assertThat(parent.getParam().getValue()).isNull();
-	}
+        assertThat(action).isEqualTo(Tag.EVAL_PAGE);
+        assertThat(parent.getParam().getName()).isEqualTo("name");
+        assertThat(parent.getParam().getValue()).isNull();
+    }
 
-	@Test
-	public void paramWithValueThenReleaseThenBodyValue() throws JspException {
-		tag.setName("name1");
-		tag.setValue("value1");
+    @Test
+    public void paramWithValueThenReleaseThenBodyValue() throws JspException {
+        tag.setName("name1");
+        tag.setValue("value1");
 
-		int action = tag.doEndTag();
+        int action = tag.doEndTag();
 
-		assertThat(action).isEqualTo(Tag.EVAL_PAGE);
-		assertThat(parent.getParam().getName()).isEqualTo("name1");
-		assertThat(parent.getParam().getValue()).isEqualTo("value1");
+        assertThat(action).isEqualTo(Tag.EVAL_PAGE);
+        assertThat(parent.getParam().getName()).isEqualTo("name1");
+        assertThat(parent.getParam().getValue()).isEqualTo("value1");
 
-		tag.release();
+        tag.release();
 
-		parent = new MockParamSupportTag();
-		tag.setPageContext(createPageContext());
-		tag.setParent(parent);
-		tag.setName("name2");
-		tag.setBodyContent(new MockBodyContent("value2", new MockHttpServletResponse()));
+        parent = new MockParamSupportTag();
+        tag.setPageContext(createPageContext());
+        tag.setParent(parent);
+        tag.setName("name2");
+        tag.setBodyContent(new MockBodyContent("value2", new MockHttpServletResponse()));
 
-		action = tag.doEndTag();
+        action = tag.doEndTag();
 
-		assertThat(action).isEqualTo(Tag.EVAL_PAGE);
-		assertThat(parent.getParam().getName()).isEqualTo("name2");
-		assertThat(parent.getParam().getValue()).isEqualTo("value2");
-	}
+        assertThat(action).isEqualTo(Tag.EVAL_PAGE);
+        assertThat(parent.getParam().getName()).isEqualTo("name2");
+        assertThat(parent.getParam().getValue()).isEqualTo("value2");
+    }
 
-	@Test
-	public void paramWithNoParent() throws Exception {
-		tag.setName("name");
-		tag.setValue("value");
-		tag.setParent(null);
-		assertThatExceptionOfType(JspException.class).isThrownBy(
-				tag::doEndTag);
-	}
+    @Test
+    public void paramWithNoParent() throws Exception {
+        tag.setName("name");
+        tag.setValue("value");
+        tag.setParent(null);
+        assertThatExceptionOfType(JspException.class).isThrownBy(
+                tag::doEndTag);
+    }
 
-	@SuppressWarnings("serial")
-	private class MockParamSupportTag extends TagSupport implements ParamAware {
+    @SuppressWarnings("serial")
+    private class MockParamSupportTag extends TagSupport implements ParamAware {
 
-		private Param param;
+        private Param param;
 
-		@Override
-		public void addParam(Param param) {
-			this.param = param;
-		}
+        @Override
+        public void addParam(Param param) {
+            this.param = param;
+        }
 
-		public Param getParam() {
-			return param;
-		}
+        public Param getParam() {
+            return param;
+        }
 
-	}
+    }
 
 }

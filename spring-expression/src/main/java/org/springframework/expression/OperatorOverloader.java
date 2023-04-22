@@ -28,29 +28,31 @@ import org.springframework.lang.Nullable;
  */
 public interface OperatorOverloader {
 
-	/**
-	 * Return true if the operator overloader supports the specified operation
-	 * between the two operands and so should be invoked to handle it.
-	 * @param operation the operation to be performed
-	 * @param leftOperand the left operand
-	 * @param rightOperand the right operand
-	 * @return true if the OperatorOverloader supports the specified operation
-	 * between the two operands
-	 * @throws EvaluationException if there is a problem performing the operation
-	 */
-	boolean overridesOperation(Operation operation, @Nullable Object leftOperand, @Nullable Object rightOperand)
-			throws EvaluationException;
+    /**
+     * Return true if the operator overloader supports the specified operation
+     * between the two operands and so should be invoked to handle it.
+     *
+     * @param operation    the operation to be performed
+     * @param leftOperand  the left operand
+     * @param rightOperand the right operand
+     * @return true if the OperatorOverloader supports the specified operation
+     * between the two operands
+     * @throws EvaluationException if there is a problem performing the operation
+     */
+    boolean overridesOperation(Operation operation, @Nullable Object leftOperand, @Nullable Object rightOperand)
+            throws EvaluationException;
 
-	/**
-	 * Execute the specified operation on two operands, returning a result.
-	 * See {@link Operation} for supported operations.
-	 * @param operation the operation to be performed
-	 * @param leftOperand the left operand
-	 * @param rightOperand the right operand
-	 * @return the result of performing the operation on the two operands
-	 * @throws EvaluationException if there is a problem performing the operation
-	 */
-	Object operate(Operation operation, @Nullable Object leftOperand, @Nullable Object rightOperand)
-			throws EvaluationException;
+    /**
+     * Execute the specified operation on two operands, returning a result.
+     * See {@link Operation} for supported operations.
+     *
+     * @param operation    the operation to be performed
+     * @param leftOperand  the left operand
+     * @param rightOperand the right operand
+     * @return the result of performing the operation on the two operands
+     * @throws EvaluationException if there is a problem performing the operation
+     */
+    Object operate(Operation operation, @Nullable Object leftOperand, @Nullable Object rightOperand)
+            throws EvaluationException;
 
 }

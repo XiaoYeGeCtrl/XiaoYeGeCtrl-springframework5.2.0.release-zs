@@ -30,31 +30,32 @@ import org.springframework.web.reactive.result.view.UrlBasedViewResolver;
  */
 public class FreeMarkerViewResolver extends UrlBasedViewResolver {
 
-	/**
-	 * Simple constructor.
-	 */
-	public FreeMarkerViewResolver() {
-		setViewClass(requiredViewClass());
-	}
+    /**
+     * Simple constructor.
+     */
+    public FreeMarkerViewResolver() {
+        setViewClass(requiredViewClass());
+    }
 
-	/**
-	 * Convenience constructor with a prefix and suffix.
-	 * @param suffix the suffix to prepend view names with
-	 * @param prefix the prefix to prepend view names with
-	 */
-	public FreeMarkerViewResolver(String prefix, String suffix) {
-		setViewClass(requiredViewClass());
-		setPrefix(prefix);
-		setSuffix(suffix);
-	}
+    /**
+     * Convenience constructor with a prefix and suffix.
+     *
+     * @param suffix the suffix to prepend view names with
+     * @param prefix the prefix to prepend view names with
+     */
+    public FreeMarkerViewResolver(String prefix, String suffix) {
+        setViewClass(requiredViewClass());
+        setPrefix(prefix);
+        setSuffix(suffix);
+    }
 
 
-	/**
-	 * Requires {@link FreeMarkerView}.
-	 */
-	@Override
-	protected Class<?> requiredViewClass() {
-		return FreeMarkerView.class;
-	}
+    /**
+     * Requires {@link FreeMarkerView}.
+     */
+    @Override
+    protected Class<?> requiredViewClass() {
+        return FreeMarkerView.class;
+    }
 
 }

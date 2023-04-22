@@ -41,63 +41,59 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 public class MapMethodProcessorTests {
 
-	private MapMethodProcessor processor;
+    private final ResolvableMethod resolvable =
+            ResolvableMethod.on(getClass()).annotPresent(RequestMapping.class).build();
+    private MapMethodProcessor processor;
+    private ModelAndViewContainer mavContainer;
+    private NativeWebRequest webRequest;
 
-	private ModelAndViewContainer mavContainer;
-
-	private NativeWebRequest webRequest;
-
-	private final ResolvableMethod resolvable =
-			ResolvableMethod.on(getClass()).annotPresent(RequestMapping.class).build();
-
-
-	@BeforeEach
-	public void setUp() throws Exception {
-		this.processor = new MapMethodProcessor();
-		this.mavContainer = new ModelAndViewContainer();
-		this.webRequest = new ServletWebRequest(new MockHttpServletRequest());
-	}
+    @BeforeEach
+    public void setUp() throws Exception {
+        this.processor = new MapMethodProcessor();
+        this.mavContainer = new ModelAndViewContainer();
+        this.webRequest = new ServletWebRequest(new MockHttpServletRequest());
+    }
 
 
-	@Test
-	public void supportsParameter() {
-		assertThat(this.processor.supportsParameter(
-				this.resolvable.annotNotPresent().arg(Map.class, String.class, Object.class))).isTrue();
-		assertThat(this.processor.supportsParameter(
-				this.resolvable.annotPresent(RequestBody.class).arg(Map.class, String.class, Object.class))).isFalse();
-	}
+    @Test
+    public void supportsParameter() {
+        assertThat(this.processor.supportsParameter(
+                this.resolvable.annotNotPresent().arg(Map.class, String.class, Object.class))).isTrue();
+        assertThat(this.processor.supportsParameter(
+                this.resolvable.annotPresent(RequestBody.class).arg(Map.class, String.class, Object.class))).isFalse();
+    }
 
-	@Test
-	public void supportsReturnType() {
-		assertThat(this.processor.supportsReturnType(this.resolvable.returnType())).isTrue();
-	}
+    @Test
+    public void supportsReturnType() {
+        assertThat(this.processor.supportsReturnType(this.resolvable.returnType())).isTrue();
+    }
 
-	@Test
-	public void resolveArgumentValue() throws Exception {
-		MethodParameter param = this.resolvable.annotNotPresent().arg(Map.class, String.class, Object.class);
-		assertThat(this.processor.resolveArgument(param, this.mavContainer, this.webRequest, null)).isSameAs(this.mavContainer.getModel());
-	}
+    @Test
+    public void resolveArgumentValue() throws Exception {
+        MethodParameter param = this.resolvable.annotNotPresent().arg(Map.class, String.class, Object.class);
+        assertThat(this.processor.resolveArgument(param, this.mavContainer, this.webRequest, null)).isSameAs(this.mavContainer.getModel());
+    }
 
-	@Test
-	public void handleMapReturnValue() throws Exception {
-		this.mavContainer.addAttribute("attr1", "value1");
-		Map<String, Object> returnValue = new ModelMap("attr2", "value2");
+    @Test
+    public void handleMapReturnValue() throws Exception {
+        this.mavContainer.addAttribute("attr1", "value1");
+        Map<String, Object> returnValue = new ModelMap("attr2", "value2");
 
-		this.processor.handleReturnValue(
-				returnValue , this.resolvable.returnType(), this.mavContainer, this.webRequest);
+        this.processor.handleReturnValue(
+                returnValue, this.resolvable.returnType(), this.mavContainer, this.webRequest);
 
-		assertThat(mavContainer.getModel().get("attr1")).isEqualTo("value1");
-		assertThat(mavContainer.getModel().get("attr2")).isEqualTo("value2");
-	}
+        assertThat(mavContainer.getModel().get("attr1")).isEqualTo("value1");
+        assertThat(mavContainer.getModel().get("attr2")).isEqualTo("value2");
+    }
 
 
-	@SuppressWarnings("unused")
-	@RequestMapping
-	private Map<String, Object> handle(
-			Map<String, Object> map,
-			@RequestBody Map<String, Object> annotMap) {
+    @SuppressWarnings("unused")
+    @RequestMapping
+    private Map<String, Object> handle(
+            Map<String, Object> map,
+            @RequestBody Map<String, Object> annotMap) {
 
-		return null;
-	}
+        return null;
+    }
 
 }

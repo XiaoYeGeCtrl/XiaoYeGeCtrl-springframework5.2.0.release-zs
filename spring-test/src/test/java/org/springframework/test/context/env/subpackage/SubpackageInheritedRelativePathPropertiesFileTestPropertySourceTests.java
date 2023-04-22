@@ -28,8 +28,8 @@ import org.springframework.test.context.env.ExplicitPropertiesFileInClasspathTes
  * @since 4.1
  */
 class SubpackageInheritedRelativePathPropertiesFileTestPropertySourceTests extends
-		ExplicitPropertiesFileInClasspathTestPropertySourceTests {
+        ExplicitPropertiesFileInClasspathTestPropertySourceTests {
 
-	/* all tests are in superclass */
+    /* all tests are in superclass */
 
 }

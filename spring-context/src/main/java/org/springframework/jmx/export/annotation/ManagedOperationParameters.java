@@ -27,14 +27,14 @@ import java.lang.annotation.Target;
  * corresponding to an array of {@code ManagedOperationParameter} attributes.
  *
  * @author Rob Harrop
- * @since 1.2
  * @see org.springframework.jmx.export.metadata.ManagedOperationParameter
+ * @since 1.2
  */
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 public @interface ManagedOperationParameters {
 
-	ManagedOperationParameter[] value() default {};
+    ManagedOperationParameter[] value() default {};
 
 }

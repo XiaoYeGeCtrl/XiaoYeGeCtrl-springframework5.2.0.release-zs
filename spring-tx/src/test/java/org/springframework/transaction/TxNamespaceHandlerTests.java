@@ -39,63 +39,63 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
  */
 public class TxNamespaceHandlerTests {
 
-	private ApplicationContext context;
+    private ApplicationContext context;
 
-	private Method getAgeMethod;
+    private Method getAgeMethod;
 
-	private Method setAgeMethod;
-
-
-	@BeforeEach
-	public void setup() throws Exception {
-		this.context = new ClassPathXmlApplicationContext("txNamespaceHandlerTests.xml", getClass());
-		this.getAgeMethod = ITestBean.class.getMethod("getAge");
-		this.setAgeMethod = ITestBean.class.getMethod("setAge", int.class);
-	}
+    private Method setAgeMethod;
 
 
-	@Test
-	public void isProxy() {
-		ITestBean bean = getTestBean();
-		assertThat(AopUtils.isAopProxy(bean)).as("testBean is not a proxy").isTrue();
-	}
+    @BeforeEach
+    public void setup() throws Exception {
+        this.context = new ClassPathXmlApplicationContext("txNamespaceHandlerTests.xml", getClass());
+        this.getAgeMethod = ITestBean.class.getMethod("getAge");
+        this.setAgeMethod = ITestBean.class.getMethod("setAge", int.class);
+    }
 
-	@Test
-	public void invokeTransactional() {
-		ITestBean testBean = getTestBean();
-		CallCountingTransactionManager ptm = (CallCountingTransactionManager) context.getBean("transactionManager");
 
-		// try with transactional
-		assertThat(ptm.begun).as("Should not have any started transactions").isEqualTo(0);
-		testBean.getName();
-		assertThat(ptm.lastDefinition.isReadOnly()).isTrue();
-		assertThat(ptm.begun).as("Should have 1 started transaction").isEqualTo(1);
-		assertThat(ptm.commits).as("Should have 1 committed transaction").isEqualTo(1);
+    @Test
+    public void isProxy() {
+        ITestBean bean = getTestBean();
+        assertThat(AopUtils.isAopProxy(bean)).as("testBean is not a proxy").isTrue();
+    }
 
-		// try with non-transaction
-		testBean.haveBirthday();
-		assertThat(ptm.begun).as("Should not have started another transaction").isEqualTo(1);
+    @Test
+    public void invokeTransactional() {
+        ITestBean testBean = getTestBean();
+        CallCountingTransactionManager ptm = (CallCountingTransactionManager) context.getBean("transactionManager");
 
-		// try with exceptional
-		assertThatExceptionOfType(Throwable.class).isThrownBy(() ->
-				testBean.exceptional(new IllegalArgumentException("foo")));
-		assertThat(ptm.begun).as("Should have another started transaction").isEqualTo(2);
-		assertThat(ptm.rollbacks).as("Should have 1 rolled back transaction").isEqualTo(1);
-	}
+        // try with transactional
+        assertThat(ptm.begun).as("Should not have any started transactions").isEqualTo(0);
+        testBean.getName();
+        assertThat(ptm.lastDefinition.isReadOnly()).isTrue();
+        assertThat(ptm.begun).as("Should have 1 started transaction").isEqualTo(1);
+        assertThat(ptm.commits).as("Should have 1 committed transaction").isEqualTo(1);
 
-	@Test
-	public void rollbackRules() {
-		TransactionInterceptor txInterceptor = (TransactionInterceptor) context.getBean("txRollbackAdvice");
-		TransactionAttributeSource txAttrSource = txInterceptor.getTransactionAttributeSource();
-		TransactionAttribute txAttr = txAttrSource.getTransactionAttribute(getAgeMethod,ITestBean.class);
-		assertThat(txAttr.rollbackOn(new Exception())).as("should be configured to rollback on Exception").isTrue();
+        // try with non-transaction
+        testBean.haveBirthday();
+        assertThat(ptm.begun).as("Should not have started another transaction").isEqualTo(1);
 
-		txAttr = txAttrSource.getTransactionAttribute(setAgeMethod, ITestBean.class);
-		assertThat(txAttr.rollbackOn(new RuntimeException())).as("should not rollback on RuntimeException").isFalse();
-	}
+        // try with exceptional
+        assertThatExceptionOfType(Throwable.class).isThrownBy(() ->
+                testBean.exceptional(new IllegalArgumentException("foo")));
+        assertThat(ptm.begun).as("Should have another started transaction").isEqualTo(2);
+        assertThat(ptm.rollbacks).as("Should have 1 rolled back transaction").isEqualTo(1);
+    }
 
-	private ITestBean getTestBean() {
-		return (ITestBean) context.getBean("testBean");
-	}
+    @Test
+    public void rollbackRules() {
+        TransactionInterceptor txInterceptor = (TransactionInterceptor) context.getBean("txRollbackAdvice");
+        TransactionAttributeSource txAttrSource = txInterceptor.getTransactionAttributeSource();
+        TransactionAttribute txAttr = txAttrSource.getTransactionAttribute(getAgeMethod, ITestBean.class);
+        assertThat(txAttr.rollbackOn(new Exception())).as("should be configured to rollback on Exception").isTrue();
+
+        txAttr = txAttrSource.getTransactionAttribute(setAgeMethod, ITestBean.class);
+        assertThat(txAttr.rollbackOn(new RuntimeException())).as("should not rollback on RuntimeException").isFalse();
+    }
+
+    private ITestBean getTestBean() {
+        return (ITestBean) context.getBean("testBean");
+    }
 
 }

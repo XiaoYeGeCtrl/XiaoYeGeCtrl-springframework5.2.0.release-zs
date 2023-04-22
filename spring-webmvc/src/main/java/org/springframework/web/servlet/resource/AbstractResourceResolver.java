@@ -35,32 +35,32 @@ import org.springframework.lang.Nullable;
  */
 public abstract class AbstractResourceResolver implements ResourceResolver {
 
-	protected final Log logger = LogFactory.getLog(getClass());
+    protected final Log logger = LogFactory.getLog(getClass());
 
 
-	@Override
-	@Nullable
-	public Resource resolveResource(@Nullable HttpServletRequest request, String requestPath,
-			List<? extends Resource> locations, ResourceResolverChain chain) {
+    @Override
+    @Nullable
+    public Resource resolveResource(@Nullable HttpServletRequest request, String requestPath,
+                                    List<? extends Resource> locations, ResourceResolverChain chain) {
 
-		return resolveResourceInternal(request, requestPath, locations, chain);
-	}
+        return resolveResourceInternal(request, requestPath, locations, chain);
+    }
 
-	@Override
-	@Nullable
-	public String resolveUrlPath(String resourceUrlPath, List<? extends Resource> locations,
-			ResourceResolverChain chain) {
+    @Override
+    @Nullable
+    public String resolveUrlPath(String resourceUrlPath, List<? extends Resource> locations,
+                                 ResourceResolverChain chain) {
 
-		return resolveUrlPathInternal(resourceUrlPath, locations, chain);
-	}
+        return resolveUrlPathInternal(resourceUrlPath, locations, chain);
+    }
 
 
-	@Nullable
-	protected abstract Resource resolveResourceInternal(@Nullable HttpServletRequest request,
-			String requestPath, List<? extends Resource> locations, ResourceResolverChain chain);
+    @Nullable
+    protected abstract Resource resolveResourceInternal(@Nullable HttpServletRequest request,
+                                                        String requestPath, List<? extends Resource> locations, ResourceResolverChain chain);
 
-	@Nullable
-	protected abstract String resolveUrlPathInternal(String resourceUrlPath,
-			List<? extends Resource> locations, ResourceResolverChain chain);
+    @Nullable
+    protected abstract String resolveUrlPathInternal(String resourceUrlPath,
+                                                     List<? extends Resource> locations, ResourceResolverChain chain);
 
 }

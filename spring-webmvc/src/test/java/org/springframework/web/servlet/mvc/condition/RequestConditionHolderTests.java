@@ -33,91 +33,91 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
  */
 public class RequestConditionHolderTests {
 
-	@Test
-	public void combine() {
-		RequestConditionHolder params1 = new RequestConditionHolder(new ParamsRequestCondition("name1"));
-		RequestConditionHolder params2 = new RequestConditionHolder(new ParamsRequestCondition("name2"));
-		RequestConditionHolder expected = new RequestConditionHolder(new ParamsRequestCondition("name1", "name2"));
+    @Test
+    public void combine() {
+        RequestConditionHolder params1 = new RequestConditionHolder(new ParamsRequestCondition("name1"));
+        RequestConditionHolder params2 = new RequestConditionHolder(new ParamsRequestCondition("name2"));
+        RequestConditionHolder expected = new RequestConditionHolder(new ParamsRequestCondition("name1", "name2"));
 
-		assertThat(params1.combine(params2)).isEqualTo(expected);
-	}
+        assertThat(params1.combine(params2)).isEqualTo(expected);
+    }
 
-	@Test
-	public void combineEmpty() {
-		RequestConditionHolder empty = new RequestConditionHolder(null);
-		RequestConditionHolder notEmpty = new RequestConditionHolder(new ParamsRequestCondition("name"));
+    @Test
+    public void combineEmpty() {
+        RequestConditionHolder empty = new RequestConditionHolder(null);
+        RequestConditionHolder notEmpty = new RequestConditionHolder(new ParamsRequestCondition("name"));
 
-		assertThat(empty.combine(empty)).isSameAs(empty);
-		assertThat(notEmpty.combine(empty)).isSameAs(notEmpty);
-		assertThat(empty.combine(notEmpty)).isSameAs(notEmpty);
-	}
+        assertThat(empty.combine(empty)).isSameAs(empty);
+        assertThat(notEmpty.combine(empty)).isSameAs(notEmpty);
+        assertThat(empty.combine(notEmpty)).isSameAs(notEmpty);
+    }
 
-	@Test
-	public void combineIncompatible() {
-		RequestConditionHolder params = new RequestConditionHolder(new ParamsRequestCondition("name"));
-		RequestConditionHolder headers = new RequestConditionHolder(new HeadersRequestCondition("name"));
-		assertThatExceptionOfType(ClassCastException.class).isThrownBy(() ->
-				params.combine(headers));
-	}
+    @Test
+    public void combineIncompatible() {
+        RequestConditionHolder params = new RequestConditionHolder(new ParamsRequestCondition("name"));
+        RequestConditionHolder headers = new RequestConditionHolder(new HeadersRequestCondition("name"));
+        assertThatExceptionOfType(ClassCastException.class).isThrownBy(() ->
+                params.combine(headers));
+    }
 
-	@Test
-	public void match() {
-		MockHttpServletRequest request = new MockHttpServletRequest("GET", "/");
-		request.setParameter("name1", "value1");
+    @Test
+    public void match() {
+        MockHttpServletRequest request = new MockHttpServletRequest("GET", "/");
+        request.setParameter("name1", "value1");
 
-		RequestMethodsRequestCondition rm = new RequestMethodsRequestCondition(RequestMethod.GET, RequestMethod.POST);
-		RequestConditionHolder custom = new RequestConditionHolder(rm);
-		RequestMethodsRequestCondition expected = new RequestMethodsRequestCondition(RequestMethod.GET);
+        RequestMethodsRequestCondition rm = new RequestMethodsRequestCondition(RequestMethod.GET, RequestMethod.POST);
+        RequestConditionHolder custom = new RequestConditionHolder(rm);
+        RequestMethodsRequestCondition expected = new RequestMethodsRequestCondition(RequestMethod.GET);
 
-		assertThat(custom.getMatchingCondition(request).getCondition()).isEqualTo(expected);
-	}
+        assertThat(custom.getMatchingCondition(request).getCondition()).isEqualTo(expected);
+    }
 
-	@Test
-	public void noMatch() {
-		MockHttpServletRequest request = new MockHttpServletRequest("GET", "/");
+    @Test
+    public void noMatch() {
+        MockHttpServletRequest request = new MockHttpServletRequest("GET", "/");
 
-		RequestMethodsRequestCondition rm = new RequestMethodsRequestCondition(RequestMethod.POST);
-		RequestConditionHolder custom = new RequestConditionHolder(rm);
+        RequestMethodsRequestCondition rm = new RequestMethodsRequestCondition(RequestMethod.POST);
+        RequestConditionHolder custom = new RequestConditionHolder(rm);
 
-		assertThat(custom.getMatchingCondition(request)).isNull();
-	}
+        assertThat(custom.getMatchingCondition(request)).isNull();
+    }
 
-	@Test
-	public void matchEmpty() {
-		RequestConditionHolder empty = new RequestConditionHolder(null);
-		assertThat(empty.getMatchingCondition(new MockHttpServletRequest())).isSameAs(empty);
-	}
+    @Test
+    public void matchEmpty() {
+        RequestConditionHolder empty = new RequestConditionHolder(null);
+        assertThat(empty.getMatchingCondition(new MockHttpServletRequest())).isSameAs(empty);
+    }
 
-	@Test
-	public void compare() {
-		HttpServletRequest request = new MockHttpServletRequest();
+    @Test
+    public void compare() {
+        HttpServletRequest request = new MockHttpServletRequest();
 
-		RequestConditionHolder params11 = new RequestConditionHolder(new ParamsRequestCondition("1"));
-		RequestConditionHolder params12 = new RequestConditionHolder(new ParamsRequestCondition("1", "2"));
+        RequestConditionHolder params11 = new RequestConditionHolder(new ParamsRequestCondition("1"));
+        RequestConditionHolder params12 = new RequestConditionHolder(new ParamsRequestCondition("1", "2"));
 
-		assertThat(params11.compareTo(params12, request)).isEqualTo(1);
-		assertThat(params12.compareTo(params11, request)).isEqualTo(-1);
-	}
+        assertThat(params11.compareTo(params12, request)).isEqualTo(1);
+        assertThat(params12.compareTo(params11, request)).isEqualTo(-1);
+    }
 
-	@Test
-	public void compareEmpty() {
-		HttpServletRequest request = new MockHttpServletRequest();
+    @Test
+    public void compareEmpty() {
+        HttpServletRequest request = new MockHttpServletRequest();
 
-		RequestConditionHolder empty = new RequestConditionHolder(null);
-		RequestConditionHolder empty2 = new RequestConditionHolder(null);
-		RequestConditionHolder notEmpty = new RequestConditionHolder(new ParamsRequestCondition("name"));
+        RequestConditionHolder empty = new RequestConditionHolder(null);
+        RequestConditionHolder empty2 = new RequestConditionHolder(null);
+        RequestConditionHolder notEmpty = new RequestConditionHolder(new ParamsRequestCondition("name"));
 
-		assertThat(empty.compareTo(empty2, request)).isEqualTo(0);
-		assertThat(notEmpty.compareTo(empty, request)).isEqualTo(-1);
-		assertThat(empty.compareTo(notEmpty, request)).isEqualTo(1);
-	}
+        assertThat(empty.compareTo(empty2, request)).isEqualTo(0);
+        assertThat(notEmpty.compareTo(empty, request)).isEqualTo(-1);
+        assertThat(empty.compareTo(notEmpty, request)).isEqualTo(1);
+    }
 
-	@Test
-	public void compareIncompatible() {
-		RequestConditionHolder params = new RequestConditionHolder(new ParamsRequestCondition("name"));
-		RequestConditionHolder headers = new RequestConditionHolder(new HeadersRequestCondition("name"));
-		assertThatExceptionOfType(ClassCastException.class).isThrownBy(() ->
-				params.compareTo(headers, new MockHttpServletRequest()));
-	}
+    @Test
+    public void compareIncompatible() {
+        RequestConditionHolder params = new RequestConditionHolder(new ParamsRequestCondition("name"));
+        RequestConditionHolder headers = new RequestConditionHolder(new HeadersRequestCondition("name"));
+        assertThatExceptionOfType(ClassCastException.class).isThrownBy(() ->
+                params.compareTo(headers, new MockHttpServletRequest()));
+    }
 
 }

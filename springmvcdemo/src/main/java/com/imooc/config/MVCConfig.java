@@ -15,11 +15,11 @@ import org.springframework.web.servlet.view.InternalResourceViewResolver;
 @ComponentScan("com.imooc.controller")
 @EnableWebMvc
 public class MVCConfig {
-	@Bean
-	public InternalResourceViewResolver viewResolver(){
-		InternalResourceViewResolver internalResourceViewResolver = new InternalResourceViewResolver();
-		internalResourceViewResolver.setPrefix("/WEB-INF/jsp/");
-		internalResourceViewResolver.setSuffix(".jsp");
-		return internalResourceViewResolver;
-	}
+    @Bean
+    public InternalResourceViewResolver viewResolver() {
+        InternalResourceViewResolver internalResourceViewResolver = new InternalResourceViewResolver();
+        internalResourceViewResolver.setPrefix("/WEB-INF/jsp/");
+        internalResourceViewResolver.setSuffix(".jsp");
+        return internalResourceViewResolver;
+    }
 }

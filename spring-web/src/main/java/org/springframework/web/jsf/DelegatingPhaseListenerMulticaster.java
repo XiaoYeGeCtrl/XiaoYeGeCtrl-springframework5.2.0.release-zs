@@ -42,7 +42,7 @@ import org.springframework.web.context.WebApplicationContext;
  *   &lt;/phase-listener&gt;
  *   ...
  * &lt;/application&gt;</pre>
- *
+ * <p>
  * The multicaster will delegate all {@code beforePhase} and {@code afterPhase}
  * events to all target PhaseListener beans. By default, those will simply be obtained
  * by type: All beans in the Spring root WebApplicationContext that implement the
@@ -63,60 +63,63 @@ import org.springframework.web.context.WebApplicationContext;
 @SuppressWarnings("serial")
 public class DelegatingPhaseListenerMulticaster implements PhaseListener {
 
-	@Override
-	public PhaseId getPhaseId() {
-		return PhaseId.ANY_PHASE;
-	}
+    @Override
+    public PhaseId getPhaseId() {
+        return PhaseId.ANY_PHASE;
+    }
 
-	@Override
-	public void beforePhase(PhaseEvent event) {
-		for (PhaseListener listener : getDelegates(event.getFacesContext())) {
-			listener.beforePhase(event);
-		}
-	}
+    @Override
+    public void beforePhase(PhaseEvent event) {
+        for (PhaseListener listener : getDelegates(event.getFacesContext())) {
+            listener.beforePhase(event);
+        }
+    }
 
-	@Override
-	public void afterPhase(PhaseEvent event) {
-		for (PhaseListener listener : getDelegates(event.getFacesContext())) {
-			listener.afterPhase(event);
-		}
-	}
+    @Override
+    public void afterPhase(PhaseEvent event) {
+        for (PhaseListener listener : getDelegates(event.getFacesContext())) {
+            listener.afterPhase(event);
+        }
+    }
 
 
-	/**
-	 * Obtain the delegate PhaseListener beans from the Spring root WebApplicationContext.
-	 * @param facesContext the current JSF context
-	 * @return a Collection of PhaseListener objects
-	 * @see #getBeanFactory
-	 * @see org.springframework.beans.factory.ListableBeanFactory#getBeansOfType(Class)
-	 */
-	protected Collection<PhaseListener> getDelegates(FacesContext facesContext) {
-		ListableBeanFactory bf = getBeanFactory(facesContext);
-		return BeanFactoryUtils.beansOfTypeIncludingAncestors(bf, PhaseListener.class, true, false).values();
-	}
+    /**
+     * Obtain the delegate PhaseListener beans from the Spring root WebApplicationContext.
+     *
+     * @param facesContext the current JSF context
+     * @return a Collection of PhaseListener objects
+     * @see #getBeanFactory
+     * @see org.springframework.beans.factory.ListableBeanFactory#getBeansOfType(Class)
+     */
+    protected Collection<PhaseListener> getDelegates(FacesContext facesContext) {
+        ListableBeanFactory bf = getBeanFactory(facesContext);
+        return BeanFactoryUtils.beansOfTypeIncludingAncestors(bf, PhaseListener.class, true, false).values();
+    }
 
-	/**
-	 * Retrieve the Spring BeanFactory to delegate bean name resolution to.
-	 * <p>The default implementation delegates to {@code getWebApplicationContext}.
-	 * Can be overridden to provide an arbitrary ListableBeanFactory reference to
-	 * resolve against; usually, this will be a full Spring ApplicationContext.
-	 * @param facesContext the current JSF context
-	 * @return the Spring ListableBeanFactory (never {@code null})
-	 * @see #getWebApplicationContext
-	 */
-	protected ListableBeanFactory getBeanFactory(FacesContext facesContext) {
-		return getWebApplicationContext(facesContext);
-	}
+    /**
+     * Retrieve the Spring BeanFactory to delegate bean name resolution to.
+     * <p>The default implementation delegates to {@code getWebApplicationContext}.
+     * Can be overridden to provide an arbitrary ListableBeanFactory reference to
+     * resolve against; usually, this will be a full Spring ApplicationContext.
+     *
+     * @param facesContext the current JSF context
+     * @return the Spring ListableBeanFactory (never {@code null})
+     * @see #getWebApplicationContext
+     */
+    protected ListableBeanFactory getBeanFactory(FacesContext facesContext) {
+        return getWebApplicationContext(facesContext);
+    }
 
-	/**
-	 * Retrieve the web application context to delegate bean name resolution to.
-	 * <p>The default implementation delegates to FacesContextUtils.
-	 * @param facesContext the current JSF context
-	 * @return the Spring web application context (never {@code null})
-	 * @see FacesContextUtils#getRequiredWebApplicationContext
-	 */
-	protected WebApplicationContext getWebApplicationContext(FacesContext facesContext) {
-		return FacesContextUtils.getRequiredWebApplicationContext(facesContext);
-	}
+    /**
+     * Retrieve the web application context to delegate bean name resolution to.
+     * <p>The default implementation delegates to FacesContextUtils.
+     *
+     * @param facesContext the current JSF context
+     * @return the Spring web application context (never {@code null})
+     * @see FacesContextUtils#getRequiredWebApplicationContext
+     */
+    protected WebApplicationContext getWebApplicationContext(FacesContext facesContext) {
+        return FacesContextUtils.getRequiredWebApplicationContext(facesContext);
+    }
 
 }

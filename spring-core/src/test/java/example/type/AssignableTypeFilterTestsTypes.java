@@ -28,25 +28,25 @@ package example.type;
  */
 public class AssignableTypeFilterTestsTypes {
 
-	public static class TestNonInheritingClass {
-	}
+    public interface TestInterface {
+    }
 
-	public interface TestInterface {
-	}
+    public interface SomeDaoLikeInterface {
+    }
 
-	public static class TestInterfaceImpl implements TestInterface {
-	}
+    public interface JdbcDaoSupport {
+    }
 
-	public interface SomeDaoLikeInterface {
-	}
+    public static class TestNonInheritingClass {
+    }
 
-	public static class SomeDaoLikeImpl extends SimpleJdbcDaoSupport implements SomeDaoLikeInterface {
-	}
+    public static class TestInterfaceImpl implements TestInterface {
+    }
 
-	public interface JdbcDaoSupport {
-	}
+    public static class SomeDaoLikeImpl extends SimpleJdbcDaoSupport implements SomeDaoLikeInterface {
+    }
 
-	public static class SimpleJdbcDaoSupport implements JdbcDaoSupport {
-	}
+    public static class SimpleJdbcDaoSupport implements JdbcDaoSupport {
+    }
 
 }

@@ -45,64 +45,63 @@ import org.springframework.lang.Nullable;
  *
  * @author Chris Beams
  * @author Juergen Hoeller
- * @since 3.1
  * @see JndiLocatorDelegate
  * @see org.springframework.context.ApplicationContextInitializer
  * @see org.springframework.web.WebApplicationInitializer
  * @see org.springframework.web.context.support.StandardServletEnvironment
+ * @since 3.1
  */
 public class JndiPropertySource extends PropertySource<JndiLocatorDelegate> {
 
-	/**
-	 * Create a new {@code JndiPropertySource} with the given name
-	 * and a {@link JndiLocatorDelegate} configured to prefix any names with
-	 * "java:comp/env/".
-	 */
-	public JndiPropertySource(String name) {
-		this(name, JndiLocatorDelegate.createDefaultResourceRefLocator());
-	}
+    /**
+     * Create a new {@code JndiPropertySource} with the given name
+     * and a {@link JndiLocatorDelegate} configured to prefix any names with
+     * "java:comp/env/".
+     */
+    public JndiPropertySource(String name) {
+        this(name, JndiLocatorDelegate.createDefaultResourceRefLocator());
+    }
 
-	/**
-	 * Create a new {@code JndiPropertySource} with the given name and the given
-	 * {@code JndiLocatorDelegate}.
-	 */
-	public JndiPropertySource(String name, JndiLocatorDelegate jndiLocator) {
-		super(name, jndiLocator);
-	}
+    /**
+     * Create a new {@code JndiPropertySource} with the given name and the given
+     * {@code JndiLocatorDelegate}.
+     */
+    public JndiPropertySource(String name, JndiLocatorDelegate jndiLocator) {
+        super(name, jndiLocator);
+    }
 
 
-	/**
-	 * This implementation looks up and returns the value associated with the given
-	 * name from the underlying {@link JndiLocatorDelegate}. If a {@link NamingException}
-	 * is thrown during the call to {@link JndiLocatorDelegate#lookup(String)}, returns
-	 * {@code null} and issues a DEBUG-level log statement with the exception message.
-	 */
-	@Override
-	@Nullable
-	public Object getProperty(String name) {
-		if (getSource().isResourceRef() && name.indexOf(':') != -1) {
-			// We're in resource-ref (prefixing with "java:comp/env") mode. Let's not bother
-			// with property names with a colon it since they're probably just containing a
-			// default value clause, very unlikely to match including the colon part even in
-			// a textual property source, and effectively never meant to match that way in
-			// JNDI where a colon indicates a separator between JNDI scheme and actual name.
-			return null;
-		}
+    /**
+     * This implementation looks up and returns the value associated with the given
+     * name from the underlying {@link JndiLocatorDelegate}. If a {@link NamingException}
+     * is thrown during the call to {@link JndiLocatorDelegate#lookup(String)}, returns
+     * {@code null} and issues a DEBUG-level log statement with the exception message.
+     */
+    @Override
+    @Nullable
+    public Object getProperty(String name) {
+        if (getSource().isResourceRef() && name.indexOf(':') != -1) {
+            // We're in resource-ref (prefixing with "java:comp/env") mode. Let's not bother
+            // with property names with a colon it since they're probably just containing a
+            // default value clause, very unlikely to match including the colon part even in
+            // a textual property source, and effectively never meant to match that way in
+            // JNDI where a colon indicates a separator between JNDI scheme and actual name.
+            return null;
+        }
 
-		try {
-			Object value = this.source.lookup(name);
-			if (logger.isDebugEnabled()) {
-				logger.debug("JNDI lookup for name [" + name + "] returned: [" + value + "]");
-			}
-			return value;
-		}
-		catch (NamingException ex) {
-			if (logger.isDebugEnabled()) {
-				logger.debug("JNDI lookup for name [" + name + "] threw NamingException " +
-						"with message: " + ex.getMessage() + ". Returning null.");
-			}
-			return null;
-		}
-	}
+        try {
+            Object value = this.source.lookup(name);
+            if (logger.isDebugEnabled()) {
+                logger.debug("JNDI lookup for name [" + name + "] returned: [" + value + "]");
+            }
+            return value;
+        } catch (NamingException ex) {
+            if (logger.isDebugEnabled()) {
+                logger.debug("JNDI lookup for name [" + name + "] threw NamingException " +
+                        "with message: " + ex.getMessage() + ". Returning null.");
+            }
+            return null;
+        }
+    }
 
 }

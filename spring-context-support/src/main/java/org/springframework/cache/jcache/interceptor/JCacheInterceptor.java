@@ -41,49 +41,48 @@ import org.springframework.util.function.SingletonSupplier;
  *
  * @author Stephane Nicoll
  * @author Juergen Hoeller
- * @since 4.1
  * @see org.springframework.cache.interceptor.CacheInterceptor
+ * @since 4.1
  */
 @SuppressWarnings("serial")
 public class JCacheInterceptor extends JCacheAspectSupport implements MethodInterceptor, Serializable {
 
-	/**
-	 * Construct a new {@code JCacheInterceptor} with the default error handler.
-	 */
-	public JCacheInterceptor() {
-	}
+    /**
+     * Construct a new {@code JCacheInterceptor} with the default error handler.
+     */
+    public JCacheInterceptor() {
+    }
 
-	/**
-	 * Construct a new {@code JCacheInterceptor} with the given error handler.
-	 * @param errorHandler a supplier for the error handler to use,
-	 * applying the default error handler if the supplier is not resolvable
-	 * @since 5.1
-	 */
-	public JCacheInterceptor(@Nullable Supplier<CacheErrorHandler> errorHandler) {
-		this.errorHandler = new SingletonSupplier<>(errorHandler, SimpleCacheErrorHandler::new);
-	}
+    /**
+     * Construct a new {@code JCacheInterceptor} with the given error handler.
+     *
+     * @param errorHandler a supplier for the error handler to use,
+     *                     applying the default error handler if the supplier is not resolvable
+     * @since 5.1
+     */
+    public JCacheInterceptor(@Nullable Supplier<CacheErrorHandler> errorHandler) {
+        this.errorHandler = new SingletonSupplier<>(errorHandler, SimpleCacheErrorHandler::new);
+    }
 
 
-	@Override
-	@Nullable
-	public Object invoke(final MethodInvocation invocation) throws Throwable {
-		Method method = invocation.getMethod();
+    @Override
+    @Nullable
+    public Object invoke(final MethodInvocation invocation) throws Throwable {
+        Method method = invocation.getMethod();
 
-		CacheOperationInvoker aopAllianceInvoker = () -> {
-			try {
-				return invocation.proceed();
-			}
-			catch (Throwable ex) {
-				throw new CacheOperationInvoker.ThrowableWrapper(ex);
-			}
-		};
+        CacheOperationInvoker aopAllianceInvoker = () -> {
+            try {
+                return invocation.proceed();
+            } catch (Throwable ex) {
+                throw new CacheOperationInvoker.ThrowableWrapper(ex);
+            }
+        };
 
-		try {
-			return execute(aopAllianceInvoker, invocation.getThis(), method, invocation.getArguments());
-		}
-		catch (CacheOperationInvoker.ThrowableWrapper th) {
-			throw th.getOriginal();
-		}
-	}
+        try {
+            return execute(aopAllianceInvoker, invocation.getThis(), method, invocation.getArguments());
+        } catch (CacheOperationInvoker.ThrowableWrapper th) {
+            throw th.getOriginal();
+        }
+    }
 
 }

@@ -51,17 +51,17 @@ import io.rsocket.ConnectionSetupPayload;
 @Documented
 public @interface ConnectMapping {
 
-	/**
-	 * Mappings expressed by this annotation to match to the route from the
-	 * metadata of the initial {@link ConnectionSetupPayload} or in
-	 * subsequent metadata pushes.
-	 * <p>Depending on the configured
-	 * {@link org.springframework.util.RouteMatcher RouteMatcher}, the pattern may be
-	 * {@link org.springframework.util.AntPathMatcher AntPathMatcher} or
-	 * {@link org.springframework.web.util.pattern.PathPattern PathPattern} based.
-	 * <p>By default this is an empty array in which case it matches all
-	 * {@link ConnectionSetupPayload} and metadata pushes.
-	 */
-	String[] value() default {};
+    /**
+     * Mappings expressed by this annotation to match to the route from the
+     * metadata of the initial {@link ConnectionSetupPayload} or in
+     * subsequent metadata pushes.
+     * <p>Depending on the configured
+     * {@link org.springframework.util.RouteMatcher RouteMatcher}, the pattern may be
+     * {@link org.springframework.util.AntPathMatcher AntPathMatcher} or
+     * {@link org.springframework.web.util.pattern.PathPattern PathPattern} based.
+     * <p>By default this is an empty array in which case it matches all
+     * {@link ConnectionSetupPayload} and metadata pushes.
+     */
+    String[] value() default {};
 
 }

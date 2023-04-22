@@ -47,92 +47,90 @@ import org.springframework.web.socket.WebSocketSession;
  */
 public class PerConnectionWebSocketHandler implements WebSocketHandler, BeanFactoryAware {
 
-	private static final Log logger = LogFactory.getLog(PerConnectionWebSocketHandler.class);
+    private static final Log logger = LogFactory.getLog(PerConnectionWebSocketHandler.class);
 
 
-	private final BeanCreatingHandlerProvider<WebSocketHandler> provider;
+    private final BeanCreatingHandlerProvider<WebSocketHandler> provider;
 
-	private final Map<WebSocketSession, WebSocketHandler> handlers =
-			new ConcurrentHashMap<>();
+    private final Map<WebSocketSession, WebSocketHandler> handlers =
+            new ConcurrentHashMap<>();
 
-	private final boolean supportsPartialMessages;
-
-
-	public PerConnectionWebSocketHandler(Class<? extends WebSocketHandler> handlerType) {
-		this(handlerType, false);
-	}
-
-	public PerConnectionWebSocketHandler(Class<? extends WebSocketHandler> handlerType, boolean supportsPartialMessages) {
-		this.provider = new BeanCreatingHandlerProvider<>(handlerType);
-		this.supportsPartialMessages = supportsPartialMessages;
-	}
+    private final boolean supportsPartialMessages;
 
 
-	@Override
-	public void setBeanFactory(BeanFactory beanFactory) {
-		this.provider.setBeanFactory(beanFactory);
-	}
+    public PerConnectionWebSocketHandler(Class<? extends WebSocketHandler> handlerType) {
+        this(handlerType, false);
+    }
+
+    public PerConnectionWebSocketHandler(Class<? extends WebSocketHandler> handlerType, boolean supportsPartialMessages) {
+        this.provider = new BeanCreatingHandlerProvider<>(handlerType);
+        this.supportsPartialMessages = supportsPartialMessages;
+    }
 
 
-	@Override
-	public void afterConnectionEstablished(WebSocketSession session) throws Exception {
-		WebSocketHandler handler = this.provider.getHandler();
-		this.handlers.put(session, handler);
-		handler.afterConnectionEstablished(session);
-	}
-
-	@Override
-	public void handleMessage(WebSocketSession session, WebSocketMessage<?> message) throws Exception {
-		getHandler(session).handleMessage(session, message);
-	}
-
-	@Override
-	public void handleTransportError(WebSocketSession session, Throwable exception) throws Exception {
-		getHandler(session).handleTransportError(session, exception);
-	}
-
-	@Override
-	public void afterConnectionClosed(WebSocketSession session, CloseStatus closeStatus) throws Exception {
-		try {
-			getHandler(session).afterConnectionClosed(session, closeStatus);
-		}
-		finally {
-			destroyHandler(session);
-		}
-	}
-
-	@Override
-	public boolean supportsPartialMessages() {
-		return this.supportsPartialMessages;
-	}
+    @Override
+    public void setBeanFactory(BeanFactory beanFactory) {
+        this.provider.setBeanFactory(beanFactory);
+    }
 
 
-	private WebSocketHandler getHandler(WebSocketSession session) {
-		WebSocketHandler handler = this.handlers.get(session);
-		if (handler == null) {
-			throw new IllegalStateException("WebSocketHandler not found for " + session);
-		}
-		return handler;
-	}
+    @Override
+    public void afterConnectionEstablished(WebSocketSession session) throws Exception {
+        WebSocketHandler handler = this.provider.getHandler();
+        this.handlers.put(session, handler);
+        handler.afterConnectionEstablished(session);
+    }
 
-	private void destroyHandler(WebSocketSession session) {
-		WebSocketHandler handler = this.handlers.remove(session);
-		try {
-			if (handler != null) {
-				this.provider.destroy(handler);
-			}
-		}
-		catch (Throwable ex) {
-			if (logger.isWarnEnabled()) {
-				logger.warn("Error while destroying " + handler, ex);
-			}
-		}
-	}
+    @Override
+    public void handleMessage(WebSocketSession session, WebSocketMessage<?> message) throws Exception {
+        getHandler(session).handleMessage(session, message);
+    }
+
+    @Override
+    public void handleTransportError(WebSocketSession session, Throwable exception) throws Exception {
+        getHandler(session).handleTransportError(session, exception);
+    }
+
+    @Override
+    public void afterConnectionClosed(WebSocketSession session, CloseStatus closeStatus) throws Exception {
+        try {
+            getHandler(session).afterConnectionClosed(session, closeStatus);
+        } finally {
+            destroyHandler(session);
+        }
+    }
+
+    @Override
+    public boolean supportsPartialMessages() {
+        return this.supportsPartialMessages;
+    }
 
 
-	@Override
-	public String toString() {
-		return "PerConnectionWebSocketHandlerProxy[handlerType=" + this.provider.getHandlerType() + "]";
-	}
+    private WebSocketHandler getHandler(WebSocketSession session) {
+        WebSocketHandler handler = this.handlers.get(session);
+        if (handler == null) {
+            throw new IllegalStateException("WebSocketHandler not found for " + session);
+        }
+        return handler;
+    }
+
+    private void destroyHandler(WebSocketSession session) {
+        WebSocketHandler handler = this.handlers.remove(session);
+        try {
+            if (handler != null) {
+                this.provider.destroy(handler);
+            }
+        } catch (Throwable ex) {
+            if (logger.isWarnEnabled()) {
+                logger.warn("Error while destroying " + handler, ex);
+            }
+        }
+    }
+
+
+    @Override
+    public String toString() {
+        return "PerConnectionWebSocketHandlerProxy[handlerType=" + this.provider.getHandlerType() + "]";
+    }
 
 }

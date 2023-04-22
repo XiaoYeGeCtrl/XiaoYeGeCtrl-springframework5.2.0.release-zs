@@ -34,12 +34,12 @@ import org.springframework.test.context.junit4.BeforeAndAfterTransactionAnnotati
 @RunWith(JUnit4.class)
 public class BeforeAndAfterTransactionAnnotationSpringRuleTests extends BeforeAndAfterTransactionAnnotationTests {
 
-	@ClassRule
-	public static final SpringClassRule springClassRule = new SpringClassRule();
+    @ClassRule
+    public static final SpringClassRule springClassRule = new SpringClassRule();
 
-	@Rule
-	public final SpringMethodRule springMethodRule = new SpringMethodRule();
+    @Rule
+    public final SpringMethodRule springMethodRule = new SpringMethodRule();
 
-	// All tests are in superclass.
+    // All tests are in superclass.
 
 }

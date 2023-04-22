@@ -33,21 +33,21 @@ import java.util.Set;
  */
 abstract class PropertiesMarshaller {
 
-	public static void write(CandidateComponentsMetadata metadata, OutputStream out) throws IOException {
-		Properties props = new SortedProperties(true);
-		metadata.getItems().forEach(m -> props.put(m.getType(), String.join(",", m.getStereotypes())));
-		props.store(out, null);
-	}
+    public static void write(CandidateComponentsMetadata metadata, OutputStream out) throws IOException {
+        Properties props = new SortedProperties(true);
+        metadata.getItems().forEach(m -> props.put(m.getType(), String.join(",", m.getStereotypes())));
+        props.store(out, null);
+    }
 
-	public static CandidateComponentsMetadata read(InputStream in) throws IOException {
-		CandidateComponentsMetadata result = new CandidateComponentsMetadata();
-		Properties props = new Properties();
-		props.load(in);
-		props.forEach((type, value) -> {
-			Set<String> candidates = new HashSet<>(Arrays.asList(((String) value).split(",")));
-			result.add(new ItemMetadata((String) type, candidates));
-		});
-		return result;
-	}
+    public static CandidateComponentsMetadata read(InputStream in) throws IOException {
+        CandidateComponentsMetadata result = new CandidateComponentsMetadata();
+        Properties props = new Properties();
+        props.load(in);
+        props.forEach((type, value) -> {
+            Set<String> candidates = new HashSet<>(Arrays.asList(((String) value).split(",")));
+            result.add(new ItemMetadata((String) type, candidates));
+        });
+        return result;
+    }
 
 }

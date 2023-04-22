@@ -43,129 +43,130 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 class FlushingIntegrationTests extends AbstractHttpHandlerIntegrationTests {
 
-	private WebClient webClient;
+    private WebClient webClient;
 
 
-	@Override
-	protected void startServer(HttpServer httpServer) throws Exception {
-		super.startServer(httpServer);
-		this.webClient = WebClient.create("http://localhost:" + this.port);
-	}
+    @Override
+    protected void startServer(HttpServer httpServer) throws Exception {
+        super.startServer(httpServer);
+        this.webClient = WebClient.create("http://localhost:" + this.port);
+    }
 
 
-	@ParameterizedHttpServerTest
-	void writeAndFlushWith(HttpServer httpServer) throws Exception {
-		startServer(httpServer);
+    @ParameterizedHttpServerTest
+    void writeAndFlushWith(HttpServer httpServer) throws Exception {
+        startServer(httpServer);
 
-		Mono<String> result = this.webClient.get()
-				.uri("/write-and-flush")
-				.retrieve()
-				.bodyToFlux(String.class)
-				.takeUntil(s -> s.endsWith("data1"))
-				.reduce((s1, s2) -> s1 + s2);
+        Mono<String> result = this.webClient.get()
+                .uri("/write-and-flush")
+                .retrieve()
+                .bodyToFlux(String.class)
+                .takeUntil(s -> s.endsWith("data1"))
+                .reduce((s1, s2) -> s1 + s2);
 
-		StepVerifier.create(result)
-				.expectNext("data0data1")
-				.expectComplete()
-				.verify(Duration.ofSeconds(10L));
-	}
+        StepVerifier.create(result)
+                .expectNext("data0data1")
+                .expectComplete()
+                .verify(Duration.ofSeconds(10L));
+    }
 
-	@ParameterizedHttpServerTest  // SPR-14991
-	void writeAndAutoFlushOnComplete(HttpServer httpServer) throws Exception {
-		startServer(httpServer);
+    @ParameterizedHttpServerTest
+        // SPR-14991
+    void writeAndAutoFlushOnComplete(HttpServer httpServer) throws Exception {
+        startServer(httpServer);
 
-		Mono<String> result = this.webClient.get()
-				.uri("/write-and-complete")
-				.retrieve()
-				.bodyToMono(String.class);
+        Mono<String> result = this.webClient.get()
+                .uri("/write-and-complete")
+                .retrieve()
+                .bodyToMono(String.class);
 
-		try {
-			StepVerifier.create(result)
-					.consumeNextWith(value -> assertThat(value.length()).isEqualTo((64 * 1024)))
-					.expectComplete()
-					.verify(Duration.ofSeconds(10L));
-		}
-		catch (AssertionError err) {
-			String os = System.getProperty("os.name").toLowerCase();
-			if (os.contains("windows") && err.getMessage() != null &&
-					err.getMessage().startsWith("VerifySubscriber timed out")) {
-				// TODO: Reactor usually times out on Windows ...
-				err.printStackTrace();
-				return;
-			}
-			throw err;
-		}
-	}
+        try {
+            StepVerifier.create(result)
+                    .consumeNextWith(value -> assertThat(value.length()).isEqualTo((64 * 1024)))
+                    .expectComplete()
+                    .verify(Duration.ofSeconds(10L));
+        } catch (AssertionError err) {
+            String os = System.getProperty("os.name").toLowerCase();
+            if (os.contains("windows") && err.getMessage() != null &&
+                    err.getMessage().startsWith("VerifySubscriber timed out")) {
+                // TODO: Reactor usually times out on Windows ...
+                err.printStackTrace();
+                return;
+            }
+            throw err;
+        }
+    }
 
-	@ParameterizedHttpServerTest  // SPR-14992
-	void writeAndAutoFlushBeforeComplete(HttpServer httpServer) throws Exception {
-		startServer(httpServer);
+    @ParameterizedHttpServerTest
+        // SPR-14992
+    void writeAndAutoFlushBeforeComplete(HttpServer httpServer) throws Exception {
+        startServer(httpServer);
 
-		Mono<String> result = this.webClient.get()
-				.uri("/write-and-never-complete")
-				.retrieve()
-				.bodyToFlux(String.class)
-				.next();
+        Mono<String> result = this.webClient.get()
+                .uri("/write-and-never-complete")
+                .retrieve()
+                .bodyToFlux(String.class)
+                .next();
 
-		StepVerifier.create(result)
-				.expectNextMatches(s -> s.startsWith("0123456789"))
-				.expectComplete()
-				.verify(Duration.ofSeconds(10L));
-	}
-
-
-	@Override
-	protected HttpHandler createHttpHandler() {
-		return new FlushingHandler();
-	}
+        StepVerifier.create(result)
+                .expectNextMatches(s -> s.startsWith("0123456789"))
+                .expectComplete()
+                .verify(Duration.ofSeconds(10L));
+    }
 
 
-	private static class FlushingHandler implements HttpHandler {
+    @Override
+    protected HttpHandler createHttpHandler() {
+        return new FlushingHandler();
+    }
 
-		@Override
-		public Mono<Void> handle(ServerHttpRequest request, ServerHttpResponse response) {
-			String path = request.getURI().getPath();
-			switch (path) {
-				case "/write-and-flush":
-					return response.writeAndFlushWith(
-							testInterval(Duration.ofMillis(50), 2)
-									.map(longValue -> wrap("data" + longValue + "\n", response))
-									.map(Flux::just)
-									.mergeWith(Flux.never()));
 
-				case "/write-and-complete":
-					return response.writeWith(
-							chunks1K().take(64).map(s -> wrap(s, response)));
+    private static class FlushingHandler implements HttpHandler {
 
-				case "/write-and-never-complete":
-					// Reactor requires at least 50 to flush, Tomcat/Undertow 8, Jetty 1
-					return response.writeWith(
-							chunks1K().take(64).map(s -> wrap(s, response)).mergeWith(Flux.never()));
+        @Override
+        public Mono<Void> handle(ServerHttpRequest request, ServerHttpResponse response) {
+            String path = request.getURI().getPath();
+            switch (path) {
+                case "/write-and-flush":
+                    return response.writeAndFlushWith(
+                            testInterval(Duration.ofMillis(50), 2)
+                                    .map(longValue -> wrap("data" + longValue + "\n", response))
+                                    .map(Flux::just)
+                                    .mergeWith(Flux.never()));
 
-				default:
-					return response.writeWith(Flux.empty());
-			}
-		}
+                case "/write-and-complete":
+                    return response.writeWith(
+                            chunks1K().take(64).map(s -> wrap(s, response)));
 
-		private Flux<String> chunks1K() {
-			return Flux.generate(sink -> {
-				StringBuilder sb = new StringBuilder();
-				do {
-					for (char c : "0123456789".toCharArray()) {
-						sb.append(c);
-						if (sb.length() + 1 == 1024) {
-							sink.next(sb.append("\n").toString());
-							return;
-						}
-					}
-				} while (true);
-			});
-		}
+                case "/write-and-never-complete":
+                    // Reactor requires at least 50 to flush, Tomcat/Undertow 8, Jetty 1
+                    return response.writeWith(
+                            chunks1K().take(64).map(s -> wrap(s, response)).mergeWith(Flux.never()));
 
-		private DataBuffer wrap(String value, ServerHttpResponse response) {
-			byte[] bytes = value.getBytes(StandardCharsets.UTF_8);
-			return response.bufferFactory().wrap(bytes);
-		}
-	}
+                default:
+                    return response.writeWith(Flux.empty());
+            }
+        }
+
+        private Flux<String> chunks1K() {
+            return Flux.generate(sink -> {
+                StringBuilder sb = new StringBuilder();
+                do {
+                    for (char c : "0123456789".toCharArray()) {
+                        sb.append(c);
+                        if (sb.length() + 1 == 1024) {
+                            sink.next(sb.append("\n").toString());
+                            return;
+                        }
+                    }
+                } while (true);
+            });
+        }
+
+        private DataBuffer wrap(String value, ServerHttpResponse response) {
+            byte[] bytes = value.getBytes(StandardCharsets.UTF_8);
+            return response.bufferFactory().wrap(bytes);
+        }
+    }
 
 }

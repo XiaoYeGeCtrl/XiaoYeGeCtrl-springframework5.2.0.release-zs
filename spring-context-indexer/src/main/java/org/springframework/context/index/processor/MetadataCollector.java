@@ -34,76 +34,77 @@ import javax.lang.model.element.TypeElement;
  */
 class MetadataCollector {
 
-	private final List<ItemMetadata> metadataItems = new ArrayList<>();
+    private final List<ItemMetadata> metadataItems = new ArrayList<>();
 
-	private final ProcessingEnvironment processingEnvironment;
+    private final ProcessingEnvironment processingEnvironment;
 
-	private final CandidateComponentsMetadata previousMetadata;
+    private final CandidateComponentsMetadata previousMetadata;
 
-	private final TypeHelper typeHelper;
+    private final TypeHelper typeHelper;
 
-	private final Set<String> processedSourceTypes = new HashSet<>();
-
-
-	/**
-	 * Create a new {@code MetadataProcessor} instance.
-	 * @param processingEnvironment the processing environment of the build
-	 * @param previousMetadata any previous metadata or {@code null}
-	 */
-	public MetadataCollector(ProcessingEnvironment processingEnvironment,
-			CandidateComponentsMetadata previousMetadata) {
-
-		this.processingEnvironment = processingEnvironment;
-		this.previousMetadata = previousMetadata;
-		this.typeHelper = new TypeHelper(processingEnvironment);
-	}
+    private final Set<String> processedSourceTypes = new HashSet<>();
 
 
-	public void processing(RoundEnvironment roundEnv) {
-		for (Element element : roundEnv.getRootElements()) {
-			markAsProcessed(element);
-		}
-	}
+    /**
+     * Create a new {@code MetadataProcessor} instance.
+     *
+     * @param processingEnvironment the processing environment of the build
+     * @param previousMetadata      any previous metadata or {@code null}
+     */
+    public MetadataCollector(ProcessingEnvironment processingEnvironment,
+                             CandidateComponentsMetadata previousMetadata) {
 
-	private void markAsProcessed(Element element) {
-		if (element instanceof TypeElement) {
-			this.processedSourceTypes.add(this.typeHelper.getType(element));
-		}
-	}
+        this.processingEnvironment = processingEnvironment;
+        this.previousMetadata = previousMetadata;
+        this.typeHelper = new TypeHelper(processingEnvironment);
+    }
 
-	public void add(ItemMetadata metadata) {
-		this.metadataItems.add(metadata);
-	}
 
-	public CandidateComponentsMetadata getMetadata() {
-		CandidateComponentsMetadata metadata = new CandidateComponentsMetadata();
-		for (ItemMetadata item : this.metadataItems) {
-			metadata.add(item);
-		}
-		if (this.previousMetadata != null) {
-			List<ItemMetadata> items = this.previousMetadata.getItems();
-			for (ItemMetadata item : items) {
-				if (shouldBeMerged(item)) {
-					metadata.add(item);
-				}
-			}
-		}
-		return metadata;
-	}
+    public void processing(RoundEnvironment roundEnv) {
+        for (Element element : roundEnv.getRootElements()) {
+            markAsProcessed(element);
+        }
+    }
 
-	private boolean shouldBeMerged(ItemMetadata itemMetadata) {
-		String sourceType = itemMetadata.getType();
-		return (sourceType != null && !deletedInCurrentBuild(sourceType)
-				&& !processedInCurrentBuild(sourceType));
-	}
+    private void markAsProcessed(Element element) {
+        if (element instanceof TypeElement) {
+            this.processedSourceTypes.add(this.typeHelper.getType(element));
+        }
+    }
 
-	private boolean deletedInCurrentBuild(String sourceType) {
-		return this.processingEnvironment.getElementUtils()
-				.getTypeElement(sourceType) == null;
-	}
+    public void add(ItemMetadata metadata) {
+        this.metadataItems.add(metadata);
+    }
 
-	private boolean processedInCurrentBuild(String sourceType) {
-		return this.processedSourceTypes.contains(sourceType);
-	}
+    public CandidateComponentsMetadata getMetadata() {
+        CandidateComponentsMetadata metadata = new CandidateComponentsMetadata();
+        for (ItemMetadata item : this.metadataItems) {
+            metadata.add(item);
+        }
+        if (this.previousMetadata != null) {
+            List<ItemMetadata> items = this.previousMetadata.getItems();
+            for (ItemMetadata item : items) {
+                if (shouldBeMerged(item)) {
+                    metadata.add(item);
+                }
+            }
+        }
+        return metadata;
+    }
+
+    private boolean shouldBeMerged(ItemMetadata itemMetadata) {
+        String sourceType = itemMetadata.getType();
+        return (sourceType != null && !deletedInCurrentBuild(sourceType)
+                && !processedInCurrentBuild(sourceType));
+    }
+
+    private boolean deletedInCurrentBuild(String sourceType) {
+        return this.processingEnvironment.getElementUtils()
+                .getTypeElement(sourceType) == null;
+    }
+
+    private boolean processedInCurrentBuild(String sourceType) {
+        return this.processedSourceTypes.contains(sourceType);
+    }
 
 }

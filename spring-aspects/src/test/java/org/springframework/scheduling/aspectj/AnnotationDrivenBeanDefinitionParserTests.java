@@ -34,40 +34,40 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 public class AnnotationDrivenBeanDefinitionParserTests {
 
-	private ConfigurableApplicationContext context;
+    private ConfigurableApplicationContext context;
 
-	@BeforeEach
-	public void setup() {
-		this.context = new ClassPathXmlApplicationContext(
-				"annotationDrivenContext.xml", AnnotationDrivenBeanDefinitionParserTests.class);
-	}
+    @BeforeEach
+    public void setup() {
+        this.context = new ClassPathXmlApplicationContext(
+                "annotationDrivenContext.xml", AnnotationDrivenBeanDefinitionParserTests.class);
+    }
 
-	@AfterEach
-	public void after() {
-		if (this.context != null) {
-			this.context.close();
-		}
-	}
+    @AfterEach
+    public void after() {
+        if (this.context != null) {
+            this.context.close();
+        }
+    }
 
-	@Test
-	public void asyncAspectRegistered() {
-		assertThat(context.containsBean(TaskManagementConfigUtils.ASYNC_EXECUTION_ASPECT_BEAN_NAME)).isTrue();
-	}
+    @Test
+    public void asyncAspectRegistered() {
+        assertThat(context.containsBean(TaskManagementConfigUtils.ASYNC_EXECUTION_ASPECT_BEAN_NAME)).isTrue();
+    }
 
-	@Test
-	@SuppressWarnings("rawtypes")
-	public void asyncPostProcessorExecutorReference() {
-		Object executor = context.getBean("testExecutor");
-		Object aspect = context.getBean(TaskManagementConfigUtils.ASYNC_EXECUTION_ASPECT_BEAN_NAME);
-		assertThat(((Supplier) new DirectFieldAccessor(aspect).getPropertyValue("defaultExecutor")).get()).isSameAs(executor);
-	}
+    @Test
+    @SuppressWarnings("rawtypes")
+    public void asyncPostProcessorExecutorReference() {
+        Object executor = context.getBean("testExecutor");
+        Object aspect = context.getBean(TaskManagementConfigUtils.ASYNC_EXECUTION_ASPECT_BEAN_NAME);
+        assertThat(((Supplier) new DirectFieldAccessor(aspect).getPropertyValue("defaultExecutor")).get()).isSameAs(executor);
+    }
 
-	@Test
-	@SuppressWarnings("rawtypes")
-	public void asyncPostProcessorExceptionHandlerReference() {
-		Object exceptionHandler = context.getBean("testExceptionHandler");
-		Object aspect = context.getBean(TaskManagementConfigUtils.ASYNC_EXECUTION_ASPECT_BEAN_NAME);
-		assertThat(((Supplier) new DirectFieldAccessor(aspect).getPropertyValue("exceptionHandler")).get()).isSameAs(exceptionHandler);
-	}
+    @Test
+    @SuppressWarnings("rawtypes")
+    public void asyncPostProcessorExceptionHandlerReference() {
+        Object exceptionHandler = context.getBean("testExceptionHandler");
+        Object aspect = context.getBean(TaskManagementConfigUtils.ASYNC_EXECUTION_ASPECT_BEAN_NAME);
+        assertThat(((Supplier) new DirectFieldAccessor(aspect).getPropertyValue("exceptionHandler")).get()).isSameAs(exceptionHandler);
+    }
 
 }

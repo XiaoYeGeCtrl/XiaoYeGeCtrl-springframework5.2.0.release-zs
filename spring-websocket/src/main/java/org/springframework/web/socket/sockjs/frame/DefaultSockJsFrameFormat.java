@@ -28,22 +28,22 @@ import org.springframework.util.Assert;
  */
 public class DefaultSockJsFrameFormat implements SockJsFrameFormat {
 
-	private final String format;
+    private final String format;
 
 
-	public DefaultSockJsFrameFormat(String format) {
-		Assert.notNull(format, "format must not be null");
-		this.format = format;
-	}
+    public DefaultSockJsFrameFormat(String format) {
+        Assert.notNull(format, "format must not be null");
+        this.format = format;
+    }
 
 
-	@Override
-	public String format(SockJsFrame frame) {
-		return String.format(this.format, preProcessContent(frame.getContent()));
-	}
+    @Override
+    public String format(SockJsFrame frame) {
+        return String.format(this.format, preProcessContent(frame.getContent()));
+    }
 
-	protected String preProcessContent(String content) {
-		return content;
-	}
+    protected String preProcessContent(String content) {
+        return content;
+    }
 
 }

@@ -33,82 +33,82 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 public abstract class AbstractRegexpMethodPointcutTests {
 
-	private AbstractRegexpMethodPointcut rpc;
+    private AbstractRegexpMethodPointcut rpc;
 
-	@BeforeEach
-	public void setUp() {
-		rpc = getRegexpMethodPointcut();
-	}
+    @BeforeEach
+    public void setUp() {
+        rpc = getRegexpMethodPointcut();
+    }
 
-	protected abstract AbstractRegexpMethodPointcut getRegexpMethodPointcut();
+    protected abstract AbstractRegexpMethodPointcut getRegexpMethodPointcut();
 
-	@Test
-	public void testNoPatternSupplied() throws Exception {
-		noPatternSuppliedTests(rpc);
-	}
+    @Test
+    public void testNoPatternSupplied() throws Exception {
+        noPatternSuppliedTests(rpc);
+    }
 
-	@Test
-	public void testSerializationWithNoPatternSupplied() throws Exception {
-		rpc = (AbstractRegexpMethodPointcut) SerializationTestUtils.serializeAndDeserialize(rpc);
-		noPatternSuppliedTests(rpc);
-	}
+    @Test
+    public void testSerializationWithNoPatternSupplied() throws Exception {
+        rpc = (AbstractRegexpMethodPointcut) SerializationTestUtils.serializeAndDeserialize(rpc);
+        noPatternSuppliedTests(rpc);
+    }
 
-	protected void noPatternSuppliedTests(AbstractRegexpMethodPointcut rpc) throws Exception {
-		assertThat(rpc.matches(Object.class.getMethod("hashCode"), String.class)).isFalse();
-		assertThat(rpc.matches(Object.class.getMethod("wait"), Object.class)).isFalse();
-		assertThat(rpc.getPatterns().length).isEqualTo(0);
-	}
+    protected void noPatternSuppliedTests(AbstractRegexpMethodPointcut rpc) throws Exception {
+        assertThat(rpc.matches(Object.class.getMethod("hashCode"), String.class)).isFalse();
+        assertThat(rpc.matches(Object.class.getMethod("wait"), Object.class)).isFalse();
+        assertThat(rpc.getPatterns().length).isEqualTo(0);
+    }
 
-	@Test
-	public void testExactMatch() throws Exception {
-		rpc.setPattern("java.lang.Object.hashCode");
-		exactMatchTests(rpc);
-		rpc = (AbstractRegexpMethodPointcut) SerializationTestUtils.serializeAndDeserialize(rpc);
-		exactMatchTests(rpc);
-	}
+    @Test
+    public void testExactMatch() throws Exception {
+        rpc.setPattern("java.lang.Object.hashCode");
+        exactMatchTests(rpc);
+        rpc = (AbstractRegexpMethodPointcut) SerializationTestUtils.serializeAndDeserialize(rpc);
+        exactMatchTests(rpc);
+    }
 
-	protected void exactMatchTests(AbstractRegexpMethodPointcut rpc) throws Exception {
-		// assumes rpc.setPattern("java.lang.Object.hashCode");
-		assertThat(rpc.matches(Object.class.getMethod("hashCode"), String.class)).isTrue();
-		assertThat(rpc.matches(Object.class.getMethod("hashCode"), Object.class)).isTrue();
-		assertThat(rpc.matches(Object.class.getMethod("wait"), Object.class)).isFalse();
-	}
+    protected void exactMatchTests(AbstractRegexpMethodPointcut rpc) throws Exception {
+        // assumes rpc.setPattern("java.lang.Object.hashCode");
+        assertThat(rpc.matches(Object.class.getMethod("hashCode"), String.class)).isTrue();
+        assertThat(rpc.matches(Object.class.getMethod("hashCode"), Object.class)).isTrue();
+        assertThat(rpc.matches(Object.class.getMethod("wait"), Object.class)).isFalse();
+    }
 
-	@Test
-	public void testSpecificMatch() throws Exception {
-		rpc.setPattern("java.lang.String.hashCode");
-		assertThat(rpc.matches(Object.class.getMethod("hashCode"), String.class)).isTrue();
-		assertThat(rpc.matches(Object.class.getMethod("hashCode"), Object.class)).isFalse();
-	}
+    @Test
+    public void testSpecificMatch() throws Exception {
+        rpc.setPattern("java.lang.String.hashCode");
+        assertThat(rpc.matches(Object.class.getMethod("hashCode"), String.class)).isTrue();
+        assertThat(rpc.matches(Object.class.getMethod("hashCode"), Object.class)).isFalse();
+    }
 
-	@Test
-	public void testWildcard() throws Exception {
-		rpc.setPattern(".*Object.hashCode");
-		assertThat(rpc.matches(Object.class.getMethod("hashCode"), Object.class)).isTrue();
-		assertThat(rpc.matches(Object.class.getMethod("wait"), Object.class)).isFalse();
-	}
+    @Test
+    public void testWildcard() throws Exception {
+        rpc.setPattern(".*Object.hashCode");
+        assertThat(rpc.matches(Object.class.getMethod("hashCode"), Object.class)).isTrue();
+        assertThat(rpc.matches(Object.class.getMethod("wait"), Object.class)).isFalse();
+    }
 
-	@Test
-	public void testWildcardForOneClass() throws Exception {
-		rpc.setPattern("java.lang.Object.*");
-		assertThat(rpc.matches(Object.class.getMethod("hashCode"), String.class)).isTrue();
-		assertThat(rpc.matches(Object.class.getMethod("wait"), String.class)).isTrue();
-	}
+    @Test
+    public void testWildcardForOneClass() throws Exception {
+        rpc.setPattern("java.lang.Object.*");
+        assertThat(rpc.matches(Object.class.getMethod("hashCode"), String.class)).isTrue();
+        assertThat(rpc.matches(Object.class.getMethod("wait"), String.class)).isTrue();
+    }
 
-	@Test
-	public void testMatchesObjectClass() throws Exception {
-		rpc.setPattern("java.lang.Object.*");
-		assertThat(rpc.matches(Exception.class.getMethod("hashCode"), IOException.class)).isTrue();
-		// Doesn't match a method from Throwable
-		assertThat(rpc.matches(Exception.class.getMethod("getMessage"), Exception.class)).isFalse();
-	}
+    @Test
+    public void testMatchesObjectClass() throws Exception {
+        rpc.setPattern("java.lang.Object.*");
+        assertThat(rpc.matches(Exception.class.getMethod("hashCode"), IOException.class)).isTrue();
+        // Doesn't match a method from Throwable
+        assertThat(rpc.matches(Exception.class.getMethod("getMessage"), Exception.class)).isFalse();
+    }
 
-	@Test
-	public void testWithExclusion() throws Exception {
-		this.rpc.setPattern(".*get.*");
-		this.rpc.setExcludedPattern(".*Age.*");
-		assertThat(this.rpc.matches(TestBean.class.getMethod("getName"), TestBean.class)).isTrue();
-		assertThat(this.rpc.matches(TestBean.class.getMethod("getAge"), TestBean.class)).isFalse();
-	}
+    @Test
+    public void testWithExclusion() throws Exception {
+        this.rpc.setPattern(".*get.*");
+        this.rpc.setExcludedPattern(".*Age.*");
+        assertThat(this.rpc.matches(TestBean.class.getMethod("getName"), TestBean.class)).isTrue();
+        assertThat(this.rpc.matches(TestBean.class.getMethod("getAge"), TestBean.class)).isFalse();
+    }
 
 }

@@ -32,193 +32,193 @@ import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException
  */
 public class TransactionAwareCacheDecoratorTests {
 
-	private final TransactionTemplate txTemplate = new TransactionTemplate(new CallCountingTransactionManager());
+    private final TransactionTemplate txTemplate = new TransactionTemplate(new CallCountingTransactionManager());
 
 
-	@Test
-	public void createWithNullTarget() {
-		assertThatIllegalArgumentException().isThrownBy(() -> new TransactionAwareCacheDecorator(null));
-	}
+    @Test
+    public void createWithNullTarget() {
+        assertThatIllegalArgumentException().isThrownBy(() -> new TransactionAwareCacheDecorator(null));
+    }
 
-	@Test
-	public void getTargetCache() {
-		Cache target = new ConcurrentMapCache("testCache");
-		TransactionAwareCacheDecorator cache = new TransactionAwareCacheDecorator(target);
-		assertThat(cache.getTargetCache()).isSameAs(target);
-	}
+    @Test
+    public void getTargetCache() {
+        Cache target = new ConcurrentMapCache("testCache");
+        TransactionAwareCacheDecorator cache = new TransactionAwareCacheDecorator(target);
+        assertThat(cache.getTargetCache()).isSameAs(target);
+    }
 
-	@Test
-	public void regularOperationsOnTarget() {
-		Cache target = new ConcurrentMapCache("testCache");
-		Cache cache = new TransactionAwareCacheDecorator(target);
-		assertThat(cache.getName()).isEqualTo(target.getName());
-		assertThat(cache.getNativeCache()).isEqualTo(target.getNativeCache());
+    @Test
+    public void regularOperationsOnTarget() {
+        Cache target = new ConcurrentMapCache("testCache");
+        Cache cache = new TransactionAwareCacheDecorator(target);
+        assertThat(cache.getName()).isEqualTo(target.getName());
+        assertThat(cache.getNativeCache()).isEqualTo(target.getNativeCache());
 
-		Object key = new Object();
-		target.put(key, "123");
-		assertThat(cache.get(key).get()).isEqualTo("123");
-		assertThat(cache.get(key, String.class)).isEqualTo("123");
+        Object key = new Object();
+        target.put(key, "123");
+        assertThat(cache.get(key).get()).isEqualTo("123");
+        assertThat(cache.get(key, String.class)).isEqualTo("123");
 
-		cache.clear();
-		assertThat(target.get(key)).isNull();
-	}
+        cache.clear();
+        assertThat(target.get(key)).isNull();
+    }
 
-	@Test
-	public void putNonTransactional() {
-		Cache target = new ConcurrentMapCache("testCache");
-		Cache cache = new TransactionAwareCacheDecorator(target);
+    @Test
+    public void putNonTransactional() {
+        Cache target = new ConcurrentMapCache("testCache");
+        Cache cache = new TransactionAwareCacheDecorator(target);
 
-		Object key = new Object();
-		cache.put(key, "123");
-		assertThat(target.get(key, String.class)).isEqualTo("123");
-	}
+        Object key = new Object();
+        cache.put(key, "123");
+        assertThat(target.get(key, String.class)).isEqualTo("123");
+    }
 
-	@Test
-	public void putTransactional() {
-		Cache target = new ConcurrentMapCache("testCache");
-		Cache cache = new TransactionAwareCacheDecorator(target);
-		Object key = new Object();
+    @Test
+    public void putTransactional() {
+        Cache target = new ConcurrentMapCache("testCache");
+        Cache cache = new TransactionAwareCacheDecorator(target);
+        Object key = new Object();
 
-		txTemplate.executeWithoutResult(s -> {
-			cache.put(key, "123");
-			assertThat(target.get(key)).isNull();
-		});
+        txTemplate.executeWithoutResult(s -> {
+            cache.put(key, "123");
+            assertThat(target.get(key)).isNull();
+        });
 
-		assertThat(target.get(key, String.class)).isEqualTo("123");
-	}
+        assertThat(target.get(key, String.class)).isEqualTo("123");
+    }
 
-	@Test
-	public void putIfAbsentNonTransactional() {
-		Cache target = new ConcurrentMapCache("testCache");
-		Cache cache = new TransactionAwareCacheDecorator(target);
+    @Test
+    public void putIfAbsentNonTransactional() {
+        Cache target = new ConcurrentMapCache("testCache");
+        Cache cache = new TransactionAwareCacheDecorator(target);
 
-		Object key = new Object();
-		assertThat(cache.putIfAbsent(key, "123")).isNull();
-		assertThat(target.get(key, String.class)).isEqualTo("123");
-		assertThat(cache.putIfAbsent(key, "456").get()).isEqualTo("123");
-		// unchanged
-		assertThat(target.get(key, String.class)).isEqualTo("123");
-	}
+        Object key = new Object();
+        assertThat(cache.putIfAbsent(key, "123")).isNull();
+        assertThat(target.get(key, String.class)).isEqualTo("123");
+        assertThat(cache.putIfAbsent(key, "456").get()).isEqualTo("123");
+        // unchanged
+        assertThat(target.get(key, String.class)).isEqualTo("123");
+    }
 
-	@Test
-	public void putIfAbsentTransactional() {  // no transactional support for putIfAbsent
-		Cache target = new ConcurrentMapCache("testCache");
-		Cache cache = new TransactionAwareCacheDecorator(target);
-		Object key = new Object();
+    @Test
+    public void putIfAbsentTransactional() {  // no transactional support for putIfAbsent
+        Cache target = new ConcurrentMapCache("testCache");
+        Cache cache = new TransactionAwareCacheDecorator(target);
+        Object key = new Object();
 
-		txTemplate.executeWithoutResult(s -> {
-			assertThat(cache.putIfAbsent(key, "123")).isNull();
-			assertThat(target.get(key, String.class)).isEqualTo("123");
-			assertThat(cache.putIfAbsent(key, "456").get()).isEqualTo("123");
-			// unchanged
-			assertThat(target.get(key, String.class)).isEqualTo("123");
-		});
+        txTemplate.executeWithoutResult(s -> {
+            assertThat(cache.putIfAbsent(key, "123")).isNull();
+            assertThat(target.get(key, String.class)).isEqualTo("123");
+            assertThat(cache.putIfAbsent(key, "456").get()).isEqualTo("123");
+            // unchanged
+            assertThat(target.get(key, String.class)).isEqualTo("123");
+        });
 
-		assertThat(target.get(key, String.class)).isEqualTo("123");
-	}
+        assertThat(target.get(key, String.class)).isEqualTo("123");
+    }
 
-	@Test
-	public void evictNonTransactional() {
-		Cache target = new ConcurrentMapCache("testCache");
-		Cache cache = new TransactionAwareCacheDecorator(target);
-		Object key = new Object();
-		cache.put(key, "123");
+    @Test
+    public void evictNonTransactional() {
+        Cache target = new ConcurrentMapCache("testCache");
+        Cache cache = new TransactionAwareCacheDecorator(target);
+        Object key = new Object();
+        cache.put(key, "123");
 
-		cache.evict(key);
-		assertThat(target.get(key)).isNull();
-	}
+        cache.evict(key);
+        assertThat(target.get(key)).isNull();
+    }
 
-	@Test
-	public void evictTransactional() {
-		Cache target = new ConcurrentMapCache("testCache");
-		Cache cache = new TransactionAwareCacheDecorator(target);
-		Object key = new Object();
-		cache.put(key, "123");
+    @Test
+    public void evictTransactional() {
+        Cache target = new ConcurrentMapCache("testCache");
+        Cache cache = new TransactionAwareCacheDecorator(target);
+        Object key = new Object();
+        cache.put(key, "123");
 
-		txTemplate.executeWithoutResult(s -> {
-			cache.evict(key);
-			assertThat(target.get(key, String.class)).isEqualTo("123");
-		});
+        txTemplate.executeWithoutResult(s -> {
+            cache.evict(key);
+            assertThat(target.get(key, String.class)).isEqualTo("123");
+        });
 
-		assertThat(target.get(key)).isNull();
-	}
+        assertThat(target.get(key)).isNull();
+    }
 
-	@Test
-	public void evictIfPresentNonTransactional() {
-		Cache target = new ConcurrentMapCache("testCache");
-		Cache cache = new TransactionAwareCacheDecorator(target);
-		Object key = new Object();
-		cache.put(key, "123");
+    @Test
+    public void evictIfPresentNonTransactional() {
+        Cache target = new ConcurrentMapCache("testCache");
+        Cache cache = new TransactionAwareCacheDecorator(target);
+        Object key = new Object();
+        cache.put(key, "123");
 
-		cache.evictIfPresent(key);
-		assertThat(target.get(key)).isNull();
-	}
+        cache.evictIfPresent(key);
+        assertThat(target.get(key)).isNull();
+    }
 
-	@Test
-	public void evictIfPresentTransactional() {  // no transactional support for evictIfPresent
-		Cache target = new ConcurrentMapCache("testCache");
-		Cache cache = new TransactionAwareCacheDecorator(target);
-		Object key = new Object();
-		cache.put(key, "123");
+    @Test
+    public void evictIfPresentTransactional() {  // no transactional support for evictIfPresent
+        Cache target = new ConcurrentMapCache("testCache");
+        Cache cache = new TransactionAwareCacheDecorator(target);
+        Object key = new Object();
+        cache.put(key, "123");
 
-		txTemplate.executeWithoutResult(s -> {
-			cache.evictIfPresent(key);
-			assertThat(target.get(key)).isNull();
-		});
+        txTemplate.executeWithoutResult(s -> {
+            cache.evictIfPresent(key);
+            assertThat(target.get(key)).isNull();
+        });
 
-		assertThat(target.get(key)).isNull();
-	}
+        assertThat(target.get(key)).isNull();
+    }
 
-	@Test
-	public void clearNonTransactional() {
-		Cache target = new ConcurrentMapCache("testCache");
-		Cache cache = new TransactionAwareCacheDecorator(target);
-		Object key = new Object();
-		cache.put(key, "123");
+    @Test
+    public void clearNonTransactional() {
+        Cache target = new ConcurrentMapCache("testCache");
+        Cache cache = new TransactionAwareCacheDecorator(target);
+        Object key = new Object();
+        cache.put(key, "123");
 
-		cache.clear();
-		assertThat(target.get(key)).isNull();
-	}
+        cache.clear();
+        assertThat(target.get(key)).isNull();
+    }
 
-	@Test
-	public void clearTransactional() {
-		Cache target = new ConcurrentMapCache("testCache");
-		Cache cache = new TransactionAwareCacheDecorator(target);
-		Object key = new Object();
-		cache.put(key, "123");
+    @Test
+    public void clearTransactional() {
+        Cache target = new ConcurrentMapCache("testCache");
+        Cache cache = new TransactionAwareCacheDecorator(target);
+        Object key = new Object();
+        cache.put(key, "123");
 
-		txTemplate.executeWithoutResult(s -> {
-			cache.clear();
-			assertThat(target.get(key, String.class)).isEqualTo("123");
-		});
+        txTemplate.executeWithoutResult(s -> {
+            cache.clear();
+            assertThat(target.get(key, String.class)).isEqualTo("123");
+        });
 
-		assertThat(target.get(key)).isNull();
-	}
+        assertThat(target.get(key)).isNull();
+    }
 
-	@Test
-	public void invalidateNonTransactional() {
-		Cache target = new ConcurrentMapCache("testCache");
-		Cache cache = new TransactionAwareCacheDecorator(target);
-		Object key = new Object();
-		cache.put(key, "123");
+    @Test
+    public void invalidateNonTransactional() {
+        Cache target = new ConcurrentMapCache("testCache");
+        Cache cache = new TransactionAwareCacheDecorator(target);
+        Object key = new Object();
+        cache.put(key, "123");
 
-		cache.invalidate();
-		assertThat(target.get(key)).isNull();
-	}
+        cache.invalidate();
+        assertThat(target.get(key)).isNull();
+    }
 
-	@Test
-	public void invalidateTransactional() {  // no transactional support for invalidate
-		Cache target = new ConcurrentMapCache("testCache");
-		Cache cache = new TransactionAwareCacheDecorator(target);
-		Object key = new Object();
-		cache.put(key, "123");
+    @Test
+    public void invalidateTransactional() {  // no transactional support for invalidate
+        Cache target = new ConcurrentMapCache("testCache");
+        Cache cache = new TransactionAwareCacheDecorator(target);
+        Object key = new Object();
+        cache.put(key, "123");
 
-		txTemplate.executeWithoutResult(s -> {
-			cache.invalidate();
-			assertThat(target.get(key)).isNull();
-		});
+        txTemplate.executeWithoutResult(s -> {
+            cache.invalidate();
+            assertThat(target.get(key)).isNull();
+        });
 
-		assertThat(target.get(key)).isNull();
-	}
+        assertThat(target.get(key)).isNull();
+    }
 
 }

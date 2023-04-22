@@ -36,74 +36,74 @@ import org.springframework.util.CollectionUtils;
  *
  * @author Arjen Poutsma
  * @author Juergen Hoeller
- * @since 3.0
  * @see ClientHttpRequestInterceptor
  * @see InterceptingClientHttpRequestFactory
  * @see org.springframework.web.client.RestTemplate
+ * @since 3.0
  */
 public abstract class InterceptingHttpAccessor extends HttpAccessor {
 
-	private final List<ClientHttpRequestInterceptor> interceptors = new ArrayList<>();
+    private final List<ClientHttpRequestInterceptor> interceptors = new ArrayList<>();
 
-	@Nullable
-	private volatile ClientHttpRequestFactory interceptingRequestFactory;
+    @Nullable
+    private volatile ClientHttpRequestFactory interceptingRequestFactory;
 
+    /**
+     * Get the request interceptors that this accessor uses.
+     * <p>The returned {@link List} is active and may be modified. Note,
+     * however, that the interceptors will not be resorted according to their
+     * {@linkplain AnnotationAwareOrderComparator#sort(List) order} before the
+     * {@link ClientHttpRequestFactory} is built.
+     */
+    public List<ClientHttpRequestInterceptor> getInterceptors() {
+        return this.interceptors;
+    }
 
-	/**
-	 * Set the request interceptors that this accessor should use.
-	 * <p>The interceptors will get immediately sorted according to their
-	 * {@linkplain AnnotationAwareOrderComparator#sort(List) order}.
-	 * @see #getRequestFactory()
-	 * @see AnnotationAwareOrderComparator
-	 */
-	public void setInterceptors(List<ClientHttpRequestInterceptor> interceptors) {
-		// Take getInterceptors() List as-is when passed in here
-		if (this.interceptors != interceptors) {
-			this.interceptors.clear();
-			this.interceptors.addAll(interceptors);
-			AnnotationAwareOrderComparator.sort(this.interceptors);
-		}
-	}
+    /**
+     * Set the request interceptors that this accessor should use.
+     * <p>The interceptors will get immediately sorted according to their
+     * {@linkplain AnnotationAwareOrderComparator#sort(List) order}.
+     *
+     * @see #getRequestFactory()
+     * @see AnnotationAwareOrderComparator
+     */
+    public void setInterceptors(List<ClientHttpRequestInterceptor> interceptors) {
+        // Take getInterceptors() List as-is when passed in here
+        if (this.interceptors != interceptors) {
+            this.interceptors.clear();
+            this.interceptors.addAll(interceptors);
+            AnnotationAwareOrderComparator.sort(this.interceptors);
+        }
+    }
 
-	/**
-	 * Get the request interceptors that this accessor uses.
-	 * <p>The returned {@link List} is active and may be modified. Note,
-	 * however, that the interceptors will not be resorted according to their
-	 * {@linkplain AnnotationAwareOrderComparator#sort(List) order} before the
-	 * {@link ClientHttpRequestFactory} is built.
-	 */
-	public List<ClientHttpRequestInterceptor> getInterceptors() {
-		return this.interceptors;
-	}
+    /**
+     * Overridden to expose an {@link InterceptingClientHttpRequestFactory}
+     * if necessary.
+     *
+     * @see #getInterceptors()
+     */
+    @Override
+    public ClientHttpRequestFactory getRequestFactory() {
+        List<ClientHttpRequestInterceptor> interceptors = getInterceptors();
+        if (!CollectionUtils.isEmpty(interceptors)) {
+            ClientHttpRequestFactory factory = this.interceptingRequestFactory;
+            if (factory == null) {
+                factory = new InterceptingClientHttpRequestFactory(super.getRequestFactory(), interceptors);
+                this.interceptingRequestFactory = factory;
+            }
+            return factory;
+        } else {
+            return super.getRequestFactory();
+        }
+    }
 
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public void setRequestFactory(ClientHttpRequestFactory requestFactory) {
-		super.setRequestFactory(requestFactory);
-		this.interceptingRequestFactory = null;
-	}
-
-	/**
-	 * Overridden to expose an {@link InterceptingClientHttpRequestFactory}
-	 * if necessary.
-	 * @see #getInterceptors()
-	 */
-	@Override
-	public ClientHttpRequestFactory getRequestFactory() {
-		List<ClientHttpRequestInterceptor> interceptors = getInterceptors();
-		if (!CollectionUtils.isEmpty(interceptors)) {
-			ClientHttpRequestFactory factory = this.interceptingRequestFactory;
-			if (factory == null) {
-				factory = new InterceptingClientHttpRequestFactory(super.getRequestFactory(), interceptors);
-				this.interceptingRequestFactory = factory;
-			}
-			return factory;
-		}
-		else {
-			return super.getRequestFactory();
-		}
-	}
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void setRequestFactory(ClientHttpRequestFactory requestFactory) {
+        super.setRequestFactory(requestFactory);
+        this.interceptingRequestFactory = null;
+    }
 
 }

@@ -37,59 +37,62 @@ import org.springframework.web.server.ServerWebExchange;
  */
 public class FixedLocaleContextResolver implements LocaleContextResolver {
 
-	private final Locale locale;
+    private final Locale locale;
 
-	@Nullable
-	private final TimeZone timeZone;
-
-
-	/**
-	 * Create a default FixedLocaleResolver, exposing a configured default
-	 * locale (or the JVM's default locale as fallback).
-	 */
-	public FixedLocaleContextResolver() {
-		this(Locale.getDefault());
-	}
-
-	/**
-	 * Create a FixedLocaleResolver that exposes the given locale.
-	 * @param locale the locale to expose
-	 */
-	public FixedLocaleContextResolver(Locale locale) {
-		this(locale, null);
-	}
-
-	/**
-	 * Create a FixedLocaleResolver that exposes the given locale and time zone.
-	 * @param locale the locale to expose
-	 * @param timeZone the time zone to expose
-	 */
-	public FixedLocaleContextResolver(Locale locale, @Nullable TimeZone timeZone) {
-		Assert.notNull(locale, "Locale must not be null");
-		this.locale = locale;
-		this.timeZone = timeZone;
-	}
+    @Nullable
+    private final TimeZone timeZone;
 
 
-	@Override
-	public LocaleContext resolveLocaleContext(ServerWebExchange exchange) {
-		return new TimeZoneAwareLocaleContext() {
-			@Override
-			public Locale getLocale() {
-				return locale;
-			}
-			@Override
-			@Nullable
-			public TimeZone getTimeZone() {
-				return timeZone;
-			}
-		};
-	}
+    /**
+     * Create a default FixedLocaleResolver, exposing a configured default
+     * locale (or the JVM's default locale as fallback).
+     */
+    public FixedLocaleContextResolver() {
+        this(Locale.getDefault());
+    }
 
-	@Override
-	public void setLocaleContext(ServerWebExchange exchange, @Nullable LocaleContext localeContext) {
-		throw new UnsupportedOperationException(
-				"Cannot change fixed locale - use a different locale context resolution strategy");
-	}
+    /**
+     * Create a FixedLocaleResolver that exposes the given locale.
+     *
+     * @param locale the locale to expose
+     */
+    public FixedLocaleContextResolver(Locale locale) {
+        this(locale, null);
+    }
+
+    /**
+     * Create a FixedLocaleResolver that exposes the given locale and time zone.
+     *
+     * @param locale   the locale to expose
+     * @param timeZone the time zone to expose
+     */
+    public FixedLocaleContextResolver(Locale locale, @Nullable TimeZone timeZone) {
+        Assert.notNull(locale, "Locale must not be null");
+        this.locale = locale;
+        this.timeZone = timeZone;
+    }
+
+
+    @Override
+    public LocaleContext resolveLocaleContext(ServerWebExchange exchange) {
+        return new TimeZoneAwareLocaleContext() {
+            @Override
+            public Locale getLocale() {
+                return locale;
+            }
+
+            @Override
+            @Nullable
+            public TimeZone getTimeZone() {
+                return timeZone;
+            }
+        };
+    }
+
+    @Override
+    public void setLocaleContext(ServerWebExchange exchange, @Nullable LocaleContext localeContext) {
+        throw new UnsupportedOperationException(
+                "Cannot change fixed locale - use a different locale context resolution strategy");
+    }
 
 }

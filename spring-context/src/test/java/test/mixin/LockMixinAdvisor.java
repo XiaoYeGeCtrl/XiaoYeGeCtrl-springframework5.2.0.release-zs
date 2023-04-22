@@ -26,8 +26,8 @@ import org.springframework.aop.support.DefaultIntroductionAdvisor;
 @SuppressWarnings("serial")
 public class LockMixinAdvisor extends DefaultIntroductionAdvisor {
 
-	public LockMixinAdvisor() {
-		super(new LockMixin(), Lockable.class);
-	}
+    public LockMixinAdvisor() {
+        super(new LockMixin(), Lockable.class);
+    }
 
 }

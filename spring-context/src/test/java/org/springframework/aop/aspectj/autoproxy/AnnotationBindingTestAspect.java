@@ -23,8 +23,8 @@ import org.aspectj.lang.ProceedingJoinPoint;
  */
 class AnnotationBindingTestAspect {
 
-	public String doWithAnnotation(ProceedingJoinPoint pjp, TestAnnotation testAnnotation) throws Throwable {
-		return testAnnotation.value();
-	}
+    public String doWithAnnotation(ProceedingJoinPoint pjp, TestAnnotation testAnnotation) throws Throwable {
+        return testAnnotation.value();
+    }
 
 }

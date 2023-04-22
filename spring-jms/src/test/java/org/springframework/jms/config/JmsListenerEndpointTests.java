@@ -38,75 +38,75 @@ import static org.mockito.Mockito.mock;
  */
 public class JmsListenerEndpointTests {
 
-	@Test
-	public void setupJmsMessageContainerFullConfig() {
-		DefaultMessageListenerContainer container = new DefaultMessageListenerContainer();
-		MessageListener messageListener = new MessageListenerAdapter();
-		SimpleJmsListenerEndpoint endpoint = new SimpleJmsListenerEndpoint();
-		endpoint.setDestination("myQueue");
-		endpoint.setSelector("foo = 'bar'");
-		endpoint.setSubscription("mySubscription");
-		endpoint.setConcurrency("5-10");
-		endpoint.setMessageListener(messageListener);
+    @Test
+    public void setupJmsMessageContainerFullConfig() {
+        DefaultMessageListenerContainer container = new DefaultMessageListenerContainer();
+        MessageListener messageListener = new MessageListenerAdapter();
+        SimpleJmsListenerEndpoint endpoint = new SimpleJmsListenerEndpoint();
+        endpoint.setDestination("myQueue");
+        endpoint.setSelector("foo = 'bar'");
+        endpoint.setSubscription("mySubscription");
+        endpoint.setConcurrency("5-10");
+        endpoint.setMessageListener(messageListener);
 
-		endpoint.setupListenerContainer(container);
-		assertThat(container.getDestinationName()).isEqualTo("myQueue");
-		assertThat(container.getMessageSelector()).isEqualTo("foo = 'bar'");
-		assertThat(container.getSubscriptionName()).isEqualTo("mySubscription");
-		assertThat(container.getConcurrentConsumers()).isEqualTo(5);
-		assertThat(container.getMaxConcurrentConsumers()).isEqualTo(10);
-		assertThat(container.getMessageListener()).isEqualTo(messageListener);
-	}
+        endpoint.setupListenerContainer(container);
+        assertThat(container.getDestinationName()).isEqualTo("myQueue");
+        assertThat(container.getMessageSelector()).isEqualTo("foo = 'bar'");
+        assertThat(container.getSubscriptionName()).isEqualTo("mySubscription");
+        assertThat(container.getConcurrentConsumers()).isEqualTo(5);
+        assertThat(container.getMaxConcurrentConsumers()).isEqualTo(10);
+        assertThat(container.getMessageListener()).isEqualTo(messageListener);
+    }
 
-	@Test
-	public void setupJcaMessageContainerFullConfig() {
-		JmsMessageEndpointManager container = new JmsMessageEndpointManager();
-		MessageListener messageListener = new MessageListenerAdapter();
-		SimpleJmsListenerEndpoint endpoint = new SimpleJmsListenerEndpoint();
-		endpoint.setDestination("myQueue");
-		endpoint.setSelector("foo = 'bar'");
-		endpoint.setSubscription("mySubscription");
-		endpoint.setConcurrency("10");
-		endpoint.setMessageListener(messageListener);
+    @Test
+    public void setupJcaMessageContainerFullConfig() {
+        JmsMessageEndpointManager container = new JmsMessageEndpointManager();
+        MessageListener messageListener = new MessageListenerAdapter();
+        SimpleJmsListenerEndpoint endpoint = new SimpleJmsListenerEndpoint();
+        endpoint.setDestination("myQueue");
+        endpoint.setSelector("foo = 'bar'");
+        endpoint.setSubscription("mySubscription");
+        endpoint.setConcurrency("10");
+        endpoint.setMessageListener(messageListener);
 
-		endpoint.setupListenerContainer(container);
-		JmsActivationSpecConfig config = container.getActivationSpecConfig();
-		assertThat(config.getDestinationName()).isEqualTo("myQueue");
-		assertThat(config.getMessageSelector()).isEqualTo("foo = 'bar'");
-		assertThat(config.getSubscriptionName()).isEqualTo("mySubscription");
-		assertThat(config.getMaxConcurrency()).isEqualTo(10);
-		assertThat(container.getMessageListener()).isEqualTo(messageListener);
-	}
+        endpoint.setupListenerContainer(container);
+        JmsActivationSpecConfig config = container.getActivationSpecConfig();
+        assertThat(config.getDestinationName()).isEqualTo("myQueue");
+        assertThat(config.getMessageSelector()).isEqualTo("foo = 'bar'");
+        assertThat(config.getSubscriptionName()).isEqualTo("mySubscription");
+        assertThat(config.getMaxConcurrency()).isEqualTo(10);
+        assertThat(container.getMessageListener()).isEqualTo(messageListener);
+    }
 
-	@Test
-	public void setupConcurrencySimpleContainer() {
-		SimpleMessageListenerContainer container = new SimpleMessageListenerContainer();
-		MessageListener messageListener = new MessageListenerAdapter();
-		SimpleJmsListenerEndpoint endpoint = new SimpleJmsListenerEndpoint();
-		endpoint.setConcurrency("5-10"); // simple implementation only support max value
-		endpoint.setMessageListener(messageListener);
+    @Test
+    public void setupConcurrencySimpleContainer() {
+        SimpleMessageListenerContainer container = new SimpleMessageListenerContainer();
+        MessageListener messageListener = new MessageListenerAdapter();
+        SimpleJmsListenerEndpoint endpoint = new SimpleJmsListenerEndpoint();
+        endpoint.setConcurrency("5-10"); // simple implementation only support max value
+        endpoint.setMessageListener(messageListener);
 
-		endpoint.setupListenerContainer(container);
-		assertThat(new DirectFieldAccessor(container).getPropertyValue("concurrentConsumers")).isEqualTo(10);
-	}
+        endpoint.setupListenerContainer(container);
+        assertThat(new DirectFieldAccessor(container).getPropertyValue("concurrentConsumers")).isEqualTo(10);
+    }
 
-	@Test
-	public void setupMessageContainerNoListener() {
-		DefaultMessageListenerContainer container = new DefaultMessageListenerContainer();
-		SimpleJmsListenerEndpoint endpoint = new SimpleJmsListenerEndpoint();
+    @Test
+    public void setupMessageContainerNoListener() {
+        DefaultMessageListenerContainer container = new DefaultMessageListenerContainer();
+        SimpleJmsListenerEndpoint endpoint = new SimpleJmsListenerEndpoint();
 
-		assertThatIllegalStateException().isThrownBy(() ->
-				endpoint.setupListenerContainer(container));
-	}
+        assertThatIllegalStateException().isThrownBy(() ->
+                endpoint.setupListenerContainer(container));
+    }
 
-	@Test
-	public void setupMessageContainerUnsupportedContainer() {
-		MessageListenerContainer container = mock(MessageListenerContainer.class);
-		SimpleJmsListenerEndpoint endpoint = new SimpleJmsListenerEndpoint();
-		endpoint.setMessageListener(new MessageListenerAdapter());
+    @Test
+    public void setupMessageContainerUnsupportedContainer() {
+        MessageListenerContainer container = mock(MessageListenerContainer.class);
+        SimpleJmsListenerEndpoint endpoint = new SimpleJmsListenerEndpoint();
+        endpoint.setMessageListener(new MessageListenerAdapter());
 
-		assertThatIllegalArgumentException().isThrownBy(() ->
-				endpoint.setupListenerContainer(container));
-	}
+        assertThatIllegalArgumentException().isThrownBy(() ->
+                endpoint.setupListenerContainer(container));
+    }
 
 }

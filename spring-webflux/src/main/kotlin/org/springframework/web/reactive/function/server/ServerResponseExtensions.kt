@@ -32,7 +32,7 @@ import reactor.core.publisher.Mono
  * @since 5.0
  */
 inline fun <reified T : Any> ServerResponse.BodyBuilder.body(publisher: Publisher<T>): Mono<ServerResponse> =
-		body(publisher, object : ParameterizedTypeReference<T>() {})
+        body(publisher, object : ParameterizedTypeReference<T>() {})
 
 /**
  * Extension for [ServerResponse.BodyBuilder.body] providing a `body<T>(Any)` variant
@@ -46,7 +46,7 @@ inline fun <reified T : Any> ServerResponse.BodyBuilder.body(publisher: Publishe
  * @since 5.2
  */
 inline fun <reified T : Any> ServerResponse.BodyBuilder.body(producer: Any): Mono<ServerResponse> =
-		body(producer, object : ParameterizedTypeReference<T>() {})
+        body(producer, object : ParameterizedTypeReference<T>() {})
 
 /**
  * Coroutines variant of [ServerResponse.BodyBuilder.bodyValue].
@@ -60,7 +60,7 @@ inline fun <reified T : Any> ServerResponse.BodyBuilder.body(producer: Any): Mon
  * instance of a type supported by [org.springframework.core.ReactiveAdapterRegistry.getSharedInstance],
  */
 suspend fun ServerResponse.BodyBuilder.bodyValueAndAwait(body: Any): ServerResponse =
-		bodyValue(body).awaitSingle()
+        bodyValue(body).awaitSingle()
 
 /**
  * Coroutines variant of [ServerResponse.BodyBuilder.body] with [Any] and
@@ -71,7 +71,7 @@ suspend fun ServerResponse.BodyBuilder.bodyValueAndAwait(body: Any): ServerRespo
  * @since 5.2
  */
 suspend inline fun <reified T : Any> ServerResponse.BodyBuilder.bodyAndAwait(flow: Flow<T>): ServerResponse =
-		body(flow, object : ParameterizedTypeReference<T>() {}).awaitSingle()
+        body(flow, object : ParameterizedTypeReference<T>() {}).awaitSingle()
 
 /**
  * Extension for [ServerResponse.BodyBuilder.body] providing a
@@ -83,7 +83,7 @@ suspend inline fun <reified T : Any> ServerResponse.BodyBuilder.bodyAndAwait(flo
  */
 @Deprecated("Use 'sse().body(publisher)' instead.", replaceWith = ReplaceWith("sse().body(publisher)"))
 inline fun <reified T : Any> ServerResponse.BodyBuilder.bodyToServerSentEvents(publisher: Publisher<T>): Mono<ServerResponse> =
-		contentType(MediaType.TEXT_EVENT_STREAM).body(publisher, object : ParameterizedTypeReference<T>() {})
+        contentType(MediaType.TEXT_EVENT_STREAM).body(publisher, object : ParameterizedTypeReference<T>() {})
 
 /**
  * Shortcut for setting [MediaType.APPLICATION_JSON] `Content-Type` header.
@@ -120,7 +120,7 @@ fun ServerResponse.BodyBuilder.sse() = contentType(MediaType.TEXT_EVENT_STREAM)
  * @since 5.2
  */
 suspend fun ServerResponse.BodyBuilder.renderAndAwait(name: String, vararg modelAttributes: String): ServerResponse =
-		render(name, *modelAttributes).awaitSingle()
+        render(name, *modelAttributes).awaitSingle()
 
 /**
  * Coroutines variant of [ServerResponse.BodyBuilder.render].
@@ -129,7 +129,7 @@ suspend fun ServerResponse.BodyBuilder.renderAndAwait(name: String, vararg model
  * @since 5.2
  */
 suspend fun ServerResponse.BodyBuilder.renderAndAwait(name: String, model: Map<String, *>): ServerResponse =
-		render(name, model).awaitSingle()
+        render(name, model).awaitSingle()
 
 /**
  * Coroutines variant of [ServerResponse.HeadersBuilder.build].
@@ -138,5 +138,5 @@ suspend fun ServerResponse.BodyBuilder.renderAndAwait(name: String, model: Map<S
  * @since 5.2
  */
 suspend fun ServerResponse.HeadersBuilder<out ServerResponse.HeadersBuilder<*>>.buildAndAwait(): ServerResponse =
-		build().awaitSingle()
+        build().awaitSingle()
 

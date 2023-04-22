@@ -24,14 +24,14 @@ import org.springframework.test.context.TestContext;
  * is invoked.
  *
  * @author Frank Scheffler
- * @since 5.2
  * @see org.springframework.test.context.event.annotation.AfterTestClass @AfterTestClass
+ * @since 5.2
  */
 @SuppressWarnings("serial")
 public class AfterTestClassEvent extends TestContextEvent {
 
-	public AfterTestClassEvent(TestContext source) {
-		super(source);
-	}
+    public AfterTestClassEvent(TestContext source) {
+        super(source);
+    }
 
 }

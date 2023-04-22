@@ -34,82 +34,81 @@ import static org.mockito.Mockito.mock;
  */
 public class JCacheCacheManagerTests extends AbstractTransactionSupportingCacheManagerTests<JCacheCacheManager> {
 
-	private CacheManagerMock cacheManagerMock;
+    private CacheManagerMock cacheManagerMock;
 
-	private JCacheCacheManager cacheManager;
+    private JCacheCacheManager cacheManager;
 
-	private JCacheCacheManager transactionalCacheManager;
-
-
-	@BeforeEach
-	public void setupOnce() {
-		cacheManagerMock = new CacheManagerMock();
-		cacheManagerMock.addCache(CACHE_NAME);
-
-		cacheManager = new JCacheCacheManager(cacheManagerMock.getCacheManager());
-		cacheManager.setTransactionAware(false);
-		cacheManager.afterPropertiesSet();
-
-		transactionalCacheManager = new JCacheCacheManager(cacheManagerMock.getCacheManager());
-		transactionalCacheManager.setTransactionAware(true);
-		transactionalCacheManager.afterPropertiesSet();
-	}
+    private JCacheCacheManager transactionalCacheManager;
 
 
-	@Override
-	protected JCacheCacheManager getCacheManager(boolean transactionAware) {
-		if (transactionAware) {
-			return transactionalCacheManager;
-		}
-		else {
-			return cacheManager;
-		}
-	}
+    @BeforeEach
+    public void setupOnce() {
+        cacheManagerMock = new CacheManagerMock();
+        cacheManagerMock.addCache(CACHE_NAME);
 
-	@Override
-	protected Class<? extends org.springframework.cache.Cache> getCacheType() {
-		return JCacheCache.class;
-	}
+        cacheManager = new JCacheCacheManager(cacheManagerMock.getCacheManager());
+        cacheManager.setTransactionAware(false);
+        cacheManager.afterPropertiesSet();
 
-	@Override
-	protected void addNativeCache(String cacheName) {
-		cacheManagerMock.addCache(cacheName);
-	}
-
-	@Override
-	protected void removeNativeCache(String cacheName) {
-		cacheManagerMock.removeCache(cacheName);
-	}
+        transactionalCacheManager = new JCacheCacheManager(cacheManagerMock.getCacheManager());
+        transactionalCacheManager.setTransactionAware(true);
+        transactionalCacheManager.afterPropertiesSet();
+    }
 
 
-	private static class CacheManagerMock {
+    @Override
+    protected JCacheCacheManager getCacheManager(boolean transactionAware) {
+        if (transactionAware) {
+            return transactionalCacheManager;
+        } else {
+            return cacheManager;
+        }
+    }
 
-		private final List<String> cacheNames;
+    @Override
+    protected Class<? extends org.springframework.cache.Cache> getCacheType() {
+        return JCacheCache.class;
+    }
 
-		private final CacheManager cacheManager;
+    @Override
+    protected void addNativeCache(String cacheName) {
+        cacheManagerMock.addCache(cacheName);
+    }
 
-		private CacheManagerMock() {
-			this.cacheNames = new ArrayList<>();
-			this.cacheManager = mock(CacheManager.class);
-			given(cacheManager.getCacheNames()).willReturn(cacheNames);
-		}
+    @Override
+    protected void removeNativeCache(String cacheName) {
+        cacheManagerMock.removeCache(cacheName);
+    }
 
-		private CacheManager getCacheManager() {
-			return cacheManager;
-		}
 
-		@SuppressWarnings({ "unchecked", "rawtypes" })
-		public void addCache(String name) {
-			cacheNames.add(name);
-			Cache cache = mock(Cache.class);
-			given(cache.getName()).willReturn(name);
-			given(cacheManager.getCache(name)).willReturn(cache);
-		}
+    private static class CacheManagerMock {
 
-		public void removeCache(String name) {
-			cacheNames.remove(name);
-			given(cacheManager.getCache(name)).willReturn(null);
-		}
-	}
+        private final List<String> cacheNames;
+
+        private final CacheManager cacheManager;
+
+        private CacheManagerMock() {
+            this.cacheNames = new ArrayList<>();
+            this.cacheManager = mock(CacheManager.class);
+            given(cacheManager.getCacheNames()).willReturn(cacheNames);
+        }
+
+        private CacheManager getCacheManager() {
+            return cacheManager;
+        }
+
+        @SuppressWarnings({"unchecked", "rawtypes"})
+        public void addCache(String name) {
+            cacheNames.add(name);
+            Cache cache = mock(Cache.class);
+            given(cache.getName()).willReturn(name);
+            given(cacheManager.getCache(name)).willReturn(cache);
+        }
+
+        public void removeCache(String name) {
+            cacheNames.remove(name);
+            given(cacheManager.getCache(name)).willReturn(null);
+        }
+    }
 
 }

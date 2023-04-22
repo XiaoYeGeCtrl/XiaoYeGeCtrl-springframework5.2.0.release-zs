@@ -41,44 +41,45 @@ import org.springframework.util.MimeType;
  * along different boundaries (e.g. on new line characters for {@code String})
  * or always reduce to a single data buffer (e.g. {@code Resource}).
  *
+ * @param <T> the element type
  * @author Rossen Stoyanchev
  * @since 5.0
- * @param <T> the element type
  */
 @SuppressWarnings("deprecation")
 public abstract class AbstractDataBufferDecoder<T> extends AbstractDecoder<T> {
 
 
-	protected AbstractDataBufferDecoder(MimeType... supportedMimeTypes) {
-		super(supportedMimeTypes);
-	}
+    protected AbstractDataBufferDecoder(MimeType... supportedMimeTypes) {
+        super(supportedMimeTypes);
+    }
 
 
-	@Override
-	public Flux<T> decode(Publisher<DataBuffer> input, ResolvableType elementType,
-			@Nullable MimeType mimeType, @Nullable Map<String, Object> hints) {
+    @Override
+    public Flux<T> decode(Publisher<DataBuffer> input, ResolvableType elementType,
+                          @Nullable MimeType mimeType, @Nullable Map<String, Object> hints) {
 
-		return Flux.from(input).map(buffer -> decodeDataBuffer(buffer, elementType, mimeType, hints));
-	}
+        return Flux.from(input).map(buffer -> decodeDataBuffer(buffer, elementType, mimeType, hints));
+    }
 
-	@Override
-	public Mono<T> decodeToMono(Publisher<DataBuffer> input, ResolvableType elementType,
-			@Nullable MimeType mimeType, @Nullable Map<String, Object> hints) {
+    @Override
+    public Mono<T> decodeToMono(Publisher<DataBuffer> input, ResolvableType elementType,
+                                @Nullable MimeType mimeType, @Nullable Map<String, Object> hints) {
 
-		return DataBufferUtils.join(input)
-				.map(buffer -> decodeDataBuffer(buffer, elementType, mimeType, hints));
-	}
+        return DataBufferUtils.join(input)
+                .map(buffer -> decodeDataBuffer(buffer, elementType, mimeType, hints));
+    }
 
-	/**
-	 * How to decode a {@code DataBuffer} to the target element type.
-	 * @deprecated as of 5.2, please implement
-	 * {@link #decode(DataBuffer, ResolvableType, MimeType, Map)} instead
-	 */
-	@Deprecated
-	protected T decodeDataBuffer(DataBuffer buffer, ResolvableType elementType,
-			@Nullable MimeType mimeType, @Nullable Map<String, Object> hints) {
+    /**
+     * How to decode a {@code DataBuffer} to the target element type.
+     *
+     * @deprecated as of 5.2, please implement
+     * {@link #decode(DataBuffer, ResolvableType, MimeType, Map)} instead
+     */
+    @Deprecated
+    protected T decodeDataBuffer(DataBuffer buffer, ResolvableType elementType,
+                                 @Nullable MimeType mimeType, @Nullable Map<String, Object> hints) {
 
-		return decode(buffer, elementType, mimeType, hints);
-	}
+        return decode(buffer, elementType, mimeType, hints);
+    }
 
 }

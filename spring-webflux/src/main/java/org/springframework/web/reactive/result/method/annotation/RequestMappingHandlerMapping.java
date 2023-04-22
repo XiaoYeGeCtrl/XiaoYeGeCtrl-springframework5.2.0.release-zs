@@ -61,305 +61,307 @@ import org.springframework.web.server.ServerWebExchange;
  * @since 5.0
  */
 public class RequestMappingHandlerMapping extends RequestMappingInfoHandlerMapping
-		implements EmbeddedValueResolverAware {
+        implements EmbeddedValueResolverAware {
 
-	private final Map<String, Predicate<Class<?>>> pathPrefixes = new LinkedHashMap<>();
+    private final Map<String, Predicate<Class<?>>> pathPrefixes = new LinkedHashMap<>();
 
-	private RequestedContentTypeResolver contentTypeResolver = new RequestedContentTypeResolverBuilder().build();
+    private RequestedContentTypeResolver contentTypeResolver = new RequestedContentTypeResolverBuilder().build();
 
-	@Nullable
-	private StringValueResolver embeddedValueResolver;
+    @Nullable
+    private StringValueResolver embeddedValueResolver;
 
-	private RequestMappingInfo.BuilderConfiguration config = new RequestMappingInfo.BuilderConfiguration();
+    private RequestMappingInfo.BuilderConfiguration config = new RequestMappingInfo.BuilderConfiguration();
+
+    /**
+     * The configured path prefixes as a read-only, possibly empty map.
+     *
+     * @since 5.1
+     */
+    public Map<String, Predicate<Class<?>>> getPathPrefixes() {
+        return Collections.unmodifiableMap(this.pathPrefixes);
+    }
+
+    /**
+     * Configure path prefixes to apply to controller methods.
+     * <p>Prefixes are used to enrich the mappings of every {@code @RequestMapping}
+     * method whose controller type is matched by a corresponding
+     * {@code Predicate} in the map. The prefix for the first matching predicate
+     * is used, assuming the input map has predictable order.
+     * <p>Consider using {@link org.springframework.web.method.HandlerTypePredicate
+     * HandlerTypePredicate} to group controllers.
+     *
+     * @param prefixes a map with path prefixes as key
+     * @see org.springframework.web.method.HandlerTypePredicate
+     * @since 5.1
+     */
+    public void setPathPrefixes(Map<String, Predicate<Class<?>>> prefixes) {
+        this.pathPrefixes.clear();
+        prefixes.entrySet().stream()
+                .filter(entry -> StringUtils.hasText(entry.getKey()))
+                .forEach(entry -> this.pathPrefixes.put(entry.getKey(), entry.getValue()));
+    }
+
+    /**
+     * Return the configured {@link RequestedContentTypeResolver}.
+     */
+    public RequestedContentTypeResolver getContentTypeResolver() {
+        return this.contentTypeResolver;
+    }
+
+    /**
+     * Set the {@link RequestedContentTypeResolver} to use to determine requested
+     * media types. If not set, the default constructor is used.
+     */
+    public void setContentTypeResolver(RequestedContentTypeResolver contentTypeResolver) {
+        Assert.notNull(contentTypeResolver, "'contentTypeResolver' must not be null");
+        this.contentTypeResolver = contentTypeResolver;
+    }
+
+    @Override
+    public void setEmbeddedValueResolver(StringValueResolver resolver) {
+        this.embeddedValueResolver = resolver;
+    }
+
+    @Override
+    public void afterPropertiesSet() {
+        this.config = new RequestMappingInfo.BuilderConfiguration();
+        this.config.setPatternParser(getPathPatternParser());
+        this.config.setContentTypeResolver(getContentTypeResolver());
+
+        super.afterPropertiesSet();
+    }
 
 
-	/**
-	 * Configure path prefixes to apply to controller methods.
-	 * <p>Prefixes are used to enrich the mappings of every {@code @RequestMapping}
-	 * method whose controller type is matched by a corresponding
-	 * {@code Predicate} in the map. The prefix for the first matching predicate
-	 * is used, assuming the input map has predictable order.
-	 * <p>Consider using {@link org.springframework.web.method.HandlerTypePredicate
-	 * HandlerTypePredicate} to group controllers.
-	 * @param prefixes a map with path prefixes as key
-	 * @since 5.1
-	 * @see org.springframework.web.method.HandlerTypePredicate
-	 */
-	public void setPathPrefixes(Map<String, Predicate<Class<?>>> prefixes) {
-		this.pathPrefixes.clear();
-		prefixes.entrySet().stream()
-				.filter(entry -> StringUtils.hasText(entry.getKey()))
-				.forEach(entry -> this.pathPrefixes.put(entry.getKey(), entry.getValue()));
-	}
+    /**
+     * {@inheritDoc}
+     * Expects a handler to have a type-level @{@link Controller} annotation.
+     */
+    @Override
+    protected boolean isHandler(Class<?> beanType) {
+        return (AnnotatedElementUtils.hasAnnotation(beanType, Controller.class) ||
+                AnnotatedElementUtils.hasAnnotation(beanType, RequestMapping.class));
+    }
 
-	/**
-	 * The configured path prefixes as a read-only, possibly empty map.
-	 * @since 5.1
-	 */
-	public Map<String, Predicate<Class<?>>> getPathPrefixes() {
-		return Collections.unmodifiableMap(this.pathPrefixes);
-	}
+    /**
+     * Uses method and type-level @{@link RequestMapping} annotations to create
+     * the RequestMappingInfo.
+     *
+     * @return the created RequestMappingInfo, or {@code null} if the method
+     * does not have a {@code @RequestMapping} annotation.
+     * @see #getCustomMethodCondition(Method)
+     * @see #getCustomTypeCondition(Class)
+     */
+    @Override
+    protected RequestMappingInfo getMappingForMethod(Method method, Class<?> handlerType) {
+        RequestMappingInfo info = createRequestMappingInfo(method);
+        if (info != null) {
+            RequestMappingInfo typeInfo = createRequestMappingInfo(handlerType);
+            if (typeInfo != null) {
+                info = typeInfo.combine(info);
+            }
+            for (Map.Entry<String, Predicate<Class<?>>> entry : this.pathPrefixes.entrySet()) {
+                if (entry.getValue().test(handlerType)) {
+                    String prefix = entry.getKey();
+                    if (this.embeddedValueResolver != null) {
+                        prefix = this.embeddedValueResolver.resolveStringValue(prefix);
+                    }
+                    info = RequestMappingInfo.paths(prefix).build().combine(info);
+                    break;
+                }
+            }
+        }
+        return info;
+    }
 
-	/**
-	 * Set the {@link RequestedContentTypeResolver} to use to determine requested
-	 * media types. If not set, the default constructor is used.
-	 */
-	public void setContentTypeResolver(RequestedContentTypeResolver contentTypeResolver) {
-		Assert.notNull(contentTypeResolver, "'contentTypeResolver' must not be null");
-		this.contentTypeResolver = contentTypeResolver;
-	}
+    /**
+     * Delegates to {@link #createRequestMappingInfo(RequestMapping, RequestCondition)},
+     * supplying the appropriate custom {@link RequestCondition} depending on whether
+     * the supplied {@code annotatedElement} is a class or method.
+     *
+     * @see #getCustomTypeCondition(Class)
+     * @see #getCustomMethodCondition(Method)
+     */
+    @Nullable
+    private RequestMappingInfo createRequestMappingInfo(AnnotatedElement element) {
+        RequestMapping requestMapping = AnnotatedElementUtils.findMergedAnnotation(element, RequestMapping.class);
+        RequestCondition<?> condition = (element instanceof Class ?
+                getCustomTypeCondition((Class<?>) element) : getCustomMethodCondition((Method) element));
+        return (requestMapping != null ? createRequestMappingInfo(requestMapping, condition) : null);
+    }
 
-	/**
-	 * Return the configured {@link RequestedContentTypeResolver}.
-	 */
-	public RequestedContentTypeResolver getContentTypeResolver() {
-		return this.contentTypeResolver;
-	}
+    /**
+     * Provide a custom type-level request condition.
+     * The custom {@link RequestCondition} can be of any type so long as the
+     * same condition type is returned from all calls to this method in order
+     * to ensure custom request conditions can be combined and compared.
+     * <p>Consider extending
+     * {@link org.springframework.web.reactive.result.condition.AbstractRequestCondition
+     * AbstractRequestCondition} for custom condition types and using
+     * {@link org.springframework.web.reactive.result.condition.CompositeRequestCondition
+     * CompositeRequestCondition} to provide multiple custom conditions.
+     *
+     * @param handlerType the handler type for which to create the condition
+     * @return the condition, or {@code null}
+     */
+    @SuppressWarnings("UnusedParameters")
+    @Nullable
+    protected RequestCondition<?> getCustomTypeCondition(Class<?> handlerType) {
+        return null;
+    }
 
-	@Override
-	public void setEmbeddedValueResolver(StringValueResolver resolver) {
-		this.embeddedValueResolver = resolver;
-	}
+    /**
+     * Provide a custom method-level request condition.
+     * The custom {@link RequestCondition} can be of any type so long as the
+     * same condition type is returned from all calls to this method in order
+     * to ensure custom request conditions can be combined and compared.
+     * <p>Consider extending
+     * {@link org.springframework.web.reactive.result.condition.AbstractRequestCondition
+     * AbstractRequestCondition} for custom condition types and using
+     * {@link org.springframework.web.reactive.result.condition.CompositeRequestCondition
+     * CompositeRequestCondition} to provide multiple custom conditions.
+     *
+     * @param method the handler method for which to create the condition
+     * @return the condition, or {@code null}
+     */
+    @SuppressWarnings("UnusedParameters")
+    @Nullable
+    protected RequestCondition<?> getCustomMethodCondition(Method method) {
+        return null;
+    }
 
-	@Override
-	public void afterPropertiesSet() {
-		this.config = new RequestMappingInfo.BuilderConfiguration();
-		this.config.setPatternParser(getPathPatternParser());
-		this.config.setContentTypeResolver(getContentTypeResolver());
+    /**
+     * Create a {@link RequestMappingInfo} from the supplied
+     * {@link RequestMapping @RequestMapping} annotation, which is either
+     * a directly declared annotation, a meta-annotation, or the synthesized
+     * result of merging annotation attributes within an annotation hierarchy.
+     */
+    protected RequestMappingInfo createRequestMappingInfo(
+            RequestMapping requestMapping, @Nullable RequestCondition<?> customCondition) {
 
-		super.afterPropertiesSet();
-	}
+        RequestMappingInfo.Builder builder = RequestMappingInfo
+                .paths(resolveEmbeddedValuesInPatterns(requestMapping.path()))
+                .methods(requestMapping.method())
+                .params(requestMapping.params())
+                .headers(requestMapping.headers())
+                .consumes(requestMapping.consumes())
+                .produces(requestMapping.produces())
+                .mappingName(requestMapping.name());
+        if (customCondition != null) {
+            builder.customCondition(customCondition);
+        }
+        return builder.options(this.config).build();
+    }
 
+    /**
+     * Resolve placeholder values in the given array of patterns.
+     *
+     * @return a new array with updated patterns
+     */
+    protected String[] resolveEmbeddedValuesInPatterns(String[] patterns) {
+        if (this.embeddedValueResolver == null) {
+            return patterns;
+        } else {
+            String[] resolvedPatterns = new String[patterns.length];
+            for (int i = 0; i < patterns.length; i++) {
+                resolvedPatterns[i] = this.embeddedValueResolver.resolveStringValue(patterns[i]);
+            }
+            return resolvedPatterns;
+        }
+    }
 
-	/**
-	 * {@inheritDoc}
-	 * Expects a handler to have a type-level @{@link Controller} annotation.
-	 */
-	@Override
-	protected boolean isHandler(Class<?> beanType) {
-		return (AnnotatedElementUtils.hasAnnotation(beanType, Controller.class) ||
-				AnnotatedElementUtils.hasAnnotation(beanType, RequestMapping.class));
-	}
+    @Override
+    public void registerMapping(RequestMappingInfo mapping, Object handler, Method method) {
+        super.registerMapping(mapping, handler, method);
+        updateConsumesCondition(mapping, method);
+    }
 
-	/**
-	 * Uses method and type-level @{@link RequestMapping} annotations to create
-	 * the RequestMappingInfo.
-	 * @return the created RequestMappingInfo, or {@code null} if the method
-	 * does not have a {@code @RequestMapping} annotation.
-	 * @see #getCustomMethodCondition(Method)
-	 * @see #getCustomTypeCondition(Class)
-	 */
-	@Override
-	protected RequestMappingInfo getMappingForMethod(Method method, Class<?> handlerType) {
-		RequestMappingInfo info = createRequestMappingInfo(method);
-		if (info != null) {
-			RequestMappingInfo typeInfo = createRequestMappingInfo(handlerType);
-			if (typeInfo != null) {
-				info = typeInfo.combine(info);
-			}
-			for (Map.Entry<String, Predicate<Class<?>>> entry : this.pathPrefixes.entrySet()) {
-				if (entry.getValue().test(handlerType)) {
-					String prefix = entry.getKey();
-					if (this.embeddedValueResolver != null) {
-						prefix = this.embeddedValueResolver.resolveStringValue(prefix);
-					}
-					info = RequestMappingInfo.paths(prefix).build().combine(info);
-					break;
-				}
-			}
-		}
-		return info;
-	}
+    @Override
+    protected void registerHandlerMethod(Object handler, Method method, RequestMappingInfo mapping) {
+        super.registerHandlerMethod(handler, method, mapping);
+        updateConsumesCondition(mapping, method);
+    }
 
-	/**
-	 * Delegates to {@link #createRequestMappingInfo(RequestMapping, RequestCondition)},
-	 * supplying the appropriate custom {@link RequestCondition} depending on whether
-	 * the supplied {@code annotatedElement} is a class or method.
-	 * @see #getCustomTypeCondition(Class)
-	 * @see #getCustomMethodCondition(Method)
-	 */
-	@Nullable
-	private RequestMappingInfo createRequestMappingInfo(AnnotatedElement element) {
-		RequestMapping requestMapping = AnnotatedElementUtils.findMergedAnnotation(element, RequestMapping.class);
-		RequestCondition<?> condition = (element instanceof Class ?
-				getCustomTypeCondition((Class<?>) element) : getCustomMethodCondition((Method) element));
-		return (requestMapping != null ? createRequestMappingInfo(requestMapping, condition) : null);
-	}
+    private void updateConsumesCondition(RequestMappingInfo info, Method method) {
+        ConsumesRequestCondition condition = info.getConsumesCondition();
+        if (!condition.isEmpty()) {
+            for (Parameter parameter : method.getParameters()) {
+                MergedAnnotation<RequestBody> annot = MergedAnnotations.from(parameter).get(RequestBody.class);
+                if (annot.isPresent()) {
+                    condition.setBodyRequired(annot.getBoolean("required"));
+                    break;
+                }
+            }
+        }
+    }
 
-	/**
-	 * Provide a custom type-level request condition.
-	 * The custom {@link RequestCondition} can be of any type so long as the
-	 * same condition type is returned from all calls to this method in order
-	 * to ensure custom request conditions can be combined and compared.
-	 * <p>Consider extending
-	 * {@link org.springframework.web.reactive.result.condition.AbstractRequestCondition
-	 * AbstractRequestCondition} for custom condition types and using
-	 * {@link org.springframework.web.reactive.result.condition.CompositeRequestCondition
-	 * CompositeRequestCondition} to provide multiple custom conditions.
-	 * @param handlerType the handler type for which to create the condition
-	 * @return the condition, or {@code null}
-	 */
-	@SuppressWarnings("UnusedParameters")
-	@Nullable
-	protected RequestCondition<?> getCustomTypeCondition(Class<?> handlerType) {
-		return null;
-	}
+    @Override
+    protected CorsConfiguration initCorsConfiguration(Object handler, Method method, RequestMappingInfo mappingInfo) {
+        HandlerMethod handlerMethod = createHandlerMethod(handler, method);
+        Class<?> beanType = handlerMethod.getBeanType();
+        CrossOrigin typeAnnotation = AnnotatedElementUtils.findMergedAnnotation(beanType, CrossOrigin.class);
+        CrossOrigin methodAnnotation = AnnotatedElementUtils.findMergedAnnotation(method, CrossOrigin.class);
 
-	/**
-	 * Provide a custom method-level request condition.
-	 * The custom {@link RequestCondition} can be of any type so long as the
-	 * same condition type is returned from all calls to this method in order
-	 * to ensure custom request conditions can be combined and compared.
-	 * <p>Consider extending
-	 * {@link org.springframework.web.reactive.result.condition.AbstractRequestCondition
-	 * AbstractRequestCondition} for custom condition types and using
-	 * {@link org.springframework.web.reactive.result.condition.CompositeRequestCondition
-	 * CompositeRequestCondition} to provide multiple custom conditions.
-	 * @param method the handler method for which to create the condition
-	 * @return the condition, or {@code null}
-	 */
-	@SuppressWarnings("UnusedParameters")
-	@Nullable
-	protected RequestCondition<?> getCustomMethodCondition(Method method) {
-		return null;
-	}
+        if (typeAnnotation == null && methodAnnotation == null) {
+            return null;
+        }
 
-	/**
-	 * Create a {@link RequestMappingInfo} from the supplied
-	 * {@link RequestMapping @RequestMapping} annotation, which is either
-	 * a directly declared annotation, a meta-annotation, or the synthesized
-	 * result of merging annotation attributes within an annotation hierarchy.
-	 */
-	protected RequestMappingInfo createRequestMappingInfo(
-			RequestMapping requestMapping, @Nullable RequestCondition<?> customCondition) {
+        CorsConfiguration config = new CorsConfiguration();
+        updateCorsConfig(config, typeAnnotation);
+        updateCorsConfig(config, methodAnnotation);
 
-		RequestMappingInfo.Builder builder = RequestMappingInfo
-				.paths(resolveEmbeddedValuesInPatterns(requestMapping.path()))
-				.methods(requestMapping.method())
-				.params(requestMapping.params())
-				.headers(requestMapping.headers())
-				.consumes(requestMapping.consumes())
-				.produces(requestMapping.produces())
-				.mappingName(requestMapping.name());
-		if (customCondition != null) {
-			builder.customCondition(customCondition);
-		}
-		return builder.options(this.config).build();
-	}
+        if (CollectionUtils.isEmpty(config.getAllowedMethods())) {
+            for (RequestMethod allowedMethod : mappingInfo.getMethodsCondition().getMethods()) {
+                config.addAllowedMethod(allowedMethod.name());
+            }
+        }
+        return config.applyPermitDefaultValues();
+    }
 
-	/**
-	 * Resolve placeholder values in the given array of patterns.
-	 * @return a new array with updated patterns
-	 */
-	protected String[] resolveEmbeddedValuesInPatterns(String[] patterns) {
-		if (this.embeddedValueResolver == null) {
-			return patterns;
-		}
-		else {
-			String[] resolvedPatterns = new String[patterns.length];
-			for (int i = 0; i < patterns.length; i++) {
-				resolvedPatterns[i] = this.embeddedValueResolver.resolveStringValue(patterns[i]);
-			}
-			return resolvedPatterns;
-		}
-	}
+    private void updateCorsConfig(CorsConfiguration config, @Nullable CrossOrigin annotation) {
+        if (annotation == null) {
+            return;
+        }
+        for (String origin : annotation.origins()) {
+            config.addAllowedOrigin(resolveCorsAnnotationValue(origin));
+        }
+        for (RequestMethod method : annotation.methods()) {
+            config.addAllowedMethod(method.name());
+        }
+        for (String header : annotation.allowedHeaders()) {
+            config.addAllowedHeader(resolveCorsAnnotationValue(header));
+        }
+        for (String header : annotation.exposedHeaders()) {
+            config.addExposedHeader(resolveCorsAnnotationValue(header));
+        }
 
-	@Override
-	public void registerMapping(RequestMappingInfo mapping, Object handler, Method method) {
-		super.registerMapping(mapping, handler, method);
-		updateConsumesCondition(mapping, method);
-	}
+        String allowCredentials = resolveCorsAnnotationValue(annotation.allowCredentials());
+        if ("true".equalsIgnoreCase(allowCredentials)) {
+            config.setAllowCredentials(true);
+        } else if ("false".equalsIgnoreCase(allowCredentials)) {
+            config.setAllowCredentials(false);
+        } else if (!allowCredentials.isEmpty()) {
+            throw new IllegalStateException("@CrossOrigin's allowCredentials value must be \"true\", \"false\", " +
+                    "or an empty string (\"\"): current value is [" + allowCredentials + "]");
+        }
 
-	@Override
-	protected void registerHandlerMethod(Object handler, Method method, RequestMappingInfo mapping) {
-		super.registerHandlerMethod(handler, method, mapping);
-		updateConsumesCondition(mapping, method);
-	}
+        if (annotation.maxAge() >= 0 && config.getMaxAge() == null) {
+            config.setMaxAge(annotation.maxAge());
+        }
+    }
 
-	private void updateConsumesCondition(RequestMappingInfo info, Method method) {
-		ConsumesRequestCondition condition = info.getConsumesCondition();
-		if (!condition.isEmpty()) {
-			for (Parameter parameter : method.getParameters()) {
-				MergedAnnotation<RequestBody> annot = MergedAnnotations.from(parameter).get(RequestBody.class);
-				if (annot.isPresent()) {
-					condition.setBodyRequired(annot.getBoolean("required"));
-					break;
-				}
-			}
-		}
-	}
+    private String resolveCorsAnnotationValue(String value) {
+        if (this.embeddedValueResolver != null) {
+            String resolved = this.embeddedValueResolver.resolveStringValue(value);
+            return (resolved != null ? resolved : "");
+        } else {
+            return value;
+        }
+    }
 
-	@Override
-	protected CorsConfiguration initCorsConfiguration(Object handler, Method method, RequestMappingInfo mappingInfo) {
-		HandlerMethod handlerMethod = createHandlerMethod(handler, method);
-		Class<?> beanType = handlerMethod.getBeanType();
-		CrossOrigin typeAnnotation = AnnotatedElementUtils.findMergedAnnotation(beanType, CrossOrigin.class);
-		CrossOrigin methodAnnotation = AnnotatedElementUtils.findMergedAnnotation(method, CrossOrigin.class);
-
-		if (typeAnnotation == null && methodAnnotation == null) {
-			return null;
-		}
-
-		CorsConfiguration config = new CorsConfiguration();
-		updateCorsConfig(config, typeAnnotation);
-		updateCorsConfig(config, methodAnnotation);
-
-		if (CollectionUtils.isEmpty(config.getAllowedMethods())) {
-			for (RequestMethod allowedMethod : mappingInfo.getMethodsCondition().getMethods()) {
-				config.addAllowedMethod(allowedMethod.name());
-			}
-		}
-		return config.applyPermitDefaultValues();
-	}
-
-	private void updateCorsConfig(CorsConfiguration config, @Nullable CrossOrigin annotation) {
-		if (annotation == null) {
-			return;
-		}
-		for (String origin : annotation.origins()) {
-			config.addAllowedOrigin(resolveCorsAnnotationValue(origin));
-		}
-		for (RequestMethod method : annotation.methods()) {
-			config.addAllowedMethod(method.name());
-		}
-		for (String header : annotation.allowedHeaders()) {
-			config.addAllowedHeader(resolveCorsAnnotationValue(header));
-		}
-		for (String header : annotation.exposedHeaders()) {
-			config.addExposedHeader(resolveCorsAnnotationValue(header));
-		}
-
-		String allowCredentials = resolveCorsAnnotationValue(annotation.allowCredentials());
-		if ("true".equalsIgnoreCase(allowCredentials)) {
-			config.setAllowCredentials(true);
-		}
-		else if ("false".equalsIgnoreCase(allowCredentials)) {
-			config.setAllowCredentials(false);
-		}
-		else if (!allowCredentials.isEmpty()) {
-			throw new IllegalStateException("@CrossOrigin's allowCredentials value must be \"true\", \"false\", " +
-					"or an empty string (\"\"): current value is [" + allowCredentials + "]");
-		}
-
-		if (annotation.maxAge() >= 0 && config.getMaxAge() == null) {
-			config.setMaxAge(annotation.maxAge());
-		}
-	}
-
-	private String resolveCorsAnnotationValue(String value) {
-		if (this.embeddedValueResolver != null) {
-			String resolved = this.embeddedValueResolver.resolveStringValue(value);
-			return (resolved != null ? resolved : "");
-		}
-		else {
-			return value;
-		}
-	}
-
-	@Override
-	public Mono<HandlerMethod> getHandlerInternal(ServerWebExchange exchange) {
-		return super.getHandlerInternal(exchange)
-				.doOnTerminate(() -> ProducesRequestCondition.clearMediaTypesAttribute(exchange));
-	}
+    @Override
+    public Mono<HandlerMethod> getHandlerInternal(ServerWebExchange exchange) {
+        return super.getHandlerInternal(exchange)
+                .doOnTerminate(() -> ProducesRequestCondition.clearMediaTypesAttribute(exchange));
+    }
 
 }

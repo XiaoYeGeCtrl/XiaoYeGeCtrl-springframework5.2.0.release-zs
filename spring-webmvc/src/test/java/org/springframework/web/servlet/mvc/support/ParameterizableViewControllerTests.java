@@ -37,80 +37,80 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 public class ParameterizableViewControllerTests {
 
-	private final ParameterizableViewController controller = new ParameterizableViewController();
+    private final ParameterizableViewController controller = new ParameterizableViewController();
 
-	private final MockHttpServletRequest request = new MockHttpServletRequest("GET", "/");
+    private final MockHttpServletRequest request = new MockHttpServletRequest("GET", "/");
 
-	private final MockHttpServletResponse response = new MockHttpServletResponse();
+    private final MockHttpServletResponse response = new MockHttpServletResponse();
 
 
-	@Test
-	public void defaultViewName() throws Exception {
-		ModelAndView modelAndView = this.controller.handleRequest(this.request, this.response);
-		assertThat(modelAndView.getViewName()).isNull();
-	}
+    @Test
+    public void defaultViewName() throws Exception {
+        ModelAndView modelAndView = this.controller.handleRequest(this.request, this.response);
+        assertThat(modelAndView.getViewName()).isNull();
+    }
 
-	@Test
-	public void viewName() throws Exception {
-		this.controller.setViewName("view");
-		ModelAndView modelAndView = this.controller.handleRequest(this.request, this.response);
-		assertThat(modelAndView.getViewName()).isEqualTo("view");
-	}
+    @Test
+    public void viewName() throws Exception {
+        this.controller.setViewName("view");
+        ModelAndView modelAndView = this.controller.handleRequest(this.request, this.response);
+        assertThat(modelAndView.getViewName()).isEqualTo("view");
+    }
 
-	@Test
-	public void viewNameAndStatus() throws Exception {
-		this.controller.setViewName("view");
-		this.controller.setStatusCode(HttpStatus.NOT_FOUND);
-		ModelAndView modelAndView = this.controller.handleRequest(this.request, this.response);
-		assertThat(modelAndView.getViewName()).isEqualTo("view");
-		assertThat(this.response.getStatus()).isEqualTo(404);
-	}
+    @Test
+    public void viewNameAndStatus() throws Exception {
+        this.controller.setViewName("view");
+        this.controller.setStatusCode(HttpStatus.NOT_FOUND);
+        ModelAndView modelAndView = this.controller.handleRequest(this.request, this.response);
+        assertThat(modelAndView.getViewName()).isEqualTo("view");
+        assertThat(this.response.getStatus()).isEqualTo(404);
+    }
 
-	@Test
-	public void viewNameAndStatus204() throws Exception {
-		this.controller.setStatusCode(HttpStatus.NO_CONTENT);
-		ModelAndView modelAndView = this.controller.handleRequest(this.request, this.response);
-		assertThat(modelAndView).isNull();
-		assertThat(this.response.getStatus()).isEqualTo(204);
-	}
+    @Test
+    public void viewNameAndStatus204() throws Exception {
+        this.controller.setStatusCode(HttpStatus.NO_CONTENT);
+        ModelAndView modelAndView = this.controller.handleRequest(this.request, this.response);
+        assertThat(modelAndView).isNull();
+        assertThat(this.response.getStatus()).isEqualTo(204);
+    }
 
-	@Test
-	public void redirectStatus() throws Exception {
-		this.controller.setStatusCode(HttpStatus.PERMANENT_REDIRECT);
-		this.controller.setViewName("/foo");
-		ModelAndView modelAndView = this.controller.handleRequest(this.request, this.response);
+    @Test
+    public void redirectStatus() throws Exception {
+        this.controller.setStatusCode(HttpStatus.PERMANENT_REDIRECT);
+        this.controller.setViewName("/foo");
+        ModelAndView modelAndView = this.controller.handleRequest(this.request, this.response);
 
-		assertThat(modelAndView.getViewName()).isEqualTo("redirect:/foo");
-		assertThat(this.response.getStatus()).as("3xx status should be left to RedirectView to set").isEqualTo(200);
-		assertThat(this.request.getAttribute(View.RESPONSE_STATUS_ATTRIBUTE)).isEqualTo(HttpStatus.PERMANENT_REDIRECT);
-	}
+        assertThat(modelAndView.getViewName()).isEqualTo("redirect:/foo");
+        assertThat(this.response.getStatus()).as("3xx status should be left to RedirectView to set").isEqualTo(200);
+        assertThat(this.request.getAttribute(View.RESPONSE_STATUS_ATTRIBUTE)).isEqualTo(HttpStatus.PERMANENT_REDIRECT);
+    }
 
-	@Test
-	public void redirectStatusWithRedirectPrefix() throws Exception {
-		this.controller.setStatusCode(HttpStatus.PERMANENT_REDIRECT);
-		this.controller.setViewName("redirect:/foo");
-		ModelAndView modelAndView = this.controller.handleRequest(this.request, this.response);
+    @Test
+    public void redirectStatusWithRedirectPrefix() throws Exception {
+        this.controller.setStatusCode(HttpStatus.PERMANENT_REDIRECT);
+        this.controller.setViewName("redirect:/foo");
+        ModelAndView modelAndView = this.controller.handleRequest(this.request, this.response);
 
-		assertThat(modelAndView.getViewName()).isEqualTo("redirect:/foo");
-		assertThat(this.response.getStatus()).as("3xx status should be left to RedirectView to set").isEqualTo(200);
-		assertThat(this.request.getAttribute(View.RESPONSE_STATUS_ATTRIBUTE)).isEqualTo(HttpStatus.PERMANENT_REDIRECT);
-	}
+        assertThat(modelAndView.getViewName()).isEqualTo("redirect:/foo");
+        assertThat(this.response.getStatus()).as("3xx status should be left to RedirectView to set").isEqualTo(200);
+        assertThat(this.request.getAttribute(View.RESPONSE_STATUS_ATTRIBUTE)).isEqualTo(HttpStatus.PERMANENT_REDIRECT);
+    }
 
-	@Test
-	public void redirectView() throws Exception {
-		RedirectView view = new RedirectView("/foo");
-		this.controller.setView(view);
-		ModelAndView modelAndView = this.controller.handleRequest(this.request, this.response);
-		assertThat(modelAndView.getView()).isSameAs(view);
-	}
+    @Test
+    public void redirectView() throws Exception {
+        RedirectView view = new RedirectView("/foo");
+        this.controller.setView(view);
+        ModelAndView modelAndView = this.controller.handleRequest(this.request, this.response);
+        assertThat(modelAndView.getView()).isSameAs(view);
+    }
 
-	@Test
-	public void statusOnly() throws Exception {
-		this.controller.setStatusCode(HttpStatus.NOT_FOUND);
-		this.controller.setStatusOnly(true);
-		ModelAndView modelAndView = this.controller.handleRequest(this.request, this.response);
-		assertThat(modelAndView).isNull();
-		assertThat(this.response.getStatus()).isEqualTo(404);
-	}
+    @Test
+    public void statusOnly() throws Exception {
+        this.controller.setStatusCode(HttpStatus.NOT_FOUND);
+        this.controller.setStatusOnly(true);
+        ModelAndView modelAndView = this.controller.handleRequest(this.request, this.response);
+        assertThat(modelAndView).isNull();
+        assertThat(this.response.getStatus()).isEqualTo(404);
+    }
 
 }

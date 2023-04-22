@@ -45,123 +45,123 @@ import org.springframework.web.socket.sockjs.transport.TransportType;
  */
 public abstract class AbstractXhrTransport implements XhrTransport {
 
-	protected static final String PRELUDE;
+    protected static final String PRELUDE;
 
-	static {
-		byte[] bytes = new byte[2048];
-		Arrays.fill(bytes, (byte) 'h');
-		PRELUDE = new String(bytes, SockJsFrame.CHARSET);
-	}
-
-
-	protected final Log logger = LogFactory.getLog(getClass());
-
-	private boolean xhrStreamingDisabled;
+    static {
+        byte[] bytes = new byte[2048];
+        Arrays.fill(bytes, (byte) 'h');
+        PRELUDE = new String(bytes, SockJsFrame.CHARSET);
+    }
 
 
-	@Override
-	public List<TransportType> getTransportTypes() {
-		return (isXhrStreamingDisabled() ? Collections.singletonList(TransportType.XHR) :
-				Arrays.asList(TransportType.XHR_STREAMING, TransportType.XHR));
-	}
+    protected final Log logger = LogFactory.getLog(getClass());
 
-	/**
-	 * An {@code XhrTransport} can support both the "xhr_streaming" and "xhr"
-	 * SockJS server transports. From a client perspective there is no
-	 * implementation difference.
-	 * <p>Typically an {@code XhrTransport} is used as "XHR streaming" first and
-	 * then, if that fails, as "XHR". In some cases however it may be helpful to
-	 * suppress XHR streaming so that only XHR is attempted.
-	 * <p>By default this property is set to {@code false} which means both
-	 * "XHR streaming" and "XHR" apply.
-	 */
-	public void setXhrStreamingDisabled(boolean disabled) {
-		this.xhrStreamingDisabled = disabled;
-	}
-
-	/**
-	 * Whether XHR streaming is disabled or not.
-	 */
-	@Override
-	public boolean isXhrStreamingDisabled() {
-		return this.xhrStreamingDisabled;
-	}
+    private boolean xhrStreamingDisabled;
 
 
-	// Transport methods
+    @Override
+    public List<TransportType> getTransportTypes() {
+        return (isXhrStreamingDisabled() ? Collections.singletonList(TransportType.XHR) :
+                Arrays.asList(TransportType.XHR_STREAMING, TransportType.XHR));
+    }
 
-	@Override
-	public ListenableFuture<WebSocketSession> connect(TransportRequest request, WebSocketHandler handler) {
-		SettableListenableFuture<WebSocketSession> connectFuture = new SettableListenableFuture<>();
-		XhrClientSockJsSession session = new XhrClientSockJsSession(request, handler, this, connectFuture);
-		request.addTimeoutTask(session.getTimeoutTask());
+    /**
+     * Whether XHR streaming is disabled or not.
+     */
+    @Override
+    public boolean isXhrStreamingDisabled() {
+        return this.xhrStreamingDisabled;
+    }
 
-		URI receiveUrl = request.getTransportUrl();
-		if (logger.isDebugEnabled()) {
-			logger.debug("Starting XHR " +
-					(isXhrStreamingDisabled() ? "Polling" : "Streaming") + "session url=" + receiveUrl);
-		}
-
-		HttpHeaders handshakeHeaders = new HttpHeaders();
-		handshakeHeaders.putAll(request.getHandshakeHeaders());
-
-		connectInternal(request, handler, receiveUrl, handshakeHeaders, session, connectFuture);
-		return connectFuture;
-	}
-
-	protected abstract void connectInternal(TransportRequest request, WebSocketHandler handler,
-			URI receiveUrl, HttpHeaders handshakeHeaders, XhrClientSockJsSession session,
-			SettableListenableFuture<WebSocketSession> connectFuture);
-
-
-	// InfoReceiver methods
-
-	@Override
-	public String executeInfoRequest(URI infoUrl, @Nullable HttpHeaders headers) {
-		if (logger.isDebugEnabled()) {
-			logger.debug("Executing SockJS Info request, url=" + infoUrl);
-		}
-		HttpHeaders infoRequestHeaders = new HttpHeaders();
-		if (headers != null) {
-			infoRequestHeaders.putAll(headers);
-		}
-		ResponseEntity<String> response = executeInfoRequestInternal(infoUrl, infoRequestHeaders);
-		if (response.getStatusCode() != HttpStatus.OK) {
-			if (logger.isErrorEnabled()) {
-				logger.error("SockJS Info request (url=" + infoUrl + ") failed: " + response);
-			}
-			throw new HttpServerErrorException(response.getStatusCode());
-		}
-		if (logger.isTraceEnabled()) {
-			logger.trace("SockJS Info request (url=" + infoUrl + ") response: " + response);
-		}
-		String result = response.getBody();
-		return (result != null ? result : "");
-	}
-
-	protected abstract ResponseEntity<String> executeInfoRequestInternal(URI infoUrl, HttpHeaders headers);
+    /**
+     * An {@code XhrTransport} can support both the "xhr_streaming" and "xhr"
+     * SockJS server transports. From a client perspective there is no
+     * implementation difference.
+     * <p>Typically an {@code XhrTransport} is used as "XHR streaming" first and
+     * then, if that fails, as "XHR". In some cases however it may be helpful to
+     * suppress XHR streaming so that only XHR is attempted.
+     * <p>By default this property is set to {@code false} which means both
+     * "XHR streaming" and "XHR" apply.
+     */
+    public void setXhrStreamingDisabled(boolean disabled) {
+        this.xhrStreamingDisabled = disabled;
+    }
 
 
-	// XhrTransport methods
+    // Transport methods
 
-	@Override
-	public void executeSendRequest(URI url, HttpHeaders headers, TextMessage message) {
-		if (logger.isTraceEnabled()) {
-			logger.trace("Starting XHR send, url=" + url);
-		}
-		ResponseEntity<String> response = executeSendRequestInternal(url, headers, message);
-		if (response.getStatusCode() != HttpStatus.NO_CONTENT) {
-			if (logger.isErrorEnabled()) {
-				logger.error("XHR send request (url=" + url + ") failed: " + response);
-			}
-			throw new HttpServerErrorException(response.getStatusCode());
-		}
-		if (logger.isTraceEnabled()) {
-			logger.trace("XHR send request (url=" + url + ") response: " + response);
-		}
-	}
+    @Override
+    public ListenableFuture<WebSocketSession> connect(TransportRequest request, WebSocketHandler handler) {
+        SettableListenableFuture<WebSocketSession> connectFuture = new SettableListenableFuture<>();
+        XhrClientSockJsSession session = new XhrClientSockJsSession(request, handler, this, connectFuture);
+        request.addTimeoutTask(session.getTimeoutTask());
 
-	protected abstract ResponseEntity<String> executeSendRequestInternal(
-			URI url, HttpHeaders headers, TextMessage message);
+        URI receiveUrl = request.getTransportUrl();
+        if (logger.isDebugEnabled()) {
+            logger.debug("Starting XHR " +
+                    (isXhrStreamingDisabled() ? "Polling" : "Streaming") + "session url=" + receiveUrl);
+        }
+
+        HttpHeaders handshakeHeaders = new HttpHeaders();
+        handshakeHeaders.putAll(request.getHandshakeHeaders());
+
+        connectInternal(request, handler, receiveUrl, handshakeHeaders, session, connectFuture);
+        return connectFuture;
+    }
+
+    protected abstract void connectInternal(TransportRequest request, WebSocketHandler handler,
+                                            URI receiveUrl, HttpHeaders handshakeHeaders, XhrClientSockJsSession session,
+                                            SettableListenableFuture<WebSocketSession> connectFuture);
+
+
+    // InfoReceiver methods
+
+    @Override
+    public String executeInfoRequest(URI infoUrl, @Nullable HttpHeaders headers) {
+        if (logger.isDebugEnabled()) {
+            logger.debug("Executing SockJS Info request, url=" + infoUrl);
+        }
+        HttpHeaders infoRequestHeaders = new HttpHeaders();
+        if (headers != null) {
+            infoRequestHeaders.putAll(headers);
+        }
+        ResponseEntity<String> response = executeInfoRequestInternal(infoUrl, infoRequestHeaders);
+        if (response.getStatusCode() != HttpStatus.OK) {
+            if (logger.isErrorEnabled()) {
+                logger.error("SockJS Info request (url=" + infoUrl + ") failed: " + response);
+            }
+            throw new HttpServerErrorException(response.getStatusCode());
+        }
+        if (logger.isTraceEnabled()) {
+            logger.trace("SockJS Info request (url=" + infoUrl + ") response: " + response);
+        }
+        String result = response.getBody();
+        return (result != null ? result : "");
+    }
+
+    protected abstract ResponseEntity<String> executeInfoRequestInternal(URI infoUrl, HttpHeaders headers);
+
+
+    // XhrTransport methods
+
+    @Override
+    public void executeSendRequest(URI url, HttpHeaders headers, TextMessage message) {
+        if (logger.isTraceEnabled()) {
+            logger.trace("Starting XHR send, url=" + url);
+        }
+        ResponseEntity<String> response = executeSendRequestInternal(url, headers, message);
+        if (response.getStatusCode() != HttpStatus.NO_CONTENT) {
+            if (logger.isErrorEnabled()) {
+                logger.error("XHR send request (url=" + url + ") failed: " + response);
+            }
+            throw new HttpServerErrorException(response.getStatusCode());
+        }
+        if (logger.isTraceEnabled()) {
+            logger.trace("XHR send request (url=" + url + ") response: " + response);
+        }
+    }
+
+    protected abstract ResponseEntity<String> executeSendRequestInternal(
+            URI url, HttpHeaders headers, TextMessage message);
 
 }

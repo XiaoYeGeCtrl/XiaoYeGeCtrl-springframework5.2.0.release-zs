@@ -31,31 +31,31 @@ import org.springframework.web.bind.annotation.RestController;
  */
 public class ControllerTests {
 
-	private WebTestClient client;
+    private WebTestClient client;
 
 
-	@BeforeEach
-	public void setUp() throws Exception {
-		this.client = WebTestClient.bindToController(new TestController()).build();
-	}
+    @BeforeEach
+    public void setUp() throws Exception {
+        this.client = WebTestClient.bindToController(new TestController()).build();
+    }
 
 
-	@Test
-	public void test() throws Exception {
-		this.client.get().uri("/test")
-				.exchange()
-				.expectStatus().isOk()
-				.expectBody(String.class).isEqualTo("It works!");
-	}
+    @Test
+    public void test() throws Exception {
+        this.client.get().uri("/test")
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody(String.class).isEqualTo("It works!");
+    }
 
 
-	@RestController
-	static class TestController {
+    @RestController
+    static class TestController {
 
-		@GetMapping("/test")
-		public String handle() {
-			return "It works!";
-		}
-	}
+        @GetMapping("/test")
+        public String handle() {
+            return "It works!";
+        }
+    }
 
 }

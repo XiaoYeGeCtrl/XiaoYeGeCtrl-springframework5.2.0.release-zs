@@ -46,141 +46,137 @@ import org.springframework.lang.Nullable;
  */
 public class ServerSentEventHttpMessageReader implements HttpMessageReader<Object> {
 
-	private static final DataBufferFactory bufferFactory = new DefaultDataBufferFactory();
+    private static final DataBufferFactory bufferFactory = new DefaultDataBufferFactory();
 
-	private static final StringDecoder stringDecoder = StringDecoder.textPlainOnly();
+    private static final StringDecoder stringDecoder = StringDecoder.textPlainOnly();
 
-	private static final ResolvableType STRING_TYPE = ResolvableType.forClass(String.class);
-
-
-	@Nullable
-	private final Decoder<?> decoder;
+    private static final ResolvableType STRING_TYPE = ResolvableType.forClass(String.class);
 
 
-	/**
-	 * Constructor without a {@code Decoder}. In this mode only {@code String}
-	 * is supported as the data of an event.
-	 */
-	public ServerSentEventHttpMessageReader() {
-		this(null);
-	}
-
-	/**
-	 * Constructor with JSON {@code Decoder} for decoding to Objects.
-	 * Support for decoding to {@code String} event data is built-in.
-	 */
-	public ServerSentEventHttpMessageReader(@Nullable Decoder<?> decoder) {
-		this.decoder = decoder;
-	}
+    @Nullable
+    private final Decoder<?> decoder;
 
 
-	/**
-	 * Return the configured {@code Decoder}.
-	 */
-	@Nullable
-	public Decoder<?> getDecoder() {
-		return this.decoder;
-	}
+    /**
+     * Constructor without a {@code Decoder}. In this mode only {@code String}
+     * is supported as the data of an event.
+     */
+    public ServerSentEventHttpMessageReader() {
+        this(null);
+    }
 
-	@Override
-	public List<MediaType> getReadableMediaTypes() {
-		return Collections.singletonList(MediaType.TEXT_EVENT_STREAM);
-	}
-
-	@Override
-	public boolean canRead(ResolvableType elementType, @Nullable MediaType mediaType) {
-		return (MediaType.TEXT_EVENT_STREAM.includes(mediaType) || isServerSentEvent(elementType));
-	}
-
-	private boolean isServerSentEvent(ResolvableType elementType) {
-		return ServerSentEvent.class.isAssignableFrom(elementType.toClass());
-	}
+    /**
+     * Constructor with JSON {@code Decoder} for decoding to Objects.
+     * Support for decoding to {@code String} event data is built-in.
+     */
+    public ServerSentEventHttpMessageReader(@Nullable Decoder<?> decoder) {
+        this.decoder = decoder;
+    }
 
 
-	@Override
-	public Flux<Object> read(
-			ResolvableType elementType, ReactiveHttpInputMessage message, Map<String, Object> hints) {
+    /**
+     * Return the configured {@code Decoder}.
+     */
+    @Nullable
+    public Decoder<?> getDecoder() {
+        return this.decoder;
+    }
 
-		boolean shouldWrap = isServerSentEvent(elementType);
-		ResolvableType valueType = (shouldWrap ? elementType.getGeneric() : elementType);
+    @Override
+    public List<MediaType> getReadableMediaTypes() {
+        return Collections.singletonList(MediaType.TEXT_EVENT_STREAM);
+    }
 
-		return stringDecoder.decode(message.getBody(), STRING_TYPE, null, hints)
-				.bufferUntil(line -> line.equals(""))
-				.concatMap(lines -> Mono.justOrEmpty(buildEvent(lines, valueType, shouldWrap, hints)));
-	}
+    @Override
+    public boolean canRead(ResolvableType elementType, @Nullable MediaType mediaType) {
+        return (MediaType.TEXT_EVENT_STREAM.includes(mediaType) || isServerSentEvent(elementType));
+    }
 
-	@Nullable
-	private Object buildEvent(List<String> lines, ResolvableType valueType, boolean shouldWrap,
-			Map<String, Object> hints) {
+    private boolean isServerSentEvent(ResolvableType elementType) {
+        return ServerSentEvent.class.isAssignableFrom(elementType.toClass());
+    }
 
-		ServerSentEvent.Builder<Object> sseBuilder = shouldWrap ? ServerSentEvent.builder() : null;
-		StringBuilder data = null;
-		StringBuilder comment = null;
 
-		for (String line : lines) {
-			if (line.startsWith("data:")) {
-				data = (data != null ? data : new StringBuilder());
-				data.append(line.substring(5).trim()).append("\n");
-			}
-			if (shouldWrap) {
-				if (line.startsWith("id:")) {
-					sseBuilder.id(line.substring(3).trim());
-				}
-				else if (line.startsWith("event:")) {
-					sseBuilder.event(line.substring(6).trim());
-				}
-				else if (line.startsWith("retry:")) {
-					sseBuilder.retry(Duration.ofMillis(Long.parseLong(line.substring(6).trim())));
-				}
-				else if (line.startsWith(":")) {
-					comment = (comment != null ? comment : new StringBuilder());
-					comment.append(line.substring(1).trim()).append("\n");
-				}
-			}
-		}
+    @Override
+    public Flux<Object> read(
+            ResolvableType elementType, ReactiveHttpInputMessage message, Map<String, Object> hints) {
 
-		Object decodedData = data != null ? decodeData(data.toString(), valueType, hints) : null;
+        boolean shouldWrap = isServerSentEvent(elementType);
+        ResolvableType valueType = (shouldWrap ? elementType.getGeneric() : elementType);
 
-		if (shouldWrap) {
-			if (comment != null) {
-				sseBuilder.comment(comment.toString().substring(0, comment.length() - 1));
-			}
-			if (decodedData != null) {
-				sseBuilder.data(decodedData);
-			}
-			return sseBuilder.build();
-		}
-		else {
-			return decodedData;
-		}
-	}
+        return stringDecoder.decode(message.getBody(), STRING_TYPE, null, hints)
+                .bufferUntil(line -> line.equals(""))
+                .concatMap(lines -> Mono.justOrEmpty(buildEvent(lines, valueType, shouldWrap, hints)));
+    }
 
-	private Object decodeData(String data, ResolvableType dataType, Map<String, Object> hints) {
-		if (String.class == dataType.resolve()) {
-			return data.substring(0, data.length() - 1);
-		}
-		if (this.decoder == null) {
-			throw new CodecException("No SSE decoder configured and the data is not String.");
-		}
-		byte[] bytes = data.getBytes(StandardCharsets.UTF_8);
-		DataBuffer buffer = bufferFactory.wrap(bytes);  // wrapping only, no allocation
-		return this.decoder.decode(buffer, dataType, MediaType.TEXT_EVENT_STREAM, hints);
-	}
+    @Nullable
+    private Object buildEvent(List<String> lines, ResolvableType valueType, boolean shouldWrap,
+                              Map<String, Object> hints) {
 
-	@Override
-	public Mono<Object> readMono(
-			ResolvableType elementType, ReactiveHttpInputMessage message, Map<String, Object> hints) {
+        ServerSentEvent.Builder<Object> sseBuilder = shouldWrap ? ServerSentEvent.builder() : null;
+        StringBuilder data = null;
+        StringBuilder comment = null;
 
-		// We're ahead of String + "*/*"
-		// Let's see if we can aggregate the output (lest we time out)...
+        for (String line : lines) {
+            if (line.startsWith("data:")) {
+                data = (data != null ? data : new StringBuilder());
+                data.append(line.substring(5).trim()).append("\n");
+            }
+            if (shouldWrap) {
+                if (line.startsWith("id:")) {
+                    sseBuilder.id(line.substring(3).trim());
+                } else if (line.startsWith("event:")) {
+                    sseBuilder.event(line.substring(6).trim());
+                } else if (line.startsWith("retry:")) {
+                    sseBuilder.retry(Duration.ofMillis(Long.parseLong(line.substring(6).trim())));
+                } else if (line.startsWith(":")) {
+                    comment = (comment != null ? comment : new StringBuilder());
+                    comment.append(line.substring(1).trim()).append("\n");
+                }
+            }
+        }
 
-		if (elementType.resolve() == String.class) {
-			Flux<DataBuffer> body = message.getBody();
-			return stringDecoder.decodeToMono(body, elementType, null, null).cast(Object.class);
-		}
+        Object decodedData = data != null ? decodeData(data.toString(), valueType, hints) : null;
 
-		return Mono.error(new UnsupportedOperationException(
-				"ServerSentEventHttpMessageReader only supports reading stream of events as a Flux"));
-	}
+        if (shouldWrap) {
+            if (comment != null) {
+                sseBuilder.comment(comment.toString().substring(0, comment.length() - 1));
+            }
+            if (decodedData != null) {
+                sseBuilder.data(decodedData);
+            }
+            return sseBuilder.build();
+        } else {
+            return decodedData;
+        }
+    }
+
+    private Object decodeData(String data, ResolvableType dataType, Map<String, Object> hints) {
+        if (String.class == dataType.resolve()) {
+            return data.substring(0, data.length() - 1);
+        }
+        if (this.decoder == null) {
+            throw new CodecException("No SSE decoder configured and the data is not String.");
+        }
+        byte[] bytes = data.getBytes(StandardCharsets.UTF_8);
+        DataBuffer buffer = bufferFactory.wrap(bytes);  // wrapping only, no allocation
+        return this.decoder.decode(buffer, dataType, MediaType.TEXT_EVENT_STREAM, hints);
+    }
+
+    @Override
+    public Mono<Object> readMono(
+            ResolvableType elementType, ReactiveHttpInputMessage message, Map<String, Object> hints) {
+
+        // We're ahead of String + "*/*"
+        // Let's see if we can aggregate the output (lest we time out)...
+
+        if (elementType.resolve() == String.class) {
+            Flux<DataBuffer> body = message.getBody();
+            return stringDecoder.decodeToMono(body, elementType, null, null).cast(Object.class);
+        }
+
+        return Mono.error(new UnsupportedOperationException(
+                "ServerSentEventHttpMessageReader only supports reading stream of events as a Flux"));
+    }
 
 }

@@ -54,212 +54,209 @@ import org.springframework.web.reactive.function.BodyExtractors;
  */
 class DefaultClientResponse implements ClientResponse {
 
-	private final ClientHttpResponse response;
+    private final ClientHttpResponse response;
 
-	private final Headers headers;
+    private final Headers headers;
 
-	private final ExchangeStrategies strategies;
+    private final ExchangeStrategies strategies;
 
-	private final String logPrefix;
+    private final String logPrefix;
 
-	private final String requestDescription;
+    private final String requestDescription;
 
-	private final Supplier<HttpRequest> requestSupplier;
-
-
-	public DefaultClientResponse(ClientHttpResponse response, ExchangeStrategies strategies,
-			String logPrefix, String requestDescription, Supplier<HttpRequest> requestSupplier) {
-
-		this.response = response;
-		this.strategies = strategies;
-		this.headers = new DefaultHeaders();
-		this.logPrefix = logPrefix;
-		this.requestDescription = requestDescription;
-		this.requestSupplier = requestSupplier;
-	}
+    private final Supplier<HttpRequest> requestSupplier;
 
 
-	@Override
-	public ExchangeStrategies strategies() {
-		return this.strategies;
-	}
+    public DefaultClientResponse(ClientHttpResponse response, ExchangeStrategies strategies,
+                                 String logPrefix, String requestDescription, Supplier<HttpRequest> requestSupplier) {
 
-	@Override
-	public HttpStatus statusCode() {
-		return this.response.getStatusCode();
-	}
+        this.response = response;
+        this.strategies = strategies;
+        this.headers = new DefaultHeaders();
+        this.logPrefix = logPrefix;
+        this.requestDescription = requestDescription;
+        this.requestSupplier = requestSupplier;
+    }
 
-	@Override
-	public int rawStatusCode() {
-		return this.response.getRawStatusCode();
-	}
 
-	@Override
-	public Headers headers() {
-		return this.headers;
-	}
+    @Override
+    public ExchangeStrategies strategies() {
+        return this.strategies;
+    }
 
-	@Override
-	public MultiValueMap<String, ResponseCookie> cookies() {
-		return this.response.getCookies();
-	}
+    @Override
+    public HttpStatus statusCode() {
+        return this.response.getStatusCode();
+    }
 
-	@SuppressWarnings("unchecked")
-	@Override
-	public <T> T body(BodyExtractor<T, ? super ClientHttpResponse> extractor) {
-		T result = extractor.extract(this.response, new BodyExtractor.Context() {
-			@Override
-			public List<HttpMessageReader<?>> messageReaders() {
-				return strategies.messageReaders();
-			}
+    @Override
+    public int rawStatusCode() {
+        return this.response.getRawStatusCode();
+    }
 
-			@Override
-			public Optional<ServerHttpResponse> serverResponse() {
-				return Optional.empty();
-			}
+    @Override
+    public Headers headers() {
+        return this.headers;
+    }
 
-			@Override
-			public Map<String, Object> hints() {
-				return Hints.from(Hints.LOG_PREFIX_HINT, logPrefix);
-			}
-		});
-		String description = "Body from " + this.requestDescription + " [DefaultClientResponse]";
-		if (result instanceof Mono) {
-			return (T) ((Mono<?>) result).checkpoint(description);
-		}
-		else if (result instanceof Flux) {
-			return (T) ((Flux<?>) result).checkpoint(description);
-		}
-		else {
-			return result;
-		}
-	}
+    @Override
+    public MultiValueMap<String, ResponseCookie> cookies() {
+        return this.response.getCookies();
+    }
 
-	@Override
-	public <T> Mono<T> bodyToMono(Class<? extends T> elementClass) {
-		return body(BodyExtractors.toMono(elementClass));
-	}
+    @SuppressWarnings("unchecked")
+    @Override
+    public <T> T body(BodyExtractor<T, ? super ClientHttpResponse> extractor) {
+        T result = extractor.extract(this.response, new BodyExtractor.Context() {
+            @Override
+            public List<HttpMessageReader<?>> messageReaders() {
+                return strategies.messageReaders();
+            }
 
-	@Override
-	public <T> Mono<T> bodyToMono(ParameterizedTypeReference<T> elementTypeRef) {
-		return body(BodyExtractors.toMono(elementTypeRef));
-	}
+            @Override
+            public Optional<ServerHttpResponse> serverResponse() {
+                return Optional.empty();
+            }
 
-	@Override
-	public <T> Flux<T> bodyToFlux(Class<? extends T> elementClass) {
-		return body(BodyExtractors.toFlux(elementClass));
-	}
+            @Override
+            public Map<String, Object> hints() {
+                return Hints.from(Hints.LOG_PREFIX_HINT, logPrefix);
+            }
+        });
+        String description = "Body from " + this.requestDescription + " [DefaultClientResponse]";
+        if (result instanceof Mono) {
+            return (T) ((Mono<?>) result).checkpoint(description);
+        } else if (result instanceof Flux) {
+            return (T) ((Flux<?>) result).checkpoint(description);
+        } else {
+            return result;
+        }
+    }
 
-	@Override
-	public <T> Flux<T> bodyToFlux(ParameterizedTypeReference<T> elementTypeRef) {
-		return body(BodyExtractors.toFlux(elementTypeRef));
-	}
+    @Override
+    public <T> Mono<T> bodyToMono(Class<? extends T> elementClass) {
+        return body(BodyExtractors.toMono(elementClass));
+    }
 
-	@Override
-	public Mono<Void> releaseBody() {
-		return body(BodyExtractors.toDataBuffers())
-				.map(DataBufferUtils::release)
-				.then();
-	}
+    @Override
+    public <T> Mono<T> bodyToMono(ParameterizedTypeReference<T> elementTypeRef) {
+        return body(BodyExtractors.toMono(elementTypeRef));
+    }
 
-	@Override
-	public Mono<ResponseEntity<Void>> toBodilessEntity() {
-		return releaseBody()
-				.then(WebClientUtils.toEntity(this, Mono.empty()));
-	}
+    @Override
+    public <T> Flux<T> bodyToFlux(Class<? extends T> elementClass) {
+        return body(BodyExtractors.toFlux(elementClass));
+    }
 
-	@Override
-	public <T> Mono<ResponseEntity<T>> toEntity(Class<T> bodyType) {
-		return WebClientUtils.toEntity(this, bodyToMono(bodyType));
-	}
+    @Override
+    public <T> Flux<T> bodyToFlux(ParameterizedTypeReference<T> elementTypeRef) {
+        return body(BodyExtractors.toFlux(elementTypeRef));
+    }
 
-	@Override
-	public <T> Mono<ResponseEntity<T>> toEntity(ParameterizedTypeReference<T> bodyTypeReference) {
-		return WebClientUtils.toEntity(this, bodyToMono(bodyTypeReference));
-	}
+    @Override
+    public Mono<Void> releaseBody() {
+        return body(BodyExtractors.toDataBuffers())
+                .map(DataBufferUtils::release)
+                .then();
+    }
 
-	@Override
-	public <T> Mono<ResponseEntity<List<T>>> toEntityList(Class<T> elementClass) {
-		return WebClientUtils.toEntityList(this, bodyToFlux(elementClass));
-	}
+    @Override
+    public Mono<ResponseEntity<Void>> toBodilessEntity() {
+        return releaseBody()
+                .then(WebClientUtils.toEntity(this, Mono.empty()));
+    }
 
-	@Override
-	public <T> Mono<ResponseEntity<List<T>>> toEntityList(ParameterizedTypeReference<T> elementTypeRef) {
-		return WebClientUtils.toEntityList(this, bodyToFlux(elementTypeRef));
-	}
+    @Override
+    public <T> Mono<ResponseEntity<T>> toEntity(Class<T> bodyType) {
+        return WebClientUtils.toEntity(this, bodyToMono(bodyType));
+    }
 
-	@Override
-	public Mono<WebClientResponseException> createException() {
-		return DataBufferUtils.join(body(BodyExtractors.toDataBuffers()))
-				.map(dataBuffer -> {
-					byte[] bytes = new byte[dataBuffer.readableByteCount()];
-					dataBuffer.read(bytes);
-					DataBufferUtils.release(dataBuffer);
-					return bytes;
-				})
-				.defaultIfEmpty(new byte[0])
-				.map(bodyBytes -> {
-					HttpRequest request = this.requestSupplier.get();
-					Charset charset = headers().contentType()
-							.map(MimeType::getCharset)
-							.orElse(StandardCharsets.ISO_8859_1);
-					int statusCode = rawStatusCode();
-					HttpStatus httpStatus = HttpStatus.resolve(statusCode);
-					if (httpStatus != null) {
-						return WebClientResponseException.create(
-								statusCode,
-								httpStatus.getReasonPhrase(),
-								headers().asHttpHeaders(),
-								bodyBytes,
-								charset,
-								request);
-					}
-					else {
-						return new UnknownHttpStatusCodeException(
-								statusCode,
-								headers().asHttpHeaders(),
-								bodyBytes,
-								charset,
-								request);
-					}
-				});
-	}
+    @Override
+    public <T> Mono<ResponseEntity<T>> toEntity(ParameterizedTypeReference<T> bodyTypeReference) {
+        return WebClientUtils.toEntity(this, bodyToMono(bodyTypeReference));
+    }
 
-	// Used by DefaultClientResponseBuilder
-	HttpRequest request() {
-		return this.requestSupplier.get();
-	}
+    @Override
+    public <T> Mono<ResponseEntity<List<T>>> toEntityList(Class<T> elementClass) {
+        return WebClientUtils.toEntityList(this, bodyToFlux(elementClass));
+    }
 
-	private class DefaultHeaders implements Headers {
+    @Override
+    public <T> Mono<ResponseEntity<List<T>>> toEntityList(ParameterizedTypeReference<T> elementTypeRef) {
+        return WebClientUtils.toEntityList(this, bodyToFlux(elementTypeRef));
+    }
 
-		private HttpHeaders delegate() {
-			return response.getHeaders();
-		}
+    @Override
+    public Mono<WebClientResponseException> createException() {
+        return DataBufferUtils.join(body(BodyExtractors.toDataBuffers()))
+                .map(dataBuffer -> {
+                    byte[] bytes = new byte[dataBuffer.readableByteCount()];
+                    dataBuffer.read(bytes);
+                    DataBufferUtils.release(dataBuffer);
+                    return bytes;
+                })
+                .defaultIfEmpty(new byte[0])
+                .map(bodyBytes -> {
+                    HttpRequest request = this.requestSupplier.get();
+                    Charset charset = headers().contentType()
+                            .map(MimeType::getCharset)
+                            .orElse(StandardCharsets.ISO_8859_1);
+                    int statusCode = rawStatusCode();
+                    HttpStatus httpStatus = HttpStatus.resolve(statusCode);
+                    if (httpStatus != null) {
+                        return WebClientResponseException.create(
+                                statusCode,
+                                httpStatus.getReasonPhrase(),
+                                headers().asHttpHeaders(),
+                                bodyBytes,
+                                charset,
+                                request);
+                    } else {
+                        return new UnknownHttpStatusCodeException(
+                                statusCode,
+                                headers().asHttpHeaders(),
+                                bodyBytes,
+                                charset,
+                                request);
+                    }
+                });
+    }
 
-		@Override
-		public OptionalLong contentLength() {
-			return toOptionalLong(delegate().getContentLength());
-		}
+    // Used by DefaultClientResponseBuilder
+    HttpRequest request() {
+        return this.requestSupplier.get();
+    }
 
-		@Override
-		public Optional<MediaType> contentType() {
-			return Optional.ofNullable(delegate().getContentType());
-		}
+    private class DefaultHeaders implements Headers {
 
-		@Override
-		public List<String> header(String headerName) {
-			List<String> headerValues = delegate().get(headerName);
-			return (headerValues != null ? headerValues : Collections.emptyList());
-		}
+        private HttpHeaders delegate() {
+            return response.getHeaders();
+        }
 
-		@Override
-		public HttpHeaders asHttpHeaders() {
-			return HttpHeaders.readOnlyHttpHeaders(delegate());
-		}
+        @Override
+        public OptionalLong contentLength() {
+            return toOptionalLong(delegate().getContentLength());
+        }
 
-		private OptionalLong toOptionalLong(long value) {
-			return (value != -1 ? OptionalLong.of(value) : OptionalLong.empty());
-		}
-	}
+        @Override
+        public Optional<MediaType> contentType() {
+            return Optional.ofNullable(delegate().getContentType());
+        }
+
+        @Override
+        public List<String> header(String headerName) {
+            List<String> headerValues = delegate().get(headerName);
+            return (headerValues != null ? headerValues : Collections.emptyList());
+        }
+
+        @Override
+        public HttpHeaders asHttpHeaders() {
+            return HttpHeaders.readOnlyHttpHeaders(delegate());
+        }
+
+        private OptionalLong toOptionalLong(long value) {
+            return (value != -1 ? OptionalLong.of(value) : OptionalLong.empty());
+        }
+    }
 
 }

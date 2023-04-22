@@ -83,27 +83,27 @@ import org.springframework.messaging.Message;
  * the controller <i>interface</i> rather than on the implementation class.
  *
  * @author Rossen Stoyanchev
- * @since 4.0
  * @see org.springframework.messaging.simp.annotation.support.SimpAnnotationMethodMessageHandler
  * @see org.springframework.messaging.rsocket.annotation.support.RSocketMessageHandler
+ * @since 4.0
  */
 @Target({ElementType.TYPE, ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 public @interface MessageMapping {
 
-	/**
-	 * Destination-based mapping expressed by this annotation.
-	 * <p>For STOMP over WebSocket messages this is
-	 * {@link org.springframework.util.AntPathMatcher AntPathMatcher}-style
-	 * patterns matched against the STOMP destination of the message.
-	 * <p>for RSocket this is either
-	 * {@link org.springframework.util.AntPathMatcher AntPathMatcher} or
-	 * {@link org.springframework.web.util.pattern.PathPattern PathPattern}
-	 * based pattern, depending on which is configured, matched to the route of
-	 * the stream request.
-	 * <p>If no patterns are configured, the mapping matches all destinations.
-	 */
-	String[] value() default {};
+    /**
+     * Destination-based mapping expressed by this annotation.
+     * <p>For STOMP over WebSocket messages this is
+     * {@link org.springframework.util.AntPathMatcher AntPathMatcher}-style
+     * patterns matched against the STOMP destination of the message.
+     * <p>for RSocket this is either
+     * {@link org.springframework.util.AntPathMatcher AntPathMatcher} or
+     * {@link org.springframework.web.util.pattern.PathPattern PathPattern}
+     * based pattern, depending on which is configured, matched to the route of
+     * the stream request.
+     * <p>If no patterns are configured, the mapping matches all destinations.
+     */
+    String[] value() default {};
 
 }

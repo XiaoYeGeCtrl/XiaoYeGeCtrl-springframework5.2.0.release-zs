@@ -32,35 +32,35 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
  */
 public class SchemaValidationTests {
 
-	@Test
-	public void withAutodetection() throws Exception {
-		DefaultListableBeanFactory bf = new DefaultListableBeanFactory();
-		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(bf);
-		assertThatExceptionOfType(BeansException.class).isThrownBy(() ->
-				reader.loadBeanDefinitions(new ClassPathResource("invalidPerSchema.xml", getClass())))
-			.withCauseInstanceOf(SAXParseException.class);
-	}
+    @Test
+    public void withAutodetection() throws Exception {
+        DefaultListableBeanFactory bf = new DefaultListableBeanFactory();
+        XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(bf);
+        assertThatExceptionOfType(BeansException.class).isThrownBy(() ->
+                reader.loadBeanDefinitions(new ClassPathResource("invalidPerSchema.xml", getClass())))
+                .withCauseInstanceOf(SAXParseException.class);
+    }
 
-	@Test
-	public void withExplicitValidationMode() throws Exception {
-		DefaultListableBeanFactory bf = new DefaultListableBeanFactory();
-		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(bf);
-		reader.setValidationMode(XmlBeanDefinitionReader.VALIDATION_XSD);
-		assertThatExceptionOfType(BeansException.class).isThrownBy(() ->
-				reader.loadBeanDefinitions(new ClassPathResource("invalidPerSchema.xml", getClass())))
-			.withCauseInstanceOf(SAXParseException.class);
-	}
+    @Test
+    public void withExplicitValidationMode() throws Exception {
+        DefaultListableBeanFactory bf = new DefaultListableBeanFactory();
+        XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(bf);
+        reader.setValidationMode(XmlBeanDefinitionReader.VALIDATION_XSD);
+        assertThatExceptionOfType(BeansException.class).isThrownBy(() ->
+                reader.loadBeanDefinitions(new ClassPathResource("invalidPerSchema.xml", getClass())))
+                .withCauseInstanceOf(SAXParseException.class);
+    }
 
-	@Test
-	public void loadDefinitions() throws Exception {
-		DefaultListableBeanFactory bf = new DefaultListableBeanFactory();
-		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(bf);
-		reader.setValidationMode(XmlBeanDefinitionReader.VALIDATION_XSD);
-		reader.loadBeanDefinitions(new ClassPathResource("schemaValidated.xml", getClass()));
+    @Test
+    public void loadDefinitions() throws Exception {
+        DefaultListableBeanFactory bf = new DefaultListableBeanFactory();
+        XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(bf);
+        reader.setValidationMode(XmlBeanDefinitionReader.VALIDATION_XSD);
+        reader.loadBeanDefinitions(new ClassPathResource("schemaValidated.xml", getClass()));
 
-		TestBean foo = (TestBean) bf.getBean("fooBean");
-		assertThat(foo.getSpouse()).as("Spouse is null").isNotNull();
-		assertThat(foo.getFriends().size()).as("Incorrect number of friends").isEqualTo(2);
-	}
+        TestBean foo = (TestBean) bf.getBean("fooBean");
+        assertThat(foo.getSpouse()).as("Spouse is null").isNotNull();
+        assertThat(foo.getFriends().size()).as("Incorrect number of friends").isEqualTo(2);
+    }
 
 }

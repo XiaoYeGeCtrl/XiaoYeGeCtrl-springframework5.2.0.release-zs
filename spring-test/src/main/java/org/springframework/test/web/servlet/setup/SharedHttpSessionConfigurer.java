@@ -44,29 +44,28 @@ import org.springframework.web.context.WebApplicationContext;
  */
 public class SharedHttpSessionConfigurer implements MockMvcConfigurer {
 
-	@Nullable
-	private HttpSession session;
+    @Nullable
+    private HttpSession session;
 
+    public static SharedHttpSessionConfigurer sharedHttpSession() {
+        return new SharedHttpSessionConfigurer();
+    }
 
-	@Override
-	public void afterConfigurerAdded(ConfigurableMockMvcBuilder<?> builder) {
-		builder.alwaysDo(result -> this.session = result.getRequest().getSession(false));
-	}
+    @Override
+    public void afterConfigurerAdded(ConfigurableMockMvcBuilder<?> builder) {
+        builder.alwaysDo(result -> this.session = result.getRequest().getSession(false));
+    }
 
-	@Override
-	public RequestPostProcessor beforeMockMvcCreated(ConfigurableMockMvcBuilder<?> builder,
-			WebApplicationContext context) {
+    @Override
+    public RequestPostProcessor beforeMockMvcCreated(ConfigurableMockMvcBuilder<?> builder,
+                                                     WebApplicationContext context) {
 
-		return request -> {
-			if (this.session != null) {
-				request.setSession(this.session);
-			}
-			return request;
-		};
-	}
-
-	public static SharedHttpSessionConfigurer sharedHttpSession() {
-		return new SharedHttpSessionConfigurer();
-	}
+        return request -> {
+            if (this.session != null) {
+                request.setSession(this.session);
+            }
+            return request;
+        };
+    }
 
 }

@@ -51,140 +51,140 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
  */
 public class PathVariableMethodArgumentResolverTests {
 
-	private PathVariableMethodArgumentResolver resolver;
+    private PathVariableMethodArgumentResolver resolver;
 
-	private ModelAndViewContainer mavContainer;
+    private ModelAndViewContainer mavContainer;
 
-	private ServletWebRequest webRequest;
+    private ServletWebRequest webRequest;
 
-	private MockHttpServletRequest request;
+    private MockHttpServletRequest request;
 
-	private MethodParameter paramNamedString;
-	private MethodParameter paramString;
-	private MethodParameter paramNotRequired;
-	private MethodParameter paramOptional;
-
-
-	@BeforeEach
-	public void setup() throws Exception {
-		resolver = new PathVariableMethodArgumentResolver();
-		mavContainer = new ModelAndViewContainer();
-		request = new MockHttpServletRequest();
-		webRequest = new ServletWebRequest(request, new MockHttpServletResponse());
-
-		Method method = ReflectionUtils.findMethod(getClass(), "handle", (Class<?>[]) null);
-		paramNamedString = new SynthesizingMethodParameter(method, 0);
-		paramString = new SynthesizingMethodParameter(method, 1);
-		paramNotRequired = new SynthesizingMethodParameter(method, 2);
-		paramOptional = new SynthesizingMethodParameter(method, 3);
-	}
+    private MethodParameter paramNamedString;
+    private MethodParameter paramString;
+    private MethodParameter paramNotRequired;
+    private MethodParameter paramOptional;
 
 
-	@Test
-	public void supportsParameter() {
-		assertThat(resolver.supportsParameter(paramNamedString)).as("Parameter with @PathVariable annotation").isTrue();
-		assertThat(resolver.supportsParameter(paramString)).as("Parameter without @PathVariable annotation").isFalse();
-	}
+    @BeforeEach
+    public void setup() throws Exception {
+        resolver = new PathVariableMethodArgumentResolver();
+        mavContainer = new ModelAndViewContainer();
+        request = new MockHttpServletRequest();
+        webRequest = new ServletWebRequest(request, new MockHttpServletResponse());
 
-	@Test
-	public void resolveArgument() throws Exception {
-		Map<String, String> uriTemplateVars = new HashMap<>();
-		uriTemplateVars.put("name", "value");
-		request.setAttribute(HandlerMapping.URI_TEMPLATE_VARIABLES_ATTRIBUTE, uriTemplateVars);
-
-		String result = (String) resolver.resolveArgument(paramNamedString, mavContainer, webRequest, null);
-		assertThat(result).as("PathVariable not resolved correctly").isEqualTo("value");
-
-		@SuppressWarnings("unchecked")
-		Map<String, Object> pathVars = (Map<String, Object>) request.getAttribute(View.PATH_VARIABLES);
-		assertThat(pathVars).isNotNull();
-		assertThat(pathVars.size()).isEqualTo(1);
-		assertThat(pathVars.get("name")).isEqualTo("value");
-	}
-
-	@Test
-	public void resolveArgumentNotRequired() throws Exception {
-		Map<String, String> uriTemplateVars = new HashMap<>();
-		uriTemplateVars.put("name", "value");
-		request.setAttribute(HandlerMapping.URI_TEMPLATE_VARIABLES_ATTRIBUTE, uriTemplateVars);
-
-		String result = (String) resolver.resolveArgument(paramNotRequired, mavContainer, webRequest, null);
-		assertThat(result).as("PathVariable not resolved correctly").isEqualTo("value");
-
-		@SuppressWarnings("unchecked")
-		Map<String, Object> pathVars = (Map<String, Object>) request.getAttribute(View.PATH_VARIABLES);
-		assertThat(pathVars).isNotNull();
-		assertThat(pathVars.size()).isEqualTo(1);
-		assertThat(pathVars.get("name")).isEqualTo("value");
-	}
-
-	@Test
-	public void resolveArgumentWrappedAsOptional() throws Exception {
-		Map<String, String> uriTemplateVars = new HashMap<>();
-		uriTemplateVars.put("name", "value");
-		request.setAttribute(HandlerMapping.URI_TEMPLATE_VARIABLES_ATTRIBUTE, uriTemplateVars);
-
-		ConfigurableWebBindingInitializer initializer = new ConfigurableWebBindingInitializer();
-		initializer.setConversionService(new DefaultConversionService());
-		WebDataBinderFactory binderFactory = new DefaultDataBinderFactory(initializer);
-
-		@SuppressWarnings("unchecked")
-		Optional<String> result = (Optional<String>)
-				resolver.resolveArgument(paramOptional, mavContainer, webRequest, binderFactory);
-		assertThat(result.get()).as("PathVariable not resolved correctly").isEqualTo("value");
-
-		@SuppressWarnings("unchecked")
-		Map<String, Object> pathVars = (Map<String, Object>) request.getAttribute(View.PATH_VARIABLES);
-		assertThat(pathVars).isNotNull();
-		assertThat(pathVars.size()).isEqualTo(1);
-		assertThat(pathVars.get("name")).isEqualTo(Optional.of("value"));
-	}
-
-	@Test
-	public void resolveArgumentWithExistingPathVars() throws Exception {
-		Map<String, String> uriTemplateVars = new HashMap<>();
-		uriTemplateVars.put("name", "value");
-		request.setAttribute(HandlerMapping.URI_TEMPLATE_VARIABLES_ATTRIBUTE, uriTemplateVars);
-
-		uriTemplateVars.put("oldName", "oldValue");
-		request.setAttribute(View.PATH_VARIABLES, uriTemplateVars);
-
-		String result = (String) resolver.resolveArgument(paramNamedString, mavContainer, webRequest, null);
-		assertThat(result).as("PathVariable not resolved correctly").isEqualTo("value");
-
-		@SuppressWarnings("unchecked")
-		Map<String, Object> pathVars = (Map<String, Object>) request.getAttribute(View.PATH_VARIABLES);
-		assertThat(pathVars).isNotNull();
-		assertThat(pathVars.size()).isEqualTo(2);
-		assertThat(pathVars.get("name")).isEqualTo("value");
-		assertThat(pathVars.get("oldName")).isEqualTo("oldValue");
-	}
-
-	@Test
-	public void handleMissingValue() throws Exception {
-		assertThatExceptionOfType(MissingPathVariableException.class).isThrownBy(() ->
-				resolver.resolveArgument(paramNamedString, mavContainer, webRequest, null));
-	}
-
-	@Test
-	public void nullIfNotRequired() throws Exception {
-		assertThat(resolver.resolveArgument(paramNotRequired, mavContainer, webRequest, null)).isNull();
-	}
-
-	@Test
-	public void wrapEmptyWithOptional() throws Exception {
-		ConfigurableWebBindingInitializer initializer = new ConfigurableWebBindingInitializer();
-		initializer.setConversionService(new DefaultConversionService());
-		WebDataBinderFactory binderFactory = new DefaultDataBinderFactory(initializer);
-
-		assertThat(resolver.resolveArgument(paramOptional, mavContainer, webRequest, binderFactory)).isEqualTo(Optional.empty());
-	}
+        Method method = ReflectionUtils.findMethod(getClass(), "handle", (Class<?>[]) null);
+        paramNamedString = new SynthesizingMethodParameter(method, 0);
+        paramString = new SynthesizingMethodParameter(method, 1);
+        paramNotRequired = new SynthesizingMethodParameter(method, 2);
+        paramOptional = new SynthesizingMethodParameter(method, 3);
+    }
 
 
-	@SuppressWarnings("unused")
-	public void handle(@PathVariable("name") String param1, String param2,
-			@PathVariable(name="name", required = false) String param3,
-			@PathVariable("name") Optional<String> param4) {
-	}
+    @Test
+    public void supportsParameter() {
+        assertThat(resolver.supportsParameter(paramNamedString)).as("Parameter with @PathVariable annotation").isTrue();
+        assertThat(resolver.supportsParameter(paramString)).as("Parameter without @PathVariable annotation").isFalse();
+    }
+
+    @Test
+    public void resolveArgument() throws Exception {
+        Map<String, String> uriTemplateVars = new HashMap<>();
+        uriTemplateVars.put("name", "value");
+        request.setAttribute(HandlerMapping.URI_TEMPLATE_VARIABLES_ATTRIBUTE, uriTemplateVars);
+
+        String result = (String) resolver.resolveArgument(paramNamedString, mavContainer, webRequest, null);
+        assertThat(result).as("PathVariable not resolved correctly").isEqualTo("value");
+
+        @SuppressWarnings("unchecked")
+        Map<String, Object> pathVars = (Map<String, Object>) request.getAttribute(View.PATH_VARIABLES);
+        assertThat(pathVars).isNotNull();
+        assertThat(pathVars.size()).isEqualTo(1);
+        assertThat(pathVars.get("name")).isEqualTo("value");
+    }
+
+    @Test
+    public void resolveArgumentNotRequired() throws Exception {
+        Map<String, String> uriTemplateVars = new HashMap<>();
+        uriTemplateVars.put("name", "value");
+        request.setAttribute(HandlerMapping.URI_TEMPLATE_VARIABLES_ATTRIBUTE, uriTemplateVars);
+
+        String result = (String) resolver.resolveArgument(paramNotRequired, mavContainer, webRequest, null);
+        assertThat(result).as("PathVariable not resolved correctly").isEqualTo("value");
+
+        @SuppressWarnings("unchecked")
+        Map<String, Object> pathVars = (Map<String, Object>) request.getAttribute(View.PATH_VARIABLES);
+        assertThat(pathVars).isNotNull();
+        assertThat(pathVars.size()).isEqualTo(1);
+        assertThat(pathVars.get("name")).isEqualTo("value");
+    }
+
+    @Test
+    public void resolveArgumentWrappedAsOptional() throws Exception {
+        Map<String, String> uriTemplateVars = new HashMap<>();
+        uriTemplateVars.put("name", "value");
+        request.setAttribute(HandlerMapping.URI_TEMPLATE_VARIABLES_ATTRIBUTE, uriTemplateVars);
+
+        ConfigurableWebBindingInitializer initializer = new ConfigurableWebBindingInitializer();
+        initializer.setConversionService(new DefaultConversionService());
+        WebDataBinderFactory binderFactory = new DefaultDataBinderFactory(initializer);
+
+        @SuppressWarnings("unchecked")
+        Optional<String> result = (Optional<String>)
+                resolver.resolveArgument(paramOptional, mavContainer, webRequest, binderFactory);
+        assertThat(result.get()).as("PathVariable not resolved correctly").isEqualTo("value");
+
+        @SuppressWarnings("unchecked")
+        Map<String, Object> pathVars = (Map<String, Object>) request.getAttribute(View.PATH_VARIABLES);
+        assertThat(pathVars).isNotNull();
+        assertThat(pathVars.size()).isEqualTo(1);
+        assertThat(pathVars.get("name")).isEqualTo(Optional.of("value"));
+    }
+
+    @Test
+    public void resolveArgumentWithExistingPathVars() throws Exception {
+        Map<String, String> uriTemplateVars = new HashMap<>();
+        uriTemplateVars.put("name", "value");
+        request.setAttribute(HandlerMapping.URI_TEMPLATE_VARIABLES_ATTRIBUTE, uriTemplateVars);
+
+        uriTemplateVars.put("oldName", "oldValue");
+        request.setAttribute(View.PATH_VARIABLES, uriTemplateVars);
+
+        String result = (String) resolver.resolveArgument(paramNamedString, mavContainer, webRequest, null);
+        assertThat(result).as("PathVariable not resolved correctly").isEqualTo("value");
+
+        @SuppressWarnings("unchecked")
+        Map<String, Object> pathVars = (Map<String, Object>) request.getAttribute(View.PATH_VARIABLES);
+        assertThat(pathVars).isNotNull();
+        assertThat(pathVars.size()).isEqualTo(2);
+        assertThat(pathVars.get("name")).isEqualTo("value");
+        assertThat(pathVars.get("oldName")).isEqualTo("oldValue");
+    }
+
+    @Test
+    public void handleMissingValue() throws Exception {
+        assertThatExceptionOfType(MissingPathVariableException.class).isThrownBy(() ->
+                resolver.resolveArgument(paramNamedString, mavContainer, webRequest, null));
+    }
+
+    @Test
+    public void nullIfNotRequired() throws Exception {
+        assertThat(resolver.resolveArgument(paramNotRequired, mavContainer, webRequest, null)).isNull();
+    }
+
+    @Test
+    public void wrapEmptyWithOptional() throws Exception {
+        ConfigurableWebBindingInitializer initializer = new ConfigurableWebBindingInitializer();
+        initializer.setConversionService(new DefaultConversionService());
+        WebDataBinderFactory binderFactory = new DefaultDataBinderFactory(initializer);
+
+        assertThat(resolver.resolveArgument(paramOptional, mavContainer, webRequest, binderFactory)).isEqualTo(Optional.empty());
+    }
+
+
+    @SuppressWarnings("unused")
+    public void handle(@PathVariable("name") String param1, String param2,
+                       @PathVariable(name = "name", required = false) String param3,
+                       @PathVariable("name") Optional<String> param4) {
+    }
 
 }

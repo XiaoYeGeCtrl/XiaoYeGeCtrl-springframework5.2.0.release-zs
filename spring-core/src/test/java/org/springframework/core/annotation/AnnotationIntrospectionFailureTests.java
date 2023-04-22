@@ -35,115 +35,115 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
  * dealt with correctly.
  *
  * @author Phillip Webb
- * @since 5.2
  * @see AnnotationUtils
  * @see AnnotatedElementUtils
+ * @since 5.2
  */
 class AnnotationIntrospectionFailureTests {
 
-	@Test
-	void filteredTypeThrowsTypeNotPresentException() throws Exception {
-		FilteringClassLoader classLoader = new FilteringClassLoader(
-				getClass().getClassLoader());
-		Class<?> withExampleAnnotation = ClassUtils.forName(
-				WithExampleAnnotation.class.getName(), classLoader);
-		Annotation annotation = withExampleAnnotation.getAnnotations()[0];
-		Method method = annotation.annotationType().getMethod("value");
-		method.setAccessible(true);
-		assertThatExceptionOfType(TypeNotPresentException.class).isThrownBy(() ->
-				ReflectionUtils.invokeMethod(method, annotation))
-			.withCauseInstanceOf(ClassNotFoundException.class);
-	}
+    @Test
+    void filteredTypeThrowsTypeNotPresentException() throws Exception {
+        FilteringClassLoader classLoader = new FilteringClassLoader(
+                getClass().getClassLoader());
+        Class<?> withExampleAnnotation = ClassUtils.forName(
+                WithExampleAnnotation.class.getName(), classLoader);
+        Annotation annotation = withExampleAnnotation.getAnnotations()[0];
+        Method method = annotation.annotationType().getMethod("value");
+        method.setAccessible(true);
+        assertThatExceptionOfType(TypeNotPresentException.class).isThrownBy(() ->
+                ReflectionUtils.invokeMethod(method, annotation))
+                .withCauseInstanceOf(ClassNotFoundException.class);
+    }
 
-	@Test
-	@SuppressWarnings("unchecked")
-	void filteredTypeInMetaAnnotationWhenUsingAnnotatedElementUtilsHandlesException() throws Exception {
-		FilteringClassLoader classLoader = new FilteringClassLoader(
-				getClass().getClassLoader());
-		Class<?> withExampleMetaAnnotation = ClassUtils.forName(
-				WithExampleMetaAnnotation.class.getName(), classLoader);
-		Class<Annotation> exampleAnnotationClass = (Class<Annotation>) ClassUtils.forName(
-				ExampleAnnotation.class.getName(), classLoader);
-		Class<Annotation> exampleMetaAnnotationClass = (Class<Annotation>) ClassUtils.forName(
-				ExampleMetaAnnotation.class.getName(), classLoader);
-		assertThat(AnnotatedElementUtils.getMergedAnnotationAttributes(
-				withExampleMetaAnnotation, exampleAnnotationClass)).isNull();
-		assertThat(AnnotatedElementUtils.getMergedAnnotationAttributes(
-				withExampleMetaAnnotation, exampleMetaAnnotationClass)).isNull();
-		assertThat(AnnotatedElementUtils.hasAnnotation(withExampleMetaAnnotation,
-				exampleAnnotationClass)).isFalse();
-		assertThat(AnnotatedElementUtils.hasAnnotation(withExampleMetaAnnotation,
-				exampleMetaAnnotationClass)).isFalse();
-	}
+    @Test
+    @SuppressWarnings("unchecked")
+    void filteredTypeInMetaAnnotationWhenUsingAnnotatedElementUtilsHandlesException() throws Exception {
+        FilteringClassLoader classLoader = new FilteringClassLoader(
+                getClass().getClassLoader());
+        Class<?> withExampleMetaAnnotation = ClassUtils.forName(
+                WithExampleMetaAnnotation.class.getName(), classLoader);
+        Class<Annotation> exampleAnnotationClass = (Class<Annotation>) ClassUtils.forName(
+                ExampleAnnotation.class.getName(), classLoader);
+        Class<Annotation> exampleMetaAnnotationClass = (Class<Annotation>) ClassUtils.forName(
+                ExampleMetaAnnotation.class.getName(), classLoader);
+        assertThat(AnnotatedElementUtils.getMergedAnnotationAttributes(
+                withExampleMetaAnnotation, exampleAnnotationClass)).isNull();
+        assertThat(AnnotatedElementUtils.getMergedAnnotationAttributes(
+                withExampleMetaAnnotation, exampleMetaAnnotationClass)).isNull();
+        assertThat(AnnotatedElementUtils.hasAnnotation(withExampleMetaAnnotation,
+                exampleAnnotationClass)).isFalse();
+        assertThat(AnnotatedElementUtils.hasAnnotation(withExampleMetaAnnotation,
+                exampleMetaAnnotationClass)).isFalse();
+    }
 
-	@Test
-	@SuppressWarnings("unchecked")
-	void filteredTypeInMetaAnnotationWhenUsingMergedAnnotationsHandlesException() throws Exception {
-		FilteringClassLoader classLoader = new FilteringClassLoader(
-				getClass().getClassLoader());
-		Class<?> withExampleMetaAnnotation = ClassUtils.forName(
-				WithExampleMetaAnnotation.class.getName(), classLoader);
-		Class<Annotation> exampleAnnotationClass = (Class<Annotation>) ClassUtils.forName(
-				ExampleAnnotation.class.getName(), classLoader);
-		Class<Annotation> exampleMetaAnnotationClass = (Class<Annotation>) ClassUtils.forName(
-				ExampleMetaAnnotation.class.getName(), classLoader);
-		MergedAnnotations annotations = MergedAnnotations.from(withExampleMetaAnnotation);
-		assertThat(annotations.get(exampleAnnotationClass).isPresent()).isFalse();
-		assertThat(annotations.get(exampleMetaAnnotationClass).isPresent()).isFalse();
-		assertThat(annotations.isPresent(exampleMetaAnnotationClass)).isFalse();
-		assertThat(annotations.isPresent(exampleAnnotationClass)).isFalse();
-	}
+    @Test
+    @SuppressWarnings("unchecked")
+    void filteredTypeInMetaAnnotationWhenUsingMergedAnnotationsHandlesException() throws Exception {
+        FilteringClassLoader classLoader = new FilteringClassLoader(
+                getClass().getClassLoader());
+        Class<?> withExampleMetaAnnotation = ClassUtils.forName(
+                WithExampleMetaAnnotation.class.getName(), classLoader);
+        Class<Annotation> exampleAnnotationClass = (Class<Annotation>) ClassUtils.forName(
+                ExampleAnnotation.class.getName(), classLoader);
+        Class<Annotation> exampleMetaAnnotationClass = (Class<Annotation>) ClassUtils.forName(
+                ExampleMetaAnnotation.class.getName(), classLoader);
+        MergedAnnotations annotations = MergedAnnotations.from(withExampleMetaAnnotation);
+        assertThat(annotations.get(exampleAnnotationClass).isPresent()).isFalse();
+        assertThat(annotations.get(exampleMetaAnnotationClass).isPresent()).isFalse();
+        assertThat(annotations.isPresent(exampleMetaAnnotationClass)).isFalse();
+        assertThat(annotations.isPresent(exampleAnnotationClass)).isFalse();
+    }
 
 
-	static class FilteringClassLoader extends OverridingClassLoader {
+    @Retention(RetentionPolicy.RUNTIME)
+    @interface ExampleAnnotation {
 
-		FilteringClassLoader(ClassLoader parent) {
-			super(parent);
-		}
+        Class<?> value() default Void.class;
+    }
 
-		@Override
-		protected boolean isEligibleForOverriding(String className) {
-			return className.startsWith(
-					AnnotationIntrospectionFailureTests.class.getName());
-		}
+    @Retention(RetentionPolicy.RUNTIME)
+    @ExampleAnnotation
+    @interface ExampleMetaAnnotation {
 
-		@Override
-		protected Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
-			if (name.startsWith(AnnotationIntrospectionFailureTests.class.getName()) &&
-					name.contains("Filtered")) {
-				throw new ClassNotFoundException(name);
-			}
-			return super.loadClass(name, resolve);
-		}
-	}
+        @AliasFor(annotation = ExampleAnnotation.class, attribute = "value")
+        Class<?> example1() default Void.class;
 
-	static class FilteredType {
-	}
+        @AliasFor(annotation = ExampleAnnotation.class, attribute = "value")
+        Class<?> example2() default Void.class;
 
-	@Retention(RetentionPolicy.RUNTIME)
-	@interface ExampleAnnotation {
+    }
 
-		Class<?> value() default Void.class;
-	}
+    static class FilteringClassLoader extends OverridingClassLoader {
 
-	@ExampleAnnotation(FilteredType.class)
-	static class WithExampleAnnotation {
-	}
+        FilteringClassLoader(ClassLoader parent) {
+            super(parent);
+        }
 
-	@Retention(RetentionPolicy.RUNTIME)
-	@ExampleAnnotation
-	@interface ExampleMetaAnnotation {
+        @Override
+        protected boolean isEligibleForOverriding(String className) {
+            return className.startsWith(
+                    AnnotationIntrospectionFailureTests.class.getName());
+        }
 
-		@AliasFor(annotation = ExampleAnnotation.class, attribute = "value")
-		Class<?> example1() default Void.class;
+        @Override
+        protected Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
+            if (name.startsWith(AnnotationIntrospectionFailureTests.class.getName()) &&
+                    name.contains("Filtered")) {
+                throw new ClassNotFoundException(name);
+            }
+            return super.loadClass(name, resolve);
+        }
+    }
 
-		@AliasFor(annotation = ExampleAnnotation.class, attribute = "value")
-		Class<?> example2() default Void.class;
+    static class FilteredType {
+    }
 
-	}
+    @ExampleAnnotation(FilteredType.class)
+    static class WithExampleAnnotation {
+    }
 
-	@ExampleMetaAnnotation(example1 = FilteredType.class)
-	static class WithExampleMetaAnnotation {
-	}
+    @ExampleMetaAnnotation(example1 = FilteredType.class)
+    static class WithExampleMetaAnnotation {
+    }
 
 }

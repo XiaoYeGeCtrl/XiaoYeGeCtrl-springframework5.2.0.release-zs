@@ -24,58 +24,56 @@ import java.util.Set;
  */
 public class TestSimpSession implements SimpSession {
 
-	private final String id;
-
-	private TestSimpUser user;
-
-	private final Set<SimpSubscription> subscriptions = new HashSet<>();
+    private final String id;
+    private final Set<SimpSubscription> subscriptions = new HashSet<>();
+    private TestSimpUser user;
 
 
-	public TestSimpSession(String id) {
-		this.id = id;
-	}
+    public TestSimpSession(String id) {
+        this.id = id;
+    }
 
 
-	@Override
-	public String getId() {
-		return id;
-	}
+    @Override
+    public String getId() {
+        return id;
+    }
 
-	@Override
-	public TestSimpUser getUser() {
-		return user;
-	}
+    @Override
+    public TestSimpUser getUser() {
+        return user;
+    }
 
-	public void setUser(TestSimpUser user) {
-		this.user = user;
-	}
+    public void setUser(TestSimpUser user) {
+        this.user = user;
+    }
 
-	@Override
-	public Set<SimpSubscription> getSubscriptions() {
-		return subscriptions;
-	}
+    @Override
+    public Set<SimpSubscription> getSubscriptions() {
+        return subscriptions;
+    }
 
-	public void addSubscriptions(TestSimpSubscription... subscriptions) {
-		for (TestSimpSubscription subscription : subscriptions) {
-			subscription.setSession(this);
-			this.subscriptions.add(subscription);
-		}
-	}
+    public void addSubscriptions(TestSimpSubscription... subscriptions) {
+        for (TestSimpSubscription subscription : subscriptions) {
+            subscription.setSession(this);
+            this.subscriptions.add(subscription);
+        }
+    }
 
 
-	@Override
-	public boolean equals(Object other) {
-		return (this == other || (other instanceof SimpSession && this.id.equals(((SimpSession) other).getId())));
-	}
+    @Override
+    public boolean equals(Object other) {
+        return (this == other || (other instanceof SimpSession && this.id.equals(((SimpSession) other).getId())));
+    }
 
-	@Override
-	public int hashCode() {
-		return this.id.hashCode();
-	}
+    @Override
+    public int hashCode() {
+        return this.id.hashCode();
+    }
 
-	@Override
-	public String toString() {
-		return "id=" + this.id + ", subscriptions=" + this.subscriptions;
-	}
+    @Override
+    public String toString() {
+        return "id=" + this.id + ", subscriptions=" + this.subscriptions;
+    }
 
 }

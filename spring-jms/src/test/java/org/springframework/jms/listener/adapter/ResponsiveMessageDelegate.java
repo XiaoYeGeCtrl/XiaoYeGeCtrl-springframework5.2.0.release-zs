@@ -31,12 +31,12 @@ import javax.jms.TextMessage;
  */
 public interface ResponsiveMessageDelegate {
 
-	String handleMessage(TextMessage message);
+    String handleMessage(TextMessage message);
 
-	Map<String, Object> handleMessage(MapMessage message);
+    Map<String, Object> handleMessage(MapMessage message);
 
-	byte[] handleMessage(BytesMessage message);
+    byte[] handleMessage(BytesMessage message);
 
-	Serializable handleMessage(ObjectMessage message);
+    Serializable handleMessage(ObjectMessage message);
 
 }

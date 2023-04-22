@@ -63,209 +63,210 @@ import static org.springframework.http.codec.json.Jackson2CodecSupport.JSON_VIEW
  */
 public class Jackson2JsonDecoderTests extends AbstractDecoderTests<Jackson2JsonDecoder> {
 
-	private Pojo pojo1 = new Pojo("f1", "b1");
+    private Pojo pojo1 = new Pojo("f1", "b1");
 
-	private Pojo pojo2 = new Pojo("f2", "b2");
-
-
-	public Jackson2JsonDecoderTests() {
-		super(new Jackson2JsonDecoder());
-	}
+    private Pojo pojo2 = new Pojo("f2", "b2");
 
 
-	@Override
-	@Test
-	public void canDecode() {
-		assertThat(decoder.canDecode(forClass(Pojo.class), APPLICATION_JSON)).isTrue();
-		assertThat(decoder.canDecode(forClass(Pojo.class), APPLICATION_STREAM_JSON)).isTrue();
-		assertThat(decoder.canDecode(forClass(Pojo.class), null)).isTrue();
-
-		assertThat(decoder.canDecode(forClass(String.class), null)).isFalse();
-		assertThat(decoder.canDecode(forClass(Pojo.class), APPLICATION_XML)).isFalse();
-	}
-
-	@Test  // SPR-15866
-	public void canDecodeWithProvidedMimeType() {
-		MimeType textJavascript = new MimeType("text", "javascript", StandardCharsets.UTF_8);
-		Jackson2JsonDecoder decoder = new Jackson2JsonDecoder(new ObjectMapper(), textJavascript);
-
-		assertThat(decoder.getDecodableMimeTypes()).isEqualTo(Collections.singletonList(textJavascript));
-	}
-
-	@Test
-	public void decodableMimeTypesIsImmutable() {
-		MimeType textJavascript = new MimeType("text", "javascript", StandardCharsets.UTF_8);
-		Jackson2JsonDecoder decoder = new Jackson2JsonDecoder(new ObjectMapper(), textJavascript);
-
-		assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(() ->
-				decoder.getMimeTypes().add(new MimeType("text", "ecmascript")));
-	}
-
-	@Override
-	@Test
-	public void decode() {
-		Flux<DataBuffer> input = Flux.concat(
-				stringBuffer("[{\"bar\":\"b1\",\"foo\":\"f1\"},"),
-				stringBuffer("{\"bar\":\"b2\",\"foo\":\"f2\"}]"));
-
-		testDecodeAll(input, Pojo.class, step -> step
-				.expectNext(pojo1)
-				.expectNext(pojo2)
-				.verifyComplete());
-	}
-
-	@Override
-	@Test
-	public void decodeToMono() {
-		Flux<DataBuffer> input = Flux.concat(
-				stringBuffer("[{\"bar\":\"b1\",\"foo\":\"f1\"},"),
-				stringBuffer("{\"bar\":\"b2\",\"foo\":\"f2\"}]"));
-
-		ResolvableType elementType = ResolvableType.forClassWithGenerics(List.class, Pojo.class);
-
-		testDecodeToMonoAll(input, elementType, step -> step
-				.expectNext(asList(new Pojo("f1", "b1"), new Pojo("f2", "b2")))
-				.expectComplete()
-				.verify(), null, null);
-	}
+    public Jackson2JsonDecoderTests() {
+        super(new Jackson2JsonDecoder());
+    }
 
 
-	@Test
-	public void decodeEmptyArrayToFlux() {
-		Flux<DataBuffer> input = Flux.from(stringBuffer("[]"));
+    @Override
+    @Test
+    public void canDecode() {
+        assertThat(decoder.canDecode(forClass(Pojo.class), APPLICATION_JSON)).isTrue();
+        assertThat(decoder.canDecode(forClass(Pojo.class), APPLICATION_STREAM_JSON)).isTrue();
+        assertThat(decoder.canDecode(forClass(Pojo.class), null)).isTrue();
 
-		testDecode(input, Pojo.class, step -> step.verifyComplete());
-	}
+        assertThat(decoder.canDecode(forClass(String.class), null)).isFalse();
+        assertThat(decoder.canDecode(forClass(Pojo.class), APPLICATION_XML)).isFalse();
+    }
 
-	@Test
-	public void fieldLevelJsonView() {
-		Flux<DataBuffer> input = Flux.from(
-				stringBuffer("{\"withView1\" : \"with\", \"withView2\" : \"with\", \"withoutView\" : \"without\"}"));
-		ResolvableType elementType = forClass(JacksonViewBean.class);
-		Map<String, Object> hints = singletonMap(JSON_VIEW_HINT, MyJacksonView1.class);
+    @Test  // SPR-15866
+    public void canDecodeWithProvidedMimeType() {
+        MimeType textJavascript = new MimeType("text", "javascript", StandardCharsets.UTF_8);
+        Jackson2JsonDecoder decoder = new Jackson2JsonDecoder(new ObjectMapper(), textJavascript);
 
-		testDecode(input, elementType, step -> step
-				.consumeNextWith(o -> {
-					JacksonViewBean b = (JacksonViewBean) o;
-					assertThat(b.getWithView1()).isEqualTo("with");
-					assertThat(b.getWithView2()).isNull();
-					assertThat(b.getWithoutView()).isNull();
-				}), null, hints);
-	}
+        assertThat(decoder.getDecodableMimeTypes()).isEqualTo(Collections.singletonList(textJavascript));
+    }
 
-	@Test
-	public void classLevelJsonView() {
-		Flux<DataBuffer> input = Flux.from(stringBuffer(
-				"{\"withView1\" : \"with\", \"withView2\" : \"with\", \"withoutView\" : \"without\"}"));
-		ResolvableType elementType = forClass(JacksonViewBean.class);
-		Map<String, Object> hints = singletonMap(JSON_VIEW_HINT, MyJacksonView3.class);
+    @Test
+    public void decodableMimeTypesIsImmutable() {
+        MimeType textJavascript = new MimeType("text", "javascript", StandardCharsets.UTF_8);
+        Jackson2JsonDecoder decoder = new Jackson2JsonDecoder(new ObjectMapper(), textJavascript);
 
-		testDecode(input, elementType, step -> step
-				.consumeNextWith(o -> {
-					JacksonViewBean b = (JacksonViewBean) o;
-					assertThat(b.getWithoutView()).isEqualTo("without");
-					assertThat(b.getWithView1()).isNull();
-					assertThat(b.getWithView2()).isNull();
-				})
-				.verifyComplete(), null, hints);
-	}
+        assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(() ->
+                decoder.getMimeTypes().add(new MimeType("text", "ecmascript")));
+    }
 
-	@Test
-	public void invalidData() {
-		Flux<DataBuffer> input =
-				Flux.from(stringBuffer("{\"foofoo\": \"foofoo\", \"barbar\": \"barbar\""));
-		testDecode(input, Pojo.class, step -> step
-				.verifyError(DecodingException.class));
-	}
+    @Override
+    @Test
+    public void decode() {
+        Flux<DataBuffer> input = Flux.concat(
+                stringBuffer("[{\"bar\":\"b1\",\"foo\":\"f1\"},"),
+                stringBuffer("{\"bar\":\"b2\",\"foo\":\"f2\"}]"));
 
-	@Test // gh-22042
-	public void decodeWithNullLiteral() {
-		Flux<Object> result = this.decoder.decode(Flux.concat(stringBuffer("null")),
-				ResolvableType.forType(Pojo.class), MediaType.APPLICATION_JSON, Collections.emptyMap());
+        testDecodeAll(input, Pojo.class, step -> step
+                .expectNext(pojo1)
+                .expectNext(pojo2)
+                .verifyComplete());
+    }
 
-		StepVerifier.create(result).expectComplete().verify();
-	}
+    @Override
+    @Test
+    public void decodeToMono() {
+        Flux<DataBuffer> input = Flux.concat(
+                stringBuffer("[{\"bar\":\"b1\",\"foo\":\"f1\"},"),
+                stringBuffer("{\"bar\":\"b2\",\"foo\":\"f2\"}]"));
 
-	@Test
-	public void noDefaultConstructor() {
-		Flux<DataBuffer> input =
-				Flux.from(stringBuffer("{\"property1\":\"foo\",\"property2\":\"bar\"}"));
-		ResolvableType elementType = forClass(BeanWithNoDefaultConstructor.class);
-		Flux<Object> flux = new Jackson2JsonDecoder().decode(input, elementType, null, emptyMap());
-		StepVerifier.create(flux).verifyError(CodecException.class);
-	}
+        ResolvableType elementType = ResolvableType.forClassWithGenerics(List.class, Pojo.class);
 
-	@Test  // SPR-15975
-	public void  customDeserializer() {
-		Mono<DataBuffer> input = stringBuffer("{\"test\": 1}");
-
-		testDecode(input, TestObject.class, step -> step
-				.consumeNextWith(o -> assertThat(o.getTest()).isEqualTo(1))
-				.verifyComplete()
-		);
-	}
-
-	private Mono<DataBuffer> stringBuffer(String value) {
-		return Mono.defer(() -> {
-			byte[] bytes = value.getBytes(StandardCharsets.UTF_8);
-			DataBuffer buffer = this.bufferFactory.allocateBuffer(bytes.length);
-			buffer.write(bytes);
-			return Mono.just(buffer);
-		});
-	}
+        testDecodeToMonoAll(input, elementType, step -> step
+                .expectNext(asList(new Pojo("f1", "b1"), new Pojo("f2", "b2")))
+                .expectComplete()
+                .verify(), null, null);
+    }
 
 
-	@SuppressWarnings("unused")
-	private static class BeanWithNoDefaultConstructor {
+    @Test
+    public void decodeEmptyArrayToFlux() {
+        Flux<DataBuffer> input = Flux.from(stringBuffer("[]"));
 
-		private final String property1;
+        testDecode(input, Pojo.class, step -> step.verifyComplete());
+    }
 
-		private final String property2;
+    @Test
+    public void fieldLevelJsonView() {
+        Flux<DataBuffer> input = Flux.from(
+                stringBuffer("{\"withView1\" : \"with\", \"withView2\" : \"with\", \"withoutView\" : \"without\"}"));
+        ResolvableType elementType = forClass(JacksonViewBean.class);
+        Map<String, Object> hints = singletonMap(JSON_VIEW_HINT, MyJacksonView1.class);
 
-		public BeanWithNoDefaultConstructor(String property1, String property2) {
-			this.property1 = property1;
-			this.property2 = property2;
-		}
+        testDecode(input, elementType, step -> step
+                .consumeNextWith(o -> {
+                    JacksonViewBean b = (JacksonViewBean) o;
+                    assertThat(b.getWithView1()).isEqualTo("with");
+                    assertThat(b.getWithView2()).isNull();
+                    assertThat(b.getWithoutView()).isNull();
+                }), null, hints);
+    }
 
-		public String getProperty1() {
-			return this.property1;
-		}
+    @Test
+    public void classLevelJsonView() {
+        Flux<DataBuffer> input = Flux.from(stringBuffer(
+                "{\"withView1\" : \"with\", \"withView2\" : \"with\", \"withoutView\" : \"without\"}"));
+        ResolvableType elementType = forClass(JacksonViewBean.class);
+        Map<String, Object> hints = singletonMap(JSON_VIEW_HINT, MyJacksonView3.class);
 
-		public String getProperty2() {
-			return this.property2;
-		}
-	}
+        testDecode(input, elementType, step -> step
+                .consumeNextWith(o -> {
+                    JacksonViewBean b = (JacksonViewBean) o;
+                    assertThat(b.getWithoutView()).isEqualTo("without");
+                    assertThat(b.getWithView1()).isNull();
+                    assertThat(b.getWithView2()).isNull();
+                })
+                .verifyComplete(), null, hints);
+    }
+
+    @Test
+    public void invalidData() {
+        Flux<DataBuffer> input =
+                Flux.from(stringBuffer("{\"foofoo\": \"foofoo\", \"barbar\": \"barbar\""));
+        testDecode(input, Pojo.class, step -> step
+                .verifyError(DecodingException.class));
+    }
+
+    @Test // gh-22042
+    public void decodeWithNullLiteral() {
+        Flux<Object> result = this.decoder.decode(Flux.concat(stringBuffer("null")),
+                ResolvableType.forType(Pojo.class), MediaType.APPLICATION_JSON, Collections.emptyMap());
+
+        StepVerifier.create(result).expectComplete().verify();
+    }
+
+    @Test
+    public void noDefaultConstructor() {
+        Flux<DataBuffer> input =
+                Flux.from(stringBuffer("{\"property1\":\"foo\",\"property2\":\"bar\"}"));
+        ResolvableType elementType = forClass(BeanWithNoDefaultConstructor.class);
+        Flux<Object> flux = new Jackson2JsonDecoder().decode(input, elementType, null, emptyMap());
+        StepVerifier.create(flux).verifyError(CodecException.class);
+    }
+
+    @Test  // SPR-15975
+    public void customDeserializer() {
+        Mono<DataBuffer> input = stringBuffer("{\"test\": 1}");
+
+        testDecode(input, TestObject.class, step -> step
+                .consumeNextWith(o -> assertThat(o.getTest()).isEqualTo(1))
+                .verifyComplete()
+        );
+    }
+
+    private Mono<DataBuffer> stringBuffer(String value) {
+        return Mono.defer(() -> {
+            byte[] bytes = value.getBytes(StandardCharsets.UTF_8);
+            DataBuffer buffer = this.bufferFactory.allocateBuffer(bytes.length);
+            buffer.write(bytes);
+            return Mono.just(buffer);
+        });
+    }
 
 
-	@JsonDeserialize(using = Deserializer.class)
-	public static class TestObject {
+    @SuppressWarnings("unused")
+    private static class BeanWithNoDefaultConstructor {
 
-		private int test;
+        private final String property1;
 
-		public int getTest() {
-			return this.test;
-		}
-		public void setTest(int test) {
-			this.test = test;
-		}
-	}
+        private final String property2;
+
+        public BeanWithNoDefaultConstructor(String property1, String property2) {
+            this.property1 = property1;
+            this.property2 = property2;
+        }
+
+        public String getProperty1() {
+            return this.property1;
+        }
+
+        public String getProperty2() {
+            return this.property2;
+        }
+    }
 
 
-	public static class Deserializer extends StdDeserializer<TestObject> {
+    @JsonDeserialize(using = Deserializer.class)
+    public static class TestObject {
 
-		private static final long serialVersionUID = 1L;
+        private int test;
 
-		protected Deserializer() {
-			super(TestObject.class);
-		}
+        public int getTest() {
+            return this.test;
+        }
 
-		@Override
-		public TestObject deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
-			JsonNode node = p.readValueAsTree();
-			TestObject result = new TestObject();
-			result.setTest(node.get("test").asInt());
-			return result;
-		}
-	}
+        public void setTest(int test) {
+            this.test = test;
+        }
+    }
+
+
+    public static class Deserializer extends StdDeserializer<TestObject> {
+
+        private static final long serialVersionUID = 1L;
+
+        protected Deserializer() {
+            super(TestObject.class);
+        }
+
+        @Override
+        public TestObject deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
+            JsonNode node = p.readValueAsTree();
+            TestObject result = new TestObject();
+            result.setTest(node.get("test").asInt());
+            return result;
+        }
+    }
 
 }

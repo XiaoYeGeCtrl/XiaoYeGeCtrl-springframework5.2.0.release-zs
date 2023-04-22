@@ -25,16 +25,16 @@ import org.springframework.http.HttpMethod;
  */
 public class OkHttp3ClientHttpRequestFactoryTests extends AbstractHttpRequestFactoryTests {
 
-	@Override
-	protected ClientHttpRequestFactory createRequestFactory() {
-		return new OkHttp3ClientHttpRequestFactory();
-	}
+    @Override
+    protected ClientHttpRequestFactory createRequestFactory() {
+        return new OkHttp3ClientHttpRequestFactory();
+    }
 
-	@Override
-	@Test
-	public void httpMethods() throws Exception {
-		super.httpMethods();
-		assertHttpMethod("patch", HttpMethod.PATCH);
-	}
+    @Override
+    @Test
+    public void httpMethods() throws Exception {
+        super.httpMethods();
+        assertHttpMethod("patch", HttpMethod.PATCH);
+    }
 
 }

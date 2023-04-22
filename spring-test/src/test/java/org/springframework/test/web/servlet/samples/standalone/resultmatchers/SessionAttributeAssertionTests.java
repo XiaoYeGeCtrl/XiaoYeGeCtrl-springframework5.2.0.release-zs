@@ -42,43 +42,43 @@ import static org.springframework.test.web.servlet.setup.MockMvcBuilders.standal
  */
 public class SessionAttributeAssertionTests {
 
-	private MockMvc mockMvc;
+    private MockMvc mockMvc;
 
-	@BeforeEach
-	public void setup() {
-		this.mockMvc = standaloneSetup(new SimpleController())
-				.defaultRequest(get("/"))
-				.alwaysExpect(status().isOk())
-				.build();
-	}
+    @BeforeEach
+    public void setup() {
+        this.mockMvc = standaloneSetup(new SimpleController())
+                .defaultRequest(get("/"))
+                .alwaysExpect(status().isOk())
+                .build();
+    }
 
-	@Test
-	public void testSessionAttributeEqualTo() throws Exception {
-		this.mockMvc.perform(get("/"))
-			.andExpect(request().sessionAttribute("locale", Locale.UK))
-			.andExpect(request().sessionAttribute("locale", equalTo(Locale.UK)));
-	}
+    @Test
+    public void testSessionAttributeEqualTo() throws Exception {
+        this.mockMvc.perform(get("/"))
+                .andExpect(request().sessionAttribute("locale", Locale.UK))
+                .andExpect(request().sessionAttribute("locale", equalTo(Locale.UK)));
+    }
 
-	@Test
-	public void testSessionAttributeMatcher() throws Exception {
-		this.mockMvc.perform(get("/"))
-			.andExpect(request().sessionAttribute("locale", notNullValue()));
-	}
+    @Test
+    public void testSessionAttributeMatcher() throws Exception {
+        this.mockMvc.perform(get("/"))
+                .andExpect(request().sessionAttribute("locale", notNullValue()));
+    }
 
 
-	@Controller
-	@SessionAttributes("locale")
-	private static class SimpleController {
+    @Controller
+    @SessionAttributes("locale")
+    private static class SimpleController {
 
-		@ModelAttribute
-		public void populate(Model model) {
-			model.addAttribute("locale", Locale.UK);
-		}
+        @ModelAttribute
+        public void populate(Model model) {
+            model.addAttribute("locale", Locale.UK);
+        }
 
-		@RequestMapping("/")
-		public String handle() {
-			return "view";
-		}
-	}
+        @RequestMapping("/")
+        public String handle() {
+            return "view";
+        }
+    }
 
 }

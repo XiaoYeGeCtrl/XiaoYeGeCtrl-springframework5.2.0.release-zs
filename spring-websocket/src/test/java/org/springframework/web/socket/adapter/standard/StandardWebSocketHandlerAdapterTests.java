@@ -43,47 +43,47 @@ import static org.mockito.Mockito.verify;
  */
 public class StandardWebSocketHandlerAdapterTests {
 
-	private StandardWebSocketHandlerAdapter adapter;
+    private StandardWebSocketHandlerAdapter adapter;
 
-	private WebSocketHandler webSocketHandler;
+    private WebSocketHandler webSocketHandler;
 
-	private StandardWebSocketSession webSocketSession;
+    private StandardWebSocketSession webSocketSession;
 
-	private Session session;
+    private Session session;
 
 
-	@BeforeEach
-	public void setup() {
-		this.session = mock(Session.class);
-		this.webSocketHandler = mock(WebSocketHandler.class);
-		this.webSocketSession = new StandardWebSocketSession(null, null, null, null);
-		this.adapter = new StandardWebSocketHandlerAdapter(this.webSocketHandler, this.webSocketSession);
-	}
+    @BeforeEach
+    public void setup() {
+        this.session = mock(Session.class);
+        this.webSocketHandler = mock(WebSocketHandler.class);
+        this.webSocketSession = new StandardWebSocketSession(null, null, null, null);
+        this.adapter = new StandardWebSocketHandlerAdapter(this.webSocketHandler, this.webSocketSession);
+    }
 
-	@Test
-	public void onOpen() throws Throwable {
-		URI uri = URI.create("https://example.org");
-		given(this.session.getRequestURI()).willReturn(uri);
-		this.adapter.onOpen(this.session, null);
+    @Test
+    public void onOpen() throws Throwable {
+        URI uri = URI.create("https://example.org");
+        given(this.session.getRequestURI()).willReturn(uri);
+        this.adapter.onOpen(this.session, null);
 
-		verify(this.webSocketHandler).afterConnectionEstablished(this.webSocketSession);
-		verify(this.session, atLeast(2)).addMessageHandler(any(MessageHandler.Whole.class));
+        verify(this.webSocketHandler).afterConnectionEstablished(this.webSocketSession);
+        verify(this.session, atLeast(2)).addMessageHandler(any(MessageHandler.Whole.class));
 
-		given(this.session.getRequestURI()).willReturn(uri);
-		assertThat(this.webSocketSession.getUri()).isEqualTo(uri);
-	}
+        given(this.session.getRequestURI()).willReturn(uri);
+        assertThat(this.webSocketSession.getUri()).isEqualTo(uri);
+    }
 
-	@Test
-	public void onClose() throws Throwable {
-		this.adapter.onClose(this.session, new CloseReason(CloseCodes.NORMAL_CLOSURE, "reason"));
-		verify(this.webSocketHandler).afterConnectionClosed(this.webSocketSession, CloseStatus.NORMAL.withReason("reason"));
-	}
+    @Test
+    public void onClose() throws Throwable {
+        this.adapter.onClose(this.session, new CloseReason(CloseCodes.NORMAL_CLOSURE, "reason"));
+        verify(this.webSocketHandler).afterConnectionClosed(this.webSocketSession, CloseStatus.NORMAL.withReason("reason"));
+    }
 
-	@Test
-	public void onError() throws Throwable {
-		Exception exception = new Exception();
-		this.adapter.onError(this.session, exception);
-		verify(this.webSocketHandler).handleTransportError(this.webSocketSession, exception);
-	}
+    @Test
+    public void onError() throws Throwable {
+        Exception exception = new Exception();
+        this.adapter.onError(this.session, exception);
+        verify(this.webSocketHandler).handleTransportError(this.webSocketSession, exception);
+    }
 
 }

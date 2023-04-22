@@ -35,29 +35,29 @@ import org.springframework.lang.Nullable;
  *
  * @author Stephane Nicoll
  * @author Juergen Hoeller
- * @since 4.1
  * @see JCacheConfigurer
+ * @since 4.1
  */
 @Configuration
 public class AbstractJCacheConfiguration extends AbstractCachingConfiguration {
 
-	@Nullable
-	protected Supplier<CacheResolver> exceptionCacheResolver;
+    @Nullable
+    protected Supplier<CacheResolver> exceptionCacheResolver;
 
 
-	@Override
-	protected void useCachingConfigurer(CachingConfigurer config) {
-		super.useCachingConfigurer(config);
-		if (config instanceof JCacheConfigurer) {
-			this.exceptionCacheResolver = ((JCacheConfigurer) config)::exceptionCacheResolver;
-		}
-	}
+    @Override
+    protected void useCachingConfigurer(CachingConfigurer config) {
+        super.useCachingConfigurer(config);
+        if (config instanceof JCacheConfigurer) {
+            this.exceptionCacheResolver = ((JCacheConfigurer) config)::exceptionCacheResolver;
+        }
+    }
 
-	@Bean(name = "jCacheOperationSource")
-	@Role(BeanDefinition.ROLE_INFRASTRUCTURE)
-	public JCacheOperationSource cacheOperationSource() {
-		return new DefaultJCacheOperationSource(
-				this.cacheManager, this.cacheResolver, this.exceptionCacheResolver, this.keyGenerator);
-	}
+    @Bean(name = "jCacheOperationSource")
+    @Role(BeanDefinition.ROLE_INFRASTRUCTURE)
+    public JCacheOperationSource cacheOperationSource() {
+        return new DefaultJCacheOperationSource(
+                this.cacheManager, this.cacheResolver, this.exceptionCacheResolver, this.keyGenerator);
+    }
 
 }

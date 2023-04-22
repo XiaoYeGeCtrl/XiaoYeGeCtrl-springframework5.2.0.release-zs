@@ -43,42 +43,39 @@ import static org.assertj.core.api.Assertions.assertThat;
 @ContextConfiguration(initializers = PropertySourcesInitializerTests.PropertySourceInitializer.class)
 public class PropertySourcesInitializerTests {
 
-	@Configuration
-	static class Config {
+    @Autowired
+    private String enigma;
 
-		@Value("${enigma}")
-		// The following can also be used to directly access the
-		// environment instead of relying on placeholder replacement.
-		// @Value("#{ environment['enigma'] }")
-		private String enigma;
+    @Test
+    public void customPropertySourceConfiguredViaContextInitializer() {
+        assertThat(enigma).isEqualTo("foo");
+    }
 
+    @Configuration
+    static class Config {
 
-		@Bean
-		public String enigma() {
-			return enigma;
-		}
-
-	}
-
-
-	@Autowired
-	private String enigma;
+        @Value("${enigma}")
+        // The following can also be used to directly access the
+        // environment instead of relying on placeholder replacement.
+        // @Value("#{ environment['enigma'] }")
+        private String enigma;
 
 
-	@Test
-	public void customPropertySourceConfiguredViaContextInitializer() {
-		assertThat(enigma).isEqualTo("foo");
-	}
+        @Bean
+        public String enigma() {
+            return enigma;
+        }
 
+    }
 
-	public static class PropertySourceInitializer implements
-			ApplicationContextInitializer<ConfigurableApplicationContext> {
+    public static class PropertySourceInitializer implements
+            ApplicationContextInitializer<ConfigurableApplicationContext> {
 
-		@Override
-		public void initialize(ConfigurableApplicationContext applicationContext) {
-			applicationContext.getEnvironment().getPropertySources().addFirst(
-				new MockPropertySource().withProperty("enigma", "foo"));
-		}
-	}
+        @Override
+        public void initialize(ConfigurableApplicationContext applicationContext) {
+            applicationContext.getEnvironment().getPropertySources().addFirst(
+                    new MockPropertySource().withProperty("enigma", "foo"));
+        }
+    }
 
 }

@@ -33,22 +33,22 @@ import static org.assertj.core.api.Assertions.assertThat;
 @SpringJUnitConfig
 abstract class AbstractExplicitPropertiesFileTests {
 
-	@Autowired
-	Environment env;
+    @Autowired
+    Environment env;
 
 
-	@Test
-	@DisplayName("verify properties are available in the Environment")
-	void verifyPropertiesAreAvailableInEnvironment() {
-		String userHomeKey = "user.home";
-		assertThat(env.getProperty(userHomeKey)).isEqualTo(System.getProperty(userHomeKey));
-		assertThat(env.getProperty("explicit")).isEqualTo("enigma");
-	}
+    @Test
+    @DisplayName("verify properties are available in the Environment")
+    void verifyPropertiesAreAvailableInEnvironment() {
+        String userHomeKey = "user.home";
+        assertThat(env.getProperty(userHomeKey)).isEqualTo(System.getProperty(userHomeKey));
+        assertThat(env.getProperty("explicit")).isEqualTo("enigma");
+    }
 
 
-	@Configuration
-	static class Config {
-		/* no user beans required for these tests */
-	}
+    @Configuration
+    static class Config {
+        /* no user beans required for these tests */
+    }
 
 }

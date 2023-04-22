@@ -27,19 +27,19 @@ import org.springframework.format.Formatter;
  * following JSR-310's parsing rules for a Period.
  *
  * @author Juergen Hoeller
- * @since 4.2.4
  * @see Period#parse
+ * @since 4.2.4
  */
 class PeriodFormatter implements Formatter<Period> {
 
-	@Override
-	public Period parse(String text, Locale locale) throws ParseException {
-		return Period.parse(text);
-	}
+    @Override
+    public Period parse(String text, Locale locale) throws ParseException {
+        return Period.parse(text);
+    }
 
-	@Override
-	public String print(Period object, Locale locale) {
-		return object.toString();
-	}
+    @Override
+    public String print(Period object, Locale locale) {
+        return object.toString();
+    }
 
 }

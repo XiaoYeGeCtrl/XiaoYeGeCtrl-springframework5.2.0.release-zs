@@ -30,20 +30,20 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Sam Brannen
  * @since 4.1
  */
-@TestPropertySource(properties = { "explicit = inlined", "extended = inlined1", "extended = inlined2" })
+@TestPropertySource(properties = {"explicit = inlined", "extended = inlined1", "extended = inlined2"})
 class MergedPropertiesFilesOverriddenByInlinedPropertiesTestPropertySourceTests extends
-		MergedPropertiesFilesTestPropertySourceTests {
+        MergedPropertiesFilesTestPropertySourceTests {
 
-	@Test
-	@Override
-	void verifyPropertiesAreAvailableInEnvironment() {
-		assertThat(env.getProperty("explicit")).isEqualTo("inlined");
-	}
+    @Test
+    @Override
+    void verifyPropertiesAreAvailableInEnvironment() {
+        assertThat(env.getProperty("explicit")).isEqualTo("inlined");
+    }
 
-	@Test
-	@Override
-	void verifyExtendedPropertiesAreAvailableInEnvironment() {
-		assertThat(env.getProperty("extended")).isEqualTo("inlined2");
-	}
+    @Test
+    @Override
+    void verifyExtendedPropertiesAreAvailableInEnvironment() {
+        assertThat(env.getProperty("extended")).isEqualTo("inlined2");
+    }
 
 }

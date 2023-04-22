@@ -35,105 +35,105 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 public class NameMatchMethodPointcutTests {
 
-	protected NameMatchMethodPointcut pc;
+    protected NameMatchMethodPointcut pc;
 
-	protected Person proxied;
+    protected Person proxied;
 
-	protected SerializableNopInterceptor nop;
-
-
-	/**
-	 * Create an empty pointcut, populating instance variables.
-	 */
-	@BeforeEach
-	public void setup() {
-		ProxyFactory pf = new ProxyFactory(new SerializablePerson());
-		nop = new SerializableNopInterceptor();
-		pc = new NameMatchMethodPointcut();
-		pf.addAdvisor(new DefaultPointcutAdvisor(pc, nop));
-		proxied = (Person) pf.getProxy();
-	}
+    protected SerializableNopInterceptor nop;
 
 
-	@Test
-	public void testMatchingOnly() {
-		// Can't do exact matching through isMatch
-		assertThat(pc.isMatch("echo", "ech*")).isTrue();
-		assertThat(pc.isMatch("setName", "setN*")).isTrue();
-		assertThat(pc.isMatch("setName", "set*")).isTrue();
-		assertThat(pc.isMatch("getName", "set*")).isFalse();
-		assertThat(pc.isMatch("setName", "set")).isFalse();
-		assertThat(pc.isMatch("testing", "*ing")).isTrue();
-	}
-
-	@Test
-	public void testEmpty() throws Throwable {
-		assertThat(nop.getCount()).isEqualTo(0);
-		proxied.getName();
-		proxied.setName("");
-		proxied.echo(null);
-		assertThat(nop.getCount()).isEqualTo(0);
-	}
+    /**
+     * Create an empty pointcut, populating instance variables.
+     */
+    @BeforeEach
+    public void setup() {
+        ProxyFactory pf = new ProxyFactory(new SerializablePerson());
+        nop = new SerializableNopInterceptor();
+        pc = new NameMatchMethodPointcut();
+        pf.addAdvisor(new DefaultPointcutAdvisor(pc, nop));
+        proxied = (Person) pf.getProxy();
+    }
 
 
-	@Test
-	public void testMatchOneMethod() throws Throwable {
-		pc.addMethodName("echo");
-		pc.addMethodName("set*");
-		assertThat(nop.getCount()).isEqualTo(0);
-		proxied.getName();
-		proxied.getName();
-		assertThat(nop.getCount()).isEqualTo(0);
-		proxied.echo(null);
-		assertThat(nop.getCount()).isEqualTo(1);
+    @Test
+    public void testMatchingOnly() {
+        // Can't do exact matching through isMatch
+        assertThat(pc.isMatch("echo", "ech*")).isTrue();
+        assertThat(pc.isMatch("setName", "setN*")).isTrue();
+        assertThat(pc.isMatch("setName", "set*")).isTrue();
+        assertThat(pc.isMatch("getName", "set*")).isFalse();
+        assertThat(pc.isMatch("setName", "set")).isFalse();
+        assertThat(pc.isMatch("testing", "*ing")).isTrue();
+    }
 
-		proxied.setName("");
-		assertThat(nop.getCount()).isEqualTo(2);
-		proxied.setAge(25);
-		assertThat(proxied.getAge()).isEqualTo(25);
-		assertThat(nop.getCount()).isEqualTo(3);
-	}
+    @Test
+    public void testEmpty() throws Throwable {
+        assertThat(nop.getCount()).isEqualTo(0);
+        proxied.getName();
+        proxied.setName("");
+        proxied.echo(null);
+        assertThat(nop.getCount()).isEqualTo(0);
+    }
 
-	@Test
-	public void testSets() throws Throwable {
-		pc.setMappedNames("set*", "echo");
-		assertThat(nop.getCount()).isEqualTo(0);
-		proxied.getName();
-		proxied.setName("");
-		assertThat(nop.getCount()).isEqualTo(1);
-		proxied.echo(null);
-		assertThat(nop.getCount()).isEqualTo(2);
-	}
 
-	@Test
-	public void testSerializable() throws Throwable {
-		testSets();
-		// Count is now 2
-		Person p2 = (Person) SerializationTestUtils.serializeAndDeserialize(proxied);
-		NopInterceptor nop2 = (NopInterceptor) ((Advised) p2).getAdvisors()[0].getAdvice();
-		p2.getName();
-		assertThat(nop2.getCount()).isEqualTo(2);
-		p2.echo(null);
-		assertThat(nop2.getCount()).isEqualTo(3);
-	}
+    @Test
+    public void testMatchOneMethod() throws Throwable {
+        pc.addMethodName("echo");
+        pc.addMethodName("set*");
+        assertThat(nop.getCount()).isEqualTo(0);
+        proxied.getName();
+        proxied.getName();
+        assertThat(nop.getCount()).isEqualTo(0);
+        proxied.echo(null);
+        assertThat(nop.getCount()).isEqualTo(1);
 
-	@Test
-	public void testEqualsAndHashCode() {
-		NameMatchMethodPointcut pc1 = new NameMatchMethodPointcut();
-		NameMatchMethodPointcut pc2 = new NameMatchMethodPointcut();
+        proxied.setName("");
+        assertThat(nop.getCount()).isEqualTo(2);
+        proxied.setAge(25);
+        assertThat(proxied.getAge()).isEqualTo(25);
+        assertThat(nop.getCount()).isEqualTo(3);
+    }
 
-		String foo = "foo";
+    @Test
+    public void testSets() throws Throwable {
+        pc.setMappedNames("set*", "echo");
+        assertThat(nop.getCount()).isEqualTo(0);
+        proxied.getName();
+        proxied.setName("");
+        assertThat(nop.getCount()).isEqualTo(1);
+        proxied.echo(null);
+        assertThat(nop.getCount()).isEqualTo(2);
+    }
 
-		assertThat(pc2).isEqualTo(pc1);
-		assertThat(pc2.hashCode()).isEqualTo(pc1.hashCode());
+    @Test
+    public void testSerializable() throws Throwable {
+        testSets();
+        // Count is now 2
+        Person p2 = (Person) SerializationTestUtils.serializeAndDeserialize(proxied);
+        NopInterceptor nop2 = (NopInterceptor) ((Advised) p2).getAdvisors()[0].getAdvice();
+        p2.getName();
+        assertThat(nop2.getCount()).isEqualTo(2);
+        p2.echo(null);
+        assertThat(nop2.getCount()).isEqualTo(3);
+    }
 
-		pc1.setMappedName(foo);
-		assertThat(pc1.equals(pc2)).isFalse();
-		assertThat(pc1.hashCode() != pc2.hashCode()).isTrue();
+    @Test
+    public void testEqualsAndHashCode() {
+        NameMatchMethodPointcut pc1 = new NameMatchMethodPointcut();
+        NameMatchMethodPointcut pc2 = new NameMatchMethodPointcut();
 
-		pc2.setMappedName(foo);
-		assertThat(pc2).isEqualTo(pc1);
-		assertThat(pc2.hashCode()).isEqualTo(pc1.hashCode());
-	}
+        String foo = "foo";
+
+        assertThat(pc2).isEqualTo(pc1);
+        assertThat(pc2.hashCode()).isEqualTo(pc1.hashCode());
+
+        pc1.setMappedName(foo);
+        assertThat(pc1.equals(pc2)).isFalse();
+        assertThat(pc1.hashCode() != pc2.hashCode()).isTrue();
+
+        pc2.setMappedName(foo);
+        assertThat(pc2).isEqualTo(pc1);
+        assertThat(pc2.hashCode()).isEqualTo(pc1.hashCode());
+    }
 
 }

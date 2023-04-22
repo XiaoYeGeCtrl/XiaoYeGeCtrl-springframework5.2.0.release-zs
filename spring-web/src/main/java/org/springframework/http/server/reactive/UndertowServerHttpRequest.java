@@ -55,207 +55,202 @@ import org.springframework.util.StringUtils;
  */
 class UndertowServerHttpRequest extends AbstractServerHttpRequest {
 
-	private final HttpServerExchange exchange;
+    private final HttpServerExchange exchange;
 
-	private final RequestBodyPublisher body;
-
-
-	public UndertowServerHttpRequest(HttpServerExchange exchange, DataBufferFactory bufferFactory)
-			throws URISyntaxException {
-
-		super(initUri(exchange), "", initHeaders(exchange));
-		this.exchange = exchange;
-		this.body = new RequestBodyPublisher(exchange, bufferFactory);
-		this.body.registerListeners(exchange);
-	}
-
-	private static URI initUri(HttpServerExchange exchange) throws URISyntaxException {
-		Assert.notNull(exchange, "HttpServerExchange is required");
-		String requestURL = exchange.getRequestURL();
-		String query = exchange.getQueryString();
-		String requestUriAndQuery = (StringUtils.hasLength(query) ? requestURL + "?" + query : requestURL);
-		return new URI(requestUriAndQuery);
-	}
-
-	private static HttpHeaders initHeaders(HttpServerExchange exchange) {
-		return new HttpHeaders(new UndertowHeadersAdapter(exchange.getRequestHeaders()));
-	}
-
-	@Override
-	public String getMethodValue() {
-		return this.exchange.getRequestMethod().toString();
-	}
-
-	@Override
-	protected MultiValueMap<String, HttpCookie> initCookies() {
-		MultiValueMap<String, HttpCookie> cookies = new LinkedMultiValueMap<>();
-		for (String name : this.exchange.getRequestCookies().keySet()) {
-			Cookie cookie = this.exchange.getRequestCookies().get(name);
-			HttpCookie httpCookie = new HttpCookie(name, cookie.getValue());
-			cookies.add(name, httpCookie);
-		}
-		return cookies;
-	}
-
-	@Override
-	public InetSocketAddress getRemoteAddress() {
-		return this.exchange.getSourceAddress();
-	}
-
-	@Nullable
-	@Override
-	protected SslInfo initSslInfo() {
-		SSLSession session = this.exchange.getConnection().getSslSession();
-		if (session != null) {
-			return new DefaultSslInfo(session);
-		}
-		return null;
-	}
-
-	@Override
-	public Flux<DataBuffer> getBody() {
-		return Flux.from(this.body);
-	}
-
-	@SuppressWarnings("unchecked")
-	@Override
-	public <T> T getNativeRequest() {
-		return (T) this.exchange;
-	}
-
-	@Override
-	protected String initId() {
-		return ObjectUtils.getIdentityHexString(this.exchange.getConnection());
-	}
+    private final RequestBodyPublisher body;
 
 
-	private class RequestBodyPublisher extends AbstractListenerReadPublisher<DataBuffer> {
+    public UndertowServerHttpRequest(HttpServerExchange exchange, DataBufferFactory bufferFactory)
+            throws URISyntaxException {
 
-		private final StreamSourceChannel channel;
+        super(initUri(exchange), "", initHeaders(exchange));
+        this.exchange = exchange;
+        this.body = new RequestBodyPublisher(exchange, bufferFactory);
+        this.body.registerListeners(exchange);
+    }
 
-		private final DataBufferFactory bufferFactory;
+    private static URI initUri(HttpServerExchange exchange) throws URISyntaxException {
+        Assert.notNull(exchange, "HttpServerExchange is required");
+        String requestURL = exchange.getRequestURL();
+        String query = exchange.getQueryString();
+        String requestUriAndQuery = (StringUtils.hasLength(query) ? requestURL + "?" + query : requestURL);
+        return new URI(requestUriAndQuery);
+    }
 
-		private final ByteBufferPool byteBufferPool;
+    private static HttpHeaders initHeaders(HttpServerExchange exchange) {
+        return new HttpHeaders(new UndertowHeadersAdapter(exchange.getRequestHeaders()));
+    }
 
-		public RequestBodyPublisher(HttpServerExchange exchange, DataBufferFactory bufferFactory) {
-			super(UndertowServerHttpRequest.this.getLogPrefix());
-			this.channel = exchange.getRequestChannel();
-			this.bufferFactory = bufferFactory;
-			this.byteBufferPool = exchange.getConnection().getByteBufferPool();
-		}
+    @Override
+    public String getMethodValue() {
+        return this.exchange.getRequestMethod().toString();
+    }
 
-		private void registerListeners(HttpServerExchange exchange) {
-			exchange.addExchangeCompleteListener((ex, next) -> {
-				onAllDataRead();
-				next.proceed();
-			});
-			this.channel.getReadSetter().set(c -> onDataAvailable());
-			this.channel.getCloseSetter().set(c -> onAllDataRead());
-			this.channel.resumeReads();
-		}
+    @Override
+    protected MultiValueMap<String, HttpCookie> initCookies() {
+        MultiValueMap<String, HttpCookie> cookies = new LinkedMultiValueMap<>();
+        for (String name : this.exchange.getRequestCookies().keySet()) {
+            Cookie cookie = this.exchange.getRequestCookies().get(name);
+            HttpCookie httpCookie = new HttpCookie(name, cookie.getValue());
+            cookies.add(name, httpCookie);
+        }
+        return cookies;
+    }
 
-		@Override
-		protected void checkOnDataAvailable() {
-			this.channel.resumeReads();
-			// We are allowed to try, it will return null if data is not available
-			onDataAvailable();
-		}
+    @Override
+    public InetSocketAddress getRemoteAddress() {
+        return this.exchange.getSourceAddress();
+    }
 
-		@Override
-		protected void readingPaused() {
-			this.channel.suspendReads();
-		}
+    @Nullable
+    @Override
+    protected SslInfo initSslInfo() {
+        SSLSession session = this.exchange.getConnection().getSslSession();
+        if (session != null) {
+            return new DefaultSslInfo(session);
+        }
+        return null;
+    }
 
-		@Override
-		@Nullable
-		protected DataBuffer read() throws IOException {
-			PooledByteBuffer pooledByteBuffer = this.byteBufferPool.allocate();
-			boolean release = true;
-			try {
-				ByteBuffer byteBuffer = pooledByteBuffer.getBuffer();
-				int read = this.channel.read(byteBuffer);
+    @Override
+    public Flux<DataBuffer> getBody() {
+        return Flux.from(this.body);
+    }
 
-				if (rsReadLogger.isTraceEnabled()) {
-					rsReadLogger.trace(getLogPrefix() + "Read " + read + (read != -1 ? " bytes" : ""));
-				}
+    @SuppressWarnings("unchecked")
+    @Override
+    public <T> T getNativeRequest() {
+        return (T) this.exchange;
+    }
 
-				if (read > 0) {
-					byteBuffer.flip();
-					DataBuffer dataBuffer = this.bufferFactory.wrap(byteBuffer);
-					release = false;
-					return new UndertowDataBuffer(dataBuffer, pooledByteBuffer);
-				}
-				else if (read == -1) {
-					onAllDataRead();
-				}
-				return null;
-			}
-			finally {
-				if (release && pooledByteBuffer.isOpen()) {
-					pooledByteBuffer.close();
-				}
-			}
-		}
+    @Override
+    protected String initId() {
+        return ObjectUtils.getIdentityHexString(this.exchange.getConnection());
+    }
 
-		@Override
-		protected void discardData() {
-			// Nothing to discard since we pass data buffers on immediately..
-		}
-	}
+    private static class UndertowDataBuffer extends DataBufferWrapper implements PooledDataBuffer {
 
+        private final PooledByteBuffer pooledByteBuffer;
 
-	private static class UndertowDataBuffer extends DataBufferWrapper implements PooledDataBuffer {
-
-		private final PooledByteBuffer pooledByteBuffer;
-
-		private final AtomicInteger refCount;
+        private final AtomicInteger refCount;
 
 
-		public UndertowDataBuffer(DataBuffer dataBuffer, PooledByteBuffer pooledByteBuffer) {
-			super(dataBuffer);
-			this.pooledByteBuffer = pooledByteBuffer;
-			this.refCount = new AtomicInteger(1);
-		}
+        public UndertowDataBuffer(DataBuffer dataBuffer, PooledByteBuffer pooledByteBuffer) {
+            super(dataBuffer);
+            this.pooledByteBuffer = pooledByteBuffer;
+            this.refCount = new AtomicInteger(1);
+        }
 
-		private UndertowDataBuffer(DataBuffer dataBuffer, PooledByteBuffer pooledByteBuffer,
-				AtomicInteger refCount) {
-			super(dataBuffer);
-			this.refCount = refCount;
-			this.pooledByteBuffer = pooledByteBuffer;
-		}
+        private UndertowDataBuffer(DataBuffer dataBuffer, PooledByteBuffer pooledByteBuffer,
+                                   AtomicInteger refCount) {
+            super(dataBuffer);
+            this.refCount = refCount;
+            this.pooledByteBuffer = pooledByteBuffer;
+        }
 
-		@Override
-		public boolean isAllocated() {
-			return this.refCount.get() > 0;
-		}
+        @Override
+        public boolean isAllocated() {
+            return this.refCount.get() > 0;
+        }
 
-		@Override
-		public PooledDataBuffer retain() {
-			this.refCount.incrementAndGet();
-			DataBufferUtils.retain(dataBuffer());
-			return this;
-		}
+        @Override
+        public PooledDataBuffer retain() {
+            this.refCount.incrementAndGet();
+            DataBufferUtils.retain(dataBuffer());
+            return this;
+        }
 
-		@Override
-		public boolean release() {
-			int refCount = this.refCount.decrementAndGet();
-			if (refCount == 0) {
-				try {
-					return DataBufferUtils.release(dataBuffer());
-				}
-				finally {
-					this.pooledByteBuffer.close();
-				}
-			}
-			return false;
-		}
+        @Override
+        public boolean release() {
+            int refCount = this.refCount.decrementAndGet();
+            if (refCount == 0) {
+                try {
+                    return DataBufferUtils.release(dataBuffer());
+                } finally {
+                    this.pooledByteBuffer.close();
+                }
+            }
+            return false;
+        }
 
-		@Override
-		public DataBuffer slice(int index, int length) {
-			DataBuffer slice = dataBuffer().slice(index, length);
-			return new UndertowDataBuffer(slice, this.pooledByteBuffer, this.refCount);
-		}
+        @Override
+        public DataBuffer slice(int index, int length) {
+            DataBuffer slice = dataBuffer().slice(index, length);
+            return new UndertowDataBuffer(slice, this.pooledByteBuffer, this.refCount);
+        }
 
-	}
+    }
+
+    private class RequestBodyPublisher extends AbstractListenerReadPublisher<DataBuffer> {
+
+        private final StreamSourceChannel channel;
+
+        private final DataBufferFactory bufferFactory;
+
+        private final ByteBufferPool byteBufferPool;
+
+        public RequestBodyPublisher(HttpServerExchange exchange, DataBufferFactory bufferFactory) {
+            super(UndertowServerHttpRequest.this.getLogPrefix());
+            this.channel = exchange.getRequestChannel();
+            this.bufferFactory = bufferFactory;
+            this.byteBufferPool = exchange.getConnection().getByteBufferPool();
+        }
+
+        private void registerListeners(HttpServerExchange exchange) {
+            exchange.addExchangeCompleteListener((ex, next) -> {
+                onAllDataRead();
+                next.proceed();
+            });
+            this.channel.getReadSetter().set(c -> onDataAvailable());
+            this.channel.getCloseSetter().set(c -> onAllDataRead());
+            this.channel.resumeReads();
+        }
+
+        @Override
+        protected void checkOnDataAvailable() {
+            this.channel.resumeReads();
+            // We are allowed to try, it will return null if data is not available
+            onDataAvailable();
+        }
+
+        @Override
+        protected void readingPaused() {
+            this.channel.suspendReads();
+        }
+
+        @Override
+        @Nullable
+        protected DataBuffer read() throws IOException {
+            PooledByteBuffer pooledByteBuffer = this.byteBufferPool.allocate();
+            boolean release = true;
+            try {
+                ByteBuffer byteBuffer = pooledByteBuffer.getBuffer();
+                int read = this.channel.read(byteBuffer);
+
+                if (rsReadLogger.isTraceEnabled()) {
+                    rsReadLogger.trace(getLogPrefix() + "Read " + read + (read != -1 ? " bytes" : ""));
+                }
+
+                if (read > 0) {
+                    byteBuffer.flip();
+                    DataBuffer dataBuffer = this.bufferFactory.wrap(byteBuffer);
+                    release = false;
+                    return new UndertowDataBuffer(dataBuffer, pooledByteBuffer);
+                } else if (read == -1) {
+                    onAllDataRead();
+                }
+                return null;
+            } finally {
+                if (release && pooledByteBuffer.isOpen()) {
+                    pooledByteBuffer.close();
+                }
+            }
+        }
+
+        @Override
+        protected void discardData() {
+            // Nothing to discard since we pass data buffers on immediately..
+        }
+    }
 
 }

@@ -35,46 +35,41 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 @ExtendWith(SpringExtension.class)
 @ContextHierarchy({
-	@ContextConfiguration(classes = SingleTestClassWithTwoLevelContextHierarchyAndMixedConfigTypesTests.ParentConfig.class),
-	@ContextConfiguration("SingleTestClassWithTwoLevelContextHierarchyAndMixedConfigTypesTests-ChildConfig.xml") })
+        @ContextConfiguration(classes = SingleTestClassWithTwoLevelContextHierarchyAndMixedConfigTypesTests.ParentConfig.class),
+        @ContextConfiguration("SingleTestClassWithTwoLevelContextHierarchyAndMixedConfigTypesTests-ChildConfig.xml")})
 class SingleTestClassWithTwoLevelContextHierarchyAndMixedConfigTypesTests {
 
-	@Configuration
-	static class ParentConfig {
+    @Autowired
+    private String foo;
+    @Autowired
+    private String bar;
+    @Autowired
+    private String baz;
+    @Autowired
+    private ApplicationContext context;
 
-		@Bean
-		String foo() {
-			return "foo";
-		}
+    @Test
+    void loadContextHierarchy() {
+        assertThat(context).as("child ApplicationContext").isNotNull();
+        assertThat(context.getParent()).as("parent ApplicationContext").isNotNull();
+        assertThat(context.getParent().getParent()).as("grandparent ApplicationContext").isNull();
+        assertThat(foo).isEqualTo("foo");
+        assertThat(bar).isEqualTo("bar");
+        assertThat(baz).isEqualTo("baz-child");
+    }
 
-		@Bean
-		String baz() {
-			return "baz-parent";
-		}
-	}
+    @Configuration
+    static class ParentConfig {
 
+        @Bean
+        String foo() {
+            return "foo";
+        }
 
-	@Autowired
-	private String foo;
-
-	@Autowired
-	private String bar;
-
-	@Autowired
-	private String baz;
-
-	@Autowired
-	private ApplicationContext context;
-
-
-	@Test
-	void loadContextHierarchy() {
-		assertThat(context).as("child ApplicationContext").isNotNull();
-		assertThat(context.getParent()).as("parent ApplicationContext").isNotNull();
-		assertThat(context.getParent().getParent()).as("grandparent ApplicationContext").isNull();
-		assertThat(foo).isEqualTo("foo");
-		assertThat(bar).isEqualTo("bar");
-		assertThat(baz).isEqualTo("baz-child");
-	}
+        @Bean
+        String baz() {
+            return "baz-parent";
+        }
+    }
 
 }

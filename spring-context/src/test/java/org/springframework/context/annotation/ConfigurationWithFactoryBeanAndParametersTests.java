@@ -35,54 +35,54 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 public class ConfigurationWithFactoryBeanAndParametersTests {
 
-	@Test
-	public void test() {
-		ApplicationContext ctx = new AnnotationConfigApplicationContext(Config.class, Bar.class);
-		assertThat(ctx.getBean(Bar.class).foo).isNotNull();
-	}
+    @Test
+    public void test() {
+        ApplicationContext ctx = new AnnotationConfigApplicationContext(Config.class, Bar.class);
+        assertThat(ctx.getBean(Bar.class).foo).isNotNull();
+    }
 
 
-	@Configuration
-	static class Config {
+    @Configuration
+    static class Config {
 
-		@Bean
-		public FactoryBean<Foo> fb(@Value("42") String answer) {
-			return new FooFactoryBean();
-		}
-	}
-
-
-	static class Foo {
-	}
+        @Bean
+        public FactoryBean<Foo> fb(@Value("42") String answer) {
+            return new FooFactoryBean();
+        }
+    }
 
 
-	static class Bar {
-
-		Foo foo;
-
-		@Autowired
-		public Bar(Foo foo) {
-			this.foo = foo;
-		}
-	}
+    static class Foo {
+    }
 
 
-	static class FooFactoryBean implements FactoryBean<Foo> {
+    static class Bar {
 
-		@Override
-		public Foo getObject() {
-			return new Foo();
-		}
+        Foo foo;
 
-		@Override
-		public Class<Foo> getObjectType() {
-			return Foo.class;
-		}
+        @Autowired
+        public Bar(Foo foo) {
+            this.foo = foo;
+        }
+    }
 
-		@Override
-		public boolean isSingleton() {
-			return true;
-		}
-	}
+
+    static class FooFactoryBean implements FactoryBean<Foo> {
+
+        @Override
+        public Foo getObject() {
+            return new Foo();
+        }
+
+        @Override
+        public Class<Foo> getObjectType() {
+            return Foo.class;
+        }
+
+        @Override
+        public boolean isSingleton() {
+            return true;
+        }
+    }
 
 }

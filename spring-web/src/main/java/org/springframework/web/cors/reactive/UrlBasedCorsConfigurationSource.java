@@ -39,56 +39,57 @@ import org.springframework.web.util.pattern.PathPatternParser;
  */
 public class UrlBasedCorsConfigurationSource implements CorsConfigurationSource {
 
-	private final Map<PathPattern, CorsConfiguration> corsConfigurations;
+    private final Map<PathPattern, CorsConfiguration> corsConfigurations;
 
-	private final PathPatternParser patternParser;
-
-
-	/**
-	 * Construct a new {@code UrlBasedCorsConfigurationSource} instance with default
-	 * {@code PathPatternParser}.
-	 * @since 5.0.6
-	 */
-	public UrlBasedCorsConfigurationSource() {
-		this(new PathPatternParser());
-	}
-
-	/**
-	 * Construct a new {@code UrlBasedCorsConfigurationSource} instance from the supplied
-	 * {@code PathPatternParser}.
-	 */
-	public UrlBasedCorsConfigurationSource(PathPatternParser patternParser) {
-		this.corsConfigurations = new LinkedHashMap<>();
-		this.patternParser = patternParser;
-	}
+    private final PathPatternParser patternParser;
 
 
-	/**
-	 * Set CORS configuration based on URL patterns.
-	 */
-	public void setCorsConfigurations(@Nullable Map<String, CorsConfiguration> corsConfigurations) {
-		this.corsConfigurations.clear();
-		if (corsConfigurations != null) {
-			corsConfigurations.forEach(this::registerCorsConfiguration);
-		}
-	}
+    /**
+     * Construct a new {@code UrlBasedCorsConfigurationSource} instance with default
+     * {@code PathPatternParser}.
+     *
+     * @since 5.0.6
+     */
+    public UrlBasedCorsConfigurationSource() {
+        this(new PathPatternParser());
+    }
 
-	/**
-	 * Register a {@link CorsConfiguration} for the specified path pattern.
-	 */
-	public void registerCorsConfiguration(String path, CorsConfiguration config) {
-		this.corsConfigurations.put(this.patternParser.parse(path), config);
-	}
+    /**
+     * Construct a new {@code UrlBasedCorsConfigurationSource} instance from the supplied
+     * {@code PathPatternParser}.
+     */
+    public UrlBasedCorsConfigurationSource(PathPatternParser patternParser) {
+        this.corsConfigurations = new LinkedHashMap<>();
+        this.patternParser = patternParser;
+    }
 
-	@Override
-	@Nullable
-	public CorsConfiguration getCorsConfiguration(ServerWebExchange exchange) {
-		PathContainer lookupPath = exchange.getRequest().getPath().pathWithinApplication();
-		return this.corsConfigurations.entrySet().stream()
-				.filter(entry -> entry.getKey().matches(lookupPath))
-				.map(Map.Entry::getValue)
-				.findFirst()
-				.orElse(null);
-	}
+
+    /**
+     * Set CORS configuration based on URL patterns.
+     */
+    public void setCorsConfigurations(@Nullable Map<String, CorsConfiguration> corsConfigurations) {
+        this.corsConfigurations.clear();
+        if (corsConfigurations != null) {
+            corsConfigurations.forEach(this::registerCorsConfiguration);
+        }
+    }
+
+    /**
+     * Register a {@link CorsConfiguration} for the specified path pattern.
+     */
+    public void registerCorsConfiguration(String path, CorsConfiguration config) {
+        this.corsConfigurations.put(this.patternParser.parse(path), config);
+    }
+
+    @Override
+    @Nullable
+    public CorsConfiguration getCorsConfiguration(ServerWebExchange exchange) {
+        PathContainer lookupPath = exchange.getRequest().getPath().pathWithinApplication();
+        return this.corsConfigurations.entrySet().stream()
+                .filter(entry -> entry.getKey().matches(lookupPath))
+                .map(Map.Entry::getValue)
+                .findFirst()
+                .orElse(null);
+    }
 
 }

@@ -49,174 +49,173 @@ import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException
  */
 public class FormattingConversionServiceFactoryBeanTests {
 
-	@Test
-	public void testDefaultFormattersOn() throws Exception {
-		FormattingConversionServiceFactoryBean factory = new FormattingConversionServiceFactoryBean();
-		factory.afterPropertiesSet();
-		FormattingConversionService fcs = factory.getObject();
-		TypeDescriptor descriptor = new TypeDescriptor(TestBean.class.getDeclaredField("pattern"));
+    @Test
+    public void testDefaultFormattersOn() throws Exception {
+        FormattingConversionServiceFactoryBean factory = new FormattingConversionServiceFactoryBean();
+        factory.afterPropertiesSet();
+        FormattingConversionService fcs = factory.getObject();
+        TypeDescriptor descriptor = new TypeDescriptor(TestBean.class.getDeclaredField("pattern"));
 
-		LocaleContextHolder.setLocale(Locale.GERMAN);
-		try {
-			Object value = fcs.convert("15,00", TypeDescriptor.valueOf(String.class), descriptor);
-			assertThat(value).isEqualTo(15.0);
-			value = fcs.convert(15.0, descriptor, TypeDescriptor.valueOf(String.class));
-			assertThat(value).isEqualTo("15");
-		}
-		finally {
-			LocaleContextHolder.resetLocaleContext();
-		}
-	}
+        LocaleContextHolder.setLocale(Locale.GERMAN);
+        try {
+            Object value = fcs.convert("15,00", TypeDescriptor.valueOf(String.class), descriptor);
+            assertThat(value).isEqualTo(15.0);
+            value = fcs.convert(15.0, descriptor, TypeDescriptor.valueOf(String.class));
+            assertThat(value).isEqualTo("15");
+        } finally {
+            LocaleContextHolder.resetLocaleContext();
+        }
+    }
 
-	@Test
-	public void testDefaultFormattersOff() throws Exception {
-		FormattingConversionServiceFactoryBean factory = new FormattingConversionServiceFactoryBean();
-		factory.setRegisterDefaultFormatters(false);
-		factory.afterPropertiesSet();
-		FormattingConversionService fcs = factory.getObject();
-		TypeDescriptor descriptor = new TypeDescriptor(TestBean.class.getDeclaredField("pattern"));
+    @Test
+    public void testDefaultFormattersOff() throws Exception {
+        FormattingConversionServiceFactoryBean factory = new FormattingConversionServiceFactoryBean();
+        factory.setRegisterDefaultFormatters(false);
+        factory.afterPropertiesSet();
+        FormattingConversionService fcs = factory.getObject();
+        TypeDescriptor descriptor = new TypeDescriptor(TestBean.class.getDeclaredField("pattern"));
 
-		assertThatExceptionOfType(ConversionFailedException.class).isThrownBy(() ->
-				fcs.convert("15,00", TypeDescriptor.valueOf(String.class), descriptor))
-			.withCauseInstanceOf(NumberFormatException.class);
-	}
+        assertThatExceptionOfType(ConversionFailedException.class).isThrownBy(() ->
+                fcs.convert("15,00", TypeDescriptor.valueOf(String.class), descriptor))
+                .withCauseInstanceOf(NumberFormatException.class);
+    }
 
-	@Test
-	public void testCustomFormatter() throws Exception {
-		FormattingConversionServiceFactoryBean factory = new FormattingConversionServiceFactoryBean();
-		Set<Object> formatters = new HashSet<>();
-		formatters.add(new TestBeanFormatter());
-		formatters.add(new SpecialIntAnnotationFormatterFactory());
-		factory.setFormatters(formatters);
-		factory.afterPropertiesSet();
-		FormattingConversionService fcs = factory.getObject();
+    @Test
+    public void testCustomFormatter() throws Exception {
+        FormattingConversionServiceFactoryBean factory = new FormattingConversionServiceFactoryBean();
+        Set<Object> formatters = new HashSet<>();
+        formatters.add(new TestBeanFormatter());
+        formatters.add(new SpecialIntAnnotationFormatterFactory());
+        factory.setFormatters(formatters);
+        factory.afterPropertiesSet();
+        FormattingConversionService fcs = factory.getObject();
 
-		TestBean testBean = fcs.convert("5", TestBean.class);
-		assertThat(testBean.getSpecialInt()).isEqualTo(5);
-		assertThat(fcs.convert(testBean, String.class)).isEqualTo("5");
+        TestBean testBean = fcs.convert("5", TestBean.class);
+        assertThat(testBean.getSpecialInt()).isEqualTo(5);
+        assertThat(fcs.convert(testBean, String.class)).isEqualTo("5");
 
-		TypeDescriptor descriptor = new TypeDescriptor(TestBean.class.getDeclaredField("specialInt"));
-		Object value = fcs.convert(":5", TypeDescriptor.valueOf(String.class), descriptor);
-		assertThat(value).isEqualTo(5);
-		value = fcs.convert(5, descriptor, TypeDescriptor.valueOf(String.class));
-		assertThat(value).isEqualTo(":5");
-	}
+        TypeDescriptor descriptor = new TypeDescriptor(TestBean.class.getDeclaredField("specialInt"));
+        Object value = fcs.convert(":5", TypeDescriptor.valueOf(String.class), descriptor);
+        assertThat(value).isEqualTo(5);
+        value = fcs.convert(5, descriptor, TypeDescriptor.valueOf(String.class));
+        assertThat(value).isEqualTo(":5");
+    }
 
-	@Test
-	public void testFormatterRegistrar() throws Exception {
-		FormattingConversionServiceFactoryBean factory = new FormattingConversionServiceFactoryBean();
-		Set<FormatterRegistrar> registrars = new HashSet<>();
-		registrars.add(new TestFormatterRegistrar());
-		factory.setFormatterRegistrars(registrars);
-		factory.afterPropertiesSet();
-		FormattingConversionService fcs = factory.getObject();
+    @Test
+    public void testFormatterRegistrar() throws Exception {
+        FormattingConversionServiceFactoryBean factory = new FormattingConversionServiceFactoryBean();
+        Set<FormatterRegistrar> registrars = new HashSet<>();
+        registrars.add(new TestFormatterRegistrar());
+        factory.setFormatterRegistrars(registrars);
+        factory.afterPropertiesSet();
+        FormattingConversionService fcs = factory.getObject();
 
-		TestBean testBean = fcs.convert("5", TestBean.class);
-		assertThat(testBean.getSpecialInt()).isEqualTo(5);
-		assertThat(fcs.convert(testBean, String.class)).isEqualTo("5");
-	}
+        TestBean testBean = fcs.convert("5", TestBean.class);
+        assertThat(testBean.getSpecialInt()).isEqualTo(5);
+        assertThat(fcs.convert(testBean, String.class)).isEqualTo("5");
+    }
 
-	@Test
-	public void testInvalidFormatter() throws Exception {
-		FormattingConversionServiceFactoryBean factory = new FormattingConversionServiceFactoryBean();
-		Set<Object> formatters = new HashSet<>();
-		formatters.add(new Object());
-		factory.setFormatters(formatters);
-		assertThatIllegalArgumentException().isThrownBy(factory::afterPropertiesSet);
-	}
-
-
-	@Target({ElementType.METHOD, ElementType.FIELD, ElementType.PARAMETER})
-	@Retention(RetentionPolicy.RUNTIME)
-	private @interface SpecialInt {
-
-		@AliasFor("alias")
-		String value() default "";
-
-		@AliasFor("value")
-		String alias() default "";
-	}
+    @Test
+    public void testInvalidFormatter() throws Exception {
+        FormattingConversionServiceFactoryBean factory = new FormattingConversionServiceFactoryBean();
+        Set<Object> formatters = new HashSet<>();
+        formatters.add(new Object());
+        factory.setFormatters(formatters);
+        assertThatIllegalArgumentException().isThrownBy(factory::afterPropertiesSet);
+    }
 
 
-	private static class TestBean {
+    @Target({ElementType.METHOD, ElementType.FIELD, ElementType.PARAMETER})
+    @Retention(RetentionPolicy.RUNTIME)
+    private @interface SpecialInt {
 
-		@NumberFormat(pattern = "##,00")
-		private double pattern;
+        @AliasFor("alias")
+        String value() default "";
 
-		@SpecialInt("aliased")
-		private int specialInt;
-
-		public int getSpecialInt() {
-			return specialInt;
-		}
-
-		public void setSpecialInt(int field) {
-			this.specialInt = field;
-		}
-	}
+        @AliasFor("value")
+        String alias() default "";
+    }
 
 
-	private static class TestBeanFormatter implements Formatter<TestBean> {
+    private static class TestBean {
 
-		@Override
-		public String print(TestBean object, Locale locale) {
-			return String.valueOf(object.getSpecialInt());
-		}
+        @NumberFormat(pattern = "##,00")
+        private double pattern;
 
-		@Override
-		public TestBean parse(String text, Locale locale) throws ParseException {
-			TestBean object = new TestBean();
-			object.setSpecialInt(Integer.parseInt(text));
-			return object;
-		}
-	}
+        @SpecialInt("aliased")
+        private int specialInt;
 
+        public int getSpecialInt() {
+            return specialInt;
+        }
 
-	private static class SpecialIntAnnotationFormatterFactory implements AnnotationFormatterFactory<SpecialInt> {
-
-		private final Set<Class<?>> fieldTypes = new HashSet<>(1);
-
-		public SpecialIntAnnotationFormatterFactory() {
-			fieldTypes.add(Integer.class);
-		}
-
-		@Override
-		public Set<Class<?>> getFieldTypes() {
-			return fieldTypes;
-		}
-
-		@Override
-		public Printer<?> getPrinter(SpecialInt annotation, Class<?> fieldType) {
-			assertThat(annotation.value()).isEqualTo("aliased");
-			assertThat(annotation.alias()).isEqualTo("aliased");
-			return new Printer<Integer>() {
-				@Override
-				public String print(Integer object, Locale locale) {
-					return ":" + object.toString();
-				}
-			};
-		}
-
-		@Override
-		public Parser<?> getParser(SpecialInt annotation, Class<?> fieldType) {
-			assertThat(annotation.value()).isEqualTo("aliased");
-			assertThat(annotation.alias()).isEqualTo("aliased");
-			return new Parser<Integer>() {
-				@Override
-				public Integer parse(String text, Locale locale) throws ParseException {
-					return Integer.parseInt(text.substring(1));
-				}
-			};
-		}
-	}
+        public void setSpecialInt(int field) {
+            this.specialInt = field;
+        }
+    }
 
 
-	private static class TestFormatterRegistrar implements FormatterRegistrar {
+    private static class TestBeanFormatter implements Formatter<TestBean> {
 
-		@Override
-		public void registerFormatters(FormatterRegistry registry) {
-			registry.addFormatter(new TestBeanFormatter());
-		}
-	}
+        @Override
+        public String print(TestBean object, Locale locale) {
+            return String.valueOf(object.getSpecialInt());
+        }
+
+        @Override
+        public TestBean parse(String text, Locale locale) throws ParseException {
+            TestBean object = new TestBean();
+            object.setSpecialInt(Integer.parseInt(text));
+            return object;
+        }
+    }
+
+
+    private static class SpecialIntAnnotationFormatterFactory implements AnnotationFormatterFactory<SpecialInt> {
+
+        private final Set<Class<?>> fieldTypes = new HashSet<>(1);
+
+        public SpecialIntAnnotationFormatterFactory() {
+            fieldTypes.add(Integer.class);
+        }
+
+        @Override
+        public Set<Class<?>> getFieldTypes() {
+            return fieldTypes;
+        }
+
+        @Override
+        public Printer<?> getPrinter(SpecialInt annotation, Class<?> fieldType) {
+            assertThat(annotation.value()).isEqualTo("aliased");
+            assertThat(annotation.alias()).isEqualTo("aliased");
+            return new Printer<Integer>() {
+                @Override
+                public String print(Integer object, Locale locale) {
+                    return ":" + object.toString();
+                }
+            };
+        }
+
+        @Override
+        public Parser<?> getParser(SpecialInt annotation, Class<?> fieldType) {
+            assertThat(annotation.value()).isEqualTo("aliased");
+            assertThat(annotation.alias()).isEqualTo("aliased");
+            return new Parser<Integer>() {
+                @Override
+                public Integer parse(String text, Locale locale) throws ParseException {
+                    return Integer.parseInt(text.substring(1));
+                }
+            };
+        }
+    }
+
+
+    private static class TestFormatterRegistrar implements FormatterRegistrar {
+
+        @Override
+        public void registerFormatters(FormatterRegistry registry) {
+            registry.addFormatter(new TestBeanFormatter());
+        }
+    }
 
 }

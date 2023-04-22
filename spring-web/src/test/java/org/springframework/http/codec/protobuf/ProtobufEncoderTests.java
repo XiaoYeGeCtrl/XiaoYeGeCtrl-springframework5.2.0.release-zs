@@ -43,72 +43,68 @@ import static org.springframework.core.ResolvableType.forClass;
  */
 public class ProtobufEncoderTests extends AbstractEncoderTests<ProtobufEncoder> {
 
-	private final static MimeType PROTOBUF_MIME_TYPE = new MimeType("application", "x-protobuf");
+    private final static MimeType PROTOBUF_MIME_TYPE = new MimeType("application", "x-protobuf");
 
-	private Msg msg1 =
-			Msg.newBuilder().setFoo("Foo").setBlah(SecondMsg.newBuilder().setBlah(123).build()).build();
+    private Msg msg1 =
+            Msg.newBuilder().setFoo("Foo").setBlah(SecondMsg.newBuilder().setBlah(123).build()).build();
 
-	private Msg msg2 =
-			Msg.newBuilder().setFoo("Bar").setBlah(SecondMsg.newBuilder().setBlah(456).build()).build();
+    private Msg msg2 =
+            Msg.newBuilder().setFoo("Bar").setBlah(SecondMsg.newBuilder().setBlah(456).build()).build();
 
 
-	public ProtobufEncoderTests() {
-		super(new ProtobufEncoder());
-	}
+    public ProtobufEncoderTests() {
+        super(new ProtobufEncoder());
+    }
 
-	@Override
-	@Test
-	public void canEncode() {
-		assertThat(this.encoder.canEncode(forClass(Msg.class), null)).isTrue();
-		assertThat(this.encoder.canEncode(forClass(Msg.class), PROTOBUF_MIME_TYPE)).isTrue();
-		assertThat(this.encoder.canEncode(forClass(Msg.class), MediaType.APPLICATION_OCTET_STREAM)).isTrue();
-		assertThat(this.encoder.canEncode(forClass(Msg.class), MediaType.APPLICATION_JSON)).isFalse();
-		assertThat(this.encoder.canEncode(forClass(Object.class), PROTOBUF_MIME_TYPE)).isFalse();
-	}
+    @Override
+    @Test
+    public void canEncode() {
+        assertThat(this.encoder.canEncode(forClass(Msg.class), null)).isTrue();
+        assertThat(this.encoder.canEncode(forClass(Msg.class), PROTOBUF_MIME_TYPE)).isTrue();
+        assertThat(this.encoder.canEncode(forClass(Msg.class), MediaType.APPLICATION_OCTET_STREAM)).isTrue();
+        assertThat(this.encoder.canEncode(forClass(Msg.class), MediaType.APPLICATION_JSON)).isFalse();
+        assertThat(this.encoder.canEncode(forClass(Object.class), PROTOBUF_MIME_TYPE)).isFalse();
+    }
 
-	@Override
-	@Test
-	public void encode() {
-		Mono<Message> input = Mono.just(this.msg1);
+    @Override
+    @Test
+    public void encode() {
+        Mono<Message> input = Mono.just(this.msg1);
 
-		testEncodeAll(input, Msg.class, step -> step
-				.consumeNextWith(dataBuffer -> {
-					try {
-						assertThat(Msg.parseFrom(dataBuffer.asInputStream())).isEqualTo(this.msg1);
+        testEncodeAll(input, Msg.class, step -> step
+                .consumeNextWith(dataBuffer -> {
+                    try {
+                        assertThat(Msg.parseFrom(dataBuffer.asInputStream())).isEqualTo(this.msg1);
 
-					}
-					catch (IOException ex) {
-						throw new UncheckedIOException(ex);
-					}
-					finally {
-						DataBufferUtils.release(dataBuffer);
-					}
-				})
-				.verifyComplete());
-	}
+                    } catch (IOException ex) {
+                        throw new UncheckedIOException(ex);
+                    } finally {
+                        DataBufferUtils.release(dataBuffer);
+                    }
+                })
+                .verifyComplete());
+    }
 
-	@Test
-	public void encodeStream() {
-		Flux<Message> input = Flux.just(this.msg1, this.msg2);
+    @Test
+    public void encodeStream() {
+        Flux<Message> input = Flux.just(this.msg1, this.msg2);
 
-		testEncodeAll(input, Msg.class, step -> step
-				.consumeNextWith(expect(this.msg1))
-				.consumeNextWith(expect(this.msg2))
-				.verifyComplete());
-	}
+        testEncodeAll(input, Msg.class, step -> step
+                .consumeNextWith(expect(this.msg1))
+                .consumeNextWith(expect(this.msg2))
+                .verifyComplete());
+    }
 
-	protected final Consumer<DataBuffer> expect(Msg msg) {
-		return dataBuffer -> {
-			try {
-				assertThat(Msg.parseDelimitedFrom(dataBuffer.asInputStream())).isEqualTo(msg);
+    protected final Consumer<DataBuffer> expect(Msg msg) {
+        return dataBuffer -> {
+            try {
+                assertThat(Msg.parseDelimitedFrom(dataBuffer.asInputStream())).isEqualTo(msg);
 
-			}
-			catch (IOException ex) {
-				throw new UncheckedIOException(ex);
-			}
-			finally {
-				DataBufferUtils.release(dataBuffer);
-			}
-		};
-	}
+            } catch (IOException ex) {
+                throw new UncheckedIOException(ex);
+            } finally {
+                DataBufferUtils.release(dataBuffer);
+            }
+        };
+    }
 }

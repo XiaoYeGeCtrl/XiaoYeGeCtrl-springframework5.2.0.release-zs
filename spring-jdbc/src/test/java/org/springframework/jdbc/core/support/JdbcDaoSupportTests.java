@@ -34,37 +34,37 @@ import static org.mockito.Mockito.mock;
  */
 public class JdbcDaoSupportTests {
 
-	@Test
-	public void testJdbcDaoSupportWithDataSource() throws Exception {
-		DataSource ds = mock(DataSource.class);
-		final List<String> test = new ArrayList<>();
-		JdbcDaoSupport dao = new JdbcDaoSupport() {
-			@Override
-			protected void initDao() {
-				test.add("test");
-			}
-		};
-		dao.setDataSource(ds);
-		dao.afterPropertiesSet();
-		assertThat(dao.getDataSource()).as("Correct DataSource").isEqualTo(ds);
-		assertThat(dao.getJdbcTemplate().getDataSource()).as("Correct JdbcTemplate").isEqualTo(ds);
-		assertThat(test.size()).as("initDao called").isEqualTo(1);
-	}
+    @Test
+    public void testJdbcDaoSupportWithDataSource() throws Exception {
+        DataSource ds = mock(DataSource.class);
+        final List<String> test = new ArrayList<>();
+        JdbcDaoSupport dao = new JdbcDaoSupport() {
+            @Override
+            protected void initDao() {
+                test.add("test");
+            }
+        };
+        dao.setDataSource(ds);
+        dao.afterPropertiesSet();
+        assertThat(dao.getDataSource()).as("Correct DataSource").isEqualTo(ds);
+        assertThat(dao.getJdbcTemplate().getDataSource()).as("Correct JdbcTemplate").isEqualTo(ds);
+        assertThat(test.size()).as("initDao called").isEqualTo(1);
+    }
 
-	@Test
-	public void testJdbcDaoSupportWithJdbcTemplate() throws Exception {
-		JdbcTemplate template = new JdbcTemplate();
-		final List<String> test = new ArrayList<>();
-		JdbcDaoSupport dao = new JdbcDaoSupport() {
-			@Override
-			protected void initDao() {
-				test.add("test");
-			}
-		};
-		dao.setJdbcTemplate(template);
-		dao.afterPropertiesSet();
-		assertThat(template).as("Correct JdbcTemplate").isEqualTo(dao.getJdbcTemplate());
-		assertThat(test.size()).as("initDao called").isEqualTo(1);
-	}
+    @Test
+    public void testJdbcDaoSupportWithJdbcTemplate() throws Exception {
+        JdbcTemplate template = new JdbcTemplate();
+        final List<String> test = new ArrayList<>();
+        JdbcDaoSupport dao = new JdbcDaoSupport() {
+            @Override
+            protected void initDao() {
+                test.add("test");
+            }
+        };
+        dao.setJdbcTemplate(template);
+        dao.afterPropertiesSet();
+        assertThat(template).as("Correct JdbcTemplate").isEqualTo(dao.getJdbcTemplate());
+        assertThat(test.size()).as("initDao called").isEqualTo(1);
+    }
 
 }

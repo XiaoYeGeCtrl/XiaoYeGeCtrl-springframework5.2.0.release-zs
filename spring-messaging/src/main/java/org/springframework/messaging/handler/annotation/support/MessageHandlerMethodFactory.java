@@ -32,13 +32,14 @@ import org.springframework.messaging.handler.invocation.InvocableHandlerMethod;
  */
 public interface MessageHandlerMethodFactory {
 
-	/**
-	 * Create the {@link InvocableHandlerMethod} that is able to process the specified
-	 * method endpoint.
-	 * @param bean the bean instance
-	 * @param method the method to invoke
-	 * @return an {@link InvocableHandlerMethod} suitable for that method
-	 */
-	InvocableHandlerMethod createInvocableHandlerMethod(Object bean, Method method);
+    /**
+     * Create the {@link InvocableHandlerMethod} that is able to process the specified
+     * method endpoint.
+     *
+     * @param bean   the bean instance
+     * @param method the method to invoke
+     * @return an {@link InvocableHandlerMethod} suitable for that method
+     */
+    InvocableHandlerMethod createInvocableHandlerMethod(Object bean, Method method);
 
 }

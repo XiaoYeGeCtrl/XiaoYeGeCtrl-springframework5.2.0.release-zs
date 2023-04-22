@@ -53,148 +53,145 @@ import org.springframework.util.StringValueResolver;
  * @author Juergen Hoeller
  * @author Jennifer Hickey
  * @author Stephane Nicoll
- * @since 1.2
  * @see ManagedResource
  * @see ManagedAttribute
  * @see ManagedOperation
+ * @since 1.2
  */
 public class AnnotationJmxAttributeSource implements JmxAttributeSource, BeanFactoryAware {
 
-	@Nullable
-	private StringValueResolver embeddedValueResolver;
+    @Nullable
+    private StringValueResolver embeddedValueResolver;
 
+    private static List<MergedAnnotation<? extends Annotation>> getRepeatableAnnotations(
+            AnnotatedElement annotatedElement, Class<? extends Annotation> annotationType,
+            Class<? extends Annotation> containerAnnotationType) {
 
-	@Override
-	public void setBeanFactory(BeanFactory beanFactory) {
-		if (beanFactory instanceof ConfigurableBeanFactory) {
-			this.embeddedValueResolver = new EmbeddedValueResolver((ConfigurableBeanFactory) beanFactory);
-		}
-	}
+        return MergedAnnotations.from(annotatedElement, SearchStrategy.TYPE_HIERARCHY,
+                RepeatableContainers.of(annotationType, containerAnnotationType))
+                .stream(annotationType)
+                .filter(MergedAnnotationPredicates.firstRunOf(MergedAnnotation::getAggregateIndex))
+                .map(MergedAnnotation::withNonMergedAttributes)
+                .collect(Collectors.toList());
+    }
 
+    @SuppressWarnings("unchecked")
+    private static <T> T[] copyPropertiesToBeanArray(
+            List<MergedAnnotation<? extends Annotation>> anns, Class<T> beanClass) {
 
-	@Override
-	@Nullable
-	public org.springframework.jmx.export.metadata.ManagedResource getManagedResource(Class<?> beanClass) throws InvalidMetadataException {
-		MergedAnnotation<ManagedResource> ann = MergedAnnotations.from(beanClass, SearchStrategy.TYPE_HIERARCHY)
-				.get(ManagedResource.class).withNonMergedAttributes();
-		if (!ann.isPresent()) {
-			return null;
-		}
-		Class<?> declaringClass = (Class<?>) ann.getSource();
-		Class<?> target = (declaringClass != null && !declaringClass.isInterface() ? declaringClass : beanClass);
-		if (!Modifier.isPublic(target.getModifiers())) {
-			throw new InvalidMetadataException("@ManagedResource class '" + target.getName() + "' must be public");
-		}
+        T[] beans = (T[]) Array.newInstance(beanClass, anns.size());
+        int i = 0;
+        for (MergedAnnotation<? extends Annotation> ann : anns) {
+            beans[i++] = copyPropertiesToBean(ann, beanClass);
+        }
+        return beans;
+    }
 
-		org.springframework.jmx.export.metadata.ManagedResource bean = new org.springframework.jmx.export.metadata.ManagedResource();
-		Map<String, Object> map = ann.asMap();
-		List<PropertyValue> list = new ArrayList<>(map.size());
-		map.forEach((attrName, attrValue) -> {
-			if (!"value".equals(attrName)) {
-				Object value = attrValue;
-				if (this.embeddedValueResolver != null && value instanceof String) {
-					value = this.embeddedValueResolver.resolveStringValue((String) value);
-				}
-				list.add(new PropertyValue(attrName, value));
-			}
-		});
-		PropertyAccessorFactory.forBeanPropertyAccess(bean).setPropertyValues(new MutablePropertyValues(list));
-		return bean;
-	}
+    @Nullable
+    private static <T> T copyPropertiesToBean(MergedAnnotation<? extends Annotation> ann, Class<T> beanClass) {
+        if (!ann.isPresent()) {
+            return null;
+        }
+        T bean = BeanUtils.instantiateClass(beanClass);
+        BeanWrapper bw = PropertyAccessorFactory.forBeanPropertyAccess(bean);
+        bw.setPropertyValues(new MutablePropertyValues(ann.asMap()));
+        return bean;
+    }
 
-	@Override
-	@Nullable
-	public org.springframework.jmx.export.metadata.ManagedAttribute getManagedAttribute(Method method) throws InvalidMetadataException {
-		MergedAnnotation<ManagedAttribute> ann = MergedAnnotations.from(method, SearchStrategy.TYPE_HIERARCHY)
-				.get(ManagedAttribute.class).withNonMergedAttributes();
-		if (!ann.isPresent()) {
-			return null;
-		}
+    @Override
+    public void setBeanFactory(BeanFactory beanFactory) {
+        if (beanFactory instanceof ConfigurableBeanFactory) {
+            this.embeddedValueResolver = new EmbeddedValueResolver((ConfigurableBeanFactory) beanFactory);
+        }
+    }
 
-		org.springframework.jmx.export.metadata.ManagedAttribute bean = new org.springframework.jmx.export.metadata.ManagedAttribute();
-		Map<String, Object> map = ann.asMap();
-		MutablePropertyValues pvs = new MutablePropertyValues(map);
-		pvs.removePropertyValue("defaultValue");
-		PropertyAccessorFactory.forBeanPropertyAccess(bean).setPropertyValues(pvs);
-		String defaultValue = (String) map.get("defaultValue");
-		if (defaultValue.length() > 0) {
-			bean.setDefaultValue(defaultValue);
-		}
-		return bean;
-	}
+    @Override
+    @Nullable
+    public org.springframework.jmx.export.metadata.ManagedResource getManagedResource(Class<?> beanClass) throws InvalidMetadataException {
+        MergedAnnotation<ManagedResource> ann = MergedAnnotations.from(beanClass, SearchStrategy.TYPE_HIERARCHY)
+                .get(ManagedResource.class).withNonMergedAttributes();
+        if (!ann.isPresent()) {
+            return null;
+        }
+        Class<?> declaringClass = (Class<?>) ann.getSource();
+        Class<?> target = (declaringClass != null && !declaringClass.isInterface() ? declaringClass : beanClass);
+        if (!Modifier.isPublic(target.getModifiers())) {
+            throw new InvalidMetadataException("@ManagedResource class '" + target.getName() + "' must be public");
+        }
 
-	@Override
-	@Nullable
-	public org.springframework.jmx.export.metadata.ManagedMetric getManagedMetric(Method method) throws InvalidMetadataException {
-		MergedAnnotation<ManagedMetric> ann = MergedAnnotations.from(method, SearchStrategy.TYPE_HIERARCHY)
-				.get(ManagedMetric.class).withNonMergedAttributes();
+        org.springframework.jmx.export.metadata.ManagedResource bean = new org.springframework.jmx.export.metadata.ManagedResource();
+        Map<String, Object> map = ann.asMap();
+        List<PropertyValue> list = new ArrayList<>(map.size());
+        map.forEach((attrName, attrValue) -> {
+            if (!"value".equals(attrName)) {
+                Object value = attrValue;
+                if (this.embeddedValueResolver != null && value instanceof String) {
+                    value = this.embeddedValueResolver.resolveStringValue((String) value);
+                }
+                list.add(new PropertyValue(attrName, value));
+            }
+        });
+        PropertyAccessorFactory.forBeanPropertyAccess(bean).setPropertyValues(new MutablePropertyValues(list));
+        return bean;
+    }
 
-		return copyPropertiesToBean(ann, org.springframework.jmx.export.metadata.ManagedMetric.class);
-	}
+    @Override
+    @Nullable
+    public org.springframework.jmx.export.metadata.ManagedAttribute getManagedAttribute(Method method) throws InvalidMetadataException {
+        MergedAnnotation<ManagedAttribute> ann = MergedAnnotations.from(method, SearchStrategy.TYPE_HIERARCHY)
+                .get(ManagedAttribute.class).withNonMergedAttributes();
+        if (!ann.isPresent()) {
+            return null;
+        }
 
-	@Override
-	@Nullable
-	public org.springframework.jmx.export.metadata.ManagedOperation getManagedOperation(Method method) throws InvalidMetadataException {
-		MergedAnnotation<ManagedOperation> ann = MergedAnnotations.from(method, SearchStrategy.TYPE_HIERARCHY)
-				.get(ManagedOperation.class).withNonMergedAttributes();
+        org.springframework.jmx.export.metadata.ManagedAttribute bean = new org.springframework.jmx.export.metadata.ManagedAttribute();
+        Map<String, Object> map = ann.asMap();
+        MutablePropertyValues pvs = new MutablePropertyValues(map);
+        pvs.removePropertyValue("defaultValue");
+        PropertyAccessorFactory.forBeanPropertyAccess(bean).setPropertyValues(pvs);
+        String defaultValue = (String) map.get("defaultValue");
+        if (defaultValue.length() > 0) {
+            bean.setDefaultValue(defaultValue);
+        }
+        return bean;
+    }
 
-		return copyPropertiesToBean(ann, org.springframework.jmx.export.metadata.ManagedOperation.class);
-	}
+    @Override
+    @Nullable
+    public org.springframework.jmx.export.metadata.ManagedMetric getManagedMetric(Method method) throws InvalidMetadataException {
+        MergedAnnotation<ManagedMetric> ann = MergedAnnotations.from(method, SearchStrategy.TYPE_HIERARCHY)
+                .get(ManagedMetric.class).withNonMergedAttributes();
 
-	@Override
-	public org.springframework.jmx.export.metadata.ManagedOperationParameter[] getManagedOperationParameters(Method method)
-			throws InvalidMetadataException {
+        return copyPropertiesToBean(ann, org.springframework.jmx.export.metadata.ManagedMetric.class);
+    }
 
-		List<MergedAnnotation<? extends Annotation>> anns = getRepeatableAnnotations(
-				method, ManagedOperationParameter.class, ManagedOperationParameters.class);
+    @Override
+    @Nullable
+    public org.springframework.jmx.export.metadata.ManagedOperation getManagedOperation(Method method) throws InvalidMetadataException {
+        MergedAnnotation<ManagedOperation> ann = MergedAnnotations.from(method, SearchStrategy.TYPE_HIERARCHY)
+                .get(ManagedOperation.class).withNonMergedAttributes();
 
-		return copyPropertiesToBeanArray(anns, org.springframework.jmx.export.metadata.ManagedOperationParameter.class);
-	}
+        return copyPropertiesToBean(ann, org.springframework.jmx.export.metadata.ManagedOperation.class);
+    }
 
-	@Override
-	public org.springframework.jmx.export.metadata.ManagedNotification[] getManagedNotifications(Class<?> clazz)
-			throws InvalidMetadataException {
+    @Override
+    public org.springframework.jmx.export.metadata.ManagedOperationParameter[] getManagedOperationParameters(Method method)
+            throws InvalidMetadataException {
 
-		List<MergedAnnotation<? extends Annotation>> anns = getRepeatableAnnotations(
-				clazz, ManagedNotification.class, ManagedNotifications.class);
+        List<MergedAnnotation<? extends Annotation>> anns = getRepeatableAnnotations(
+                method, ManagedOperationParameter.class, ManagedOperationParameters.class);
 
-		return copyPropertiesToBeanArray(anns, org.springframework.jmx.export.metadata.ManagedNotification.class);
-	}
+        return copyPropertiesToBeanArray(anns, org.springframework.jmx.export.metadata.ManagedOperationParameter.class);
+    }
 
+    @Override
+    public org.springframework.jmx.export.metadata.ManagedNotification[] getManagedNotifications(Class<?> clazz)
+            throws InvalidMetadataException {
 
-	private static List<MergedAnnotation<? extends Annotation>> getRepeatableAnnotations(
-			AnnotatedElement annotatedElement, Class<? extends Annotation> annotationType,
-			Class<? extends Annotation> containerAnnotationType) {
+        List<MergedAnnotation<? extends Annotation>> anns = getRepeatableAnnotations(
+                clazz, ManagedNotification.class, ManagedNotifications.class);
 
-		return MergedAnnotations.from(annotatedElement, SearchStrategy.TYPE_HIERARCHY,
-				RepeatableContainers.of(annotationType, containerAnnotationType))
-				.stream(annotationType)
-				.filter(MergedAnnotationPredicates.firstRunOf(MergedAnnotation::getAggregateIndex))
-				.map(MergedAnnotation::withNonMergedAttributes)
-				.collect(Collectors.toList());
-	}
-
-	@SuppressWarnings("unchecked")
-	private static <T> T[] copyPropertiesToBeanArray(
-			List<MergedAnnotation<? extends Annotation>> anns, Class<T> beanClass) {
-
-		T[] beans = (T[]) Array.newInstance(beanClass, anns.size());
-		int i = 0;
-		for (MergedAnnotation<? extends Annotation> ann : anns) {
-			beans[i++] = copyPropertiesToBean(ann, beanClass);
-		}
-		return beans;
-	}
-
-	@Nullable
-	private static <T> T copyPropertiesToBean(MergedAnnotation<? extends Annotation> ann, Class<T> beanClass) {
-		if (!ann.isPresent()) {
-			return null;
-		}
-		T bean = BeanUtils.instantiateClass(beanClass);
-		BeanWrapper bw = PropertyAccessorFactory.forBeanPropertyAccess(bean);
-		bw.setPropertyValues(new MutablePropertyValues(ann.asMap()));
-		return bean;
-	}
+        return copyPropertiesToBeanArray(anns, org.springframework.jmx.export.metadata.ManagedNotification.class);
+    }
 
 }

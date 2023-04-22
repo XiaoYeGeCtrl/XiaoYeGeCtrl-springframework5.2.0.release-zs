@@ -39,68 +39,70 @@ import static org.assertj.core.api.Assertions.assertThat;
  * <li>{@link RequestMappingDataBindingIntegrationTests}
  * <li>{@link RequestMappingMessageConversionIntegrationTests}
  * </ul>
+ *
  * @author Rossen Stoyanchev
  */
 class ControllerInputIntegrationTests extends AbstractRequestMappingIntegrationTests {
 
-	@Override
-	protected ApplicationContext initApplicationContext() {
-		AnnotationConfigApplicationContext wac = new AnnotationConfigApplicationContext();
-		wac.register(WebConfig.class, TestRestController.class);
-		wac.refresh();
-		return wac;
-	}
+    @Override
+    protected ApplicationContext initApplicationContext() {
+        AnnotationConfigApplicationContext wac = new AnnotationConfigApplicationContext();
+        wac.register(WebConfig.class, TestRestController.class);
+        wac.refresh();
+        return wac;
+    }
 
 
-	@ParameterizedHttpServerTest
-	void handleWithParam(HttpServer httpServer) throws Exception {
-		startServer(httpServer);
+    @ParameterizedHttpServerTest
+    void handleWithParam(HttpServer httpServer) throws Exception {
+        startServer(httpServer);
 
-		String expected = "Hello George!";
-		assertThat(performGet("/param?name=George", new HttpHeaders(), String.class).getBody()).isEqualTo(expected);
-	}
+        String expected = "Hello George!";
+        assertThat(performGet("/param?name=George", new HttpHeaders(), String.class).getBody()).isEqualTo(expected);
+    }
 
-	@ParameterizedHttpServerTest  // SPR-15140
-	void handleWithEncodedParam(HttpServer httpServer) throws Exception {
-		startServer(httpServer);
+    @ParameterizedHttpServerTest
+        // SPR-15140
+    void handleWithEncodedParam(HttpServer httpServer) throws Exception {
+        startServer(httpServer);
 
-		String expected = "Hello  + \u00e0!";
-		assertThat(performGet("/param?name=%20%2B+%C3%A0", new HttpHeaders(), String.class).getBody()).isEqualTo(expected);
-	}
+        String expected = "Hello  + \u00e0!";
+        assertThat(performGet("/param?name=%20%2B+%C3%A0", new HttpHeaders(), String.class).getBody()).isEqualTo(expected);
+    }
 
-	@ParameterizedHttpServerTest
-	void matrixVariable(HttpServer httpServer) throws Exception {
-		startServer(httpServer);
+    @ParameterizedHttpServerTest
+    void matrixVariable(HttpServer httpServer) throws Exception {
+        startServer(httpServer);
 
-		String expected = "p=11, q2=22, q4=44";
-		String url = "/first;p=11/second;q=22/third-fourth;q=44";
-		assertThat(performGet(url, new HttpHeaders(), String.class).getBody()).isEqualTo(expected);
-	}
-
-
-	@Configuration
-	@EnableWebFlux
-	static class WebConfig {
-	}
+        String expected = "p=11, q2=22, q4=44";
+        String url = "/first;p=11/second;q=22/third-fourth;q=44";
+        assertThat(performGet(url, new HttpHeaders(), String.class).getBody()).isEqualTo(expected);
+    }
 
 
-	@RestController
-	@SuppressWarnings("unused")
-	private static class TestRestController {
+    @Configuration
+    @EnableWebFlux
+    static class WebConfig {
+    }
 
-		@GetMapping("/param")
-		public Publisher<String> param(@RequestParam String name) {
-			return Flux.just("Hello ", name, "!");
-		}
 
-		@GetMapping("/{one}/{two}/{three}-{four}")
-		public String matrixVar(
-				@MatrixVariable int p,
-				@MatrixVariable(name = "q", pathVar = "two") int q2,
-				@MatrixVariable(name = "q", pathVar = "four") int q4) {
+    @RestController
+    @SuppressWarnings("unused")
+    private static class TestRestController {
 
-			return "p=" + p + ", q2=" + q2 + ", q4=" + q4;
-		}
-	}
+        @GetMapping("/param")
+        public Publisher<String> param(@RequestParam String name) {
+            return Flux.just("Hello ", name, "!");
+        }
+
+        @GetMapping("/{one}/{two}/{three}-{four}")
+        public String matrixVar(
+                @MatrixVariable int p,
+                @MatrixVariable(name = "q", pathVar = "two") int q2,
+                @MatrixVariable(name = "q", pathVar = "four") int q4) {
+
+            return "p=" + p + ", q2=" + q2 + ", q4=" + q4;
+        }
+    }
 
 }

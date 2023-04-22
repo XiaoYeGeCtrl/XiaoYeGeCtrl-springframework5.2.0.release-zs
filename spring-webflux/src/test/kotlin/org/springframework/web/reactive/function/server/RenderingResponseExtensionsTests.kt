@@ -25,17 +25,17 @@ import reactor.core.publisher.Mono
 
 class RenderingResponseExtensionsTests {
 
-	@Test
-	fun buildAndAwait() {
-		val builder = mockk<RenderingResponse.Builder>()
-		val response = mockk<RenderingResponse>()
-		every { builder.build() } returns Mono.just(response)
-		runBlocking {
-			builder.buildAndAwait()
-		}
-		verify {
-			builder.build()
-		}
-	}
+    @Test
+    fun buildAndAwait() {
+        val builder = mockk<RenderingResponse.Builder>()
+        val response = mockk<RenderingResponse>()
+        every { builder.build() } returns Mono.just(response)
+        runBlocking {
+            builder.buildAndAwait()
+        }
+        verify {
+            builder.build()
+        }
+    }
 
 }

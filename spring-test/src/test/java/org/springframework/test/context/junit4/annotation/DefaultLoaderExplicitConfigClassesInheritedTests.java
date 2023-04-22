@@ -39,14 +39,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 @ContextConfiguration(classes = DefaultLoaderDefaultConfigClassesInheritedTests.Config.class)
 public class DefaultLoaderExplicitConfigClassesInheritedTests extends DefaultLoaderExplicitConfigClassesBaseTests {
 
-	@Autowired
-	private Pet pet;
+    @Autowired
+    private Pet pet;
 
 
-	@Test
-	public void verifyPetSetFromExtendedContextConfig() {
-		assertThat(this.pet).as("The pet should have been autowired.").isNotNull();
-		assertThat(this.pet.getName()).isEqualTo("Fido");
-	}
+    @Test
+    public void verifyPetSetFromExtendedContextConfig() {
+        assertThat(this.pet).as("The pet should have been autowired.").isNotNull();
+        assertThat(this.pet.getName()).isEqualTo("Fido");
+    }
 
 }

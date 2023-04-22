@@ -65,350 +65,348 @@ import org.springframework.web.util.UriBuilder;
  */
 class DefaultServerRequest implements ServerRequest {
 
-	private final ServletServerHttpRequest serverHttpRequest;
-
-	private final Headers headers;
-
-	private final List<HttpMessageConverter<?>> messageConverters;
-
-	private final List<MediaType> allSupportedMediaTypes;
-
-	private final MultiValueMap<String, String> params;
-
-	private final Map<String, Object> attributes;
-
-
-	public DefaultServerRequest(HttpServletRequest servletRequest,
-			List<HttpMessageConverter<?>> messageConverters) {
-		this.serverHttpRequest = new ServletServerHttpRequest(servletRequest);
-		this.messageConverters = Collections.unmodifiableList(new ArrayList<>(messageConverters));
-		this.allSupportedMediaTypes = allSupportedMediaTypes(messageConverters);
-
-		this.headers = new DefaultRequestHeaders(this.serverHttpRequest.getHeaders());
-		this.params = CollectionUtils.toMultiValueMap(new ServletParametersMap(servletRequest));
-		this.attributes = new ServletAttributesMap(servletRequest);
-	}
-
-	private static List<MediaType> allSupportedMediaTypes(List<HttpMessageConverter<?>> messageConverters) {
-		return messageConverters.stream()
-				.flatMap(converter -> converter.getSupportedMediaTypes().stream())
-				.sorted(MediaType.SPECIFICITY_COMPARATOR)
-				.collect(Collectors.toList());
-	}
-
-	@Override
-	public String methodName() {
-		return servletRequest().getMethod();
-	}
-
-	@Override
-	public URI uri() {
-		return this.serverHttpRequest.getURI();
-	}
-
-	@Override
-	public UriBuilder uriBuilder() {
-		return ServletUriComponentsBuilder.fromRequest(servletRequest());
-	}
-
-	@Override
-	public Headers headers() {
-		return this.headers;
-	}
-
-	@Override
-	public MultiValueMap<String, Cookie> cookies() {
-		Cookie[] cookies = servletRequest().getCookies();
-		if (cookies == null) {
-			cookies = new Cookie[0];
-		}
-		MultiValueMap<String, Cookie> result = new LinkedMultiValueMap<>(cookies.length);
-		for (Cookie cookie : cookies) {
-			result.add(cookie.getName(), cookie);
-		}
-		return result;
-	}
-
-	@Override
-	public HttpServletRequest servletRequest() {
-		return this.serverHttpRequest.getServletRequest();
-	}
-
-	@Override
-	public Optional<InetSocketAddress> remoteAddress() {
-		return Optional.of(this.serverHttpRequest.getRemoteAddress());
-	}
-
-	@Override
-	public List<HttpMessageConverter<?>> messageConverters() {
-		return this.messageConverters;
-	}
-
-	@Override
-	public <T> T body(Class<T> bodyType) throws IOException, ServletException {
-		return bodyInternal(bodyType, bodyType);
-	}
-
-	@Override
-	public <T> T body(ParameterizedTypeReference<T> bodyType) throws IOException, ServletException {
-		Type type = bodyType.getType();
-		return bodyInternal(type, bodyClass(type));
-	}
-
-	static Class<?> bodyClass(Type type) {
-		if (type instanceof Class) {
-			return (Class<?>) type;
-		}
-		if (type instanceof ParameterizedType) {
-			ParameterizedType parameterizedType = (ParameterizedType) type;
-			if (parameterizedType.getRawType() instanceof Class) {
-				return (Class<?>) parameterizedType.getRawType();
-			}
-		}
-		return Object.class;
-	}
-
-	@SuppressWarnings("unchecked")
-	private <T> T bodyInternal(Type bodyType, Class<?> bodyClass)
-			throws ServletException, IOException {
-
-		MediaType contentType =
-				this.headers.contentType().orElse(MediaType.APPLICATION_OCTET_STREAM);
-
-		for (HttpMessageConverter<?> messageConverter : this.messageConverters) {
-			if (messageConverter instanceof GenericHttpMessageConverter) {
-				GenericHttpMessageConverter<T> genericMessageConverter =
-						(GenericHttpMessageConverter<T>) messageConverter;
-				if (genericMessageConverter.canRead(bodyType, bodyClass, contentType)) {
-					return genericMessageConverter.read(bodyType, bodyClass, this.serverHttpRequest);
-				}
-			}
-			if (messageConverter.canRead(bodyClass, contentType)) {
-				HttpMessageConverter<T> theConverter =
-						(HttpMessageConverter<T>) messageConverter;
-				Class<? extends T> clazz = (Class<? extends T>) bodyClass;
-				return theConverter.read(clazz, this.serverHttpRequest);
-			}
-		}
-		throw new HttpMediaTypeNotSupportedException(contentType, this.allSupportedMediaTypes);
-	}
-
-	@Override
-	public Optional<Object> attribute(String name) {
-		return Optional.ofNullable(servletRequest().getAttribute(name));
-	}
-
-	@Override
-	public Map<String, Object> attributes() {
-		return this.attributes;
-	}
-
-	@Override
-	public Optional<String> param(String name) {
-		return Optional.ofNullable(servletRequest().getParameter(name));
-	}
-
-	@Override
-	public MultiValueMap<String, String> params() {
-		return this.params;
-	}
-
-	@Override
-	public Map<String, String> pathVariables() {
-		@SuppressWarnings("unchecked")
-		Map<String, String> pathVariables = (Map<String, String>) servletRequest()
-				.getAttribute(RouterFunctions.URI_TEMPLATE_VARIABLES_ATTRIBUTE);
-		if (pathVariables != null) {
-			return pathVariables;
-		}
-		else {
-			return Collections.emptyMap();
-		}
-	}
-
-	@Override
-	public HttpSession session() {
-		return servletRequest().getSession(true);
-	}
-
-	@Override
-	public Optional<Principal> principal() {
-		return Optional.ofNullable(this.serverHttpRequest.getPrincipal());
-	}
-
-	/**
-	 * Default implementation of {@link Headers}.
-	 */
-	static class DefaultRequestHeaders implements Headers {
-
-		private final HttpHeaders delegate;
-
-
-		public DefaultRequestHeaders(HttpHeaders delegate) {
-			this.delegate = delegate;
-		}
-
-		@Override
-		public List<MediaType> accept() {
-			return this.delegate.getAccept();
-		}
-
-		@Override
-		public List<Charset> acceptCharset() {
-			return this.delegate.getAcceptCharset();
-		}
-
-		@Override
-		public List<Locale.LanguageRange> acceptLanguage() {
-			return this.delegate.getAcceptLanguage();
-		}
-
-		@Override
-		public OptionalLong contentLength() {
-			long value = this.delegate.getContentLength();
-			return (value != -1 ? OptionalLong.of(value) : OptionalLong.empty());
-		}
-
-		@Override
-		public Optional<MediaType> contentType() {
-			return Optional.ofNullable(this.delegate.getContentType());
-		}
-
-		@Override
-		public InetSocketAddress host() {
-			return this.delegate.getHost();
-		}
-
-		@Override
-		public List<HttpRange> range() {
-			return this.delegate.getRange();
-		}
-
-		@Override
-		public List<String> header(String headerName) {
-			List<String> headerValues = this.delegate.get(headerName);
-			return (headerValues != null ? headerValues : Collections.emptyList());
-		}
-
-		@Override
-		public HttpHeaders asHttpHeaders() {
-			return HttpHeaders.readOnlyHttpHeaders(this.delegate);
-		}
-
-		@Override
-		public String toString() {
-			return this.delegate.toString();
-		}
-	}
-
-	private static final class ServletParametersMap extends AbstractMap<String, List<String>> {
-
-		private final HttpServletRequest servletRequest;
-
-
-		private ServletParametersMap(HttpServletRequest servletRequest) {
-			this.servletRequest = servletRequest;
-		}
-
-		@NotNull
-		@Override
-		public Set<Entry<String, List<String>>> entrySet() {
-			return this.servletRequest.getParameterMap().entrySet().stream()
-					.map(entry -> {
-						List<String> value = Arrays.asList(entry.getValue());
-						return new SimpleImmutableEntry<>(entry.getKey(), value);
-					})
-					.collect(Collectors.toSet());
-		}
-
-		@Override
-		public int size() {
-			return this.servletRequest.getParameterMap().size();
-		}
-
-		@Override
-		public List<String> get(Object key) {
-			String name = (String) key;
-			String[] parameterValues = this.servletRequest.getParameterValues(name);
-			if (!ObjectUtils.isEmpty(parameterValues)) {
-				return Arrays.asList(parameterValues);
-			}
-			else {
-				return Collections.emptyList();
-			}
-		}
-
-		@Override
-		public List<String> put(String key, List<String> value) {
-			throw new UnsupportedOperationException();
-		}
-
-		@Override
-		public List<String> remove(Object key) {
-			throw new UnsupportedOperationException();
-		}
-
-		@Override
-		public void clear() {
-			throw new UnsupportedOperationException();
-		}
-
-	}
-
-
-	private static final class ServletAttributesMap extends AbstractMap<String, Object> {
-
-		private final HttpServletRequest servletRequest;
-
-		private ServletAttributesMap(HttpServletRequest servletRequest) {
-			this.servletRequest = servletRequest;
-		}
-
-		@Override
-		public boolean containsKey(Object key) {
-			String name = (String) key;
-			return this.servletRequest.getAttribute(name) != null;
-		}
-
-		@Override
-		public void clear() {
-			List<String> attributeNames = Collections.list(this.servletRequest.getAttributeNames());
-			attributeNames.forEach(this.servletRequest::removeAttribute);
-		}
-
-		@NotNull
-		@Override
-		public Set<Entry<String, Object>> entrySet() {
-			return Collections.list(this.servletRequest.getAttributeNames()).stream()
-					.map(name -> {
-						Object value = this.servletRequest.getAttribute(name);
-						return new SimpleImmutableEntry<>(name, value);
-					})
-					.collect(Collectors.toSet());
-		}
-
-		@Override
-		public Object get(Object key) {
-			String name = (String) key;
-			return this.servletRequest.getAttribute(name);
-		}
-
-		@Override
-		public Object put(String key, Object value) {
-			Object oldValue = this.servletRequest.getAttribute(key);
-			this.servletRequest.setAttribute(key, value);
-			return oldValue;
-		}
-
-		@Override
-		public Object remove(Object key) {
-			String name = (String) key;
-			Object value = this.servletRequest.getAttribute(name);
-			this.servletRequest.removeAttribute(name);
-			return value;
-		}
-
-
-	}
+    private final ServletServerHttpRequest serverHttpRequest;
+
+    private final Headers headers;
+
+    private final List<HttpMessageConverter<?>> messageConverters;
+
+    private final List<MediaType> allSupportedMediaTypes;
+
+    private final MultiValueMap<String, String> params;
+
+    private final Map<String, Object> attributes;
+
+
+    public DefaultServerRequest(HttpServletRequest servletRequest,
+                                List<HttpMessageConverter<?>> messageConverters) {
+        this.serverHttpRequest = new ServletServerHttpRequest(servletRequest);
+        this.messageConverters = Collections.unmodifiableList(new ArrayList<>(messageConverters));
+        this.allSupportedMediaTypes = allSupportedMediaTypes(messageConverters);
+
+        this.headers = new DefaultRequestHeaders(this.serverHttpRequest.getHeaders());
+        this.params = CollectionUtils.toMultiValueMap(new ServletParametersMap(servletRequest));
+        this.attributes = new ServletAttributesMap(servletRequest);
+    }
+
+    private static List<MediaType> allSupportedMediaTypes(List<HttpMessageConverter<?>> messageConverters) {
+        return messageConverters.stream()
+                .flatMap(converter -> converter.getSupportedMediaTypes().stream())
+                .sorted(MediaType.SPECIFICITY_COMPARATOR)
+                .collect(Collectors.toList());
+    }
+
+    static Class<?> bodyClass(Type type) {
+        if (type instanceof Class) {
+            return (Class<?>) type;
+        }
+        if (type instanceof ParameterizedType) {
+            ParameterizedType parameterizedType = (ParameterizedType) type;
+            if (parameterizedType.getRawType() instanceof Class) {
+                return (Class<?>) parameterizedType.getRawType();
+            }
+        }
+        return Object.class;
+    }
+
+    @Override
+    public String methodName() {
+        return servletRequest().getMethod();
+    }
+
+    @Override
+    public URI uri() {
+        return this.serverHttpRequest.getURI();
+    }
+
+    @Override
+    public UriBuilder uriBuilder() {
+        return ServletUriComponentsBuilder.fromRequest(servletRequest());
+    }
+
+    @Override
+    public Headers headers() {
+        return this.headers;
+    }
+
+    @Override
+    public MultiValueMap<String, Cookie> cookies() {
+        Cookie[] cookies = servletRequest().getCookies();
+        if (cookies == null) {
+            cookies = new Cookie[0];
+        }
+        MultiValueMap<String, Cookie> result = new LinkedMultiValueMap<>(cookies.length);
+        for (Cookie cookie : cookies) {
+            result.add(cookie.getName(), cookie);
+        }
+        return result;
+    }
+
+    @Override
+    public HttpServletRequest servletRequest() {
+        return this.serverHttpRequest.getServletRequest();
+    }
+
+    @Override
+    public Optional<InetSocketAddress> remoteAddress() {
+        return Optional.of(this.serverHttpRequest.getRemoteAddress());
+    }
+
+    @Override
+    public List<HttpMessageConverter<?>> messageConverters() {
+        return this.messageConverters;
+    }
+
+    @Override
+    public <T> T body(Class<T> bodyType) throws IOException, ServletException {
+        return bodyInternal(bodyType, bodyType);
+    }
+
+    @Override
+    public <T> T body(ParameterizedTypeReference<T> bodyType) throws IOException, ServletException {
+        Type type = bodyType.getType();
+        return bodyInternal(type, bodyClass(type));
+    }
+
+    @SuppressWarnings("unchecked")
+    private <T> T bodyInternal(Type bodyType, Class<?> bodyClass)
+            throws ServletException, IOException {
+
+        MediaType contentType =
+                this.headers.contentType().orElse(MediaType.APPLICATION_OCTET_STREAM);
+
+        for (HttpMessageConverter<?> messageConverter : this.messageConverters) {
+            if (messageConverter instanceof GenericHttpMessageConverter) {
+                GenericHttpMessageConverter<T> genericMessageConverter =
+                        (GenericHttpMessageConverter<T>) messageConverter;
+                if (genericMessageConverter.canRead(bodyType, bodyClass, contentType)) {
+                    return genericMessageConverter.read(bodyType, bodyClass, this.serverHttpRequest);
+                }
+            }
+            if (messageConverter.canRead(bodyClass, contentType)) {
+                HttpMessageConverter<T> theConverter =
+                        (HttpMessageConverter<T>) messageConverter;
+                Class<? extends T> clazz = (Class<? extends T>) bodyClass;
+                return theConverter.read(clazz, this.serverHttpRequest);
+            }
+        }
+        throw new HttpMediaTypeNotSupportedException(contentType, this.allSupportedMediaTypes);
+    }
+
+    @Override
+    public Optional<Object> attribute(String name) {
+        return Optional.ofNullable(servletRequest().getAttribute(name));
+    }
+
+    @Override
+    public Map<String, Object> attributes() {
+        return this.attributes;
+    }
+
+    @Override
+    public Optional<String> param(String name) {
+        return Optional.ofNullable(servletRequest().getParameter(name));
+    }
+
+    @Override
+    public MultiValueMap<String, String> params() {
+        return this.params;
+    }
+
+    @Override
+    public Map<String, String> pathVariables() {
+        @SuppressWarnings("unchecked")
+        Map<String, String> pathVariables = (Map<String, String>) servletRequest()
+                .getAttribute(RouterFunctions.URI_TEMPLATE_VARIABLES_ATTRIBUTE);
+        if (pathVariables != null) {
+            return pathVariables;
+        } else {
+            return Collections.emptyMap();
+        }
+    }
+
+    @Override
+    public HttpSession session() {
+        return servletRequest().getSession(true);
+    }
+
+    @Override
+    public Optional<Principal> principal() {
+        return Optional.ofNullable(this.serverHttpRequest.getPrincipal());
+    }
+
+    /**
+     * Default implementation of {@link Headers}.
+     */
+    static class DefaultRequestHeaders implements Headers {
+
+        private final HttpHeaders delegate;
+
+
+        public DefaultRequestHeaders(HttpHeaders delegate) {
+            this.delegate = delegate;
+        }
+
+        @Override
+        public List<MediaType> accept() {
+            return this.delegate.getAccept();
+        }
+
+        @Override
+        public List<Charset> acceptCharset() {
+            return this.delegate.getAcceptCharset();
+        }
+
+        @Override
+        public List<Locale.LanguageRange> acceptLanguage() {
+            return this.delegate.getAcceptLanguage();
+        }
+
+        @Override
+        public OptionalLong contentLength() {
+            long value = this.delegate.getContentLength();
+            return (value != -1 ? OptionalLong.of(value) : OptionalLong.empty());
+        }
+
+        @Override
+        public Optional<MediaType> contentType() {
+            return Optional.ofNullable(this.delegate.getContentType());
+        }
+
+        @Override
+        public InetSocketAddress host() {
+            return this.delegate.getHost();
+        }
+
+        @Override
+        public List<HttpRange> range() {
+            return this.delegate.getRange();
+        }
+
+        @Override
+        public List<String> header(String headerName) {
+            List<String> headerValues = this.delegate.get(headerName);
+            return (headerValues != null ? headerValues : Collections.emptyList());
+        }
+
+        @Override
+        public HttpHeaders asHttpHeaders() {
+            return HttpHeaders.readOnlyHttpHeaders(this.delegate);
+        }
+
+        @Override
+        public String toString() {
+            return this.delegate.toString();
+        }
+    }
+
+    private static final class ServletParametersMap extends AbstractMap<String, List<String>> {
+
+        private final HttpServletRequest servletRequest;
+
+
+        private ServletParametersMap(HttpServletRequest servletRequest) {
+            this.servletRequest = servletRequest;
+        }
+
+        @NotNull
+        @Override
+        public Set<Entry<String, List<String>>> entrySet() {
+            return this.servletRequest.getParameterMap().entrySet().stream()
+                    .map(entry -> {
+                        List<String> value = Arrays.asList(entry.getValue());
+                        return new SimpleImmutableEntry<>(entry.getKey(), value);
+                    })
+                    .collect(Collectors.toSet());
+        }
+
+        @Override
+        public int size() {
+            return this.servletRequest.getParameterMap().size();
+        }
+
+        @Override
+        public List<String> get(Object key) {
+            String name = (String) key;
+            String[] parameterValues = this.servletRequest.getParameterValues(name);
+            if (!ObjectUtils.isEmpty(parameterValues)) {
+                return Arrays.asList(parameterValues);
+            } else {
+                return Collections.emptyList();
+            }
+        }
+
+        @Override
+        public List<String> put(String key, List<String> value) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public List<String> remove(Object key) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void clear() {
+            throw new UnsupportedOperationException();
+        }
+
+    }
+
+
+    private static final class ServletAttributesMap extends AbstractMap<String, Object> {
+
+        private final HttpServletRequest servletRequest;
+
+        private ServletAttributesMap(HttpServletRequest servletRequest) {
+            this.servletRequest = servletRequest;
+        }
+
+        @Override
+        public boolean containsKey(Object key) {
+            String name = (String) key;
+            return this.servletRequest.getAttribute(name) != null;
+        }
+
+        @Override
+        public void clear() {
+            List<String> attributeNames = Collections.list(this.servletRequest.getAttributeNames());
+            attributeNames.forEach(this.servletRequest::removeAttribute);
+        }
+
+        @NotNull
+        @Override
+        public Set<Entry<String, Object>> entrySet() {
+            return Collections.list(this.servletRequest.getAttributeNames()).stream()
+                    .map(name -> {
+                        Object value = this.servletRequest.getAttribute(name);
+                        return new SimpleImmutableEntry<>(name, value);
+                    })
+                    .collect(Collectors.toSet());
+        }
+
+        @Override
+        public Object get(Object key) {
+            String name = (String) key;
+            return this.servletRequest.getAttribute(name);
+        }
+
+        @Override
+        public Object put(String key, Object value) {
+            Object oldValue = this.servletRequest.getAttribute(key);
+            this.servletRequest.setAttribute(key, value);
+            return oldValue;
+        }
+
+        @Override
+        public Object remove(Object key) {
+            String name = (String) key;
+            Object value = this.servletRequest.getAttribute(name);
+            this.servletRequest.removeAttribute(name);
+            return value;
+        }
+
+
+    }
 
 }

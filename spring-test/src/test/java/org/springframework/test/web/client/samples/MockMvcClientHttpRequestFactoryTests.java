@@ -56,48 +56,48 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ContextConfiguration
 public class MockMvcClientHttpRequestFactoryTests {
 
-	@Autowired
-	private WebApplicationContext wac;
+    @Autowired
+    private WebApplicationContext wac;
 
-	private MockMvc mockMvc;
-
-
-	@BeforeEach
-	public void setup() {
-		this.mockMvc = MockMvcBuilders.webAppContextSetup(this.wac).alwaysExpect(status().isOk()).build();
-	}
-
-	@Test
-	public void test() throws Exception {
-		RestTemplate template = new RestTemplate(new MockMvcClientHttpRequestFactory(this.mockMvc));
-		String result = template.getForObject("/foo", String.class);
-		assertThat(result).isEqualTo("bar");
-	}
-
-	@Test
-	@SuppressWarnings("deprecation")
-	public void testAsyncTemplate() throws Exception {
-		org.springframework.web.client.AsyncRestTemplate template = new org.springframework.web.client.AsyncRestTemplate(
-				new MockMvcClientHttpRequestFactory(this.mockMvc));
-		ListenableFuture<ResponseEntity<String>> entity = template.getForEntity("/foo", String.class);
-		assertThat(entity.get().getBody()).isEqualTo("bar");
-	}
+    private MockMvc mockMvc;
 
 
-	@EnableWebMvc
-	@Configuration
-	@ComponentScan(basePackageClasses=MockMvcClientHttpRequestFactoryTests.class)
-	static class MyWebConfig implements WebMvcConfigurer {
-	}
+    @BeforeEach
+    public void setup() {
+        this.mockMvc = MockMvcBuilders.webAppContextSetup(this.wac).alwaysExpect(status().isOk()).build();
+    }
 
-	@Controller
-	static class MyController {
+    @Test
+    public void test() throws Exception {
+        RestTemplate template = new RestTemplate(new MockMvcClientHttpRequestFactory(this.mockMvc));
+        String result = template.getForObject("/foo", String.class);
+        assertThat(result).isEqualTo("bar");
+    }
 
-		@RequestMapping(value="/foo", method=RequestMethod.GET)
-		@ResponseBody
-		public String handle() {
-			return "bar";
-		}
-	}
+    @Test
+    @SuppressWarnings("deprecation")
+    public void testAsyncTemplate() throws Exception {
+        org.springframework.web.client.AsyncRestTemplate template = new org.springframework.web.client.AsyncRestTemplate(
+                new MockMvcClientHttpRequestFactory(this.mockMvc));
+        ListenableFuture<ResponseEntity<String>> entity = template.getForEntity("/foo", String.class);
+        assertThat(entity.get().getBody()).isEqualTo("bar");
+    }
+
+
+    @EnableWebMvc
+    @Configuration
+    @ComponentScan(basePackageClasses = MockMvcClientHttpRequestFactoryTests.class)
+    static class MyWebConfig implements WebMvcConfigurer {
+    }
+
+    @Controller
+    static class MyController {
+
+        @RequestMapping(value = "/foo", method = RequestMethod.GET)
+        @ResponseBody
+        public String handle() {
+            return "bar";
+        }
+    }
 
 }

@@ -35,83 +35,81 @@ import org.springframework.web.server.UnsupportedMediaTypeStatusException;
  */
 abstract class AbstractMediaTypeExpression implements Comparable<AbstractMediaTypeExpression>, MediaTypeExpression {
 
-	protected final Log logger = LogFactory.getLog(getClass());
+    protected final Log logger = LogFactory.getLog(getClass());
 
-	private final MediaType mediaType;
+    private final MediaType mediaType;
 
-	private final boolean isNegated;
-
-
-	AbstractMediaTypeExpression(String expression) {
-		if (expression.startsWith("!")) {
-			this.isNegated = true;
-			expression = expression.substring(1);
-		}
-		else {
-			this.isNegated = false;
-		}
-		this.mediaType = MediaType.parseMediaType(expression);
-	}
-
-	AbstractMediaTypeExpression(MediaType mediaType, boolean negated) {
-		this.mediaType = mediaType;
-		this.isNegated = negated;
-	}
+    private final boolean isNegated;
 
 
-	@Override
-	public MediaType getMediaType() {
-		return this.mediaType;
-	}
+    AbstractMediaTypeExpression(String expression) {
+        if (expression.startsWith("!")) {
+            this.isNegated = true;
+            expression = expression.substring(1);
+        } else {
+            this.isNegated = false;
+        }
+        this.mediaType = MediaType.parseMediaType(expression);
+    }
 
-	@Override
-	public boolean isNegated() {
-		return this.isNegated;
-	}
-
-
-	public final boolean match(ServerWebExchange exchange) {
-		try {
-			boolean match = matchMediaType(exchange);
-			return (!this.isNegated == match);
-		}
-		catch (NotAcceptableStatusException | UnsupportedMediaTypeStatusException ex) {
-			return false;
-		}
-	}
-
-	protected abstract boolean matchMediaType(ServerWebExchange exchange)
-			throws NotAcceptableStatusException, UnsupportedMediaTypeStatusException;
+    AbstractMediaTypeExpression(MediaType mediaType, boolean negated) {
+        this.mediaType = mediaType;
+        this.isNegated = negated;
+    }
 
 
-	@Override
-	public int compareTo(AbstractMediaTypeExpression other) {
-		return MediaType.SPECIFICITY_COMPARATOR.compare(this.getMediaType(), other.getMediaType());
-	}
+    @Override
+    public MediaType getMediaType() {
+        return this.mediaType;
+    }
 
-	@Override
-	public boolean equals(@Nullable Object other) {
-		if (this == other) {
-			return true;
-		}
-		if (other == null || getClass() != other.getClass()) {
-			return false;
-		}
-		AbstractMediaTypeExpression otherExpr = (AbstractMediaTypeExpression) other;
-		return (this.mediaType.equals(otherExpr.mediaType) && this.isNegated == otherExpr.isNegated);
-	}
+    @Override
+    public boolean isNegated() {
+        return this.isNegated;
+    }
 
-	@Override
-	public int hashCode() {
-		return this.mediaType.hashCode();
-	}
 
-	@Override
-	public String toString() {
-		if (this.isNegated) {
-			return '!' + this.mediaType.toString();
-		}
-		return this.mediaType.toString();
-	}
+    public final boolean match(ServerWebExchange exchange) {
+        try {
+            boolean match = matchMediaType(exchange);
+            return (!this.isNegated == match);
+        } catch (NotAcceptableStatusException | UnsupportedMediaTypeStatusException ex) {
+            return false;
+        }
+    }
+
+    protected abstract boolean matchMediaType(ServerWebExchange exchange)
+            throws NotAcceptableStatusException, UnsupportedMediaTypeStatusException;
+
+
+    @Override
+    public int compareTo(AbstractMediaTypeExpression other) {
+        return MediaType.SPECIFICITY_COMPARATOR.compare(this.getMediaType(), other.getMediaType());
+    }
+
+    @Override
+    public boolean equals(@Nullable Object other) {
+        if (this == other) {
+            return true;
+        }
+        if (other == null || getClass() != other.getClass()) {
+            return false;
+        }
+        AbstractMediaTypeExpression otherExpr = (AbstractMediaTypeExpression) other;
+        return (this.mediaType.equals(otherExpr.mediaType) && this.isNegated == otherExpr.isNegated);
+    }
+
+    @Override
+    public int hashCode() {
+        return this.mediaType.hashCode();
+    }
+
+    @Override
+    public String toString() {
+        if (this.isNegated) {
+            return '!' + this.mediaType.toString();
+        }
+        return this.mediaType.toString();
+    }
 
 }

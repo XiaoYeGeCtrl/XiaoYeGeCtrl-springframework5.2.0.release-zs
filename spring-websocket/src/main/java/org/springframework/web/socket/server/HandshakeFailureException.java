@@ -34,12 +34,12 @@ import org.springframework.core.NestedRuntimeException;
 @SuppressWarnings("serial")
 public class HandshakeFailureException extends NestedRuntimeException {
 
-	public HandshakeFailureException(String message) {
-		super(message);
-	}
+    public HandshakeFailureException(String message) {
+        super(message);
+    }
 
-	public HandshakeFailureException(String message, Throwable cause) {
-		super(message, cause);
-	}
+    public HandshakeFailureException(String message, Throwable cause) {
+        super(message, cause);
+    }
 
 }

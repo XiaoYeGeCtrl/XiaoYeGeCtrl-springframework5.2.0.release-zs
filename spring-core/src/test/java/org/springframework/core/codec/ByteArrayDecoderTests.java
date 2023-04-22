@@ -33,58 +33,58 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 class ByteArrayDecoderTests extends AbstractDecoderTests<ByteArrayDecoder> {
 
-	private final byte[] fooBytes = "foo".getBytes(StandardCharsets.UTF_8);
+    private final byte[] fooBytes = "foo".getBytes(StandardCharsets.UTF_8);
 
-	private final byte[] barBytes = "bar".getBytes(StandardCharsets.UTF_8);
+    private final byte[] barBytes = "bar".getBytes(StandardCharsets.UTF_8);
 
 
-	ByteArrayDecoderTests() {
-		super(new ByteArrayDecoder());
-	}
+    ByteArrayDecoderTests() {
+        super(new ByteArrayDecoder());
+    }
 
-	@Override
-	@Test
-	public void canDecode() {
-		assertThat(this.decoder.canDecode(ResolvableType.forClass(byte[].class),
-				MimeTypeUtils.TEXT_PLAIN)).isTrue();
-		assertThat(this.decoder.canDecode(ResolvableType.forClass(Integer.class),
-				MimeTypeUtils.TEXT_PLAIN)).isFalse();
-		assertThat(this.decoder.canDecode(ResolvableType.forClass(byte[].class),
-				MimeTypeUtils.APPLICATION_JSON)).isTrue();
-	}
+    @Override
+    @Test
+    public void canDecode() {
+        assertThat(this.decoder.canDecode(ResolvableType.forClass(byte[].class),
+                MimeTypeUtils.TEXT_PLAIN)).isTrue();
+        assertThat(this.decoder.canDecode(ResolvableType.forClass(Integer.class),
+                MimeTypeUtils.TEXT_PLAIN)).isFalse();
+        assertThat(this.decoder.canDecode(ResolvableType.forClass(byte[].class),
+                MimeTypeUtils.APPLICATION_JSON)).isTrue();
+    }
 
-	@Override
-	@Test
-	public void decode() {
-		Flux<DataBuffer> input = Flux.concat(
-				dataBuffer(this.fooBytes),
-				dataBuffer(this.barBytes));
+    @Override
+    @Test
+    public void decode() {
+        Flux<DataBuffer> input = Flux.concat(
+                dataBuffer(this.fooBytes),
+                dataBuffer(this.barBytes));
 
-		testDecodeAll(input, byte[].class, step -> step
-				.consumeNextWith(expectBytes(this.fooBytes))
-				.consumeNextWith(expectBytes(this.barBytes))
-				.verifyComplete());
+        testDecodeAll(input, byte[].class, step -> step
+                .consumeNextWith(expectBytes(this.fooBytes))
+                .consumeNextWith(expectBytes(this.barBytes))
+                .verifyComplete());
 
-	}
+    }
 
-	@Override
-	@Test
-	public void decodeToMono() {
-		Flux<DataBuffer> input = Flux.concat(
-				dataBuffer(this.fooBytes),
-				dataBuffer(this.barBytes));
+    @Override
+    @Test
+    public void decodeToMono() {
+        Flux<DataBuffer> input = Flux.concat(
+                dataBuffer(this.fooBytes),
+                dataBuffer(this.barBytes));
 
-		byte[] expected = new byte[this.fooBytes.length + this.barBytes.length];
-		System.arraycopy(this.fooBytes, 0, expected, 0, this.fooBytes.length);
-		System.arraycopy(this.barBytes, 0, expected, this.fooBytes.length, this.barBytes.length);
+        byte[] expected = new byte[this.fooBytes.length + this.barBytes.length];
+        System.arraycopy(this.fooBytes, 0, expected, 0, this.fooBytes.length);
+        System.arraycopy(this.barBytes, 0, expected, this.fooBytes.length, this.barBytes.length);
 
-		testDecodeToMonoAll(input, byte[].class, step -> step
-				.consumeNextWith(expectBytes(expected))
-				.verifyComplete());
-	}
+        testDecodeToMonoAll(input, byte[].class, step -> step
+                .consumeNextWith(expectBytes(expected))
+                .verifyComplete());
+    }
 
-	private Consumer<byte[]> expectBytes(byte[] expected) {
-		return bytes -> assertThat(bytes).isEqualTo(expected);
-	}
+    private Consumer<byte[]> expectBytes(byte[] expected) {
+        return bytes -> assertThat(bytes).isEqualTo(expected);
+    }
 
 }

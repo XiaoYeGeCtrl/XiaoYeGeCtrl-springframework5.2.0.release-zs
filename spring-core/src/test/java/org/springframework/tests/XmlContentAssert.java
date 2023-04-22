@@ -30,36 +30,36 @@ import org.xmlunit.util.Predicate;
  */
 public class XmlContentAssert extends AbstractAssert<XmlContentAssert, Object> {
 
-	XmlContentAssert(Object actual) {
-		super(actual, XmlContentAssert.class);
-	}
+    XmlContentAssert(Object actual) {
+        super(actual, XmlContentAssert.class);
+    }
 
-	public XmlContentAssert isSimilarTo(Object control) {
-		XmlAssert.assertThat(actual).and(control).areSimilar();
-		return this;
-	}
+    public XmlContentAssert isSimilarTo(Object control) {
+        XmlAssert.assertThat(actual).and(control).areSimilar();
+        return this;
+    }
 
-	public XmlContentAssert isSimilarTo(Object control, Predicate<Node> nodeFilter) {
-		XmlAssert.assertThat(actual).and(control).withNodeFilter(nodeFilter).areSimilar();
-		return this;
-	}
+    public XmlContentAssert isSimilarTo(Object control, Predicate<Node> nodeFilter) {
+        XmlAssert.assertThat(actual).and(control).withNodeFilter(nodeFilter).areSimilar();
+        return this;
+    }
 
-	public XmlContentAssert isSimilarTo(String control,
-			DifferenceEvaluator differenceEvaluator) {
-		XmlAssert.assertThat(actual).and(control).withDifferenceEvaluator(
-				differenceEvaluator).areSimilar();
-		return this;
-	}
+    public XmlContentAssert isSimilarTo(String control,
+                                        DifferenceEvaluator differenceEvaluator) {
+        XmlAssert.assertThat(actual).and(control).withDifferenceEvaluator(
+                differenceEvaluator).areSimilar();
+        return this;
+    }
 
-	public XmlContentAssert isSimilarToIgnoringWhitespace(Object control) {
-		XmlAssert.assertThat(actual).and(control).ignoreWhitespace().areSimilar();
-		return this;
-	}
+    public XmlContentAssert isSimilarToIgnoringWhitespace(Object control) {
+        XmlAssert.assertThat(actual).and(control).ignoreWhitespace().areSimilar();
+        return this;
+    }
 
 
-	public XmlContentAssert isSimilarToIgnoringWhitespace(String control, NodeMatcher nodeMatcher) {
-		XmlAssert.assertThat(actual).and(control).ignoreWhitespace().withNodeMatcher(nodeMatcher).areSimilar();
-		return this;
-	}
+    public XmlContentAssert isSimilarToIgnoringWhitespace(String control, NodeMatcher nodeMatcher) {
+        XmlAssert.assertThat(actual).and(control).ignoreWhitespace().withNodeMatcher(nodeMatcher).areSimilar();
+        return this;
+    }
 
 }

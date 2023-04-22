@@ -44,96 +44,97 @@ import static org.mockito.Mockito.verify;
 
 /**
  * Unit tests for {@link DefaultWebSessionManager}.
+ *
  * @author Rossen Stoyanchev
  * @author Rob Winch
  */
 @MockitoSettings(strictness = Strictness.LENIENT)
 class DefaultWebSessionManagerTests {
 
-	@Mock
-	private WebSessionIdResolver sessionIdResolver;
+    @Mock
+    private WebSessionIdResolver sessionIdResolver;
 
-	@Mock
-	private WebSessionStore sessionStore;
+    @Mock
+    private WebSessionStore sessionStore;
 
-	@Mock
-	private WebSession createSession;
+    @Mock
+    private WebSession createSession;
 
-	@Mock
-	private WebSession updateSession;
+    @Mock
+    private WebSession updateSession;
 
-	private DefaultWebSessionManager sessionManager;
+    private DefaultWebSessionManager sessionManager;
 
-	private ServerWebExchange exchange;
+    private ServerWebExchange exchange;
 
 
-	@BeforeEach
-	void setUp() throws Exception {
-		given(this.createSession.save()).willReturn(Mono.empty());
-		given(this.createSession.getId()).willReturn("create-session-id");
-		given(this.updateSession.getId()).willReturn("update-session-id");
+    @BeforeEach
+    void setUp() throws Exception {
+        given(this.createSession.save()).willReturn(Mono.empty());
+        given(this.createSession.getId()).willReturn("create-session-id");
+        given(this.updateSession.getId()).willReturn("update-session-id");
 
-		given(this.sessionStore.createWebSession()).willReturn(Mono.just(this.createSession));
-		given(this.sessionStore.retrieveSession(this.updateSession.getId())).willReturn(Mono.just(this.updateSession));
+        given(this.sessionStore.createWebSession()).willReturn(Mono.just(this.createSession));
+        given(this.sessionStore.retrieveSession(this.updateSession.getId())).willReturn(Mono.just(this.updateSession));
 
-		this.sessionManager = new DefaultWebSessionManager();
-		this.sessionManager.setSessionIdResolver(this.sessionIdResolver);
-		this.sessionManager.setSessionStore(this.sessionStore);
+        this.sessionManager = new DefaultWebSessionManager();
+        this.sessionManager.setSessionIdResolver(this.sessionIdResolver);
+        this.sessionManager.setSessionStore(this.sessionStore);
 
-		MockServerHttpRequest request = MockServerHttpRequest.get("/path").build();
-		MockServerHttpResponse response = new MockServerHttpResponse();
-		this.exchange = new DefaultServerWebExchange(request, response, this.sessionManager,
-			ServerCodecConfigurer.create(), new AcceptHeaderLocaleContextResolver());
-	}
+        MockServerHttpRequest request = MockServerHttpRequest.get("/path").build();
+        MockServerHttpResponse response = new MockServerHttpResponse();
+        this.exchange = new DefaultServerWebExchange(request, response, this.sessionManager,
+                ServerCodecConfigurer.create(), new AcceptHeaderLocaleContextResolver());
+    }
 
-	@Test
-	void getSessionSaveWhenCreatedAndNotStartedThenNotSaved() {
-		given(this.sessionIdResolver.resolveSessionIds(this.exchange)).willReturn(Collections.emptyList());
-		WebSession session = this.sessionManager.getSession(this.exchange).block();
-		this.exchange.getResponse().setComplete().block();
+    @Test
+    void getSessionSaveWhenCreatedAndNotStartedThenNotSaved() {
+        given(this.sessionIdResolver.resolveSessionIds(this.exchange)).willReturn(Collections.emptyList());
+        WebSession session = this.sessionManager.getSession(this.exchange).block();
+        this.exchange.getResponse().setComplete().block();
 
-		assertThat(session).isSameAs(this.createSession);
-		assertThat(session.isStarted()).isFalse();
-		assertThat(session.isExpired()).isFalse();
-		verify(this.createSession, never()).save();
-		verify(this.sessionIdResolver, never()).setSessionId(any(), any());
-	}
+        assertThat(session).isSameAs(this.createSession);
+        assertThat(session.isStarted()).isFalse();
+        assertThat(session.isExpired()).isFalse();
+        verify(this.createSession, never()).save();
+        verify(this.sessionIdResolver, never()).setSessionId(any(), any());
+    }
 
-	@Test
-	void getSessionSaveWhenCreatedAndStartedThenSavesAndSetsId() {
-		given(this.sessionIdResolver.resolveSessionIds(this.exchange)).willReturn(Collections.emptyList());
-		WebSession session = this.sessionManager.getSession(this.exchange).block();
-		assertThat(session).isSameAs(this.createSession);
-		String sessionId = this.createSession.getId();
+    @Test
+    void getSessionSaveWhenCreatedAndStartedThenSavesAndSetsId() {
+        given(this.sessionIdResolver.resolveSessionIds(this.exchange)).willReturn(Collections.emptyList());
+        WebSession session = this.sessionManager.getSession(this.exchange).block();
+        assertThat(session).isSameAs(this.createSession);
+        String sessionId = this.createSession.getId();
 
-		given(this.createSession.isStarted()).willReturn(true);
-		this.exchange.getResponse().setComplete().block();
+        given(this.createSession.isStarted()).willReturn(true);
+        this.exchange.getResponse().setComplete().block();
 
-		verify(this.sessionStore).createWebSession();
-		verify(this.sessionIdResolver).setSessionId(any(), eq(sessionId));
-		verify(this.createSession).save();
-	}
+        verify(this.sessionStore).createWebSession();
+        verify(this.sessionIdResolver).setSessionId(any(), eq(sessionId));
+        verify(this.createSession).save();
+    }
 
-	@Test
-	void existingSession() {
-		String sessionId = this.updateSession.getId();
-		given(this.sessionIdResolver.resolveSessionIds(this.exchange)).willReturn(Collections.singletonList(sessionId));
+    @Test
+    void existingSession() {
+        String sessionId = this.updateSession.getId();
+        given(this.sessionIdResolver.resolveSessionIds(this.exchange)).willReturn(Collections.singletonList(sessionId));
 
-		WebSession actual = this.sessionManager.getSession(this.exchange).block();
-		assertThat(actual).isNotNull();
-		assertThat(actual.getId()).isEqualTo(sessionId);
-	}
+        WebSession actual = this.sessionManager.getSession(this.exchange).block();
+        assertThat(actual).isNotNull();
+        assertThat(actual.getId()).isEqualTo(sessionId);
+    }
 
-	@Test
-	void multipleSessionIds() {
-		List<String> ids = Arrays.asList("not-this", "not-that", this.updateSession.getId());
-		given(this.sessionStore.retrieveSession("not-this")).willReturn(Mono.empty());
-		given(this.sessionStore.retrieveSession("not-that")).willReturn(Mono.empty());
-		given(this.sessionIdResolver.resolveSessionIds(this.exchange)).willReturn(ids);
-		WebSession actual = this.sessionManager.getSession(this.exchange).block();
+    @Test
+    void multipleSessionIds() {
+        List<String> ids = Arrays.asList("not-this", "not-that", this.updateSession.getId());
+        given(this.sessionStore.retrieveSession("not-this")).willReturn(Mono.empty());
+        given(this.sessionStore.retrieveSession("not-that")).willReturn(Mono.empty());
+        given(this.sessionIdResolver.resolveSessionIds(this.exchange)).willReturn(ids);
+        WebSession actual = this.sessionManager.getSession(this.exchange).block();
 
-		assertThat(actual).isNotNull();
-		assertThat(actual.getId()).isEqualTo(this.updateSession.getId());
-	}
+        assertThat(actual).isNotNull();
+        assertThat(actual.getId()).isEqualTo(this.updateSession.getId());
+    }
 
 }

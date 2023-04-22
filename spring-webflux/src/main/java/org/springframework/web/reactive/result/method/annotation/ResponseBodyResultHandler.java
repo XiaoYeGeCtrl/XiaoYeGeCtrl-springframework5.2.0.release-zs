@@ -48,42 +48,44 @@ import org.springframework.web.server.ServerWebExchange;
  */
 public class ResponseBodyResultHandler extends AbstractMessageWriterResultHandler implements HandlerResultHandler {
 
-	/**
-	 * Basic constructor with a default {@link ReactiveAdapterRegistry}.
-	 * @param writers writers for serializing to the response body
-	 * @param resolver to determine the requested content type
-	 */
-	public ResponseBodyResultHandler(List<HttpMessageWriter<?>> writers, RequestedContentTypeResolver resolver) {
-		this(writers, resolver, ReactiveAdapterRegistry.getSharedInstance());
-	}
+    /**
+     * Basic constructor with a default {@link ReactiveAdapterRegistry}.
+     *
+     * @param writers  writers for serializing to the response body
+     * @param resolver to determine the requested content type
+     */
+    public ResponseBodyResultHandler(List<HttpMessageWriter<?>> writers, RequestedContentTypeResolver resolver) {
+        this(writers, resolver, ReactiveAdapterRegistry.getSharedInstance());
+    }
 
-	/**
-	 * Constructor with an {@link ReactiveAdapterRegistry} instance.
-	 * @param writers writers for serializing to the response body
-	 * @param resolver to determine the requested content type
-	 * @param registry for adaptation to reactive types
-	 */
-	public ResponseBodyResultHandler(List<HttpMessageWriter<?>> writers,
-			RequestedContentTypeResolver resolver, ReactiveAdapterRegistry registry) {
+    /**
+     * Constructor with an {@link ReactiveAdapterRegistry} instance.
+     *
+     * @param writers  writers for serializing to the response body
+     * @param resolver to determine the requested content type
+     * @param registry for adaptation to reactive types
+     */
+    public ResponseBodyResultHandler(List<HttpMessageWriter<?>> writers,
+                                     RequestedContentTypeResolver resolver, ReactiveAdapterRegistry registry) {
 
-		super(writers, resolver, registry);
-		setOrder(100);
-	}
+        super(writers, resolver, registry);
+        setOrder(100);
+    }
 
 
-	@Override
-	public boolean supports(HandlerResult result) {
-		MethodParameter returnType = result.getReturnTypeSource();
-		Class<?> containingClass = returnType.getContainingClass();
-		return (AnnotatedElementUtils.hasAnnotation(containingClass, ResponseBody.class) ||
-				returnType.hasMethodAnnotation(ResponseBody.class));
-	}
+    @Override
+    public boolean supports(HandlerResult result) {
+        MethodParameter returnType = result.getReturnTypeSource();
+        Class<?> containingClass = returnType.getContainingClass();
+        return (AnnotatedElementUtils.hasAnnotation(containingClass, ResponseBody.class) ||
+                returnType.hasMethodAnnotation(ResponseBody.class));
+    }
 
-	@Override
-	public Mono<Void> handleResult(ServerWebExchange exchange, HandlerResult result) {
-		Object body = result.getReturnValue();
-		MethodParameter bodyTypeParameter = result.getReturnTypeSource();
-		return writeBody(body, bodyTypeParameter, exchange);
-	}
+    @Override
+    public Mono<Void> handleResult(ServerWebExchange exchange, HandlerResult result) {
+        Object body = result.getReturnValue();
+        MethodParameter bodyTypeParameter = result.getReturnTypeSource();
+        return writeBody(body, bodyTypeParameter, exchange);
+    }
 
 }

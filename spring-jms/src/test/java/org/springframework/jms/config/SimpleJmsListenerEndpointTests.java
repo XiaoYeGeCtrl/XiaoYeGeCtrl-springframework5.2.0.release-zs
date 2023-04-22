@@ -30,15 +30,15 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 public class SimpleJmsListenerEndpointTests {
 
-	private final SimpleMessageListenerContainer container = new SimpleMessageListenerContainer();
+    private final SimpleMessageListenerContainer container = new SimpleMessageListenerContainer();
 
 
-	@Test
-	public void createListener() {
-		SimpleJmsListenerEndpoint endpoint = new SimpleJmsListenerEndpoint();
-		MessageListener messageListener = new MessageListenerAdapter();
-		endpoint.setMessageListener(messageListener);
-		assertThat(endpoint.createMessageListener(container)).isSameAs(messageListener);
-	}
+    @Test
+    public void createListener() {
+        SimpleJmsListenerEndpoint endpoint = new SimpleJmsListenerEndpoint();
+        MessageListener messageListener = new MessageListenerAdapter();
+        endpoint.setMessageListener(messageListener);
+        assertThat(endpoint.createMessageListener(container)).isSameAs(messageListener);
+    }
 
 }

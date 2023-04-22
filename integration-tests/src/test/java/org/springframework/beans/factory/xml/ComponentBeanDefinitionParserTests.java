@@ -35,47 +35,47 @@ import static org.assertj.core.api.Assertions.assertThat;
 @TestInstance(Lifecycle.PER_CLASS)
 class ComponentBeanDefinitionParserTests {
 
-	private final DefaultListableBeanFactory bf = new DefaultListableBeanFactory();
+    private final DefaultListableBeanFactory bf = new DefaultListableBeanFactory();
 
 
-	@BeforeAll
-	void setUp() throws Exception {
-		new XmlBeanDefinitionReader(bf).loadBeanDefinitions(
-			new ClassPathResource("component-config.xml", ComponentBeanDefinitionParserTests.class));
-	}
+    @BeforeAll
+    void setUp() throws Exception {
+        new XmlBeanDefinitionReader(bf).loadBeanDefinitions(
+                new ClassPathResource("component-config.xml", ComponentBeanDefinitionParserTests.class));
+    }
 
-	@AfterAll
-	void tearDown() {
-		bf.destroySingletons();
-	}
+    @AfterAll
+    void tearDown() {
+        bf.destroySingletons();
+    }
 
-	@Test
-	void testBionicBasic() {
-		Component cp = getBionicFamily();
-		assertThat("Bionic-1").isEqualTo(cp.getName());
-	}
+    @Test
+    void testBionicBasic() {
+        Component cp = getBionicFamily();
+        assertThat("Bionic-1").isEqualTo(cp.getName());
+    }
 
-	@Test
-	void testBionicFirstLevelChildren() {
-		Component cp = getBionicFamily();
-		List<Component> components = cp.getComponents();
-		assertThat(2).isEqualTo(components.size());
-		assertThat("Mother-1").isEqualTo(components.get(0).getName());
-		assertThat("Rock-1").isEqualTo(components.get(1).getName());
-	}
+    @Test
+    void testBionicFirstLevelChildren() {
+        Component cp = getBionicFamily();
+        List<Component> components = cp.getComponents();
+        assertThat(2).isEqualTo(components.size());
+        assertThat("Mother-1").isEqualTo(components.get(0).getName());
+        assertThat("Rock-1").isEqualTo(components.get(1).getName());
+    }
 
-	@Test
-	void testBionicSecondLevelChildren() {
-		Component cp = getBionicFamily();
-		List<Component> components = cp.getComponents().get(0).getComponents();
-		assertThat(2).isEqualTo(components.size());
-		assertThat("Karate-1").isEqualTo(components.get(0).getName());
-		assertThat("Sport-1").isEqualTo(components.get(1).getName());
-	}
+    @Test
+    void testBionicSecondLevelChildren() {
+        Component cp = getBionicFamily();
+        List<Component> components = cp.getComponents().get(0).getComponents();
+        assertThat(2).isEqualTo(components.size());
+        assertThat("Karate-1").isEqualTo(components.get(0).getName());
+        assertThat("Sport-1").isEqualTo(components.get(1).getName());
+    }
 
-	private Component getBionicFamily() {
-		return bf.getBean("bionic-family", Component.class);
-	}
+    private Component getBionicFamily() {
+        return bf.getBean("bionic-family", Component.class);
+    }
 
 }
 

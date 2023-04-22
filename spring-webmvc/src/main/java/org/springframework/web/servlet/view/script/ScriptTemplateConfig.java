@@ -34,68 +34,70 @@ import org.springframework.lang.Nullable;
  */
 public interface ScriptTemplateConfig {
 
-	/**
-	 * Return the {@link ScriptEngine} to use by the views.
-	 */
-	@Nullable
-	ScriptEngine getEngine();
+    /**
+     * Return the {@link ScriptEngine} to use by the views.
+     */
+    @Nullable
+    ScriptEngine getEngine();
 
-	/**
-	 * Return the engine supplier that will be used to instantiate the {@link ScriptEngine}.
-	 * @since 5.2
-	 */
-	@Nullable
-	Supplier<ScriptEngine> getEngineSupplier();
+    /**
+     * Return the engine supplier that will be used to instantiate the {@link ScriptEngine}.
+     *
+     * @since 5.2
+     */
+    @Nullable
+    Supplier<ScriptEngine> getEngineSupplier();
 
-	/**
-	 * Return the engine name that will be used to instantiate the {@link ScriptEngine}.
-	 */
-	@Nullable
-	String getEngineName();
+    /**
+     * Return the engine name that will be used to instantiate the {@link ScriptEngine}.
+     */
+    @Nullable
+    String getEngineName();
 
-	/**
-	 * Return whether to use a shared engine for all threads or whether to create
-	 * thread-local engine instances for each thread.
-	 */
-	@Nullable
-	Boolean isSharedEngine();
+    /**
+     * Return whether to use a shared engine for all threads or whether to create
+     * thread-local engine instances for each thread.
+     */
+    @Nullable
+    Boolean isSharedEngine();
 
-	/**
-	 * Return the scripts to be loaded by the script engine (library or user provided).
-	 */
-	@Nullable
-	String[] getScripts();
+    /**
+     * Return the scripts to be loaded by the script engine (library or user provided).
+     */
+    @Nullable
+    String[] getScripts();
 
-	/**
-	 * Return the object where the render function belongs (optional).
-	 */
-	@Nullable
-	String getRenderObject();
+    /**
+     * Return the object where the render function belongs (optional).
+     */
+    @Nullable
+    String getRenderObject();
 
-	/**
-	 * Return the render function name (optional). If not specified, the script templates
-	 * will be evaluated with {@link ScriptEngine#eval(String, Bindings)}.
-	 */
-	@Nullable
-	String getRenderFunction();
+    /**
+     * Return the render function name (optional). If not specified, the script templates
+     * will be evaluated with {@link ScriptEngine#eval(String, Bindings)}.
+     */
+    @Nullable
+    String getRenderFunction();
 
-	/**
-	 * Return the content type to use for the response.
-	 * @since 4.2.1
-	 */
-	@Nullable
-	String getContentType();
+    /**
+     * Return the content type to use for the response.
+     *
+     * @since 4.2.1
+     */
+    @Nullable
+    String getContentType();
 
-	/**
-	 * Return the charset used to read script and template files.
-	 */
-	@Nullable
-	Charset getCharset();
+    /**
+     * Return the charset used to read script and template files.
+     */
+    @Nullable
+    Charset getCharset();
 
-	/**
-	 * Return the resource loader path(s) via a Spring resource location.
-	 */
-	@Nullable
-	String getResourceLoaderPath();
+    /**
+     * Return the resource loader path(s) via a Spring resource location.
+     */
+    @Nullable
+    String getResourceLoaderPath();
 
 }

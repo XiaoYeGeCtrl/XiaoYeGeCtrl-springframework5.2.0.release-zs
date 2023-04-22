@@ -27,17 +27,18 @@ import org.springframework.beans.factory.config.BeanDefinition;
  */
 public class DefaultBeanNameGenerator implements BeanNameGenerator {
 
-	/**
-	 * A convenient constant for a default {@code DefaultBeanNameGenerator} instance,
-	 * as used for {@link AbstractBeanDefinitionReader} setup.
-	 * @since 5.2
-	 */
-	public static final DefaultBeanNameGenerator INSTANCE = new DefaultBeanNameGenerator();
+    /**
+     * A convenient constant for a default {@code DefaultBeanNameGenerator} instance,
+     * as used for {@link AbstractBeanDefinitionReader} setup.
+     *
+     * @since 5.2
+     */
+    public static final DefaultBeanNameGenerator INSTANCE = new DefaultBeanNameGenerator();
 
 
-	@Override
-	public String generateBeanName(BeanDefinition definition, BeanDefinitionRegistry registry) {
-		return BeanDefinitionReaderUtils.generateBeanName(definition, registry);
-	}
+    @Override
+    public String generateBeanName(BeanDefinition definition, BeanDefinitionRegistry registry) {
+        return BeanDefinitionReaderUtils.generateBeanName(definition, registry);
+    }
 
 }

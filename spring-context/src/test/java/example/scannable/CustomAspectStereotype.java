@@ -31,9 +31,9 @@ import org.springframework.stereotype.Component;
 @Component
 public @interface CustomAspectStereotype {
 
-	/**
-	 * Not a plain String value - needs to be ignored during name detection.
-	 */
-	String[] value() default {};
+    /**
+     * Not a plain String value - needs to be ignored during name detection.
+     */
+    String[] value() default {};
 
 }

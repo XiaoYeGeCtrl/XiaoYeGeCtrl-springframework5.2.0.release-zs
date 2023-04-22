@@ -42,103 +42,99 @@ import org.springframework.web.socket.handler.BeanCreatingHandlerProvider;
  */
 public class AnnotatedEndpointConnectionManager extends ConnectionManagerSupport implements BeanFactoryAware {
 
-	@Nullable
-	private final Object endpoint;
+    @Nullable
+    private final Object endpoint;
 
-	@Nullable
-	private final BeanCreatingHandlerProvider<Object> endpointProvider;
+    @Nullable
+    private final BeanCreatingHandlerProvider<Object> endpointProvider;
 
-	private WebSocketContainer webSocketContainer = ContainerProvider.getWebSocketContainer();
+    private WebSocketContainer webSocketContainer = ContainerProvider.getWebSocketContainer();
 
-	private TaskExecutor taskExecutor = new SimpleAsyncTaskExecutor("AnnotatedEndpointConnectionManager-");
+    private TaskExecutor taskExecutor = new SimpleAsyncTaskExecutor("AnnotatedEndpointConnectionManager-");
 
-	@Nullable
-	private volatile Session session;
-
-
-	public AnnotatedEndpointConnectionManager(Object endpoint, String uriTemplate, Object... uriVariables) {
-		super(uriTemplate, uriVariables);
-		this.endpoint = endpoint;
-		this.endpointProvider = null;
-	}
-
-	public AnnotatedEndpointConnectionManager(Class<?> endpointClass, String uriTemplate, Object... uriVariables) {
-		super(uriTemplate, uriVariables);
-		this.endpoint = null;
-		this.endpointProvider = new BeanCreatingHandlerProvider<>(endpointClass);
-	}
+    @Nullable
+    private volatile Session session;
 
 
-	public void setWebSocketContainer(WebSocketContainer webSocketContainer) {
-		this.webSocketContainer = webSocketContainer;
-	}
+    public AnnotatedEndpointConnectionManager(Object endpoint, String uriTemplate, Object... uriVariables) {
+        super(uriTemplate, uriVariables);
+        this.endpoint = endpoint;
+        this.endpointProvider = null;
+    }
 
-	public WebSocketContainer getWebSocketContainer() {
-		return this.webSocketContainer;
-	}
+    public AnnotatedEndpointConnectionManager(Class<?> endpointClass, String uriTemplate, Object... uriVariables) {
+        super(uriTemplate, uriVariables);
+        this.endpoint = null;
+        this.endpointProvider = new BeanCreatingHandlerProvider<>(endpointClass);
+    }
 
-	@Override
-	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
-		if (this.endpointProvider != null) {
-			this.endpointProvider.setBeanFactory(beanFactory);
-		}
-	}
+    public WebSocketContainer getWebSocketContainer() {
+        return this.webSocketContainer;
+    }
 
-	/**
-	 * Set a {@link TaskExecutor} to use to open the connection.
-	 * By default {@link SimpleAsyncTaskExecutor} is used.
-	 */
-	public void setTaskExecutor(TaskExecutor taskExecutor) {
-		Assert.notNull(taskExecutor, "TaskExecutor must not be null");
-		this.taskExecutor = taskExecutor;
-	}
+    public void setWebSocketContainer(WebSocketContainer webSocketContainer) {
+        this.webSocketContainer = webSocketContainer;
+    }
 
-	/**
-	 * Return the configured {@link TaskExecutor}.
-	 */
-	public TaskExecutor getTaskExecutor() {
-		return this.taskExecutor;
-	}
+    @Override
+    public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
+        if (this.endpointProvider != null) {
+            this.endpointProvider.setBeanFactory(beanFactory);
+        }
+    }
 
+    /**
+     * Return the configured {@link TaskExecutor}.
+     */
+    public TaskExecutor getTaskExecutor() {
+        return this.taskExecutor;
+    }
 
-	@Override
-	protected void openConnection() {
-		this.taskExecutor.execute(() -> {
-			try {
-				if (logger.isInfoEnabled()) {
-					logger.info("Connecting to WebSocket at " + getUri());
-				}
-				Object endpointToUse = this.endpoint;
-				if (endpointToUse == null) {
-					Assert.state(this.endpointProvider != null, "No endpoint set");
-					endpointToUse = this.endpointProvider.getHandler();
-				}
-				this.session = this.webSocketContainer.connectToServer(endpointToUse, getUri());
-				logger.info("Successfully connected to WebSocket");
-			}
-			catch (Throwable ex) {
-				logger.error("Failed to connect to WebSocket", ex);
-			}
-		});
-	}
+    /**
+     * Set a {@link TaskExecutor} to use to open the connection.
+     * By default {@link SimpleAsyncTaskExecutor} is used.
+     */
+    public void setTaskExecutor(TaskExecutor taskExecutor) {
+        Assert.notNull(taskExecutor, "TaskExecutor must not be null");
+        this.taskExecutor = taskExecutor;
+    }
 
-	@Override
-	protected void closeConnection() throws Exception {
-		try {
-			Session session = this.session;
-			if (session != null && session.isOpen()) {
-				session.close();
-			}
-		}
-		finally {
-			this.session = null;
-		}
-	}
+    @Override
+    protected void openConnection() {
+        this.taskExecutor.execute(() -> {
+            try {
+                if (logger.isInfoEnabled()) {
+                    logger.info("Connecting to WebSocket at " + getUri());
+                }
+                Object endpointToUse = this.endpoint;
+                if (endpointToUse == null) {
+                    Assert.state(this.endpointProvider != null, "No endpoint set");
+                    endpointToUse = this.endpointProvider.getHandler();
+                }
+                this.session = this.webSocketContainer.connectToServer(endpointToUse, getUri());
+                logger.info("Successfully connected to WebSocket");
+            } catch (Throwable ex) {
+                logger.error("Failed to connect to WebSocket", ex);
+            }
+        });
+    }
 
-	@Override
-	protected boolean isConnected() {
-		Session session = this.session;
-		return (session != null && session.isOpen());
-	}
+    @Override
+    protected void closeConnection() throws Exception {
+        try {
+            Session session = this.session;
+            if (session != null && session.isOpen()) {
+                session.close();
+            }
+        } finally {
+            this.session = null;
+        }
+    }
+
+    @Override
+    protected boolean isConnected() {
+        Session session = this.session;
+        return (session != null && session.isOpen());
+    }
 
 }

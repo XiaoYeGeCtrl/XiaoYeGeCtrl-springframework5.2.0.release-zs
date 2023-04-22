@@ -37,68 +37,68 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 public class DefaultServletHandlerConfigurerTests {
 
-	private DefaultServletHandlerConfigurer configurer;
+    private DefaultServletHandlerConfigurer configurer;
 
-	private DispatchingMockServletContext servletContext;
+    private DispatchingMockServletContext servletContext;
 
-	private MockHttpServletResponse response;
-
-
-	@BeforeEach
-	public void setup() {
-		response = new MockHttpServletResponse();
-		servletContext = new DispatchingMockServletContext();
-		configurer = new DefaultServletHandlerConfigurer(servletContext);
-	}
+    private MockHttpServletResponse response;
 
 
-	@Test
-	public void notEnabled() {
-		assertThat(configurer.buildHandlerMapping()).isNull();
-	}
-
-	@Test
-	public void enable() throws Exception {
-		configurer.enable();
-		SimpleUrlHandlerMapping handlerMapping = configurer.buildHandlerMapping();
-		DefaultServletHttpRequestHandler handler = (DefaultServletHttpRequestHandler) handlerMapping.getUrlMap().get("/**");
-
-		assertThat(handler).isNotNull();
-		assertThat(handlerMapping.getOrder()).isEqualTo(Integer.MAX_VALUE);
-
-		handler.handleRequest(new MockHttpServletRequest(), response);
-
-		String expected = "default";
-		assertThat(servletContext.url).as("The ServletContext was not called with the default servlet name").isEqualTo(expected);
-		assertThat(response.getForwardedUrl()).as("The request was not forwarded").isEqualTo(expected);
-	}
-
-	@Test
-	public void enableWithServletName() throws Exception {
-		configurer.enable("defaultServlet");
-		SimpleUrlHandlerMapping handlerMapping = configurer.buildHandlerMapping();
-		DefaultServletHttpRequestHandler handler = (DefaultServletHttpRequestHandler) handlerMapping.getUrlMap().get("/**");
-
-		assertThat(handler).isNotNull();
-		assertThat(handlerMapping.getOrder()).isEqualTo(Integer.MAX_VALUE);
-
-		handler.handleRequest(new MockHttpServletRequest(), response);
-
-		String expected = "defaultServlet";
-		assertThat(servletContext.url).as("The ServletContext was not called with the default servlet name").isEqualTo(expected);
-		assertThat(response.getForwardedUrl()).as("The request was not forwarded").isEqualTo(expected);
-	}
+    @BeforeEach
+    public void setup() {
+        response = new MockHttpServletResponse();
+        servletContext = new DispatchingMockServletContext();
+        configurer = new DefaultServletHandlerConfigurer(servletContext);
+    }
 
 
-	private static class DispatchingMockServletContext extends MockServletContext {
+    @Test
+    public void notEnabled() {
+        assertThat(configurer.buildHandlerMapping()).isNull();
+    }
 
-		private String url;
+    @Test
+    public void enable() throws Exception {
+        configurer.enable();
+        SimpleUrlHandlerMapping handlerMapping = configurer.buildHandlerMapping();
+        DefaultServletHttpRequestHandler handler = (DefaultServletHttpRequestHandler) handlerMapping.getUrlMap().get("/**");
 
-		@Override
-		public RequestDispatcher getNamedDispatcher(String url) {
-			this.url = url;
-			return new MockRequestDispatcher(url);
-		}
-	}
+        assertThat(handler).isNotNull();
+        assertThat(handlerMapping.getOrder()).isEqualTo(Integer.MAX_VALUE);
+
+        handler.handleRequest(new MockHttpServletRequest(), response);
+
+        String expected = "default";
+        assertThat(servletContext.url).as("The ServletContext was not called with the default servlet name").isEqualTo(expected);
+        assertThat(response.getForwardedUrl()).as("The request was not forwarded").isEqualTo(expected);
+    }
+
+    @Test
+    public void enableWithServletName() throws Exception {
+        configurer.enable("defaultServlet");
+        SimpleUrlHandlerMapping handlerMapping = configurer.buildHandlerMapping();
+        DefaultServletHttpRequestHandler handler = (DefaultServletHttpRequestHandler) handlerMapping.getUrlMap().get("/**");
+
+        assertThat(handler).isNotNull();
+        assertThat(handlerMapping.getOrder()).isEqualTo(Integer.MAX_VALUE);
+
+        handler.handleRequest(new MockHttpServletRequest(), response);
+
+        String expected = "defaultServlet";
+        assertThat(servletContext.url).as("The ServletContext was not called with the default servlet name").isEqualTo(expected);
+        assertThat(response.getForwardedUrl()).as("The request was not forwarded").isEqualTo(expected);
+    }
+
+
+    private static class DispatchingMockServletContext extends MockServletContext {
+
+        private String url;
+
+        @Override
+        public RequestDispatcher getNamedDispatcher(String url) {
+            this.url = url;
+            return new MockRequestDispatcher(url);
+        }
+    }
 
 }

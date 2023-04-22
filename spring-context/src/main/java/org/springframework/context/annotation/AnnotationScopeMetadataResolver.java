@@ -33,64 +33,67 @@ import org.springframework.util.Assert;
  * @author Mark Fisher
  * @author Juergen Hoeller
  * @author Sam Brannen
- * @since 2.5
  * @see org.springframework.context.annotation.Scope
+ * @since 2.5
  */
 public class AnnotationScopeMetadataResolver implements ScopeMetadataResolver {
 
-	private final ScopedProxyMode defaultProxyMode;
+    private final ScopedProxyMode defaultProxyMode;
 
-	protected Class<? extends Annotation> scopeAnnotationType = Scope.class;
-
-
-	/**
-	 * Construct a new {@code AnnotationScopeMetadataResolver}.
-	 * @see #AnnotationScopeMetadataResolver(ScopedProxyMode)
-	 * @see ScopedProxyMode#NO
-	 */
-	public AnnotationScopeMetadataResolver() {
-		this.defaultProxyMode = ScopedProxyMode.NO;
-	}
-
-	/**
-	 * Construct a new {@code AnnotationScopeMetadataResolver} using the
-	 * supplied default {@link ScopedProxyMode}.
-	 * @param defaultProxyMode the default scoped-proxy mode
-	 */
-	public AnnotationScopeMetadataResolver(ScopedProxyMode defaultProxyMode) {
-		Assert.notNull(defaultProxyMode, "'defaultProxyMode' must not be null");
-		this.defaultProxyMode = defaultProxyMode;
-	}
+    protected Class<? extends Annotation> scopeAnnotationType = Scope.class;
 
 
-	/**
-	 * Set the type of annotation that is checked for by this
-	 * {@code AnnotationScopeMetadataResolver}.
-	 * @param scopeAnnotationType the target annotation type
-	 */
-	public void setScopeAnnotationType(Class<? extends Annotation> scopeAnnotationType) {
-		Assert.notNull(scopeAnnotationType, "'scopeAnnotationType' must not be null");
-		this.scopeAnnotationType = scopeAnnotationType;
-	}
+    /**
+     * Construct a new {@code AnnotationScopeMetadataResolver}.
+     *
+     * @see #AnnotationScopeMetadataResolver(ScopedProxyMode)
+     * @see ScopedProxyMode#NO
+     */
+    public AnnotationScopeMetadataResolver() {
+        this.defaultProxyMode = ScopedProxyMode.NO;
+    }
+
+    /**
+     * Construct a new {@code AnnotationScopeMetadataResolver} using the
+     * supplied default {@link ScopedProxyMode}.
+     *
+     * @param defaultProxyMode the default scoped-proxy mode
+     */
+    public AnnotationScopeMetadataResolver(ScopedProxyMode defaultProxyMode) {
+        Assert.notNull(defaultProxyMode, "'defaultProxyMode' must not be null");
+        this.defaultProxyMode = defaultProxyMode;
+    }
 
 
-	@Override
-	public ScopeMetadata resolveScopeMetadata(BeanDefinition definition) {
-		ScopeMetadata metadata = new ScopeMetadata();
-		if (definition instanceof AnnotatedBeanDefinition) {
-			AnnotatedBeanDefinition annDef = (AnnotatedBeanDefinition) definition;
-			AnnotationAttributes attributes = AnnotationConfigUtils.attributesFor(
-					annDef.getMetadata(), this.scopeAnnotationType);
-			if (attributes != null) {
-				metadata.setScopeName(attributes.getString("value"));
-				ScopedProxyMode proxyMode = attributes.getEnum("proxyMode");
-				if (proxyMode == ScopedProxyMode.DEFAULT) {
-					proxyMode = this.defaultProxyMode;
-				}
-				metadata.setScopedProxyMode(proxyMode);
-			}
-		}
-		return metadata;
-	}
+    /**
+     * Set the type of annotation that is checked for by this
+     * {@code AnnotationScopeMetadataResolver}.
+     *
+     * @param scopeAnnotationType the target annotation type
+     */
+    public void setScopeAnnotationType(Class<? extends Annotation> scopeAnnotationType) {
+        Assert.notNull(scopeAnnotationType, "'scopeAnnotationType' must not be null");
+        this.scopeAnnotationType = scopeAnnotationType;
+    }
+
+
+    @Override
+    public ScopeMetadata resolveScopeMetadata(BeanDefinition definition) {
+        ScopeMetadata metadata = new ScopeMetadata();
+        if (definition instanceof AnnotatedBeanDefinition) {
+            AnnotatedBeanDefinition annDef = (AnnotatedBeanDefinition) definition;
+            AnnotationAttributes attributes = AnnotationConfigUtils.attributesFor(
+                    annDef.getMetadata(), this.scopeAnnotationType);
+            if (attributes != null) {
+                metadata.setScopeName(attributes.getString("value"));
+                ScopedProxyMode proxyMode = attributes.getEnum("proxyMode");
+                if (proxyMode == ScopedProxyMode.DEFAULT) {
+                    proxyMode = this.defaultProxyMode;
+                }
+                metadata.setScopedProxyMode(proxyMode);
+            }
+        }
+        return metadata;
+    }
 
 }

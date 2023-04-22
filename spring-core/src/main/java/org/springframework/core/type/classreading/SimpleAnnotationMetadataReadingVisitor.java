@@ -42,168 +42,167 @@ import org.springframework.util.StringUtils;
  */
 final class SimpleAnnotationMetadataReadingVisitor extends ClassVisitor {
 
-	@Nullable
-	private final ClassLoader classLoader;
+    @Nullable
+    private final ClassLoader classLoader;
 
-	private String className = "";
+    private String className = "";
 
-	private int access;
+    private int access;
 
-	@Nullable
-	private String superClassName;
+    @Nullable
+    private String superClassName;
 
-	private String[] interfaceNames = new String[0];
+    private String[] interfaceNames = new String[0];
 
-	@Nullable
-	private String enclosingClassName;
+    @Nullable
+    private String enclosingClassName;
 
-	private boolean independentInnerClass;
+    private boolean independentInnerClass;
 
-	private Set<String> memberClassNames = new LinkedHashSet<>(4);
+    private Set<String> memberClassNames = new LinkedHashSet<>(4);
 
-	private List<MergedAnnotation<?>> annotations = new ArrayList<>();
+    private List<MergedAnnotation<?>> annotations = new ArrayList<>();
 
-	private List<SimpleMethodMetadata> annotatedMethods = new ArrayList<>();
+    private List<SimpleMethodMetadata> annotatedMethods = new ArrayList<>();
 
-	@Nullable
-	private SimpleAnnotationMetadata metadata;
+    @Nullable
+    private SimpleAnnotationMetadata metadata;
 
-	@Nullable
-	private Source source;
-
-
-	SimpleAnnotationMetadataReadingVisitor(@Nullable ClassLoader classLoader) {
-		super(SpringAsmInfo.ASM_VERSION);
-		this.classLoader = classLoader;
-	}
+    @Nullable
+    private Source source;
 
 
-	@Override
-	public void visit(int version, int access, String name, String signature,
-			@Nullable String supername, String[] interfaces) {
+    SimpleAnnotationMetadataReadingVisitor(@Nullable ClassLoader classLoader) {
+        super(SpringAsmInfo.ASM_VERSION);
+        this.classLoader = classLoader;
+    }
 
-		this.className = toClassName(name);
-		this.access = access;
-		if (supername != null && !isInterface(access)) {
-			this.superClassName = toClassName(supername);
-		}
-		this.interfaceNames = new String[interfaces.length];
-		for (int i = 0; i < interfaces.length; i++) {
-			this.interfaceNames[i] = toClassName(interfaces[i]);
-		}
-	}
 
-	@Override
-	public void visitOuterClass(String owner, String name, String desc) {
-		this.enclosingClassName = toClassName(owner);
-	}
+    @Override
+    public void visit(int version, int access, String name, String signature,
+                      @Nullable String supername, String[] interfaces) {
 
-	@Override
-	public void visitInnerClass(String name, @Nullable String outerName, String innerName,
-			int access) {
-		if (outerName != null) {
-			String className = toClassName(name);
-			String outerClassName = toClassName(outerName);
-			if (this.className.equals(className)) {
-				this.enclosingClassName = outerClassName;
-				this.independentInnerClass = ((access & Opcodes.ACC_STATIC) != 0);
-			}
-			else if (this.className.equals(outerClassName)) {
-				this.memberClassNames.add(className);
-			}
-		}
-	}
+        this.className = toClassName(name);
+        this.access = access;
+        if (supername != null && !isInterface(access)) {
+            this.superClassName = toClassName(supername);
+        }
+        this.interfaceNames = new String[interfaces.length];
+        for (int i = 0; i < interfaces.length; i++) {
+            this.interfaceNames[i] = toClassName(interfaces[i]);
+        }
+    }
 
-	@Override
-	@Nullable
-	public AnnotationVisitor visitAnnotation(String descriptor, boolean visible) {
-		return MergedAnnotationReadingVisitor.get(this.classLoader, this::getSource,
-				descriptor, visible, this.annotations::add);
-	}
+    @Override
+    public void visitOuterClass(String owner, String name, String desc) {
+        this.enclosingClassName = toClassName(owner);
+    }
 
-	@Override
-	@Nullable
-	public MethodVisitor visitMethod(
-			int access, String name, String descriptor, String signature, String[] exceptions) {
+    @Override
+    public void visitInnerClass(String name, @Nullable String outerName, String innerName,
+                                int access) {
+        if (outerName != null) {
+            String className = toClassName(name);
+            String outerClassName = toClassName(outerName);
+            if (this.className.equals(className)) {
+                this.enclosingClassName = outerClassName;
+                this.independentInnerClass = ((access & Opcodes.ACC_STATIC) != 0);
+            } else if (this.className.equals(outerClassName)) {
+                this.memberClassNames.add(className);
+            }
+        }
+    }
 
-		// Skip bridge methods - we're only interested in original
-		// annotation-defining user methods. On JDK 8, we'd otherwise run into
-		// double detection of the same annotated method...
-		if (isBridge(access)) {
-			return null;
-		}
-		return new SimpleMethodMetadataReadingVisitor(this.classLoader, this.className,
-				access, name, descriptor, this.annotatedMethods::add);
-	}
+    @Override
+    @Nullable
+    public AnnotationVisitor visitAnnotation(String descriptor, boolean visible) {
+        return MergedAnnotationReadingVisitor.get(this.classLoader, this::getSource,
+                descriptor, visible, this.annotations::add);
+    }
 
-	@Override
-	public void visitEnd() {
-		String[] memberClassNames = StringUtils.toStringArray(this.memberClassNames);
-		MethodMetadata[] annotatedMethods = this.annotatedMethods.toArray(new MethodMetadata[0]);
-		MergedAnnotations annotations = MergedAnnotations.of(this.annotations);
-		this.metadata = new SimpleAnnotationMetadata(this.className, this.access,
-				this.enclosingClassName, this.superClassName, this.independentInnerClass,
-				this.interfaceNames, memberClassNames, annotatedMethods, annotations);
-	}
+    @Override
+    @Nullable
+    public MethodVisitor visitMethod(
+            int access, String name, String descriptor, String signature, String[] exceptions) {
 
-	public SimpleAnnotationMetadata getMetadata() {
-		Assert.state(this.metadata != null, "AnnotationMetadata not initialized");
-		return this.metadata;
-	}
+        // Skip bridge methods - we're only interested in original
+        // annotation-defining user methods. On JDK 8, we'd otherwise run into
+        // double detection of the same annotated method...
+        if (isBridge(access)) {
+            return null;
+        }
+        return new SimpleMethodMetadataReadingVisitor(this.classLoader, this.className,
+                access, name, descriptor, this.annotatedMethods::add);
+    }
 
-	private Source getSource() {
-		Source source = this.source;
-		if (source == null) {
-			source = new Source(this.className);
-			this.source = source;
-		}
-		return source;
-	}
+    @Override
+    public void visitEnd() {
+        String[] memberClassNames = StringUtils.toStringArray(this.memberClassNames);
+        MethodMetadata[] annotatedMethods = this.annotatedMethods.toArray(new MethodMetadata[0]);
+        MergedAnnotations annotations = MergedAnnotations.of(this.annotations);
+        this.metadata = new SimpleAnnotationMetadata(this.className, this.access,
+                this.enclosingClassName, this.superClassName, this.independentInnerClass,
+                this.interfaceNames, memberClassNames, annotatedMethods, annotations);
+    }
 
-	private String toClassName(String name) {
-		return ClassUtils.convertResourcePathToClassName(name);
-	}
+    public SimpleAnnotationMetadata getMetadata() {
+        Assert.state(this.metadata != null, "AnnotationMetadata not initialized");
+        return this.metadata;
+    }
 
-	private boolean isBridge(int access) {
-		return (access & Opcodes.ACC_BRIDGE) != 0;
-	}
+    private Source getSource() {
+        Source source = this.source;
+        if (source == null) {
+            source = new Source(this.className);
+            this.source = source;
+        }
+        return source;
+    }
 
-	private boolean isInterface(int access) {
-		return (access & Opcodes.ACC_INTERFACE) != 0;
-	}
+    private String toClassName(String name) {
+        return ClassUtils.convertResourcePathToClassName(name);
+    }
 
-	/**
-	 * {@link MergedAnnotation} source.
-	 */
-	private static final class Source {
+    private boolean isBridge(int access) {
+        return (access & Opcodes.ACC_BRIDGE) != 0;
+    }
 
-		private final String className;
+    private boolean isInterface(int access) {
+        return (access & Opcodes.ACC_INTERFACE) != 0;
+    }
 
-		Source(String className) {
-			this.className = className;
-		}
+    /**
+     * {@link MergedAnnotation} source.
+     */
+    private static final class Source {
 
-		@Override
-		public int hashCode() {
-			return this.className.hashCode();
-		}
+        private final String className;
 
-		@Override
-		public boolean equals(@Nullable Object obj) {
-			if (this == obj) {
-				return true;
-			}
-			if (obj == null || getClass() != obj.getClass()) {
-				return false;
-			}
-			return this.className.equals(((Source) obj).className);
-		}
+        Source(String className) {
+            this.className = className;
+        }
 
-		@Override
-		public String toString() {
-			return this.className;
-		}
+        @Override
+        public int hashCode() {
+            return this.className.hashCode();
+        }
 
-	}
+        @Override
+        public boolean equals(@Nullable Object obj) {
+            if (this == obj) {
+                return true;
+            }
+            if (obj == null || getClass() != obj.getClass()) {
+                return false;
+            }
+            return this.className.equals(((Source) obj).className);
+        }
+
+        @Override
+        public String toString() {
+            return this.className;
+        }
+
+    }
 
 }

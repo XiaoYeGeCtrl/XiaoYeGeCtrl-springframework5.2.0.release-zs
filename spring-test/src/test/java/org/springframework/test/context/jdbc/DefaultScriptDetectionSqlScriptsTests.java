@@ -32,15 +32,15 @@ import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 @DirtiesContext
 class DefaultScriptDetectionSqlScriptsTests extends AbstractTransactionalTests {
 
-	@Test
-	void classLevel() {
-		assertNumUsers(2);
-	}
+    @Test
+    void classLevel() {
+        assertNumUsers(2);
+    }
 
-	@Test
-	@Sql
-	void methodLevel() {
-		assertNumUsers(3);
-	}
+    @Test
+    @Sql
+    void methodLevel() {
+        assertNumUsers(3);
+    }
 
 }

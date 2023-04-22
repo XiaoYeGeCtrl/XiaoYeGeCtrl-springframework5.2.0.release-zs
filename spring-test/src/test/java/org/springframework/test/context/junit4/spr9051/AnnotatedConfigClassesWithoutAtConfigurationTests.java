@@ -54,48 +54,45 @@ import static org.assertj.core.api.Assertions.assertThat;
 @ContextConfiguration(classes = AnnotatedConfigClassesWithoutAtConfigurationTests.AnnotatedFactoryBeans.class)
 public class AnnotatedConfigClassesWithoutAtConfigurationTests {
 
-	/**
-	 * This is intentionally <b>not</b> annotated with {@code @Configuration}.
-	 * Consequently, this class contains what we call <i>annotated factory bean
-	 * methods</i> instead of standard bean definition methods.
-	 */
-	static class AnnotatedFactoryBeans {
+    @Autowired
+    private String enigma;
+    @Autowired
+    private LifecycleBean lifecycleBean;
 
-		static final AtomicInteger enigmaCallCount = new AtomicInteger();
+    @Test
+    public void testSPR_9051() throws Exception {
+        assertThat(enigma).isNotNull();
+        assertThat(lifecycleBean).isNotNull();
+        assertThat(lifecycleBean.isInitialized()).isTrue();
+        Set<String> names = new HashSet<>();
+        names.add(enigma.toString());
+        names.add(lifecycleBean.getName());
+        assertThat(new HashSet<>(Arrays.asList("enigma #1", "enigma #2"))).isEqualTo(names);
+    }
 
+    /**
+     * This is intentionally <b>not</b> annotated with {@code @Configuration}.
+     * Consequently, this class contains what we call <i>annotated factory bean
+     * methods</i> instead of standard bean definition methods.
+     */
+    static class AnnotatedFactoryBeans {
 
-		@Bean
-		public String enigma() {
-			return "enigma #" + enigmaCallCount.incrementAndGet();
-		}
-
-		@Bean
-		public LifecycleBean lifecycleBean() {
-			// The following call to enigma() literally invokes the local
-			// enigma() method, not a CGLIB proxied version, since these methods
-			// are essentially factory bean methods.
-			LifecycleBean bean = new LifecycleBean(enigma());
-			assertThat(bean.isInitialized()).isFalse();
-			return bean;
-		}
-	}
-
-
-	@Autowired
-	private String enigma;
-
-	@Autowired
-	private LifecycleBean lifecycleBean;
+        static final AtomicInteger enigmaCallCount = new AtomicInteger();
 
 
-	@Test
-	public void testSPR_9051() throws Exception {
-		assertThat(enigma).isNotNull();
-		assertThat(lifecycleBean).isNotNull();
-		assertThat(lifecycleBean.isInitialized()).isTrue();
-		Set<String> names = new HashSet<>();
-		names.add(enigma.toString());
-		names.add(lifecycleBean.getName());
-		assertThat(new HashSet<>(Arrays.asList("enigma #1", "enigma #2"))).isEqualTo(names);
-	}
+        @Bean
+        public String enigma() {
+            return "enigma #" + enigmaCallCount.incrementAndGet();
+        }
+
+        @Bean
+        public LifecycleBean lifecycleBean() {
+            // The following call to enigma() literally invokes the local
+            // enigma() method, not a CGLIB proxied version, since these methods
+            // are essentially factory bean methods.
+            LifecycleBean bean = new LifecycleBean(enigma());
+            assertThat(bean.isInitialized()).isFalse();
+            return bean;
+        }
+    }
 }

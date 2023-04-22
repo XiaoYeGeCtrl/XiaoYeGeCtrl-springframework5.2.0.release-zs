@@ -40,124 +40,123 @@ import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException
  */
 public class CauchoRemotingTests {
 
-	@Test
-	public void hessianProxyFactoryBeanWithClassInsteadOfInterface() throws Exception {
-		HessianProxyFactoryBean factory = new HessianProxyFactoryBean();
-		assertThatIllegalArgumentException().isThrownBy(() ->
-				factory.setServiceInterface(TestBean.class));
-	}
+    @Test
+    public void hessianProxyFactoryBeanWithClassInsteadOfInterface() throws Exception {
+        HessianProxyFactoryBean factory = new HessianProxyFactoryBean();
+        assertThatIllegalArgumentException().isThrownBy(() ->
+                factory.setServiceInterface(TestBean.class));
+    }
 
-	@Test
-	public void hessianProxyFactoryBeanWithAccessError() throws Exception {
-		HessianProxyFactoryBean factory = new HessianProxyFactoryBean();
-		factory.setServiceInterface(ITestBean.class);
-		factory.setServiceUrl("http://localhosta/testbean");
-		factory.afterPropertiesSet();
+    @Test
+    public void hessianProxyFactoryBeanWithAccessError() throws Exception {
+        HessianProxyFactoryBean factory = new HessianProxyFactoryBean();
+        factory.setServiceInterface(ITestBean.class);
+        factory.setServiceUrl("http://localhosta/testbean");
+        factory.afterPropertiesSet();
 
-		assertThat(factory.isSingleton()).as("Correct singleton value").isTrue();
-		boolean condition = factory.getObject() instanceof ITestBean;
-		assertThat(condition).isTrue();
-		ITestBean bean = (ITestBean) factory.getObject();
+        assertThat(factory.isSingleton()).as("Correct singleton value").isTrue();
+        boolean condition = factory.getObject() instanceof ITestBean;
+        assertThat(condition).isTrue();
+        ITestBean bean = (ITestBean) factory.getObject();
 
-		assertThatExceptionOfType(RemoteAccessException.class).isThrownBy(() ->
-				bean.setName("test"));
-	}
+        assertThatExceptionOfType(RemoteAccessException.class).isThrownBy(() ->
+                bean.setName("test"));
+    }
 
-	@Test
-	public void hessianProxyFactoryBeanWithAuthenticationAndAccessError() throws Exception {
-		HessianProxyFactoryBean factory = new HessianProxyFactoryBean();
-		factory.setServiceInterface(ITestBean.class);
-		factory.setServiceUrl("http://localhosta/testbean");
-		factory.setUsername("test");
-		factory.setPassword("bean");
-		factory.setOverloadEnabled(true);
-		factory.afterPropertiesSet();
+    @Test
+    public void hessianProxyFactoryBeanWithAuthenticationAndAccessError() throws Exception {
+        HessianProxyFactoryBean factory = new HessianProxyFactoryBean();
+        factory.setServiceInterface(ITestBean.class);
+        factory.setServiceUrl("http://localhosta/testbean");
+        factory.setUsername("test");
+        factory.setPassword("bean");
+        factory.setOverloadEnabled(true);
+        factory.afterPropertiesSet();
 
-		assertThat(factory.isSingleton()).as("Correct singleton value").isTrue();
-		boolean condition = factory.getObject() instanceof ITestBean;
-		assertThat(condition).isTrue();
-		ITestBean bean = (ITestBean) factory.getObject();
+        assertThat(factory.isSingleton()).as("Correct singleton value").isTrue();
+        boolean condition = factory.getObject() instanceof ITestBean;
+        assertThat(condition).isTrue();
+        ITestBean bean = (ITestBean) factory.getObject();
 
-		assertThatExceptionOfType(RemoteAccessException.class).isThrownBy(() ->
-				bean.setName("test"));
-	}
+        assertThatExceptionOfType(RemoteAccessException.class).isThrownBy(() ->
+                bean.setName("test"));
+    }
 
-	@Test
-	public void hessianProxyFactoryBeanWithCustomProxyFactory() throws Exception {
-		TestHessianProxyFactory proxyFactory = new TestHessianProxyFactory();
-		HessianProxyFactoryBean factory = new HessianProxyFactoryBean();
-		factory.setServiceInterface(ITestBean.class);
-		factory.setServiceUrl("http://localhosta/testbean");
-		factory.setProxyFactory(proxyFactory);
-		factory.setUsername("test");
-		factory.setPassword("bean");
-		factory.setOverloadEnabled(true);
-		factory.afterPropertiesSet();
-		assertThat(factory.isSingleton()).as("Correct singleton value").isTrue();
-		boolean condition = factory.getObject() instanceof ITestBean;
-		assertThat(condition).isTrue();
-		ITestBean bean = (ITestBean) factory.getObject();
+    @Test
+    public void hessianProxyFactoryBeanWithCustomProxyFactory() throws Exception {
+        TestHessianProxyFactory proxyFactory = new TestHessianProxyFactory();
+        HessianProxyFactoryBean factory = new HessianProxyFactoryBean();
+        factory.setServiceInterface(ITestBean.class);
+        factory.setServiceUrl("http://localhosta/testbean");
+        factory.setProxyFactory(proxyFactory);
+        factory.setUsername("test");
+        factory.setPassword("bean");
+        factory.setOverloadEnabled(true);
+        factory.afterPropertiesSet();
+        assertThat(factory.isSingleton()).as("Correct singleton value").isTrue();
+        boolean condition = factory.getObject() instanceof ITestBean;
+        assertThat(condition).isTrue();
+        ITestBean bean = (ITestBean) factory.getObject();
 
-		assertThat(proxyFactory.user).isEqualTo("test");
-		assertThat(proxyFactory.password).isEqualTo("bean");
-		assertThat(proxyFactory.overloadEnabled).isTrue();
+        assertThat(proxyFactory.user).isEqualTo("test");
+        assertThat(proxyFactory.password).isEqualTo("bean");
+        assertThat(proxyFactory.overloadEnabled).isTrue();
 
-		assertThatExceptionOfType(RemoteAccessException.class).isThrownBy(() ->
-				bean.setName("test"));
-	}
+        assertThatExceptionOfType(RemoteAccessException.class).isThrownBy(() ->
+                bean.setName("test"));
+    }
 
-	@Test
-	@SuppressWarnings("deprecation")
-	public void simpleHessianServiceExporter() throws IOException {
-		final int port = SocketUtils.findAvailableTcpPort();
+    @Test
+    @SuppressWarnings("deprecation")
+    public void simpleHessianServiceExporter() throws IOException {
+        final int port = SocketUtils.findAvailableTcpPort();
 
-		TestBean tb = new TestBean("tb");
-		SimpleHessianServiceExporter exporter = new SimpleHessianServiceExporter();
-		exporter.setService(tb);
-		exporter.setServiceInterface(ITestBean.class);
-		exporter.setDebug(true);
-		exporter.prepare();
+        TestBean tb = new TestBean("tb");
+        SimpleHessianServiceExporter exporter = new SimpleHessianServiceExporter();
+        exporter.setService(tb);
+        exporter.setServiceInterface(ITestBean.class);
+        exporter.setDebug(true);
+        exporter.prepare();
 
-		HttpServer server = HttpServer.create(new InetSocketAddress(port), -1);
-		server.createContext("/hessian", exporter);
-		server.start();
-		try {
-			HessianClientInterceptor client = new HessianClientInterceptor();
-			client.setServiceUrl("http://localhost:" + port + "/hessian");
-			client.setServiceInterface(ITestBean.class);
-			//client.setHessian2(true);
-			client.prepare();
-			ITestBean proxy = ProxyFactory.getProxy(ITestBean.class, client);
-			assertThat(proxy.getName()).isEqualTo("tb");
-			proxy.setName("test");
-			assertThat(proxy.getName()).isEqualTo("test");
-		}
-		finally {
-			server.stop(Integer.MAX_VALUE);
-		}
-	}
+        HttpServer server = HttpServer.create(new InetSocketAddress(port), -1);
+        server.createContext("/hessian", exporter);
+        server.start();
+        try {
+            HessianClientInterceptor client = new HessianClientInterceptor();
+            client.setServiceUrl("http://localhost:" + port + "/hessian");
+            client.setServiceInterface(ITestBean.class);
+            //client.setHessian2(true);
+            client.prepare();
+            ITestBean proxy = ProxyFactory.getProxy(ITestBean.class, client);
+            assertThat(proxy.getName()).isEqualTo("tb");
+            proxy.setName("test");
+            assertThat(proxy.getName()).isEqualTo("test");
+        } finally {
+            server.stop(Integer.MAX_VALUE);
+        }
+    }
 
 
-	private static class TestHessianProxyFactory extends HessianProxyFactory {
+    private static class TestHessianProxyFactory extends HessianProxyFactory {
 
-		private String user;
-		private String password;
-		private boolean overloadEnabled;
+        private String user;
+        private String password;
+        private boolean overloadEnabled;
 
-		@Override
-		public void setUser(String user) {
-			this.user = user;
-		}
+        @Override
+        public void setUser(String user) {
+            this.user = user;
+        }
 
-		@Override
-		public void setPassword(String password) {
-			this.password = password;
-		}
+        @Override
+        public void setPassword(String password) {
+            this.password = password;
+        }
 
-		@Override
-		public void setOverloadEnabled(boolean overloadEnabled) {
-			this.overloadEnabled = overloadEnabled;
-		}
-	}
+        @Override
+        public void setOverloadEnabled(boolean overloadEnabled) {
+            this.overloadEnabled = overloadEnabled;
+        }
+    }
 
 }

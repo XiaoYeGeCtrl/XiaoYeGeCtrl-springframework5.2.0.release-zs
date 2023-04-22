@@ -30,14 +30,14 @@ import org.springframework.test.context.TestPropertySource;
  */
 @TestPropertySource
 class ExtendedDefaultPropertiesFileDetectionTestPropertySourceTests extends
-		DefaultPropertiesFileDetectionTestPropertySourceTests {
+        DefaultPropertiesFileDetectionTestPropertySourceTests {
 
-	@Test
-	@Override
-	void verifyPropertiesAreAvailableInEnvironment() {
-		super.verifyPropertiesAreAvailableInEnvironment();
-		// from ExtendedDefaultPropertiesFileDetectionTestPropertySourceTests.properties
-		assertEnvironmentValue("enigma", "auto detected");
-	}
+    @Test
+    @Override
+    void verifyPropertiesAreAvailableInEnvironment() {
+        super.verifyPropertiesAreAvailableInEnvironment();
+        // from ExtendedDefaultPropertiesFileDetectionTestPropertySourceTests.properties
+        assertEnvironmentValue("enigma", "auto detected");
+    }
 
 }

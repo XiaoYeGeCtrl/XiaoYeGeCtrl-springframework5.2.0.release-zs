@@ -32,12 +32,12 @@ import org.springframework.core.annotation.AliasFor;
  * acts as a shortcut for {@code @RequestMapping(method = RequestMethod.POST)}.
  *
  * @author Sam Brannen
- * @since 4.3
  * @see GetMapping
  * @see PutMapping
  * @see DeleteMapping
  * @see PatchMapping
  * @see RequestMapping
+ * @since 4.3
  */
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
@@ -45,46 +45,46 @@ import org.springframework.core.annotation.AliasFor;
 @RequestMapping(method = RequestMethod.POST)
 public @interface PostMapping {
 
-	/**
-	 * Alias for {@link RequestMapping#name}.
-	 */
-	@AliasFor(annotation = RequestMapping.class)
-	String name() default "";
+    /**
+     * Alias for {@link RequestMapping#name}.
+     */
+    @AliasFor(annotation = RequestMapping.class)
+    String name() default "";
 
-	/**
-	 * Alias for {@link RequestMapping#value}.
-	 */
-	@AliasFor(annotation = RequestMapping.class)
-	String[] value() default {};
+    /**
+     * Alias for {@link RequestMapping#value}.
+     */
+    @AliasFor(annotation = RequestMapping.class)
+    String[] value() default {};
 
-	/**
-	 * Alias for {@link RequestMapping#path}.
-	 */
-	@AliasFor(annotation = RequestMapping.class)
-	String[] path() default {};
+    /**
+     * Alias for {@link RequestMapping#path}.
+     */
+    @AliasFor(annotation = RequestMapping.class)
+    String[] path() default {};
 
-	/**
-	 * Alias for {@link RequestMapping#params}.
-	 */
-	@AliasFor(annotation = RequestMapping.class)
-	String[] params() default {};
+    /**
+     * Alias for {@link RequestMapping#params}.
+     */
+    @AliasFor(annotation = RequestMapping.class)
+    String[] params() default {};
 
-	/**
-	 * Alias for {@link RequestMapping#headers}.
-	 */
-	@AliasFor(annotation = RequestMapping.class)
-	String[] headers() default {};
+    /**
+     * Alias for {@link RequestMapping#headers}.
+     */
+    @AliasFor(annotation = RequestMapping.class)
+    String[] headers() default {};
 
-	/**
-	 * Alias for {@link RequestMapping#consumes}.
-	 */
-	@AliasFor(annotation = RequestMapping.class)
-	String[] consumes() default {};
+    /**
+     * Alias for {@link RequestMapping#consumes}.
+     */
+    @AliasFor(annotation = RequestMapping.class)
+    String[] consumes() default {};
 
-	/**
-	 * Alias for {@link RequestMapping#produces}.
-	 */
-	@AliasFor(annotation = RequestMapping.class)
-	String[] produces() default {};
+    /**
+     * Alias for {@link RequestMapping#produces}.
+     */
+    @AliasFor(annotation = RequestMapping.class)
+    String[] produces() default {};
 
 }

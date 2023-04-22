@@ -28,8 +28,8 @@ import org.springframework.http.MediaType;
  */
 public interface MediaTypeExpression {
 
-	MediaType getMediaType();
+    MediaType getMediaType();
 
-	boolean isNegated();
+    boolean isNegated();
 
 }

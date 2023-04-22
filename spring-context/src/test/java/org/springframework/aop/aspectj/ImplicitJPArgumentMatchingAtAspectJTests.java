@@ -32,19 +32,19 @@ import org.springframework.tests.sample.beans.TestBean;
  */
 public class ImplicitJPArgumentMatchingAtAspectJTests {
 
-	@Test
-	public void testAspect() {
-		// nothing to really test; it is enough if we don't get error while creating app context
-		new ClassPathXmlApplicationContext(getClass().getSimpleName() + ".xml", getClass());
-	}
+    @Test
+    public void testAspect() {
+        // nothing to really test; it is enough if we don't get error while creating app context
+        new ClassPathXmlApplicationContext(getClass().getSimpleName() + ".xml", getClass());
+    }
 
-	@Aspect
-	static class CounterAtAspectJAspect {
-		@Around(value="execution(* org.springframework.tests.sample.beans.TestBean.*(..)) and this(bean) and args(argument)",
-				argNames="bean,argument")
-		public void increment(ProceedingJoinPoint pjp, TestBean bean, Object argument) throws Throwable {
-			pjp.proceed();
-		}
-	}
+    @Aspect
+    static class CounterAtAspectJAspect {
+        @Around(value = "execution(* org.springframework.tests.sample.beans.TestBean.*(..)) and this(bean) and args(argument)",
+                argNames = "bean,argument")
+        public void increment(ProceedingJoinPoint pjp, TestBean bean, Object argument) throws Throwable {
+            pjp.proceed();
+        }
+    }
 }
 

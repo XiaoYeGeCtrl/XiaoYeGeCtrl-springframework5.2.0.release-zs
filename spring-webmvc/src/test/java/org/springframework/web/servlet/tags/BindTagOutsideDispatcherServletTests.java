@@ -22,9 +22,9 @@ package org.springframework.web.servlet.tags;
  */
 public class BindTagOutsideDispatcherServletTests extends BindTagTests {
 
-	@Override
-	protected boolean inDispatcherServlet() {
-		return false;
-	}
+    @Override
+    protected boolean inDispatcherServlet() {
+        return false;
+    }
 
 }

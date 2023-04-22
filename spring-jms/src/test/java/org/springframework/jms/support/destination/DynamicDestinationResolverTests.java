@@ -38,46 +38,45 @@ import static org.mockito.Mockito.mock;
  */
 public class DynamicDestinationResolverTests {
 
-	private static final String DESTINATION_NAME = "foo";
+    private static final String DESTINATION_NAME = "foo";
 
+    private static void testResolveDestination(Session session, Destination expectedDestination, boolean isPubSub) throws JMSException {
+        DynamicDestinationResolver resolver = new DynamicDestinationResolver();
+        Destination destination = resolver.resolveDestinationName(session, DESTINATION_NAME, isPubSub);
+        assertThat(destination).isNotNull();
+        assertThat(destination).isSameAs(expectedDestination);
+    }
 
-	@Test
-	public void resolveWithPubSubTopicSession() throws Exception {
-		Topic expectedDestination = new StubTopic();
-		TopicSession session = mock(TopicSession.class);
-		given(session.createTopic(DESTINATION_NAME)).willReturn(expectedDestination);
-		testResolveDestination(session, expectedDestination, true);
-	}
+    @Test
+    public void resolveWithPubSubTopicSession() throws Exception {
+        Topic expectedDestination = new StubTopic();
+        TopicSession session = mock(TopicSession.class);
+        given(session.createTopic(DESTINATION_NAME)).willReturn(expectedDestination);
+        testResolveDestination(session, expectedDestination, true);
+    }
 
-	@Test
-	public void resolveWithPubSubVanillaSession() throws Exception {
-		Topic expectedDestination = new StubTopic();
-		Session session = mock(Session.class);
-		given(session.createTopic(DESTINATION_NAME)).willReturn(expectedDestination);
-		testResolveDestination(session, expectedDestination, true);
-	}
+    @Test
+    public void resolveWithPubSubVanillaSession() throws Exception {
+        Topic expectedDestination = new StubTopic();
+        Session session = mock(Session.class);
+        given(session.createTopic(DESTINATION_NAME)).willReturn(expectedDestination);
+        testResolveDestination(session, expectedDestination, true);
+    }
 
-	@Test
-	public void resolveWithPointToPointQueueSession() throws Exception {
-		Queue expectedDestination = new StubQueue();
-		Session session = mock(QueueSession.class);
-		given(session.createQueue(DESTINATION_NAME)).willReturn(expectedDestination);
-		testResolveDestination(session, expectedDestination, false);
-	}
+    @Test
+    public void resolveWithPointToPointQueueSession() throws Exception {
+        Queue expectedDestination = new StubQueue();
+        Session session = mock(QueueSession.class);
+        given(session.createQueue(DESTINATION_NAME)).willReturn(expectedDestination);
+        testResolveDestination(session, expectedDestination, false);
+    }
 
-	@Test
-	public void resolveWithPointToPointVanillaSession() throws Exception {
-		Queue expectedDestination = new StubQueue();
-		Session session = mock(Session.class);
-		given(session.createQueue(DESTINATION_NAME)).willReturn(expectedDestination);
-		testResolveDestination(session, expectedDestination, false);
-	}
-
-	private static void testResolveDestination(Session session, Destination expectedDestination, boolean isPubSub) throws JMSException {
-		DynamicDestinationResolver resolver = new DynamicDestinationResolver();
-		Destination destination = resolver.resolveDestinationName(session, DESTINATION_NAME, isPubSub);
-		assertThat(destination).isNotNull();
-		assertThat(destination).isSameAs(expectedDestination);
-	}
+    @Test
+    public void resolveWithPointToPointVanillaSession() throws Exception {
+        Queue expectedDestination = new StubQueue();
+        Session session = mock(Session.class);
+        given(session.createQueue(DESTINATION_NAME)).willReturn(expectedDestination);
+        testResolveDestination(session, expectedDestination, false);
+    }
 
 }

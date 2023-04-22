@@ -27,105 +27,104 @@ import org.springframework.core.type.AnnotatedTypeMetadata;
  */
 public class Spr16217Tests {
 
-	@Test
-	@Disabled("TODO")
-	public void baseConfigurationIsIncludedWhenFirstSuperclassReferenceIsSkippedInRegisterBeanPhase() {
-		try (AnnotationConfigApplicationContext context =
-					new AnnotationConfigApplicationContext(RegisterBeanPhaseImportingConfiguration.class)) {
-			context.getBean("someBean");
-		}
-	}
+    @Test
+    @Disabled("TODO")
+    public void baseConfigurationIsIncludedWhenFirstSuperclassReferenceIsSkippedInRegisterBeanPhase() {
+        try (AnnotationConfigApplicationContext context =
+                     new AnnotationConfigApplicationContext(RegisterBeanPhaseImportingConfiguration.class)) {
+            context.getBean("someBean");
+        }
+    }
 
-	@Test
-	public void baseConfigurationIsIncludedWhenFirstSuperclassReferenceIsSkippedInParseConfigurationPhase() {
-		try (AnnotationConfigApplicationContext context =
-					new AnnotationConfigApplicationContext(ParseConfigurationPhaseImportingConfiguration.class)) {
-			context.getBean("someBean");
-		}
-	}
+    @Test
+    public void baseConfigurationIsIncludedWhenFirstSuperclassReferenceIsSkippedInParseConfigurationPhase() {
+        try (AnnotationConfigApplicationContext context =
+                     new AnnotationConfigApplicationContext(ParseConfigurationPhaseImportingConfiguration.class)) {
+            context.getBean("someBean");
+        }
+    }
 
-	@Test
-	public void baseConfigurationIsIncludedOnceWhenBothConfigurationClassesAreActive() {
-		AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext();
-		context.setAllowBeanDefinitionOverriding(false);
-		context.register(UnconditionalImportingConfiguration.class);
-		context.refresh();
-		try {
-			context.getBean("someBean");
-		}
-		finally {
-			context.close();
-		}
-	}
-
-
-	public static class RegisterBeanPhaseCondition implements ConfigurationCondition {
-
-		@Override
-		public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
-			return false;
-		}
-
-		@Override
-		public ConfigurationPhase getConfigurationPhase() {
-			return ConfigurationPhase.REGISTER_BEAN;
-		}
-	}
+    @Test
+    public void baseConfigurationIsIncludedOnceWhenBothConfigurationClassesAreActive() {
+        AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext();
+        context.setAllowBeanDefinitionOverriding(false);
+        context.register(UnconditionalImportingConfiguration.class);
+        context.refresh();
+        try {
+            context.getBean("someBean");
+        } finally {
+            context.close();
+        }
+    }
 
 
-	public static class ParseConfigurationPhaseCondition implements ConfigurationCondition {
+    public static class RegisterBeanPhaseCondition implements ConfigurationCondition {
 
-		@Override
-		public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
-			return false;
-		}
+        @Override
+        public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
+            return false;
+        }
 
-		@Override
-		public ConfigurationPhase getConfigurationPhase() {
-			return ConfigurationPhase.PARSE_CONFIGURATION;
-		}
-	}
-
-
-	@Import({RegisterBeanPhaseConditionConfiguration.class, BarConfiguration.class})
-	public static class RegisterBeanPhaseImportingConfiguration {
-	}
+        @Override
+        public ConfigurationPhase getConfigurationPhase() {
+            return ConfigurationPhase.REGISTER_BEAN;
+        }
+    }
 
 
-	@Import({ParseConfigurationPhaseConditionConfiguration.class, BarConfiguration.class})
-	public static class ParseConfigurationPhaseImportingConfiguration {
-	}
+    public static class ParseConfigurationPhaseCondition implements ConfigurationCondition {
+
+        @Override
+        public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
+            return false;
+        }
+
+        @Override
+        public ConfigurationPhase getConfigurationPhase() {
+            return ConfigurationPhase.PARSE_CONFIGURATION;
+        }
+    }
 
 
-	@Import({UnconditionalConfiguration.class, BarConfiguration.class})
-	public static class UnconditionalImportingConfiguration {
-	}
+    @Import({RegisterBeanPhaseConditionConfiguration.class, BarConfiguration.class})
+    public static class RegisterBeanPhaseImportingConfiguration {
+    }
 
 
-	public static class BaseConfiguration {
-
-		@Bean
-		public String someBean() {
-			return "foo";
-		}
-	}
+    @Import({ParseConfigurationPhaseConditionConfiguration.class, BarConfiguration.class})
+    public static class ParseConfigurationPhaseImportingConfiguration {
+    }
 
 
-	@Conditional(RegisterBeanPhaseCondition.class)
-	public static class RegisterBeanPhaseConditionConfiguration extends BaseConfiguration {
-	}
+    @Import({UnconditionalConfiguration.class, BarConfiguration.class})
+    public static class UnconditionalImportingConfiguration {
+    }
 
 
-	@Conditional(ParseConfigurationPhaseCondition.class)
-	public static class ParseConfigurationPhaseConditionConfiguration extends BaseConfiguration {
-	}
+    public static class BaseConfiguration {
+
+        @Bean
+        public String someBean() {
+            return "foo";
+        }
+    }
 
 
-	public static class UnconditionalConfiguration extends BaseConfiguration {
-	}
+    @Conditional(RegisterBeanPhaseCondition.class)
+    public static class RegisterBeanPhaseConditionConfiguration extends BaseConfiguration {
+    }
 
 
-	public static class BarConfiguration extends BaseConfiguration {
-	}
+    @Conditional(ParseConfigurationPhaseCondition.class)
+    public static class ParseConfigurationPhaseConditionConfiguration extends BaseConfiguration {
+    }
+
+
+    public static class UnconditionalConfiguration extends BaseConfiguration {
+    }
+
+
+    public static class BarConfiguration extends BaseConfiguration {
+    }
 
 }

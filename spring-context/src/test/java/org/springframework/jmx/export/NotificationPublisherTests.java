@@ -50,47 +50,47 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 public class NotificationPublisherTests extends AbstractMBeanServerTests {
 
-	private CountingNotificationListener listener = new CountingNotificationListener();
+    private CountingNotificationListener listener = new CountingNotificationListener();
 
-	@Test
-	public void testSimpleBean() throws Exception {
-		// start the MBeanExporter
-		ConfigurableApplicationContext ctx = loadContext("org/springframework/jmx/export/notificationPublisherTests.xml");
-		this.server.addNotificationListener(ObjectNameManager.getInstance("spring:type=Publisher"), listener, null,
-				null);
+    @Test
+    public void testSimpleBean() throws Exception {
+        // start the MBeanExporter
+        ConfigurableApplicationContext ctx = loadContext("org/springframework/jmx/export/notificationPublisherTests.xml");
+        this.server.addNotificationListener(ObjectNameManager.getInstance("spring:type=Publisher"), listener, null,
+                null);
 
-		MyNotificationPublisher publisher = (MyNotificationPublisher) ctx.getBean("publisher");
-		assertThat(publisher.getNotificationPublisher()).as("NotificationPublisher should not be null").isNotNull();
-		publisher.sendNotification();
-		assertThat(listener.count).as("Notification not sent").isEqualTo(1);
-	}
+        MyNotificationPublisher publisher = (MyNotificationPublisher) ctx.getBean("publisher");
+        assertThat(publisher.getNotificationPublisher()).as("NotificationPublisher should not be null").isNotNull();
+        publisher.sendNotification();
+        assertThat(listener.count).as("Notification not sent").isEqualTo(1);
+    }
 
-	@Test
-	public void testSimpleBeanRegisteredManually() throws Exception {
-		// start the MBeanExporter
-		ConfigurableApplicationContext ctx = loadContext("org/springframework/jmx/export/notificationPublisherTests.xml");
-		MBeanExporter exporter = (MBeanExporter) ctx.getBean("exporter");
-		MyNotificationPublisher publisher = new MyNotificationPublisher();
-		exporter.registerManagedResource(publisher, ObjectNameManager.getInstance("spring:type=Publisher2"));
-		this.server.addNotificationListener(ObjectNameManager.getInstance("spring:type=Publisher2"), listener, null,
-				null);
+    @Test
+    public void testSimpleBeanRegisteredManually() throws Exception {
+        // start the MBeanExporter
+        ConfigurableApplicationContext ctx = loadContext("org/springframework/jmx/export/notificationPublisherTests.xml");
+        MBeanExporter exporter = (MBeanExporter) ctx.getBean("exporter");
+        MyNotificationPublisher publisher = new MyNotificationPublisher();
+        exporter.registerManagedResource(publisher, ObjectNameManager.getInstance("spring:type=Publisher2"));
+        this.server.addNotificationListener(ObjectNameManager.getInstance("spring:type=Publisher2"), listener, null,
+                null);
 
-		assertThat(publisher.getNotificationPublisher()).as("NotificationPublisher should not be null").isNotNull();
-		publisher.sendNotification();
-		assertThat(listener.count).as("Notification not sent").isEqualTo(1);
-	}
+        assertThat(publisher.getNotificationPublisher()).as("NotificationPublisher should not be null").isNotNull();
+        publisher.sendNotification();
+        assertThat(listener.count).as("Notification not sent").isEqualTo(1);
+    }
 
-	@Test
-	public void testMBean() throws Exception {
-		// start the MBeanExporter
-		ConfigurableApplicationContext ctx = loadContext("org/springframework/jmx/export/notificationPublisherTests.xml");
-		this.server.addNotificationListener(ObjectNameManager.getInstance("spring:type=PublisherMBean"), listener,
-				null, null);
+    @Test
+    public void testMBean() throws Exception {
+        // start the MBeanExporter
+        ConfigurableApplicationContext ctx = loadContext("org/springframework/jmx/export/notificationPublisherTests.xml");
+        this.server.addNotificationListener(ObjectNameManager.getInstance("spring:type=PublisherMBean"), listener,
+                null, null);
 
-		MyNotificationPublisherMBean publisher = (MyNotificationPublisherMBean) ctx.getBean("publisherMBean");
-		publisher.sendNotification();
-		assertThat(listener.count).as("Notification not sent").isEqualTo(1);
-	}
+        MyNotificationPublisherMBean publisher = (MyNotificationPublisherMBean) ctx.getBean("publisherMBean");
+        publisher.sendNotification();
+        assertThat(listener.count).as("Notification not sent").isEqualTo(1);
+    }
 
 	/*
 	@Test
@@ -105,119 +105,119 @@ public class NotificationPublisherTests extends AbstractMBeanServerTests {
 	}
 	*/
 
-	@Test
-	public void testLazyInit() throws Exception {
-		// start the MBeanExporter
-		ConfigurableApplicationContext ctx = loadContext("org/springframework/jmx/export/notificationPublisherLazyTests.xml");
-		assertThat(ctx.getBeanFactory().containsSingleton("publisher")).as("Should not have instantiated the bean yet").isFalse();
+    @Test
+    public void testLazyInit() throws Exception {
+        // start the MBeanExporter
+        ConfigurableApplicationContext ctx = loadContext("org/springframework/jmx/export/notificationPublisherLazyTests.xml");
+        assertThat(ctx.getBeanFactory().containsSingleton("publisher")).as("Should not have instantiated the bean yet").isFalse();
 
-		// need to touch the MBean proxy
-		server.getAttribute(ObjectNameManager.getInstance("spring:type=Publisher"), "Name");
-		this.server.addNotificationListener(ObjectNameManager.getInstance("spring:type=Publisher"), listener, null,
-				null);
+        // need to touch the MBean proxy
+        server.getAttribute(ObjectNameManager.getInstance("spring:type=Publisher"), "Name");
+        this.server.addNotificationListener(ObjectNameManager.getInstance("spring:type=Publisher"), listener, null,
+                null);
 
-		MyNotificationPublisher publisher = (MyNotificationPublisher) ctx.getBean("publisher");
-		assertThat(publisher.getNotificationPublisher()).as("NotificationPublisher should not be null").isNotNull();
-		publisher.sendNotification();
-		assertThat(listener.count).as("Notification not sent").isEqualTo(1);
-	}
+        MyNotificationPublisher publisher = (MyNotificationPublisher) ctx.getBean("publisher");
+        assertThat(publisher.getNotificationPublisher()).as("NotificationPublisher should not be null").isNotNull();
+        publisher.sendNotification();
+        assertThat(listener.count).as("Notification not sent").isEqualTo(1);
+    }
 
-	private static class CountingNotificationListener implements NotificationListener {
+    public interface MyMBean {
 
-		private int count;
+        void sendNotification();
+    }
 
-		private Notification lastNotification;
+    private static class CountingNotificationListener implements NotificationListener {
 
-		@Override
-		public void handleNotification(Notification notification, Object handback) {
-			this.lastNotification = notification;
-			this.count++;
-		}
+        private int count;
 
-		@SuppressWarnings("unused")
-		public int getCount() {
-			return count;
-		}
+        private Notification lastNotification;
 
-		@SuppressWarnings("unused")
-		public Notification getLastNotification() {
-			return lastNotification;
-		}
-	}
+        @Override
+        public void handleNotification(Notification notification, Object handback) {
+            this.lastNotification = notification;
+            this.count++;
+        }
 
-	public static class MyNotificationPublisher implements NotificationPublisherAware {
+        @SuppressWarnings("unused")
+        public int getCount() {
+            return count;
+        }
 
-		private NotificationPublisher notificationPublisher;
+        @SuppressWarnings("unused")
+        public Notification getLastNotification() {
+            return lastNotification;
+        }
+    }
 
-		@Override
-		public void setNotificationPublisher(NotificationPublisher notificationPublisher) {
-			this.notificationPublisher = notificationPublisher;
-		}
+    public static class MyNotificationPublisher implements NotificationPublisherAware {
 
-		public NotificationPublisher getNotificationPublisher() {
-			return notificationPublisher;
-		}
+        private NotificationPublisher notificationPublisher;
 
-		public void sendNotification() {
-			this.notificationPublisher.sendNotification(new Notification("test", this, 1));
-		}
+        public NotificationPublisher getNotificationPublisher() {
+            return notificationPublisher;
+        }
 
-		public String getName() {
-			return "Rob Harrop";
-		}
-	}
+        @Override
+        public void setNotificationPublisher(NotificationPublisher notificationPublisher) {
+            this.notificationPublisher = notificationPublisher;
+        }
 
-	public static class MyNotificationPublisherMBean extends NotificationBroadcasterSupport implements DynamicMBean {
+        public void sendNotification() {
+            this.notificationPublisher.sendNotification(new Notification("test", this, 1));
+        }
 
-		@Override
-		public Object getAttribute(String attribute) throws AttributeNotFoundException, MBeanException,
-				ReflectionException {
-			return null;
-		}
+        public String getName() {
+            return "Rob Harrop";
+        }
+    }
 
-		@Override
-		public void setAttribute(Attribute attribute) throws AttributeNotFoundException,
-				InvalidAttributeValueException, MBeanException, ReflectionException {
-		}
+    public static class MyNotificationPublisherMBean extends NotificationBroadcasterSupport implements DynamicMBean {
 
-		@Override
-		public AttributeList getAttributes(String[] attributes) {
-			return null;
-		}
+        @Override
+        public Object getAttribute(String attribute) throws AttributeNotFoundException, MBeanException,
+                ReflectionException {
+            return null;
+        }
 
-		@Override
-		public AttributeList setAttributes(AttributeList attributes) {
-			return null;
-		}
+        @Override
+        public void setAttribute(Attribute attribute) throws AttributeNotFoundException,
+                InvalidAttributeValueException, MBeanException, ReflectionException {
+        }
 
-		@Override
-		public Object invoke(String actionName, Object[] params, String[] signature) throws MBeanException,
-				ReflectionException {
-			return null;
-		}
+        @Override
+        public AttributeList getAttributes(String[] attributes) {
+            return null;
+        }
 
-		@Override
-		public MBeanInfo getMBeanInfo() {
-			return new MBeanInfo(MyNotificationPublisherMBean.class.getName(), "", new MBeanAttributeInfo[0],
-					new MBeanConstructorInfo[0], new MBeanOperationInfo[0], new MBeanNotificationInfo[0]);
-		}
+        @Override
+        public AttributeList setAttributes(AttributeList attributes) {
+            return null;
+        }
 
-		public void sendNotification() {
-			sendNotification(new Notification("test", this, 1));
-		}
-	}
+        @Override
+        public Object invoke(String actionName, Object[] params, String[] signature) throws MBeanException,
+                ReflectionException {
+            return null;
+        }
 
-	public static class MyNotificationPublisherStandardMBean extends NotificationBroadcasterSupport implements MyMBean {
+        @Override
+        public MBeanInfo getMBeanInfo() {
+            return new MBeanInfo(MyNotificationPublisherMBean.class.getName(), "", new MBeanAttributeInfo[0],
+                    new MBeanConstructorInfo[0], new MBeanOperationInfo[0], new MBeanNotificationInfo[0]);
+        }
 
-		@Override
-		public void sendNotification() {
-			sendNotification(new Notification("test", this, 1));
-		}
-	}
+        public void sendNotification() {
+            sendNotification(new Notification("test", this, 1));
+        }
+    }
 
-	public interface MyMBean {
+    public static class MyNotificationPublisherStandardMBean extends NotificationBroadcasterSupport implements MyMBean {
 
-		void sendNotification();
-	}
+        @Override
+        public void sendNotification() {
+            sendNotification(new Notification("test", this, 1));
+        }
+    }
 
 }

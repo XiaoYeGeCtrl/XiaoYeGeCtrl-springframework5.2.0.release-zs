@@ -47,9 +47,9 @@ import org.springframework.messaging.handler.annotation.MessageExceptionHandler
  */
 class SimpAnnotationMethodMessageHandlerKotlinTests {
 
-	lateinit var messageHandler: TestSimpAnnotationMethodMessageHandler
+    lateinit var messageHandler: TestSimpAnnotationMethodMessageHandler
 
-	lateinit var testController: TestController
+    lateinit var testController: TestController
 
     val channel = mockk<SubscribableChannel>(relaxed = true)
 
@@ -71,7 +71,7 @@ class SimpAnnotationMethodMessageHandlerKotlinTests {
         messageHandler.registerHandler(testController)
         messageHandler.handleMessage(message)
         assertThat(testController.exception).isNull()
-		assertThat(testController.header).isEqualTo("bar")
+        assertThat(testController.header).isEqualTo("bar")
     }
 
     @Test
@@ -79,8 +79,8 @@ class SimpAnnotationMethodMessageHandlerKotlinTests {
         val message = createMessage("/nullableHeader", Collections.emptyMap())
         messageHandler.registerHandler(testController)
         messageHandler.handleMessage(message)
-		assertThat(testController.exception).isNull()
-		assertThat(testController.header).isNull()
+        assertThat(testController.exception).isNull()
+        assertThat(testController.header).isNull()
     }
 
     @Test
@@ -88,7 +88,7 @@ class SimpAnnotationMethodMessageHandlerKotlinTests {
         val message = createMessage("/nonNullableHeader", Collections.singletonMap("foo", "bar"))
         messageHandler.registerHandler(testController)
         messageHandler.handleMessage(message)
-		assertThat(testController.header).isEqualTo("bar")
+        assertThat(testController.header).isEqualTo("bar")
     }
 
     @Test
@@ -105,8 +105,8 @@ class SimpAnnotationMethodMessageHandlerKotlinTests {
         val message = createMessage("/nullableHeaderNotRequired", Collections.singletonMap("foo", "bar"))
         messageHandler.registerHandler(testController)
         messageHandler.handleMessage(message)
-		assertThat(testController.exception).isNull()
-		assertThat(testController.header).isEqualTo("bar")
+        assertThat(testController.exception).isNull()
+        assertThat(testController.header).isEqualTo("bar")
     }
 
     @Test
@@ -114,8 +114,8 @@ class SimpAnnotationMethodMessageHandlerKotlinTests {
         val message = createMessage("/nullableHeaderNotRequired", Collections.emptyMap())
         messageHandler.registerHandler(testController)
         messageHandler.handleMessage(message)
-		assertThat(testController.exception).isNull()
-		assertThat(testController.header).isNull()
+        assertThat(testController.exception).isNull()
+        assertThat(testController.header).isNull()
     }
 
     @Test
@@ -123,7 +123,7 @@ class SimpAnnotationMethodMessageHandlerKotlinTests {
         val message = createMessage("/nonNullableHeaderNotRequired", Collections.singletonMap("foo", "bar"))
         messageHandler.registerHandler(testController)
         messageHandler.handleMessage(message)
-		assertThat(testController.header).isEqualTo("bar")
+        assertThat(testController.header).isEqualTo("bar")
     }
 
     @Test
@@ -132,7 +132,7 @@ class SimpAnnotationMethodMessageHandlerKotlinTests {
         messageHandler.registerHandler(testController)
         messageHandler.handleMessage(message)
         assertThat(testController.exception).isNotNull()
-		assertThat(testController.exception).isInstanceOf(IllegalArgumentException::class.java)
+        assertThat(testController.exception).isInstanceOf(IllegalArgumentException::class.java)
     }
 
     private fun createMessage(destination: String, headers: Map<String, String?>): Message<ByteArray> {
@@ -146,8 +146,8 @@ class SimpAnnotationMethodMessageHandlerKotlinTests {
     }
 
     class TestSimpAnnotationMethodMessageHandler(brokerTemplate: SimpMessageSendingOperations,
-                                                         clientInboundChannel: SubscribableChannel,
-                                                         clientOutboundChannel: MessageChannel) :
+                                                 clientInboundChannel: SubscribableChannel,
+                                                 clientOutboundChannel: MessageChannel) :
             SimpAnnotationMethodMessageHandler(clientInboundChannel, clientOutboundChannel, brokerTemplate) {
 
         fun registerHandler(handler: Any) {

@@ -35,20 +35,20 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @since 3.0
  */
 @RunWith(SpringRunner.class)
-@TestExecutionListeners( {})
+@TestExecutionListeners({})
 public class SpringJUnit47ClassRunnerRuleTests {
 
-	@Rule
-	public TestName name = new TestName();
+    @Rule
+    public TestName name = new TestName();
 
 
-	@Test
-	public void testA() {
-		assertThat(name.getMethodName()).isEqualTo("testA");
-	}
+    @Test
+    public void testA() {
+        assertThat(name.getMethodName()).isEqualTo("testA");
+    }
 
-	@Test
-	public void testB() {
-		assertThat(name.getMethodName()).isEqualTo("testB");
-	}
+    @Test
+    public void testB() {
+        assertThat(name.getMethodName()).isEqualTo("testB");
+    }
 }

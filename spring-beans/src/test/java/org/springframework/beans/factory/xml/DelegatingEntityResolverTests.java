@@ -30,30 +30,30 @@ import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException
  */
 public class DelegatingEntityResolverTests {
 
-	@Test
-	public void testCtorWhereDtdEntityResolverIsNull() throws Exception {
-		assertThatIllegalArgumentException().isThrownBy(() ->
-				new DelegatingEntityResolver(null, new NoOpEntityResolver()));
-	}
+    @Test
+    public void testCtorWhereDtdEntityResolverIsNull() throws Exception {
+        assertThatIllegalArgumentException().isThrownBy(() ->
+                new DelegatingEntityResolver(null, new NoOpEntityResolver()));
+    }
 
-	@Test
-	public void testCtorWhereSchemaEntityResolverIsNull() throws Exception {
-		assertThatIllegalArgumentException().isThrownBy(() ->
-				new DelegatingEntityResolver(new NoOpEntityResolver(), null));
-	}
+    @Test
+    public void testCtorWhereSchemaEntityResolverIsNull() throws Exception {
+        assertThatIllegalArgumentException().isThrownBy(() ->
+                new DelegatingEntityResolver(new NoOpEntityResolver(), null));
+    }
 
-	@Test
-	public void testCtorWhereEntityResolversAreBothNull() throws Exception {
-		assertThatIllegalArgumentException().isThrownBy(() ->
-				new DelegatingEntityResolver(null, null));
-	}
+    @Test
+    public void testCtorWhereEntityResolversAreBothNull() throws Exception {
+        assertThatIllegalArgumentException().isThrownBy(() ->
+                new DelegatingEntityResolver(null, null));
+    }
 
 
-	private static final class NoOpEntityResolver implements EntityResolver {
-		@Override
-		public InputSource resolveEntity(String publicId, String systemId) {
-			return null;
-		}
-	}
+    private static final class NoOpEntityResolver implements EntityResolver {
+        @Override
+        public InputSource resolveEntity(String publicId, String systemId) {
+            return null;
+        }
+    }
 
 }

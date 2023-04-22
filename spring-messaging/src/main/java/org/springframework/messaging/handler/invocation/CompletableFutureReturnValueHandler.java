@@ -33,15 +33,15 @@ import org.springframework.util.concurrent.ListenableFuture;
  */
 public class CompletableFutureReturnValueHandler extends AbstractAsyncReturnValueHandler {
 
-	@Override
-	public boolean supportsReturnType(MethodParameter returnType) {
-		return CompletionStage.class.isAssignableFrom(returnType.getParameterType());
-	}
+    @Override
+    public boolean supportsReturnType(MethodParameter returnType) {
+        return CompletionStage.class.isAssignableFrom(returnType.getParameterType());
+    }
 
-	@Override
-	@SuppressWarnings("unchecked")
-	public ListenableFuture<?> toListenableFuture(Object returnValue, MethodParameter returnType) {
-		return new CompletableToListenableFutureAdapter<>((CompletionStage<Object>) returnValue);
-	}
+    @Override
+    @SuppressWarnings("unchecked")
+    public ListenableFuture<?> toListenableFuture(Object returnValue, MethodParameter returnType) {
+        return new CompletableToListenableFutureAdapter<>((CompletionStage<Object>) returnValue);
+    }
 
 }

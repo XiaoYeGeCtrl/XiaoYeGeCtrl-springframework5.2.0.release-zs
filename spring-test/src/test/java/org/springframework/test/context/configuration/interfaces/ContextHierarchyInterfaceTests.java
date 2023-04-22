@@ -32,27 +32,27 @@ import static org.assertj.core.api.Assertions.assertThat;
 @ExtendWith(SpringExtension.class)
 class ContextHierarchyInterfaceTests implements ContextHierarchyTestInterface {
 
-	@Autowired
-	String foo;
+    @Autowired
+    String foo;
 
-	@Autowired
-	String bar;
+    @Autowired
+    String bar;
 
-	@Autowired
-	String baz;
+    @Autowired
+    String baz;
 
-	@Autowired
-	ApplicationContext context;
+    @Autowired
+    ApplicationContext context;
 
 
-	@Test
-	void loadContextHierarchy() {
-		assertThat(context).as("child ApplicationContext").isNotNull();
-		assertThat(context.getParent()).as("parent ApplicationContext").isNotNull();
-		assertThat(context.getParent().getParent()).as("grandparent ApplicationContext").isNull();
-		assertThat(foo).isEqualTo("foo");
-		assertThat(bar).isEqualTo("bar");
-		assertThat(baz).isEqualTo("baz-child");
-	}
+    @Test
+    void loadContextHierarchy() {
+        assertThat(context).as("child ApplicationContext").isNotNull();
+        assertThat(context.getParent()).as("parent ApplicationContext").isNotNull();
+        assertThat(context.getParent().getParent()).as("grandparent ApplicationContext").isNull();
+        assertThat(foo).isEqualTo("foo");
+        assertThat(bar).isEqualTo("bar");
+        assertThat(baz).isEqualTo("baz-child");
+    }
 
 }

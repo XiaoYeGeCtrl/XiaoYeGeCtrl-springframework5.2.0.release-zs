@@ -32,10 +32,11 @@ import org.springframework.core.io.buffer.DataBuffer;
  */
 public interface ReactiveHttpInputMessage extends HttpMessage {
 
-	/**
-	 * Return the body of the message as a {@link Publisher}.
-	 * @return the body content publisher
-	 */
-	Flux<DataBuffer> getBody();
+    /**
+     * Return the body of the message as a {@link Publisher}.
+     *
+     * @return the body content publisher
+     */
+    Flux<DataBuffer> getBody();
 
 }

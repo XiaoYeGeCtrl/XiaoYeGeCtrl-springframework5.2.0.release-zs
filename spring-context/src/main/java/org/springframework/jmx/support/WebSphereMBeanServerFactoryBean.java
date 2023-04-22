@@ -43,63 +43,60 @@ import org.springframework.lang.Nullable;
  *
  * @author Juergen Hoeller
  * @author Rob Harrop
- * @since 2.0.3
  * @see javax.management.MBeanServer
  * @see MBeanServerFactoryBean
+ * @since 2.0.3
  */
 public class WebSphereMBeanServerFactoryBean implements FactoryBean<MBeanServer>, InitializingBean {
 
-	private static final String ADMIN_SERVICE_FACTORY_CLASS = "com.ibm.websphere.management.AdminServiceFactory";
+    private static final String ADMIN_SERVICE_FACTORY_CLASS = "com.ibm.websphere.management.AdminServiceFactory";
 
-	private static final String GET_MBEAN_FACTORY_METHOD = "getMBeanFactory";
+    private static final String GET_MBEAN_FACTORY_METHOD = "getMBeanFactory";
 
-	private static final String GET_MBEAN_SERVER_METHOD = "getMBeanServer";
-
-
-	@Nullable
-	private MBeanServer mbeanServer;
+    private static final String GET_MBEAN_SERVER_METHOD = "getMBeanServer";
 
 
-	@Override
-	public void afterPropertiesSet() throws MBeanServerNotFoundException {
-		try {
-			/*
-			 * this.mbeanServer = AdminServiceFactory.getMBeanFactory().getMBeanServer();
-			 */
-			Class<?> adminServiceClass = getClass().getClassLoader().loadClass(ADMIN_SERVICE_FACTORY_CLASS);
-			Method getMBeanFactoryMethod = adminServiceClass.getMethod(GET_MBEAN_FACTORY_METHOD);
-			Object mbeanFactory = getMBeanFactoryMethod.invoke(null);
-			Method getMBeanServerMethod = mbeanFactory.getClass().getMethod(GET_MBEAN_SERVER_METHOD);
-			this.mbeanServer = (MBeanServer) getMBeanServerMethod.invoke(mbeanFactory);
-		}
-		catch (ClassNotFoundException ex) {
-			throw new MBeanServerNotFoundException("Could not find WebSphere's AdminServiceFactory class", ex);
-		}
-		catch (InvocationTargetException ex) {
-			throw new MBeanServerNotFoundException(
-					"WebSphere's AdminServiceFactory.getMBeanFactory/getMBeanServer method failed", ex.getTargetException());
-		}
-		catch (Exception ex) {
-			throw new MBeanServerNotFoundException(
-					"Could not access WebSphere's AdminServiceFactory.getMBeanFactory/getMBeanServer method", ex);
-		}
-	}
+    @Nullable
+    private MBeanServer mbeanServer;
 
 
-	@Override
-	@Nullable
-	public MBeanServer getObject() {
-		return this.mbeanServer;
-	}
+    @Override
+    public void afterPropertiesSet() throws MBeanServerNotFoundException {
+        try {
+            /*
+             * this.mbeanServer = AdminServiceFactory.getMBeanFactory().getMBeanServer();
+             */
+            Class<?> adminServiceClass = getClass().getClassLoader().loadClass(ADMIN_SERVICE_FACTORY_CLASS);
+            Method getMBeanFactoryMethod = adminServiceClass.getMethod(GET_MBEAN_FACTORY_METHOD);
+            Object mbeanFactory = getMBeanFactoryMethod.invoke(null);
+            Method getMBeanServerMethod = mbeanFactory.getClass().getMethod(GET_MBEAN_SERVER_METHOD);
+            this.mbeanServer = (MBeanServer) getMBeanServerMethod.invoke(mbeanFactory);
+        } catch (ClassNotFoundException ex) {
+            throw new MBeanServerNotFoundException("Could not find WebSphere's AdminServiceFactory class", ex);
+        } catch (InvocationTargetException ex) {
+            throw new MBeanServerNotFoundException(
+                    "WebSphere's AdminServiceFactory.getMBeanFactory/getMBeanServer method failed", ex.getTargetException());
+        } catch (Exception ex) {
+            throw new MBeanServerNotFoundException(
+                    "Could not access WebSphere's AdminServiceFactory.getMBeanFactory/getMBeanServer method", ex);
+        }
+    }
 
-	@Override
-	public Class<? extends MBeanServer> getObjectType() {
-		return (this.mbeanServer != null ? this.mbeanServer.getClass() : MBeanServer.class);
-	}
 
-	@Override
-	public boolean isSingleton() {
-		return true;
-	}
+    @Override
+    @Nullable
+    public MBeanServer getObject() {
+        return this.mbeanServer;
+    }
+
+    @Override
+    public Class<? extends MBeanServer> getObjectType() {
+        return (this.mbeanServer != null ? this.mbeanServer.getClass() : MBeanServer.class);
+    }
+
+    @Override
+    public boolean isSingleton() {
+        return true;
+    }
 
 }

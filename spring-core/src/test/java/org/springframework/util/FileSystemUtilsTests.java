@@ -28,67 +28,67 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 class FileSystemUtilsTests {
 
-	@Test
-	void deleteRecursively() throws Exception {
-		File root = new File("./tmp/root");
-		File child = new File(root, "child");
-		File grandchild = new File(child, "grandchild");
+    @Test
+    void deleteRecursively() throws Exception {
+        File root = new File("./tmp/root");
+        File child = new File(root, "child");
+        File grandchild = new File(child, "grandchild");
 
-		grandchild.mkdirs();
+        grandchild.mkdirs();
 
-		File bar = new File(child, "bar.txt");
-		bar.createNewFile();
+        File bar = new File(child, "bar.txt");
+        bar.createNewFile();
 
-		assertThat(root.exists()).isTrue();
-		assertThat(child.exists()).isTrue();
-		assertThat(grandchild.exists()).isTrue();
-		assertThat(bar.exists()).isTrue();
+        assertThat(root.exists()).isTrue();
+        assertThat(child.exists()).isTrue();
+        assertThat(grandchild.exists()).isTrue();
+        assertThat(bar.exists()).isTrue();
 
-		FileSystemUtils.deleteRecursively(root);
+        FileSystemUtils.deleteRecursively(root);
 
-		assertThat(root.exists()).isFalse();
-		assertThat(child.exists()).isFalse();
-		assertThat(grandchild.exists()).isFalse();
-		assertThat(bar.exists()).isFalse();
-	}
+        assertThat(root.exists()).isFalse();
+        assertThat(child.exists()).isFalse();
+        assertThat(grandchild.exists()).isFalse();
+        assertThat(bar.exists()).isFalse();
+    }
 
-	@Test
-	void copyRecursively() throws Exception {
-		File src = new File("./tmp/src");
-		File child = new File(src, "child");
-		File grandchild = new File(child, "grandchild");
+    @Test
+    void copyRecursively() throws Exception {
+        File src = new File("./tmp/src");
+        File child = new File(src, "child");
+        File grandchild = new File(child, "grandchild");
 
-		grandchild.mkdirs();
+        grandchild.mkdirs();
 
-		File bar = new File(child, "bar.txt");
-		bar.createNewFile();
+        File bar = new File(child, "bar.txt");
+        bar.createNewFile();
 
-		assertThat(src.exists()).isTrue();
-		assertThat(child.exists()).isTrue();
-		assertThat(grandchild.exists()).isTrue();
-		assertThat(bar.exists()).isTrue();
+        assertThat(src.exists()).isTrue();
+        assertThat(child.exists()).isTrue();
+        assertThat(grandchild.exists()).isTrue();
+        assertThat(bar.exists()).isTrue();
 
-		File dest = new File("./dest");
-		FileSystemUtils.copyRecursively(src, dest);
+        File dest = new File("./dest");
+        FileSystemUtils.copyRecursively(src, dest);
 
-		assertThat(dest.exists()).isTrue();
-		assertThat(new File(dest, child.getName()).exists()).isTrue();
+        assertThat(dest.exists()).isTrue();
+        assertThat(new File(dest, child.getName()).exists()).isTrue();
 
-		FileSystemUtils.deleteRecursively(src);
-		assertThat(src.exists()).isFalse();
-	}
+        FileSystemUtils.deleteRecursively(src);
+        assertThat(src.exists()).isFalse();
+    }
 
 
-	@AfterEach
-	void tearDown() throws Exception {
-		File tmp = new File("./tmp");
-		if (tmp.exists()) {
-			FileSystemUtils.deleteRecursively(tmp);
-		}
-		File dest = new File("./dest");
-		if (dest.exists()) {
-			FileSystemUtils.deleteRecursively(dest);
-		}
-	}
+    @AfterEach
+    void tearDown() throws Exception {
+        File tmp = new File("./tmp");
+        if (tmp.exists()) {
+            FileSystemUtils.deleteRecursively(tmp);
+        }
+        File dest = new File("./dest");
+        if (dest.exists()) {
+            FileSystemUtils.deleteRecursively(dest);
+        }
+    }
 
 }

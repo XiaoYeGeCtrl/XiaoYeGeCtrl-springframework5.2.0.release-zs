@@ -32,15 +32,15 @@ import static org.springframework.util.xml.XmlValidationModeDetector.VALIDATION_
  */
 class XmlValidationModeDetectorTests {
 
-	private final XmlValidationModeDetector xmlValidationModeDetector = new XmlValidationModeDetector();
+    private final XmlValidationModeDetector xmlValidationModeDetector = new XmlValidationModeDetector();
 
 
-	@ParameterizedTest
-	@ValueSource(strings = { "dtdWithTrailingComment.xml", "dtdWithLeadingComment.xml", "dtdWithCommentOnNextLine.xml",
-		"dtdWithMultipleComments.xml" })
-	void dtdDetection(String fileName) throws Exception {
-		InputStream inputStream = getClass().getResourceAsStream(fileName);
-		assertThat(xmlValidationModeDetector.detectValidationMode(inputStream)).isEqualTo(VALIDATION_DTD);
-	}
+    @ParameterizedTest
+    @ValueSource(strings = {"dtdWithTrailingComment.xml", "dtdWithLeadingComment.xml", "dtdWithCommentOnNextLine.xml",
+            "dtdWithMultipleComments.xml"})
+    void dtdDetection(String fileName) throws Exception {
+        InputStream inputStream = getClass().getResourceAsStream(fileName);
+        assertThat(xmlValidationModeDetector.detectValidationMode(inputStream)).isEqualTo(VALIDATION_DTD);
+    }
 
 }

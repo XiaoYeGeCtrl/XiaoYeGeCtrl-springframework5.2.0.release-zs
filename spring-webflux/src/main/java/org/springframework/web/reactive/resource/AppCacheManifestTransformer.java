@@ -63,187 +63,183 @@ import org.springframework.web.server.ServerWebExchange;
  *
  * @author Rossen Stoyanchev
  * @author Brian Clozel
- * @since 5.0
  * @see <a href="https://html.spec.whatwg.org/multipage/browsers.html#offline">HTML5 offline applications spec</a>
+ * @since 5.0
  */
 public class AppCacheManifestTransformer extends ResourceTransformerSupport {
 
-	private static final Collection<String> MANIFEST_SECTION_HEADERS =
-			Arrays.asList("CACHE MANIFEST", "NETWORK:", "FALLBACK:", "CACHE:");
+    private static final Collection<String> MANIFEST_SECTION_HEADERS =
+            Arrays.asList("CACHE MANIFEST", "NETWORK:", "FALLBACK:", "CACHE:");
 
-	private static final String MANIFEST_HEADER = "CACHE MANIFEST";
+    private static final String MANIFEST_HEADER = "CACHE MANIFEST";
 
-	private static final String CACHE_HEADER = "CACHE:";
+    private static final String CACHE_HEADER = "CACHE:";
 
-	private static final Charset DEFAULT_CHARSET = StandardCharsets.UTF_8;
+    private static final Charset DEFAULT_CHARSET = StandardCharsets.UTF_8;
 
-	private static final Log logger = LogFactory.getLog(AppCacheManifestTransformer.class);
-
-
-	private final String fileExtension;
+    private static final Log logger = LogFactory.getLog(AppCacheManifestTransformer.class);
 
 
-	/**
-	 * Create an AppCacheResourceTransformer that transforms files with extension ".appcache".
-	 */
-	public AppCacheManifestTransformer() {
-		this("appcache");
-	}
-
-	/**
-	 * Create an AppCacheResourceTransformer that transforms files with the extension
-	 * given as a parameter.
-	 */
-	public AppCacheManifestTransformer(String fileExtension) {
-		this.fileExtension = fileExtension;
-	}
+    private final String fileExtension;
 
 
-	@Override
-	public Mono<Resource> transform(ServerWebExchange exchange, Resource inputResource,
-			ResourceTransformerChain chain) {
+    /**
+     * Create an AppCacheResourceTransformer that transforms files with extension ".appcache".
+     */
+    public AppCacheManifestTransformer() {
+        this("appcache");
+    }
 
-		return chain.transform(exchange, inputResource)
-				.flatMap(outputResource -> {
-					String name = outputResource.getFilename();
-					if (!this.fileExtension.equals(StringUtils.getFilenameExtension(name))) {
-						return Mono.just(outputResource);
-					}
-					DataBufferFactory bufferFactory = exchange.getResponse().bufferFactory();
-					Flux<DataBuffer> flux = DataBufferUtils
-							.read(outputResource, bufferFactory, StreamUtils.BUFFER_SIZE);
-					return DataBufferUtils.join(flux)
-							.flatMap(dataBuffer -> {
-								CharBuffer charBuffer = DEFAULT_CHARSET.decode(dataBuffer.asByteBuffer());
-								DataBufferUtils.release(dataBuffer);
-								String content = charBuffer.toString();
-								return transform(content, outputResource, chain, exchange);
-							});
-				});
-	}
+    /**
+     * Create an AppCacheResourceTransformer that transforms files with the extension
+     * given as a parameter.
+     */
+    public AppCacheManifestTransformer(String fileExtension) {
+        this.fileExtension = fileExtension;
+    }
 
-	private Mono<? extends Resource> transform(String content, Resource resource,
-			ResourceTransformerChain chain, ServerWebExchange exchange) {
+    private static void writeToByteArrayOutputStream(ByteArrayOutputStream out, String toWrite) {
+        try {
+            byte[] bytes = toWrite.getBytes(DEFAULT_CHARSET);
+            out.write(bytes);
+        } catch (IOException ex) {
+            throw Exceptions.propagate(ex);
+        }
+    }
 
-		if (!content.startsWith(MANIFEST_HEADER)) {
-			if (logger.isTraceEnabled()) {
-				logger.trace(exchange.getLogPrefix() +
-						"Skipping " + resource + ": Manifest does not start with 'CACHE MANIFEST'");
-			}
-			return Mono.just(resource);
-		}
-		return Flux.generate(new LineInfoGenerator(content))
-				.concatMap(info -> processLine(info, exchange, resource, chain))
-				.reduce(new ByteArrayOutputStream(), (out, line) -> {
-					writeToByteArrayOutputStream(out, line + "\n");
-					return out;
-				})
-				.map(out -> {
-					String hash = DigestUtils.md5DigestAsHex(out.toByteArray());
-					writeToByteArrayOutputStream(out, "\n" + "# Hash: " + hash);
-					return new TransformedResource(resource, out.toByteArray());
-				});
-	}
+    @Override
+    public Mono<Resource> transform(ServerWebExchange exchange, Resource inputResource,
+                                    ResourceTransformerChain chain) {
 
-	private static void writeToByteArrayOutputStream(ByteArrayOutputStream out, String toWrite) {
-		try {
-			byte[] bytes = toWrite.getBytes(DEFAULT_CHARSET);
-			out.write(bytes);
-		}
-		catch (IOException ex) {
-			throw Exceptions.propagate(ex);
-		}
-	}
+        return chain.transform(exchange, inputResource)
+                .flatMap(outputResource -> {
+                    String name = outputResource.getFilename();
+                    if (!this.fileExtension.equals(StringUtils.getFilenameExtension(name))) {
+                        return Mono.just(outputResource);
+                    }
+                    DataBufferFactory bufferFactory = exchange.getResponse().bufferFactory();
+                    Flux<DataBuffer> flux = DataBufferUtils
+                            .read(outputResource, bufferFactory, StreamUtils.BUFFER_SIZE);
+                    return DataBufferUtils.join(flux)
+                            .flatMap(dataBuffer -> {
+                                CharBuffer charBuffer = DEFAULT_CHARSET.decode(dataBuffer.asByteBuffer());
+                                DataBufferUtils.release(dataBuffer);
+                                String content = charBuffer.toString();
+                                return transform(content, outputResource, chain, exchange);
+                            });
+                });
+    }
 
-	private Mono<String> processLine(LineInfo info, ServerWebExchange exchange,
-			Resource resource, ResourceTransformerChain chain) {
+    private Mono<? extends Resource> transform(String content, Resource resource,
+                                               ResourceTransformerChain chain, ServerWebExchange exchange) {
 
-		if (!info.isLink()) {
-			return Mono.just(info.getLine());
-		}
+        if (!content.startsWith(MANIFEST_HEADER)) {
+            if (logger.isTraceEnabled()) {
+                logger.trace(exchange.getLogPrefix() +
+                        "Skipping " + resource + ": Manifest does not start with 'CACHE MANIFEST'");
+            }
+            return Mono.just(resource);
+        }
+        return Flux.generate(new LineInfoGenerator(content))
+                .concatMap(info -> processLine(info, exchange, resource, chain))
+                .reduce(new ByteArrayOutputStream(), (out, line) -> {
+                    writeToByteArrayOutputStream(out, line + "\n");
+                    return out;
+                })
+                .map(out -> {
+                    String hash = DigestUtils.md5DigestAsHex(out.toByteArray());
+                    writeToByteArrayOutputStream(out, "\n" + "# Hash: " + hash);
+                    return new TransformedResource(resource, out.toByteArray());
+                });
+    }
 
-		String link = toAbsolutePath(info.getLine(), exchange);
-		return resolveUrlPath(link, exchange, resource, chain);
-	}
+    private Mono<String> processLine(LineInfo info, ServerWebExchange exchange,
+                                     Resource resource, ResourceTransformerChain chain) {
 
+        if (!info.isLink()) {
+            return Mono.just(info.getLine());
+        }
 
-	private static class LineInfoGenerator implements Consumer<SynchronousSink<LineInfo>> {
-
-		private final Scanner scanner;
-
-		@Nullable
-		private LineInfo previous;
-
-
-		LineInfoGenerator(String content) {
-			this.scanner = new Scanner(content);
-		}
-
-
-		@Override
-		public void accept(SynchronousSink<LineInfo> sink) {
-			if (this.scanner.hasNext()) {
-				String line = this.scanner.nextLine();
-				LineInfo current = new LineInfo(line, this.previous);
-				sink.next(current);
-				this.previous = current;
-			}
-			else {
-				sink.complete();
-			}
-		}
-	}
+        String link = toAbsolutePath(info.getLine(), exchange);
+        return resolveUrlPath(link, exchange, resource, chain);
+    }
 
 
-	private static class LineInfo {
+    private static class LineInfoGenerator implements Consumer<SynchronousSink<LineInfo>> {
 
-		private final String line;
+        private final Scanner scanner;
 
-		private final boolean cacheSection;
-
-		private final boolean link;
-
-
-		LineInfo(String line, @Nullable LineInfo previousLine) {
-			this.line = line;
-			this.cacheSection = initCacheSectionFlag(line, previousLine);
-			this.link = iniLinkFlag(line, this.cacheSection);
-		}
+        @Nullable
+        private LineInfo previous;
 
 
-		private static boolean initCacheSectionFlag(String line, @Nullable LineInfo previousLine) {
-			if (MANIFEST_SECTION_HEADERS.contains(line.trim())) {
-				return line.trim().equals(CACHE_HEADER);
-			}
-			else if (previousLine != null) {
-				return previousLine.isCacheSection();
-			}
-			throw new IllegalStateException(
-					"Manifest does not start with " + MANIFEST_HEADER + ": " + line);
-		}
-
-		private static boolean iniLinkFlag(String line, boolean isCacheSection) {
-			return (isCacheSection && StringUtils.hasText(line) && !line.startsWith("#")
-					&& !line.startsWith("//") && !hasScheme(line));
-		}
-
-		private static boolean hasScheme(String line) {
-			int index = line.indexOf(':');
-			return (line.startsWith("//") || (index > 0 && !line.substring(0, index).contains("/")));
-		}
+        LineInfoGenerator(String content) {
+            this.scanner = new Scanner(content);
+        }
 
 
-		public String getLine() {
-			return this.line;
-		}
+        @Override
+        public void accept(SynchronousSink<LineInfo> sink) {
+            if (this.scanner.hasNext()) {
+                String line = this.scanner.nextLine();
+                LineInfo current = new LineInfo(line, this.previous);
+                sink.next(current);
+                this.previous = current;
+            } else {
+                sink.complete();
+            }
+        }
+    }
 
-		public boolean isCacheSection() {
-			return this.cacheSection;
-		}
 
-		public boolean isLink() {
-			return this.link;
-		}
-	}
+    private static class LineInfo {
+
+        private final String line;
+
+        private final boolean cacheSection;
+
+        private final boolean link;
+
+
+        LineInfo(String line, @Nullable LineInfo previousLine) {
+            this.line = line;
+            this.cacheSection = initCacheSectionFlag(line, previousLine);
+            this.link = iniLinkFlag(line, this.cacheSection);
+        }
+
+
+        private static boolean initCacheSectionFlag(String line, @Nullable LineInfo previousLine) {
+            if (MANIFEST_SECTION_HEADERS.contains(line.trim())) {
+                return line.trim().equals(CACHE_HEADER);
+            } else if (previousLine != null) {
+                return previousLine.isCacheSection();
+            }
+            throw new IllegalStateException(
+                    "Manifest does not start with " + MANIFEST_HEADER + ": " + line);
+        }
+
+        private static boolean iniLinkFlag(String line, boolean isCacheSection) {
+            return (isCacheSection && StringUtils.hasText(line) && !line.startsWith("#")
+                    && !line.startsWith("//") && !hasScheme(line));
+        }
+
+        private static boolean hasScheme(String line) {
+            int index = line.indexOf(':');
+            return (line.startsWith("//") || (index > 0 && !line.substring(0, index).contains("/")));
+        }
+
+
+        public String getLine() {
+            return this.line;
+        }
+
+        public boolean isCacheSection() {
+            return this.cacheSection;
+        }
+
+        public boolean isLink() {
+            return this.link;
+        }
+    }
 
 }

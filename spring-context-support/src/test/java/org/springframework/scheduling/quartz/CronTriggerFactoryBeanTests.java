@@ -28,14 +28,14 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 public class CronTriggerFactoryBeanTests {
 
-	@Test
-	public void createWithoutJobDetail() throws ParseException {
-		CronTriggerFactoryBean factory = new CronTriggerFactoryBean();
-		factory.setName("myTrigger");
-		factory.setCronExpression("0 15 10 ? * *");
-		factory.afterPropertiesSet();
-		CronTrigger trigger = factory.getObject();
-		assertThat(trigger.getCronExpression()).isEqualTo("0 15 10 ? * *");
-	}
+    @Test
+    public void createWithoutJobDetail() throws ParseException {
+        CronTriggerFactoryBean factory = new CronTriggerFactoryBean();
+        factory.setName("myTrigger");
+        factory.setCronExpression("0 15 10 ? * *");
+        factory.afterPropertiesSet();
+        CronTrigger trigger = factory.getObject();
+        assertThat(trigger.getCronExpression()).isEqualTo("0 15 10 ? * *");
+    }
 
 }

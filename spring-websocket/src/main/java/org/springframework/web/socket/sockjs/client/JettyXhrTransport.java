@@ -63,225 +63,216 @@ import org.springframework.web.socket.sockjs.frame.SockJsFrame;
  */
 public class JettyXhrTransport extends AbstractXhrTransport implements Lifecycle {
 
-	private final HttpClient httpClient;
+    private final HttpClient httpClient;
 
 
-	public JettyXhrTransport(HttpClient httpClient) {
-		Assert.notNull(httpClient, "'httpClient' is required");
-		this.httpClient = httpClient;
-	}
+    public JettyXhrTransport(HttpClient httpClient) {
+        Assert.notNull(httpClient, "'httpClient' is required");
+        this.httpClient = httpClient;
+    }
 
+    private static void addHttpHeaders(Request request, HttpHeaders headers) {
+        headers.forEach((key, values) -> {
+            for (String value : values) {
+                request.header(key, value);
+            }
+        });
+    }
 
-	public HttpClient getHttpClient() {
-		return this.httpClient;
-	}
+    private static HttpHeaders toHttpHeaders(HttpFields httpFields) {
+        HttpHeaders responseHeaders = new HttpHeaders();
+        Enumeration<String> names = httpFields.getFieldNames();
+        while (names.hasMoreElements()) {
+            String name = names.nextElement();
+            Enumeration<String> values = httpFields.getValues(name);
+            while (values.hasMoreElements()) {
+                String value = values.nextElement();
+                responseHeaders.add(name, value);
+            }
+        }
+        return responseHeaders;
+    }
 
-	@Override
-	public void start() {
-		try {
-			if (!this.httpClient.isRunning()) {
-				this.httpClient.start();
-			}
-		}
-		catch (Exception ex) {
-			throw new SockJsException("Failed to start JettyXhrTransport", ex);
-		}
-	}
+    public HttpClient getHttpClient() {
+        return this.httpClient;
+    }
 
-	@Override
-	public void stop() {
-		try {
-			if (this.httpClient.isRunning()) {
-				this.httpClient.stop();
-			}
-		}
-		catch (Exception ex) {
-			throw new SockJsException("Failed to stop JettyXhrTransport", ex);
-		}
-	}
+    @Override
+    public void start() {
+        try {
+            if (!this.httpClient.isRunning()) {
+                this.httpClient.start();
+            }
+        } catch (Exception ex) {
+            throw new SockJsException("Failed to start JettyXhrTransport", ex);
+        }
+    }
 
-	@Override
-	public boolean isRunning() {
-		return this.httpClient.isRunning();
-	}
+    @Override
+    public void stop() {
+        try {
+            if (this.httpClient.isRunning()) {
+                this.httpClient.stop();
+            }
+        } catch (Exception ex) {
+            throw new SockJsException("Failed to stop JettyXhrTransport", ex);
+        }
+    }
 
+    @Override
+    public boolean isRunning() {
+        return this.httpClient.isRunning();
+    }
 
-	@Override
-	protected void connectInternal(TransportRequest transportRequest, WebSocketHandler handler,
-			URI url, HttpHeaders handshakeHeaders, XhrClientSockJsSession session,
-			SettableListenableFuture<WebSocketSession> connectFuture) {
+    @Override
+    protected void connectInternal(TransportRequest transportRequest, WebSocketHandler handler,
+                                   URI url, HttpHeaders handshakeHeaders, XhrClientSockJsSession session,
+                                   SettableListenableFuture<WebSocketSession> connectFuture) {
 
-		HttpHeaders httpHeaders = transportRequest.getHttpRequestHeaders();
-		SockJsResponseListener listener = new SockJsResponseListener(url, httpHeaders, session, connectFuture);
-		executeReceiveRequest(url, handshakeHeaders, listener);
-	}
+        HttpHeaders httpHeaders = transportRequest.getHttpRequestHeaders();
+        SockJsResponseListener listener = new SockJsResponseListener(url, httpHeaders, session, connectFuture);
+        executeReceiveRequest(url, handshakeHeaders, listener);
+    }
 
-	private void executeReceiveRequest(URI url, HttpHeaders headers, SockJsResponseListener listener) {
-		if (logger.isTraceEnabled()) {
-			logger.trace("Starting XHR receive request, url=" + url);
-		}
-		Request httpRequest = this.httpClient.newRequest(url).method(HttpMethod.POST);
-		addHttpHeaders(httpRequest, headers);
-		httpRequest.send(listener);
-	}
+    private void executeReceiveRequest(URI url, HttpHeaders headers, SockJsResponseListener listener) {
+        if (logger.isTraceEnabled()) {
+            logger.trace("Starting XHR receive request, url=" + url);
+        }
+        Request httpRequest = this.httpClient.newRequest(url).method(HttpMethod.POST);
+        addHttpHeaders(httpRequest, headers);
+        httpRequest.send(listener);
+    }
 
-	@Override
-	protected ResponseEntity<String> executeInfoRequestInternal(URI infoUrl, HttpHeaders headers) {
-		return executeRequest(infoUrl, HttpMethod.GET, headers, null);
-	}
+    @Override
+    protected ResponseEntity<String> executeInfoRequestInternal(URI infoUrl, HttpHeaders headers) {
+        return executeRequest(infoUrl, HttpMethod.GET, headers, null);
+    }
 
-	@Override
-	public ResponseEntity<String> executeSendRequestInternal(URI url, HttpHeaders headers, TextMessage message) {
-		return executeRequest(url, HttpMethod.POST, headers, message.getPayload());
-	}
+    @Override
+    public ResponseEntity<String> executeSendRequestInternal(URI url, HttpHeaders headers, TextMessage message) {
+        return executeRequest(url, HttpMethod.POST, headers, message.getPayload());
+    }
 
-	protected ResponseEntity<String> executeRequest(URI url, HttpMethod method,
-			HttpHeaders headers, @Nullable String body) {
+    protected ResponseEntity<String> executeRequest(URI url, HttpMethod method,
+                                                    HttpHeaders headers, @Nullable String body) {
 
-		Request httpRequest = this.httpClient.newRequest(url).method(method);
-		addHttpHeaders(httpRequest, headers);
-		if (body != null) {
-			httpRequest.content(new StringContentProvider(body));
-		}
-		ContentResponse response;
-		try {
-			response = httpRequest.send();
-		}
-		catch (Exception ex) {
-			throw new SockJsTransportFailureException("Failed to execute request to " + url, ex);
-		}
-		HttpStatus status = HttpStatus.valueOf(response.getStatus());
-		HttpHeaders responseHeaders = toHttpHeaders(response.getHeaders());
-		return (response.getContent() != null ?
-				new ResponseEntity<>(response.getContentAsString(), responseHeaders, status) :
-				new ResponseEntity<>(responseHeaders, status));
-	}
+        Request httpRequest = this.httpClient.newRequest(url).method(method);
+        addHttpHeaders(httpRequest, headers);
+        if (body != null) {
+            httpRequest.content(new StringContentProvider(body));
+        }
+        ContentResponse response;
+        try {
+            response = httpRequest.send();
+        } catch (Exception ex) {
+            throw new SockJsTransportFailureException("Failed to execute request to " + url, ex);
+        }
+        HttpStatus status = HttpStatus.valueOf(response.getStatus());
+        HttpHeaders responseHeaders = toHttpHeaders(response.getHeaders());
+        return (response.getContent() != null ?
+                new ResponseEntity<>(response.getContentAsString(), responseHeaders, status) :
+                new ResponseEntity<>(responseHeaders, status));
+    }
 
+    /**
+     * Jetty client {@link org.eclipse.jetty.client.api.Response.Listener Response
+     * Listener} that splits the body of the response into SockJS frames and
+     * delegates them to the {@link XhrClientSockJsSession}.
+     */
+    private class SockJsResponseListener extends Response.Listener.Adapter {
 
-	private static void addHttpHeaders(Request request, HttpHeaders headers) {
-		headers.forEach((key, values) -> {
-			for (String value : values) {
-				request.header(key, value);
-			}
-		});
-	}
+        private final URI transportUrl;
 
-	private static HttpHeaders toHttpHeaders(HttpFields httpFields) {
-		HttpHeaders responseHeaders = new HttpHeaders();
-		Enumeration<String> names = httpFields.getFieldNames();
-		while (names.hasMoreElements()) {
-			String name = names.nextElement();
-			Enumeration<String> values = httpFields.getValues(name);
-			while (values.hasMoreElements()) {
-				String value = values.nextElement();
-				responseHeaders.add(name, value);
-			}
-		}
-		return responseHeaders;
-	}
+        private final HttpHeaders receiveHeaders;
 
+        private final XhrClientSockJsSession sockJsSession;
 
-	/**
-	 * Jetty client {@link org.eclipse.jetty.client.api.Response.Listener Response
-	 * Listener} that splits the body of the response into SockJS frames and
-	 * delegates them to the {@link XhrClientSockJsSession}.
-	 */
-	private class SockJsResponseListener extends Response.Listener.Adapter {
+        private final SettableListenableFuture<WebSocketSession> connectFuture;
 
-		private final URI transportUrl;
+        private final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 
-		private final HttpHeaders receiveHeaders;
+        public SockJsResponseListener(URI url, HttpHeaders headers, XhrClientSockJsSession sockJsSession,
+                                      SettableListenableFuture<WebSocketSession> connectFuture) {
 
-		private final XhrClientSockJsSession sockJsSession;
+            this.transportUrl = url;
+            this.receiveHeaders = headers;
+            this.connectFuture = connectFuture;
+            this.sockJsSession = sockJsSession;
+        }
 
-		private final SettableListenableFuture<WebSocketSession> connectFuture;
+        @Override
+        public void onBegin(Response response) {
+            if (response.getStatus() != 200) {
+                HttpStatus status = HttpStatus.valueOf(response.getStatus());
+                response.abort(new HttpServerErrorException(status, "Unexpected XHR receive status"));
+            }
+        }
 
-		private final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        @Override
+        public void onHeaders(Response response) {
+            if (logger.isTraceEnabled()) {
+                // Convert to HttpHeaders to avoid "\n"
+                logger.trace("XHR receive headers: " + toHttpHeaders(response.getHeaders()));
+            }
+        }
 
-		public SockJsResponseListener(URI url, HttpHeaders headers,	XhrClientSockJsSession sockJsSession,
-				SettableListenableFuture<WebSocketSession> connectFuture) {
+        @Override
+        public void onContent(Response response, ByteBuffer buffer) {
+            while (true) {
+                if (this.sockJsSession.isDisconnected()) {
+                    if (logger.isDebugEnabled()) {
+                        logger.debug("SockJS sockJsSession closed, closing response.");
+                    }
+                    response.abort(new SockJsException("Session closed.", this.sockJsSession.getId(), null));
+                    return;
+                }
+                if (buffer.remaining() == 0) {
+                    break;
+                }
+                int b = buffer.get();
+                if (b == '\n') {
+                    handleFrame();
+                } else {
+                    this.outputStream.write(b);
+                }
+            }
+        }
 
-			this.transportUrl = url;
-			this.receiveHeaders = headers;
-			this.connectFuture = connectFuture;
-			this.sockJsSession = sockJsSession;
-		}
+        private void handleFrame() {
+            byte[] bytes = this.outputStream.toByteArray();
+            this.outputStream.reset();
+            String content = new String(bytes, SockJsFrame.CHARSET);
+            if (logger.isTraceEnabled()) {
+                logger.trace("XHR content received: " + content);
+            }
+            if (!PRELUDE.equals(content)) {
+                this.sockJsSession.handleFrame(new String(bytes, SockJsFrame.CHARSET));
+            }
+        }
 
-		@Override
-		public void onBegin(Response response) {
-			if (response.getStatus() != 200) {
-				HttpStatus status = HttpStatus.valueOf(response.getStatus());
-				response.abort(new HttpServerErrorException(status, "Unexpected XHR receive status"));
-			}
-		}
+        @Override
+        public void onSuccess(Response response) {
+            if (this.outputStream.size() > 0) {
+                handleFrame();
+            }
+            if (logger.isTraceEnabled()) {
+                logger.trace("XHR receive request completed.");
+            }
+            executeReceiveRequest(this.transportUrl, this.receiveHeaders, this);
+        }
 
-		@Override
-		public void onHeaders(Response response) {
-			if (logger.isTraceEnabled()) {
-				// Convert to HttpHeaders to avoid "\n"
-				logger.trace("XHR receive headers: " + toHttpHeaders(response.getHeaders()));
-			}
-		}
-
-		@Override
-		public void onContent(Response response, ByteBuffer buffer) {
-			while (true) {
-				if (this.sockJsSession.isDisconnected()) {
-					if (logger.isDebugEnabled()) {
-						logger.debug("SockJS sockJsSession closed, closing response.");
-					}
-					response.abort(new SockJsException("Session closed.", this.sockJsSession.getId(), null));
-					return;
-				}
-				if (buffer.remaining() == 0) {
-					break;
-				}
-				int b = buffer.get();
-				if (b == '\n') {
-					handleFrame();
-				}
-				else {
-					this.outputStream.write(b);
-				}
-			}
-		}
-
-		private void handleFrame() {
-			byte[] bytes = this.outputStream.toByteArray();
-			this.outputStream.reset();
-			String content = new String(bytes, SockJsFrame.CHARSET);
-			if (logger.isTraceEnabled()) {
-				logger.trace("XHR content received: " + content);
-			}
-			if (!PRELUDE.equals(content)) {
-				this.sockJsSession.handleFrame(new String(bytes, SockJsFrame.CHARSET));
-			}
-		}
-
-		@Override
-		public void onSuccess(Response response) {
-			if (this.outputStream.size() > 0) {
-				handleFrame();
-			}
-			if (logger.isTraceEnabled()) {
-				logger.trace("XHR receive request completed.");
-			}
-			executeReceiveRequest(this.transportUrl, this.receiveHeaders, this);
-		}
-
-		@Override
-		public void onFailure(Response response, Throwable failure) {
-			if (this.connectFuture.setException(failure)) {
-				return;
-			}
-			if (this.sockJsSession.isDisconnected()) {
-				this.sockJsSession.afterTransportClosed(null);
-			}
-			else {
-				this.sockJsSession.handleTransportError(failure);
-				this.sockJsSession.afterTransportClosed(new CloseStatus(1006, failure.getMessage()));
-			}
-		}
-	}
+        @Override
+        public void onFailure(Response response, Throwable failure) {
+            if (this.connectFuture.setException(failure)) {
+                return;
+            }
+            if (this.sockJsSession.isDisconnected()) {
+                this.sockJsSession.afterTransportClosed(null);
+            } else {
+                this.sockJsSession.handleTransportError(failure);
+                this.sockJsSession.afterTransportClosed(new CloseStatus(1006, failure.getMessage()));
+            }
+        }
+    }
 
 }

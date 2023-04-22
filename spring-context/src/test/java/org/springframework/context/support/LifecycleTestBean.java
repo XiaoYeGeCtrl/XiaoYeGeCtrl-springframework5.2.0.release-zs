@@ -23,41 +23,41 @@ import org.springframework.context.Lifecycle;
  */
 public class LifecycleTestBean implements Lifecycle {
 
-	private static int startCounter;
+    private static int startCounter;
 
-	private static int stopCounter;
-
-
-	private int startOrder;
-
-	private int stopOrder;
-
-	private boolean running;
+    private static int stopCounter;
 
 
-	public int getStartOrder() {
-		return startOrder;
-	}
+    private int startOrder;
 
-	public int getStopOrder() {
-		return stopOrder;
-	}
+    private int stopOrder;
 
-	@Override
-	public boolean isRunning() {
-		return this.running;
-	}
+    private boolean running;
 
-	@Override
-	public void start() {
-		this.startOrder = ++startCounter;
-		this.running = true;
-	}
 
-	@Override
-	public void stop() {
-		this.stopOrder = ++stopCounter;
-		this.running = false;
-	}
+    public int getStartOrder() {
+        return startOrder;
+    }
+
+    public int getStopOrder() {
+        return stopOrder;
+    }
+
+    @Override
+    public boolean isRunning() {
+        return this.running;
+    }
+
+    @Override
+    public void start() {
+        this.startOrder = ++startCounter;
+        this.running = true;
+    }
+
+    @Override
+    public void stop() {
+        this.stopOrder = ++stopCounter;
+        this.running = false;
+    }
 
 }

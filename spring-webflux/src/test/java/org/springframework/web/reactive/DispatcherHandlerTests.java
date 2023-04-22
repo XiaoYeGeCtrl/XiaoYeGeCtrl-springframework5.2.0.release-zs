@@ -41,70 +41,72 @@ import static org.mockito.Mockito.withSettings;
 
 /**
  * Unit tests for {@link DispatcherHandler}.
+ *
  * @author Rossen Stoyanchev
  */
 public class DispatcherHandlerTests {
 
-	private static final MethodParameter RETURN_TYPE =
-			ResolvableMethod.on(DispatcherHandler.class).named("handle").resolveReturnType();
+    private static final MethodParameter RETURN_TYPE =
+            ResolvableMethod.on(DispatcherHandler.class).named("handle").resolveReturnType();
 
 
-	@Test
-	public void handlerMappingOrder() {
-		HandlerMapping hm1 = mock(HandlerMapping.class, withSettings().extraInterfaces(Ordered.class));
-		HandlerMapping hm2 = mock(HandlerMapping.class, withSettings().extraInterfaces(Ordered.class));
-		given(((Ordered) hm1).getOrder()).willReturn(1);
-		given(((Ordered) hm2).getOrder()).willReturn(2);
-		given((hm1).getHandler(any())).willReturn(Mono.just((Supplier<String>) () -> "1"));
-		given((hm2).getHandler(any())).willReturn(Mono.just((Supplier<String>) () -> "2"));
+    @Test
+    public void handlerMappingOrder() {
+        HandlerMapping hm1 = mock(HandlerMapping.class, withSettings().extraInterfaces(Ordered.class));
+        HandlerMapping hm2 = mock(HandlerMapping.class, withSettings().extraInterfaces(Ordered.class));
+        given(((Ordered) hm1).getOrder()).willReturn(1);
+        given(((Ordered) hm2).getOrder()).willReturn(2);
+        given((hm1).getHandler(any())).willReturn(Mono.just((Supplier<String>) () -> "1"));
+        given((hm2).getHandler(any())).willReturn(Mono.just((Supplier<String>) () -> "2"));
 
-		StaticApplicationContext context = new StaticApplicationContext();
-		context.registerBean("b2", HandlerMapping.class, () -> hm2);
-		context.registerBean("b1", HandlerMapping.class, () -> hm1);
-		context.registerBean(HandlerAdapter.class, SupplierHandlerAdapter::new);
-		context.registerBean(HandlerResultHandler.class, StringHandlerResultHandler::new);
-		context.refresh();
+        StaticApplicationContext context = new StaticApplicationContext();
+        context.registerBean("b2", HandlerMapping.class, () -> hm2);
+        context.registerBean("b1", HandlerMapping.class, () -> hm1);
+        context.registerBean(HandlerAdapter.class, SupplierHandlerAdapter::new);
+        context.registerBean(HandlerResultHandler.class, StringHandlerResultHandler::new);
+        context.refresh();
 
-		DispatcherHandler dispatcherHandler = new DispatcherHandler(context);
+        DispatcherHandler dispatcherHandler = new DispatcherHandler(context);
 
-		MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/"));
-		dispatcherHandler.handle(exchange).block(Duration.ofSeconds(0));
-		assertThat(exchange.getResponse().getBodyAsString().block(Duration.ofSeconds(5))).isEqualTo("1");
-	}
-
-
-	@SuppressWarnings("unused")
-	private void handle() {}
+        MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/"));
+        dispatcherHandler.handle(exchange).block(Duration.ofSeconds(0));
+        assertThat(exchange.getResponse().getBodyAsString().block(Duration.ofSeconds(5))).isEqualTo("1");
+    }
 
 
-	private static class SupplierHandlerAdapter implements HandlerAdapter {
-
-		@Override
-		public boolean supports(Object handler) {
-			return handler instanceof Supplier;
-		}
-
-		@Override
-		public Mono<HandlerResult> handle(ServerWebExchange exchange, Object handler) {
-			return Mono.just(new HandlerResult(handler, ((Supplier<?>) handler).get(), RETURN_TYPE));
-		}
-	}
+    @SuppressWarnings("unused")
+    private void handle() {
+    }
 
 
-	private static class StringHandlerResultHandler implements HandlerResultHandler {
+    private static class SupplierHandlerAdapter implements HandlerAdapter {
 
-		@Override
-		public boolean supports(HandlerResult result) {
-			Object value = result.getReturnValue();
-			return value != null && String.class.equals(value.getClass());
-		}
+        @Override
+        public boolean supports(Object handler) {
+            return handler instanceof Supplier;
+        }
 
-		@Override
-		public Mono<Void> handleResult(ServerWebExchange exchange, HandlerResult result) {
-			byte[] bytes = ((String) result.getReturnValue()).getBytes(StandardCharsets.UTF_8);
-			DataBuffer dataBuffer = new DefaultDataBufferFactory().wrap(bytes);
-			return exchange.getResponse().writeWith(Mono.just(dataBuffer));
-		}
-	}
+        @Override
+        public Mono<HandlerResult> handle(ServerWebExchange exchange, Object handler) {
+            return Mono.just(new HandlerResult(handler, ((Supplier<?>) handler).get(), RETURN_TYPE));
+        }
+    }
+
+
+    private static class StringHandlerResultHandler implements HandlerResultHandler {
+
+        @Override
+        public boolean supports(HandlerResult result) {
+            Object value = result.getReturnValue();
+            return value != null && String.class.equals(value.getClass());
+        }
+
+        @Override
+        public Mono<Void> handleResult(ServerWebExchange exchange, HandlerResult result) {
+            byte[] bytes = ((String) result.getReturnValue()).getBytes(StandardCharsets.UTF_8);
+            DataBuffer dataBuffer = new DefaultDataBufferFactory().wrap(bytes);
+            return exchange.getResponse().writeWith(Mono.just(dataBuffer));
+        }
+    }
 
 }

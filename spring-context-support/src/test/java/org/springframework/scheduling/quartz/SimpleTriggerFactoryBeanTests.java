@@ -28,16 +28,16 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 public class SimpleTriggerFactoryBeanTests {
 
-	@Test
-	public void createWithoutJobDetail() throws ParseException {
-		SimpleTriggerFactoryBean factory = new SimpleTriggerFactoryBean();
-		factory.setName("myTrigger");
-		factory.setRepeatCount(5);
-		factory.setRepeatInterval(1000L);
-		factory.afterPropertiesSet();
-		SimpleTrigger trigger = factory.getObject();
-		assertThat(trigger.getRepeatCount()).isEqualTo(5);
-		assertThat(trigger.getRepeatInterval()).isEqualTo(1000L);
-	}
+    @Test
+    public void createWithoutJobDetail() throws ParseException {
+        SimpleTriggerFactoryBean factory = new SimpleTriggerFactoryBean();
+        factory.setName("myTrigger");
+        factory.setRepeatCount(5);
+        factory.setRepeatInterval(1000L);
+        factory.afterPropertiesSet();
+        SimpleTrigger trigger = factory.getObject();
+        assertThat(trigger.getRepeatCount()).isEqualTo(5);
+        assertThat(trigger.getRepeatInterval()).isEqualTo(1000L);
+    }
 
 }

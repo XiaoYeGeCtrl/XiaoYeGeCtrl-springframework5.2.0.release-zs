@@ -38,106 +38,101 @@ import org.springframework.web.server.ServerWebExchange;
  */
 public final class RequestConditionHolder extends AbstractRequestCondition<RequestConditionHolder> {
 
-	@Nullable
-	private final RequestCondition<Object> condition;
+    @Nullable
+    private final RequestCondition<Object> condition;
 
 
-	/**
-	 * Create a new holder to wrap the given request condition.
-	 * @param requestCondition the condition to hold (may be {@code null})
-	 */
-	@SuppressWarnings("unchecked")
-	public RequestConditionHolder(@Nullable RequestCondition<?> requestCondition) {
-		this.condition = (RequestCondition<Object>) requestCondition;
-	}
+    /**
+     * Create a new holder to wrap the given request condition.
+     *
+     * @param requestCondition the condition to hold (may be {@code null})
+     */
+    @SuppressWarnings("unchecked")
+    public RequestConditionHolder(@Nullable RequestCondition<?> requestCondition) {
+        this.condition = (RequestCondition<Object>) requestCondition;
+    }
 
 
-	/**
-	 * Return the held request condition, or {@code null} if not holding one.
-	 */
-	@Nullable
-	public RequestCondition<?> getCondition() {
-		return this.condition;
-	}
+    /**
+     * Return the held request condition, or {@code null} if not holding one.
+     */
+    @Nullable
+    public RequestCondition<?> getCondition() {
+        return this.condition;
+    }
 
-	@Override
-	protected Collection<?> getContent() {
-		return (this.condition != null ? Collections.singleton(this.condition) : Collections.emptyList());
-	}
+    @Override
+    protected Collection<?> getContent() {
+        return (this.condition != null ? Collections.singleton(this.condition) : Collections.emptyList());
+    }
 
-	@Override
-	protected String getToStringInfix() {
-		return " ";
-	}
+    @Override
+    protected String getToStringInfix() {
+        return " ";
+    }
 
-	/**
-	 * Combine the request conditions held by the two RequestConditionHolder
-	 * instances after making sure the conditions are of the same type.
-	 * Or if one holder is empty, the other holder is returned.
-	 */
-	@Override
-	public RequestConditionHolder combine(RequestConditionHolder other) {
-		if (this.condition == null && other.condition == null) {
-			return this;
-		}
-		else if (this.condition == null) {
-			return other;
-		}
-		else if (other.condition == null) {
-			return this;
-		}
-		else {
-			assertEqualConditionTypes(this.condition, other.condition);
-			RequestCondition<?> combined = (RequestCondition<?>) this.condition.combine(other.condition);
-			return new RequestConditionHolder(combined);
-		}
-	}
+    /**
+     * Combine the request conditions held by the two RequestConditionHolder
+     * instances after making sure the conditions are of the same type.
+     * Or if one holder is empty, the other holder is returned.
+     */
+    @Override
+    public RequestConditionHolder combine(RequestConditionHolder other) {
+        if (this.condition == null && other.condition == null) {
+            return this;
+        } else if (this.condition == null) {
+            return other;
+        } else if (other.condition == null) {
+            return this;
+        } else {
+            assertEqualConditionTypes(this.condition, other.condition);
+            RequestCondition<?> combined = (RequestCondition<?>) this.condition.combine(other.condition);
+            return new RequestConditionHolder(combined);
+        }
+    }
 
-	/**
-	 * Get the matching condition for the held request condition wrap it in a
-	 * new RequestConditionHolder instance. Or otherwise if this is an empty
-	 * holder, return the same holder instance.
-	 */
-	@Override
-	public RequestConditionHolder getMatchingCondition(ServerWebExchange exchange) {
-		if (this.condition == null) {
-			return this;
-		}
-		RequestCondition<?> match = (RequestCondition<?>) this.condition.getMatchingCondition(exchange);
-		return (match != null ? new RequestConditionHolder(match) : null);
-	}
+    /**
+     * Get the matching condition for the held request condition wrap it in a
+     * new RequestConditionHolder instance. Or otherwise if this is an empty
+     * holder, return the same holder instance.
+     */
+    @Override
+    public RequestConditionHolder getMatchingCondition(ServerWebExchange exchange) {
+        if (this.condition == null) {
+            return this;
+        }
+        RequestCondition<?> match = (RequestCondition<?>) this.condition.getMatchingCondition(exchange);
+        return (match != null ? new RequestConditionHolder(match) : null);
+    }
 
-	/**
-	 * Compare the request conditions held by the two RequestConditionHolder
-	 * instances after making sure the conditions are of the same type.
-	 * Or if one holder is empty, the other holder is preferred.
-	 */
-	@Override
-	public int compareTo(RequestConditionHolder other, ServerWebExchange exchange) {
-		if (this.condition == null && other.condition == null) {
-			return 0;
-		}
-		else if (this.condition == null) {
-			return 1;
-		}
-		else if (other.condition == null) {
-			return -1;
-		}
-		else {
-			assertEqualConditionTypes(this.condition, other.condition);
-			return this.condition.compareTo(other.condition, exchange);
-		}
-	}
+    /**
+     * Compare the request conditions held by the two RequestConditionHolder
+     * instances after making sure the conditions are of the same type.
+     * Or if one holder is empty, the other holder is preferred.
+     */
+    @Override
+    public int compareTo(RequestConditionHolder other, ServerWebExchange exchange) {
+        if (this.condition == null && other.condition == null) {
+            return 0;
+        } else if (this.condition == null) {
+            return 1;
+        } else if (other.condition == null) {
+            return -1;
+        } else {
+            assertEqualConditionTypes(this.condition, other.condition);
+            return this.condition.compareTo(other.condition, exchange);
+        }
+    }
 
-	/**
-	 * Ensure the held request conditions are of the same type.
-	 */
-	private void assertEqualConditionTypes(RequestCondition<?> cond1, RequestCondition<?> cond2) {
-		Class<?> clazz = cond1.getClass();
-		Class<?> otherClazz = cond2.getClass();
-		if (!clazz.equals(otherClazz)) {
-			throw new ClassCastException("Incompatible request conditions: " + clazz + " vs " + otherClazz);
-		}
-	}
+    /**
+     * Ensure the held request conditions are of the same type.
+     */
+    private void assertEqualConditionTypes(RequestCondition<?> cond1, RequestCondition<?> cond2) {
+        Class<?> clazz = cond1.getClass();
+        Class<?> otherClazz = cond2.getClass();
+        if (!clazz.equals(otherClazz)) {
+            throw new ClassCastException("Incompatible request conditions: " + clazz + " vs " + otherClazz);
+        }
+    }
 
 }

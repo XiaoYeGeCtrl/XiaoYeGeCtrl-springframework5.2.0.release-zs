@@ -29,22 +29,24 @@ import org.springframework.core.NestedRuntimeException;
 @SuppressWarnings("serial")
 public class SchedulingException extends NestedRuntimeException {
 
-	/**
-	 * Constructor for SchedulingException.
-	 * @param msg the detail message
-	 */
-	public SchedulingException(String msg) {
-		super(msg);
-	}
+    /**
+     * Constructor for SchedulingException.
+     *
+     * @param msg the detail message
+     */
+    public SchedulingException(String msg) {
+        super(msg);
+    }
 
-	/**
-	 * Constructor for SchedulingException.
-	 * @param msg the detail message
-	 * @param cause the root cause (usually from using a underlying
-	 * scheduling API such as Quartz)
-	 */
-	public SchedulingException(String msg, Throwable cause) {
-		super(msg, cause);
-	}
+    /**
+     * Constructor for SchedulingException.
+     *
+     * @param msg   the detail message
+     * @param cause the root cause (usually from using a underlying
+     *              scheduling API such as Quartz)
+     */
+    public SchedulingException(String msg, Throwable cause) {
+        super(msg, cause);
+    }
 
 }

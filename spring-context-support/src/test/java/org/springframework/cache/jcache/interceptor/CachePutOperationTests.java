@@ -33,66 +33,66 @@ import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
  */
 public class CachePutOperationTests extends AbstractCacheOperationTests<CachePutOperation> {
 
-	@Override
-	protected CachePutOperation createSimpleOperation() {
-		CacheMethodDetails<CachePut> methodDetails = create(CachePut.class,
-				SampleObject.class, "simplePut", Long.class, SampleObject.class);
-		return createDefaultOperation(methodDetails);
-	}
+    @Override
+    protected CachePutOperation createSimpleOperation() {
+        CacheMethodDetails<CachePut> methodDetails = create(CachePut.class,
+                SampleObject.class, "simplePut", Long.class, SampleObject.class);
+        return createDefaultOperation(methodDetails);
+    }
 
-	@Test
-	public void simplePut() {
-		CachePutOperation operation = createSimpleOperation();
+    @Test
+    public void simplePut() {
+        CachePutOperation operation = createSimpleOperation();
 
-		CacheInvocationParameter[] allParameters = operation.getAllParameters(2L, sampleInstance);
-		assertThat(allParameters.length).isEqualTo(2);
-		assertCacheInvocationParameter(allParameters[0], Long.class, 2L, 0);
-		assertCacheInvocationParameter(allParameters[1], SampleObject.class, sampleInstance, 1);
+        CacheInvocationParameter[] allParameters = operation.getAllParameters(2L, sampleInstance);
+        assertThat(allParameters.length).isEqualTo(2);
+        assertCacheInvocationParameter(allParameters[0], Long.class, 2L, 0);
+        assertCacheInvocationParameter(allParameters[1], SampleObject.class, sampleInstance, 1);
 
-		CacheInvocationParameter valueParameter = operation.getValueParameter(2L, sampleInstance);
-		assertThat(valueParameter).isNotNull();
-		assertCacheInvocationParameter(valueParameter, SampleObject.class, sampleInstance, 1);
-	}
+        CacheInvocationParameter valueParameter = operation.getValueParameter(2L, sampleInstance);
+        assertThat(valueParameter).isNotNull();
+        assertCacheInvocationParameter(valueParameter, SampleObject.class, sampleInstance, 1);
+    }
 
-	@Test
-	public void noCacheValue() {
-		CacheMethodDetails<CachePut> methodDetails = create(CachePut.class,
-				SampleObject.class, "noCacheValue", Long.class);
+    @Test
+    public void noCacheValue() {
+        CacheMethodDetails<CachePut> methodDetails = create(CachePut.class,
+                SampleObject.class, "noCacheValue", Long.class);
 
-		assertThatIllegalArgumentException().isThrownBy(() ->
-				createDefaultOperation(methodDetails));
-	}
+        assertThatIllegalArgumentException().isThrownBy(() ->
+                createDefaultOperation(methodDetails));
+    }
 
-	@Test
-	public void multiCacheValues() {
-		CacheMethodDetails<CachePut> methodDetails = create(CachePut.class,
-				SampleObject.class, "multiCacheValues", Long.class, SampleObject.class, SampleObject.class);
+    @Test
+    public void multiCacheValues() {
+        CacheMethodDetails<CachePut> methodDetails = create(CachePut.class,
+                SampleObject.class, "multiCacheValues", Long.class, SampleObject.class, SampleObject.class);
 
-		assertThatIllegalArgumentException().isThrownBy(() ->
-				createDefaultOperation(methodDetails));
-	}
+        assertThatIllegalArgumentException().isThrownBy(() ->
+                createDefaultOperation(methodDetails));
+    }
 
-	@Test
-	public void invokeWithWrongParameters() {
-		CachePutOperation operation = createSimpleOperation();
+    @Test
+    public void invokeWithWrongParameters() {
+        CachePutOperation operation = createSimpleOperation();
 
-		assertThatIllegalStateException().isThrownBy(() ->
-				operation.getValueParameter(2L));
-	}
+        assertThatIllegalStateException().isThrownBy(() ->
+                operation.getValueParameter(2L));
+    }
 
-	@Test
-	public void fullPutConfig() {
-		CacheMethodDetails<CachePut> methodDetails = create(CachePut.class,
-				SampleObject.class, "fullPutConfig", Long.class, SampleObject.class);
-		CachePutOperation operation = createDefaultOperation(methodDetails);
-		assertThat(operation.isEarlyPut()).isTrue();
-		assertThat(operation.getExceptionTypeFilter()).isNotNull();
-		assertThat(operation.getExceptionTypeFilter().match(IOException.class)).isTrue();
-		assertThat(operation.getExceptionTypeFilter().match(NullPointerException.class)).isFalse();
-	}
+    @Test
+    public void fullPutConfig() {
+        CacheMethodDetails<CachePut> methodDetails = create(CachePut.class,
+                SampleObject.class, "fullPutConfig", Long.class, SampleObject.class);
+        CachePutOperation operation = createDefaultOperation(methodDetails);
+        assertThat(operation.isEarlyPut()).isTrue();
+        assertThat(operation.getExceptionTypeFilter()).isNotNull();
+        assertThat(operation.getExceptionTypeFilter().match(IOException.class)).isTrue();
+        assertThat(operation.getExceptionTypeFilter().match(NullPointerException.class)).isFalse();
+    }
 
-	private CachePutOperation createDefaultOperation(CacheMethodDetails<CachePut> methodDetails) {
-		return new CachePutOperation(methodDetails, defaultCacheResolver, defaultKeyGenerator);
-	}
+    private CachePutOperation createDefaultOperation(CacheMethodDetails<CachePut> methodDetails) {
+        return new CachePutOperation(methodDetails, defaultCacheResolver, defaultKeyGenerator);
+    }
 
 }

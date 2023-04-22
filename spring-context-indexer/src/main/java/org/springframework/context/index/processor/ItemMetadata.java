@@ -30,23 +30,23 @@ import java.util.Set;
  */
 class ItemMetadata {
 
-	private final String type;
+    private final String type;
 
-	private final Set<String> stereotypes;
-
-
-	public ItemMetadata(String type, Set<String> stereotypes) {
-		this.type = type;
-		this.stereotypes = new HashSet<>(stereotypes);
-	}
+    private final Set<String> stereotypes;
 
 
-	public String getType() {
-		return this.type;
-	}
+    public ItemMetadata(String type, Set<String> stereotypes) {
+        this.type = type;
+        this.stereotypes = new HashSet<>(stereotypes);
+    }
 
-	public Set<String> getStereotypes() {
-		return this.stereotypes;
-	}
+
+    public String getType() {
+        return this.type;
+    }
+
+    public Set<String> getStereotypes() {
+        return this.stereotypes;
+    }
 
 }

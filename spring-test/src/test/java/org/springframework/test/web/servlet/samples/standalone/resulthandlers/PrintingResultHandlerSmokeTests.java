@@ -51,33 +51,33 @@ import static org.springframework.test.web.servlet.setup.MockMvcBuilders.standal
 @Disabled("Not intended to be executed with the build. Comment out this line to inspect the output manually.")
 public class PrintingResultHandlerSmokeTests {
 
-	@Test
-	public void testPrint() throws Exception {
-		StringWriter writer = new StringWriter();
+    @Test
+    public void testPrint() throws Exception {
+        StringWriter writer = new StringWriter();
 
-		standaloneSetup(new SimpleController())
-			.build()
-			.perform(get("/").content("Hello Request".getBytes()))
-			.andDo(log())
-			.andDo(print())
-			.andDo(print(System.err))
-			.andDo(print(writer))
-		;
+        standaloneSetup(new SimpleController())
+                .build()
+                .perform(get("/").content("Hello Request".getBytes()))
+                .andDo(log())
+                .andDo(print())
+                .andDo(print(System.err))
+                .andDo(print(writer))
+        ;
 
-		System.out.println();
-		System.out.println("===============================================================");
-		System.out.println(writer.toString());
-	}
+        System.out.println();
+        System.out.println("===============================================================");
+        System.out.println(writer.toString());
+    }
 
 
-	@Controller
-	private static class SimpleController {
+    @Controller
+    private static class SimpleController {
 
-		@RequestMapping("/")
-		@ResponseBody
-		public String hello(HttpServletResponse response) {
-			response.addCookie(new Cookie("enigma", "42"));
-			return "Hello Response";
-		}
-	}
+        @RequestMapping("/")
+        @ResponseBody
+        public String hello(HttpServletResponse response) {
+            response.addCookie(new Cookie("enigma", "42"));
+            return "Hello Response";
+        }
+    }
 }

@@ -34,26 +34,24 @@ import static org.assertj.core.api.Assertions.assertThat;
  * since it should only be run as part of the test suite: {@link Spr8849Tests}.
  *
  * @author Sam Brannen
- * @since 4.2
  * @see Spr8849Tests
+ * @since 4.2
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
 public class TestClass3 {
 
-	@Configuration
-	@ImportResource("classpath:/org/springframework/test/context/junit4/spr8849/datasource-config-with-auto-generated-db-name.xml")
-	static class Config {
-	}
+    @Resource
+    DataSource dataSource;
 
+    @Test
+    public void dummyTest() {
+        assertThat(dataSource).isNotNull();
+    }
 
-	@Resource
-	DataSource dataSource;
-
-
-	@Test
-	public void dummyTest() {
-		assertThat(dataSource).isNotNull();
-	}
+    @Configuration
+    @ImportResource("classpath:/org/springframework/test/context/junit4/spr8849/datasource-config-with-auto-generated-db-name.xml")
+    static class Config {
+    }
 
 }

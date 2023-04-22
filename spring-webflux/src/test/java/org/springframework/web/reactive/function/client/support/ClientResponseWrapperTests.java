@@ -43,131 +43,134 @@ import static org.mockito.Mockito.mock;
  */
 public class ClientResponseWrapperTests {
 
-	private ClientResponse mockResponse;
+    private ClientResponse mockResponse;
 
-	private ClientResponseWrapper wrapper;
+    private ClientResponseWrapper wrapper;
 
-	@BeforeEach
-	public void createWrapper() {
-		this.mockResponse = mock(ClientResponse.class);
-		this.wrapper = new ClientResponseWrapper(mockResponse);
-	}
+    @BeforeEach
+    public void createWrapper() {
+        this.mockResponse = mock(ClientResponse.class);
+        this.wrapper = new ClientResponseWrapper(mockResponse);
+    }
 
-	@Test
-	public void response() {
-		assertThat(wrapper.response()).isSameAs(mockResponse);
-	}
+    @Test
+    public void response() {
+        assertThat(wrapper.response()).isSameAs(mockResponse);
+    }
 
-	@Test
-	public void statusCode() {
-		HttpStatus status = HttpStatus.BAD_REQUEST;
-		given(mockResponse.statusCode()).willReturn(status);
+    @Test
+    public void statusCode() {
+        HttpStatus status = HttpStatus.BAD_REQUEST;
+        given(mockResponse.statusCode()).willReturn(status);
 
-		assertThat(wrapper.statusCode()).isSameAs(status);
-	}
+        assertThat(wrapper.statusCode()).isSameAs(status);
+    }
 
-	@Test
-	public void rawStatusCode() {
-		int status = 999;
-		given(mockResponse.rawStatusCode()).willReturn(status);
+    @Test
+    public void rawStatusCode() {
+        int status = 999;
+        given(mockResponse.rawStatusCode()).willReturn(status);
 
-		assertThat(wrapper.rawStatusCode()).isEqualTo(status);
-	}
+        assertThat(wrapper.rawStatusCode()).isEqualTo(status);
+    }
 
-	@Test
-	public void headers() {
-		ClientResponse.Headers headers = mock(ClientResponse.Headers.class);
-		given(mockResponse.headers()).willReturn(headers);
+    @Test
+    public void headers() {
+        ClientResponse.Headers headers = mock(ClientResponse.Headers.class);
+        given(mockResponse.headers()).willReturn(headers);
 
-		assertThat(wrapper.headers()).isSameAs(headers);
-	}
+        assertThat(wrapper.headers()).isSameAs(headers);
+    }
 
-	@Test
-	@SuppressWarnings("unchecked")
-	public void cookies() {
-		MultiValueMap<String, ResponseCookie> cookies = mock(MultiValueMap.class);
-		given(mockResponse.cookies()).willReturn(cookies);
+    @Test
+    @SuppressWarnings("unchecked")
+    public void cookies() {
+        MultiValueMap<String, ResponseCookie> cookies = mock(MultiValueMap.class);
+        given(mockResponse.cookies()).willReturn(cookies);
 
-		assertThat(wrapper.cookies()).isSameAs(cookies);
-	}
+        assertThat(wrapper.cookies()).isSameAs(cookies);
+    }
 
-	@Test
-	public void bodyExtractor() {
-		Mono<String> result = Mono.just("foo");
-		BodyExtractor<Mono<String>, ReactiveHttpInputMessage> extractor = BodyExtractors.toMono(String.class);
-		given(mockResponse.body(extractor)).willReturn(result);
+    @Test
+    public void bodyExtractor() {
+        Mono<String> result = Mono.just("foo");
+        BodyExtractor<Mono<String>, ReactiveHttpInputMessage> extractor = BodyExtractors.toMono(String.class);
+        given(mockResponse.body(extractor)).willReturn(result);
 
-		assertThat(wrapper.body(extractor)).isSameAs(result);
-	}
+        assertThat(wrapper.body(extractor)).isSameAs(result);
+    }
 
-	@Test
-	public void bodyToMonoClass() {
-		Mono<String> result = Mono.just("foo");
-		given(mockResponse.bodyToMono(String.class)).willReturn(result);
+    @Test
+    public void bodyToMonoClass() {
+        Mono<String> result = Mono.just("foo");
+        given(mockResponse.bodyToMono(String.class)).willReturn(result);
 
-		assertThat(wrapper.bodyToMono(String.class)).isSameAs(result);
-	}
+        assertThat(wrapper.bodyToMono(String.class)).isSameAs(result);
+    }
 
-	@Test
-	public void bodyToMonoParameterizedTypeReference() {
-		Mono<String> result = Mono.just("foo");
-		ParameterizedTypeReference<String> reference = new ParameterizedTypeReference<String>() {};
-		given(mockResponse.bodyToMono(reference)).willReturn(result);
+    @Test
+    public void bodyToMonoParameterizedTypeReference() {
+        Mono<String> result = Mono.just("foo");
+        ParameterizedTypeReference<String> reference = new ParameterizedTypeReference<String>() {
+        };
+        given(mockResponse.bodyToMono(reference)).willReturn(result);
 
-		assertThat(wrapper.bodyToMono(reference)).isSameAs(result);
-	}
+        assertThat(wrapper.bodyToMono(reference)).isSameAs(result);
+    }
 
-	@Test
-	public void bodyToFluxClass() {
-		Flux<String> result = Flux.just("foo");
-		given(mockResponse.bodyToFlux(String.class)).willReturn(result);
+    @Test
+    public void bodyToFluxClass() {
+        Flux<String> result = Flux.just("foo");
+        given(mockResponse.bodyToFlux(String.class)).willReturn(result);
 
-		assertThat(wrapper.bodyToFlux(String.class)).isSameAs(result);
-	}
+        assertThat(wrapper.bodyToFlux(String.class)).isSameAs(result);
+    }
 
-	@Test
-	public void bodyToFluxParameterizedTypeReference() {
-		Flux<String> result = Flux.just("foo");
-		ParameterizedTypeReference<String> reference = new ParameterizedTypeReference<String>() {};
-		given(mockResponse.bodyToFlux(reference)).willReturn(result);
+    @Test
+    public void bodyToFluxParameterizedTypeReference() {
+        Flux<String> result = Flux.just("foo");
+        ParameterizedTypeReference<String> reference = new ParameterizedTypeReference<String>() {
+        };
+        given(mockResponse.bodyToFlux(reference)).willReturn(result);
 
-		assertThat(wrapper.bodyToFlux(reference)).isSameAs(result);
-	}
+        assertThat(wrapper.bodyToFlux(reference)).isSameAs(result);
+    }
 
-	@Test
-	public void toEntityClass() {
-		Mono<ResponseEntity<String>> result = Mono.just(new ResponseEntity<>("foo", HttpStatus.OK));
-		given(mockResponse.toEntity(String.class)).willReturn(result);
+    @Test
+    public void toEntityClass() {
+        Mono<ResponseEntity<String>> result = Mono.just(new ResponseEntity<>("foo", HttpStatus.OK));
+        given(mockResponse.toEntity(String.class)).willReturn(result);
 
-		assertThat(wrapper.toEntity(String.class)).isSameAs(result);
-	}
+        assertThat(wrapper.toEntity(String.class)).isSameAs(result);
+    }
 
-	@Test
-	public void toEntityParameterizedTypeReference() {
-		Mono<ResponseEntity<String>> result = Mono.just(new ResponseEntity<>("foo", HttpStatus.OK));
-		ParameterizedTypeReference<String> reference = new ParameterizedTypeReference<String>() {};
-		given(mockResponse.toEntity(reference)).willReturn(result);
+    @Test
+    public void toEntityParameterizedTypeReference() {
+        Mono<ResponseEntity<String>> result = Mono.just(new ResponseEntity<>("foo", HttpStatus.OK));
+        ParameterizedTypeReference<String> reference = new ParameterizedTypeReference<String>() {
+        };
+        given(mockResponse.toEntity(reference)).willReturn(result);
 
-		assertThat(wrapper.toEntity(reference)).isSameAs(result);
-	}
+        assertThat(wrapper.toEntity(reference)).isSameAs(result);
+    }
 
-	@Test
-	public void toEntityListClass() {
-		Mono<ResponseEntity<List<String>>> result = Mono.just(new ResponseEntity<>(singletonList("foo"), HttpStatus.OK));
-		given(mockResponse.toEntityList(String.class)).willReturn(result);
+    @Test
+    public void toEntityListClass() {
+        Mono<ResponseEntity<List<String>>> result = Mono.just(new ResponseEntity<>(singletonList("foo"), HttpStatus.OK));
+        given(mockResponse.toEntityList(String.class)).willReturn(result);
 
-		assertThat(wrapper.toEntityList(String.class)).isSameAs(result);
-	}
+        assertThat(wrapper.toEntityList(String.class)).isSameAs(result);
+    }
 
-	@Test
-	public void toEntityListParameterizedTypeReference() {
-		Mono<ResponseEntity<List<String>>> result = Mono.just(new ResponseEntity<>(singletonList("foo"), HttpStatus.OK));
-		ParameterizedTypeReference<String> reference = new ParameterizedTypeReference<String>() {};
-		given(mockResponse.toEntityList(reference)).willReturn(result);
+    @Test
+    public void toEntityListParameterizedTypeReference() {
+        Mono<ResponseEntity<List<String>>> result = Mono.just(new ResponseEntity<>(singletonList("foo"), HttpStatus.OK));
+        ParameterizedTypeReference<String> reference = new ParameterizedTypeReference<String>() {
+        };
+        given(mockResponse.toEntityList(reference)).willReturn(result);
 
-		assertThat(wrapper.toEntityList(reference)).isSameAs(result);
-	}
-
+        assertThat(wrapper.toEntityList(reference)).isSameAs(result);
+    }
 
 
 }

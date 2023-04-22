@@ -40,29 +40,29 @@ import static org.assertj.core.api.Assertions.assertThat;
  * JUnit Platform, simply run {@link SpringJUnitJupiterTestSuite} as a JUnit 4 test.
  *
  * @author Sam Brannen
- * @since 5.0
  * @see SpringExtension
  * @see ParameterizedTest
+ * @since 5.0
  */
 @SpringJUnitConfig(TestConfig.class)
 class SpringExtensionParameterizedTests {
 
-	@ParameterizedTest
-	@ValueSource(strings = { "Dilbert", "Wally" })
-	void people(String name, @Autowired List<Person> people) {
-		assertThat(people.stream().map(Person::getName).filter(name::equals)).size().isEqualTo(1);
-	}
+    @ParameterizedTest
+    @ValueSource(strings = {"Dilbert", "Wally"})
+    void people(String name, @Autowired List<Person> people) {
+        assertThat(people.stream().map(Person::getName).filter(name::equals)).size().isEqualTo(1);
+    }
 
-	@ParameterizedTest
-	@CsvSource("dogbert, Dogbert")
-	void dogs(String beanName, String dogName, ApplicationContext context) {
-		assertThat(context.getBean(beanName, Dog.class)).extracting(Dog::getName).isEqualTo(dogName);
-	}
+    @ParameterizedTest
+    @CsvSource("dogbert, Dogbert")
+    void dogs(String beanName, String dogName, ApplicationContext context) {
+        assertThat(context.getBean(beanName, Dog.class)).extracting(Dog::getName).isEqualTo(dogName);
+    }
 
-	@ParameterizedTest
-	@CsvSource({ "garfield, Garfield", "catbert, Catbert" })
-	void cats(String beanName, String catName, ApplicationContext context) {
-		assertThat(context.getBean(beanName, Cat.class)).extracting(Cat::getName).isEqualTo(catName);
-	}
+    @ParameterizedTest
+    @CsvSource({"garfield, Garfield", "catbert, Catbert"})
+    void cats(String beanName, String catName, ApplicationContext context) {
+        assertThat(context.getBean(beanName, Cat.class)).extracting(Cat::getName).isEqualTo(catName);
+    }
 
 }

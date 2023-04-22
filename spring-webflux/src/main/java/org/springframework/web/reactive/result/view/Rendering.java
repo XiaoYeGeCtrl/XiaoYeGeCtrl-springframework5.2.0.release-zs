@@ -43,125 +43,130 @@ import org.springframework.ui.Model;
  */
 public interface Rendering {
 
-	/**
-	 * Return the selected {@link String} view name or {@link View} object.
-	 */
-	@Nullable
-	Object view();
+    /**
+     * Create a new builder for response rendering based on the given view name.
+     *
+     * @param name the view name to be resolved to a {@link View}
+     * @return the builder
+     */
+    static Builder<?> view(String name) {
+        return new DefaultRenderingBuilder(name);
+    }
 
-	/**
-	 * Return attributes to add to the model.
-	 */
-	Map<String, Object> modelAttributes();
+    /**
+     * Create a new builder for a redirect through a {@link RedirectView}.
+     *
+     * @param url the redirect URL
+     * @return the builder
+     */
+    static RedirectBuilder redirectTo(String url) {
+        return new DefaultRenderingBuilder(new RedirectView(url));
+    }
 
-	/**
-	 * Return the HTTP status to set the response to.
-	 */
-	@Nullable
-	HttpStatus status();
+    /**
+     * Return the selected {@link String} view name or {@link View} object.
+     */
+    @Nullable
+    Object view();
 
-	/**
-	 * Return headers to add to the response.
-	 */
-	HttpHeaders headers();
+    /**
+     * Return attributes to add to the model.
+     */
+    Map<String, Object> modelAttributes();
 
+    /**
+     * Return the HTTP status to set the response to.
+     */
+    @Nullable
+    HttpStatus status();
 
-	/**
-	 * Create a new builder for response rendering based on the given view name.
-	 * @param name the view name to be resolved to a {@link View}
-	 * @return the builder
-	 */
-	static Builder<?> view(String name) {
-		return new DefaultRenderingBuilder(name);
-	}
-
-	/**
-	 * Create a new builder for a redirect through a {@link RedirectView}.
-	 * @param url the redirect URL
-	 * @return the builder
-	 */
-	static RedirectBuilder redirectTo(String url) {
-		return new DefaultRenderingBuilder(new RedirectView(url));
-	}
-
-
-	/**
-	 * Defines a builder for {@link Rendering}.
-	 *
-	 * @param <B> a self reference to the builder type
-	 */
-	interface Builder<B extends Builder<B>> {
-
-		/**
-		 * Add the given model attribute with the supplied name.
-		 * @see Model#addAttribute(String, Object)
-		 */
-		B modelAttribute(String name, Object value);
-
-		/**
-		 * Add an attribute to the model using a
-		 * {@link org.springframework.core.Conventions#getVariableName generated name}.
-		 * @see Model#addAttribute(Object)
-		 */
-		B modelAttribute(Object value);
-
-		/**
-		 * Add all given attributes to the model using
-		 * {@link org.springframework.core.Conventions#getVariableName generated names}.
-		 * @see Model#addAllAttributes(Collection)
-		 */
-		B modelAttributes(Object... values);
-
-		/**
-		 * Add the given attributes to the model.
-		 * @see Model#addAllAttributes(Map)
-		 */
-		B model(Map<String, ?> map);
-
-		/**
-		 * Specify the status to use for the response.
-		 */
-		B status(HttpStatus status);
-
-		/**
-		 * Specify a header to add to the response.
-		 */
-		B header(String headerName, String... headerValues);
-
-		/**
-		 * Specify headers to add to the response.
-		 */
-		B headers(HttpHeaders headers);
-
-		/**
-		 * Builder the {@link Rendering} instance.
-		 */
-		Rendering build();
-	}
+    /**
+     * Return headers to add to the response.
+     */
+    HttpHeaders headers();
 
 
-	/**
-	 * Extends {@link Builder} with extra options for redirect scenarios.
-	 */
-	interface RedirectBuilder extends Builder<RedirectBuilder> {
+    /**
+     * Defines a builder for {@link Rendering}.
+     *
+     * @param <B> a self reference to the builder type
+     */
+    interface Builder<B extends Builder<B>> {
 
-		/**
-		 * Whether to the provided redirect URL should be prepended with the
-		 * application context path (if any).
-		 * <p>By default this is set to {@code true}.
-		 *
-		 * @see RedirectView#setContextRelative(boolean)
-		 */
-		RedirectBuilder contextRelative(boolean contextRelative);
+        /**
+         * Add the given model attribute with the supplied name.
+         *
+         * @see Model#addAttribute(String, Object)
+         */
+        B modelAttribute(String name, Object value);
 
-		/**
-		 * Whether to append the query string of the current URL to the target
-		 * redirect URL or not.
-		 * <p>By default this is set to {@code false}.
-		 *
-		 * @see RedirectView#setPropagateQuery(boolean)
-		 */
-		RedirectBuilder propagateQuery(boolean propagate);
-	}
+        /**
+         * Add an attribute to the model using a
+         * {@link org.springframework.core.Conventions#getVariableName generated name}.
+         *
+         * @see Model#addAttribute(Object)
+         */
+        B modelAttribute(Object value);
+
+        /**
+         * Add all given attributes to the model using
+         * {@link org.springframework.core.Conventions#getVariableName generated names}.
+         *
+         * @see Model#addAllAttributes(Collection)
+         */
+        B modelAttributes(Object... values);
+
+        /**
+         * Add the given attributes to the model.
+         *
+         * @see Model#addAllAttributes(Map)
+         */
+        B model(Map<String, ?> map);
+
+        /**
+         * Specify the status to use for the response.
+         */
+        B status(HttpStatus status);
+
+        /**
+         * Specify a header to add to the response.
+         */
+        B header(String headerName, String... headerValues);
+
+        /**
+         * Specify headers to add to the response.
+         */
+        B headers(HttpHeaders headers);
+
+        /**
+         * Builder the {@link Rendering} instance.
+         */
+        Rendering build();
+    }
+
+
+    /**
+     * Extends {@link Builder} with extra options for redirect scenarios.
+     */
+    interface RedirectBuilder extends Builder<RedirectBuilder> {
+
+        /**
+         * Whether to the provided redirect URL should be prepended with the
+         * application context path (if any).
+         * <p>By default this is set to {@code true}.
+         *
+         * @see RedirectView#setContextRelative(boolean)
+         */
+        RedirectBuilder contextRelative(boolean contextRelative);
+
+        /**
+         * Whether to append the query string of the current URL to the target
+         * redirect URL or not.
+         * <p>By default this is set to {@code false}.
+         *
+         * @see RedirectView#setPropagateQuery(boolean)
+         */
+        RedirectBuilder propagateQuery(boolean propagate);
+    }
 
 }

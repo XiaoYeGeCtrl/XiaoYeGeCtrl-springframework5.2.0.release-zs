@@ -32,20 +32,20 @@ import org.springframework.web.socket.server.RequestUpgradeStrategy;
  */
 public class DefaultHandshakeHandler extends AbstractHandshakeHandler implements ServletContextAware {
 
-	public DefaultHandshakeHandler() {
-	}
+    public DefaultHandshakeHandler() {
+    }
 
-	public DefaultHandshakeHandler(RequestUpgradeStrategy requestUpgradeStrategy) {
-		super(requestUpgradeStrategy);
-	}
+    public DefaultHandshakeHandler(RequestUpgradeStrategy requestUpgradeStrategy) {
+        super(requestUpgradeStrategy);
+    }
 
 
-	@Override
-	public void setServletContext(ServletContext servletContext) {
-		RequestUpgradeStrategy strategy = getRequestUpgradeStrategy();
-		if (strategy instanceof ServletContextAware) {
-			((ServletContextAware) strategy).setServletContext(servletContext);
-		}
-	}
+    @Override
+    public void setServletContext(ServletContext servletContext) {
+        RequestUpgradeStrategy strategy = getRequestUpgradeStrategy();
+        if (strategy instanceof ServletContextAware) {
+            ((ServletContextAware) strategy).setServletContext(servletContext);
+        }
+    }
 
 }

@@ -36,40 +36,39 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 public abstract class AbstractCacheOperationTests<O extends JCacheOperation<?>> extends AbstractJCacheTests {
 
-	protected final SampleObject sampleInstance = new SampleObject();
+    protected final SampleObject sampleInstance = new SampleObject();
 
-	protected abstract O createSimpleOperation();
+    private static String getCacheName(Annotation annotation) {
+        Object cacheName = AnnotationUtils.getValue(annotation, "cacheName");
+        return cacheName != null ? cacheName.toString() : "test";
+    }
 
+    protected abstract O createSimpleOperation();
 
-	@Test
-	public void simple() {
-		O operation = createSimpleOperation();
-		assertThat(operation.getCacheName()).as("Wrong cache name").isEqualTo("simpleCache");
-		assertThat(operation.getAnnotations().size()).as("Unexpected number of annotation on " + operation.getMethod()).isEqualTo(1);
-		assertThat(operation.getAnnotations().iterator().next()).as("Wrong method annotation").isEqualTo(operation.getCacheAnnotation());
+    @Test
+    public void simple() {
+        O operation = createSimpleOperation();
+        assertThat(operation.getCacheName()).as("Wrong cache name").isEqualTo("simpleCache");
+        assertThat(operation.getAnnotations().size()).as("Unexpected number of annotation on " + operation.getMethod()).isEqualTo(1);
+        assertThat(operation.getAnnotations().iterator().next()).as("Wrong method annotation").isEqualTo(operation.getCacheAnnotation());
 
-		assertThat(operation.getCacheResolver()).as("cache resolver should be set").isNotNull();
-	}
+        assertThat(operation.getCacheResolver()).as("cache resolver should be set").isNotNull();
+    }
 
-	protected void assertCacheInvocationParameter(CacheInvocationParameter actual, Class<?> targetType,
-			Object value, int position) {
-		assertThat(actual.getRawType()).as("wrong parameter type for " + actual).isEqualTo(targetType);
-		assertThat(actual.getValue()).as("wrong parameter value for " + actual).isEqualTo(value);
-		assertThat(actual.getParameterPosition()).as("wrong parameter position for " + actual).isEqualTo(position);
-	}
+    protected void assertCacheInvocationParameter(CacheInvocationParameter actual, Class<?> targetType,
+                                                  Object value, int position) {
+        assertThat(actual.getRawType()).as("wrong parameter type for " + actual).isEqualTo(targetType);
+        assertThat(actual.getValue()).as("wrong parameter value for " + actual).isEqualTo(value);
+        assertThat(actual.getParameterPosition()).as("wrong parameter position for " + actual).isEqualTo(position);
+    }
 
-	protected <A extends Annotation> CacheMethodDetails<A> create(Class<A> annotationType,
-			Class<?> targetType, String methodName,
-			Class<?>... parameterTypes) {
-		Method method = ReflectionUtils.findMethod(targetType, methodName, parameterTypes);
-		Assert.notNull(method, "requested method '" + methodName + "'does not exist");
-		A cacheAnnotation = method.getAnnotation(annotationType);
-		return new DefaultCacheMethodDetails<>(method, cacheAnnotation, getCacheName(cacheAnnotation));
-	}
-
-	private static String getCacheName(Annotation annotation) {
-		Object cacheName = AnnotationUtils.getValue(annotation, "cacheName");
-		return cacheName != null ? cacheName.toString() : "test";
-	}
+    protected <A extends Annotation> CacheMethodDetails<A> create(Class<A> annotationType,
+                                                                  Class<?> targetType, String methodName,
+                                                                  Class<?>... parameterTypes) {
+        Method method = ReflectionUtils.findMethod(targetType, methodName, parameterTypes);
+        Assert.notNull(method, "requested method '" + methodName + "'does not exist");
+        A cacheAnnotation = method.getAnnotation(annotationType);
+        return new DefaultCacheMethodDetails<>(method, cacheAnnotation, getCacheName(cacheAnnotation));
+    }
 
 }

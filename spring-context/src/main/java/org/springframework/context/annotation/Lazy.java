@@ -50,20 +50,20 @@ import java.lang.annotation.Target;
  *
  * @author Chris Beams
  * @author Juergen Hoeller
- * @since 3.0
  * @see Primary
  * @see Bean
  * @see Configuration
  * @see org.springframework.stereotype.Component
+ * @since 3.0
  */
 @Target({ElementType.TYPE, ElementType.METHOD, ElementType.CONSTRUCTOR, ElementType.PARAMETER, ElementType.FIELD})
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 public @interface Lazy {
 
-	/**
-	 * Whether lazy initialization should occur.
-	 */
-	boolean value() default true;
+    /**
+     * Whether lazy initialization should occur.
+     */
+    boolean value() default true;
 
 }

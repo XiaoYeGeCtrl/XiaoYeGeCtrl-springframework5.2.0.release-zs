@@ -37,83 +37,80 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Unit tests for {@link OrderedMessageSender}.
+ *
  * @author Rossen Stoyanchev
  */
 public class OrderedMessageSenderTests {
 
-	private static final Log logger = LogFactory.getLog(OrderedMessageSenderTests.class);
+    private static final Log logger = LogFactory.getLog(OrderedMessageSenderTests.class);
 
 
-	private OrderedMessageSender sender;
+    private OrderedMessageSender sender;
+    private ThreadPoolTaskExecutor executor;
+    ExecutorSubscribableChannel channel = new ExecutorSubscribableChannel(this.executor);
 
-	ExecutorSubscribableChannel channel = new ExecutorSubscribableChannel(this.executor);
+    @BeforeEach
+    public void setup() {
+        this.executor = new ThreadPoolTaskExecutor();
+        this.executor.setCorePoolSize(Runtime.getRuntime().availableProcessors() * 2);
+        this.executor.setAllowCoreThreadTimeOut(true);
+        this.executor.afterPropertiesSet();
 
-	private ThreadPoolTaskExecutor executor;
+        this.channel = new ExecutorSubscribableChannel(this.executor);
+        OrderedMessageSender.configureOutboundChannel(this.channel, true);
 
+        this.sender = new OrderedMessageSender(this.channel, logger);
 
-	@BeforeEach
-	public void setup() {
-		this.executor = new ThreadPoolTaskExecutor();
-		this.executor.setCorePoolSize(Runtime.getRuntime().availableProcessors() * 2);
-		this.executor.setAllowCoreThreadTimeOut(true);
-		this.executor.afterPropertiesSet();
+    }
 
-		this.channel = new ExecutorSubscribableChannel(this.executor);
-		OrderedMessageSender.configureOutboundChannel(this.channel, true);
-
-		this.sender = new OrderedMessageSender(this.channel, logger);
-
-	}
-
-	@AfterEach
-	public void tearDown() {
-		this.executor.shutdown();
-	}
+    @AfterEach
+    public void tearDown() {
+        this.executor.shutdown();
+    }
 
 
-	@Test
-	public void test() throws InterruptedException {
+    @Test
+    public void test() throws InterruptedException {
 
-		int start = 1;
-		int end = 1000;
+        int start = 1;
+        int end = 1000;
 
-		AtomicInteger index = new AtomicInteger(start);
-		AtomicReference<Object> result = new AtomicReference<>();
-		CountDownLatch latch = new CountDownLatch(1);
+        AtomicInteger index = new AtomicInteger(start);
+        AtomicReference<Object> result = new AtomicReference<>();
+        CountDownLatch latch = new CountDownLatch(1);
 
-		this.channel.subscribe(message -> {
-			int expected = index.getAndIncrement();
-			Integer actual = (Integer) message.getHeaders().getOrDefault("seq", -1);
-			if (actual != expected) {
-				result.set("Expected: " + expected + ", but was: " + actual);
-				latch.countDown();
-				return;
-			}
-			if (actual == 100 || actual == 200) {
-				try {
-					Thread.sleep(200);
-				}
-				catch (InterruptedException ex) {
-					result.set(ex.toString());
-					latch.countDown();
-				}
-			}
-			if (actual == end) {
-				result.set("Done");
-				latch.countDown();
-			}
-		});
+        this.channel.subscribe(message -> {
+            int expected = index.getAndIncrement();
+            Integer actual = (Integer) message.getHeaders().getOrDefault("seq", -1);
+            if (actual != expected) {
+                result.set("Expected: " + expected + ", but was: " + actual);
+                latch.countDown();
+                return;
+            }
+            if (actual == 100 || actual == 200) {
+                try {
+                    Thread.sleep(200);
+                } catch (InterruptedException ex) {
+                    result.set(ex.toString());
+                    latch.countDown();
+                }
+            }
+            if (actual == end) {
+                result.set("Done");
+                latch.countDown();
+            }
+        });
 
-		for (int i = start; i <= end; i++) {
-			SimpMessageHeaderAccessor accessor = SimpMessageHeaderAccessor.create(SimpMessageType.MESSAGE);
-			accessor.setHeader("seq", i);
-			accessor.setLeaveMutable(true);
-			this.sender.send(MessageBuilder.createMessage("payload", accessor.getMessageHeaders()));
-		}
+        for (int i = start; i <= end; i++) {
+            SimpMessageHeaderAccessor accessor = SimpMessageHeaderAccessor.create(SimpMessageType.MESSAGE);
+            accessor.setHeader("seq", i);
+            accessor.setLeaveMutable(true);
+            this.sender.send(MessageBuilder.createMessage("payload", accessor.getMessageHeaders()));
+        }
 
-		latch.await(10, TimeUnit.SECONDS);
-		assertThat(result.get()).isEqualTo("Done");
-	}
+        latch.await(10, TimeUnit.SECONDS);
+        assertThat(result.get()).isEqualTo("Done");
+    }
 
 }
 

@@ -50,111 +50,111 @@ import static org.springframework.tests.TestGroup.PERFORMANCE;
 @EnabledForTestGroups(PERFORMANCE)
 public class AnnotationProcessorPerformanceTests {
 
-	private static final Log factoryLog = LogFactory.getLog(DefaultListableBeanFactory.class);
+    private static final Log factoryLog = LogFactory.getLog(DefaultListableBeanFactory.class);
 
 
-	@BeforeAll
-	public static void commonAssumptions() {
-		Assume.notLogging(factoryLog);
-	}
+    @BeforeAll
+    public static void commonAssumptions() {
+        Assume.notLogging(factoryLog);
+    }
 
-	@Test
-	public void prototypeCreationWithResourcePropertiesIsFastEnough() {
-		GenericApplicationContext ctx = createContext();
+    @Test
+    public void prototypeCreationWithResourcePropertiesIsFastEnough() {
+        GenericApplicationContext ctx = createContext();
 
-		RootBeanDefinition rbd = new RootBeanDefinition(ResourceAnnotatedTestBean.class);
-		rbd.setScope(RootBeanDefinition.SCOPE_PROTOTYPE);
-		ctx.registerBeanDefinition("test", rbd);
-		ctx.registerBeanDefinition("spouse", new RootBeanDefinition(TestBean.class));
+        RootBeanDefinition rbd = new RootBeanDefinition(ResourceAnnotatedTestBean.class);
+        rbd.setScope(RootBeanDefinition.SCOPE_PROTOTYPE);
+        ctx.registerBeanDefinition("test", rbd);
+        ctx.registerBeanDefinition("spouse", new RootBeanDefinition(TestBean.class));
 
-		assertFastEnough(ctx);
-	}
+        assertFastEnough(ctx);
+    }
 
-	@Test
-	public void prototypeCreationWithOverriddenResourcePropertiesIsFastEnough() {
-		GenericApplicationContext ctx = createContext();
+    @Test
+    public void prototypeCreationWithOverriddenResourcePropertiesIsFastEnough() {
+        GenericApplicationContext ctx = createContext();
 
-		RootBeanDefinition rbd = new RootBeanDefinition(ResourceAnnotatedTestBean.class);
-		rbd.setScope(RootBeanDefinition.SCOPE_PROTOTYPE);
-		rbd.getPropertyValues().add("spouse", new RuntimeBeanReference("spouse"));
-		ctx.registerBeanDefinition("test", rbd);
-		ctx.registerBeanDefinition("spouse", new RootBeanDefinition(TestBean.class));
+        RootBeanDefinition rbd = new RootBeanDefinition(ResourceAnnotatedTestBean.class);
+        rbd.setScope(RootBeanDefinition.SCOPE_PROTOTYPE);
+        rbd.getPropertyValues().add("spouse", new RuntimeBeanReference("spouse"));
+        ctx.registerBeanDefinition("test", rbd);
+        ctx.registerBeanDefinition("spouse", new RootBeanDefinition(TestBean.class));
 
-		assertFastEnough(ctx);
-	}
+        assertFastEnough(ctx);
+    }
 
-	@Test
-	public void prototypeCreationWithAutowiredPropertiesIsFastEnough() {
-		GenericApplicationContext ctx = createContext();
+    @Test
+    public void prototypeCreationWithAutowiredPropertiesIsFastEnough() {
+        GenericApplicationContext ctx = createContext();
 
-		RootBeanDefinition rbd = new RootBeanDefinition(AutowiredAnnotatedTestBean.class);
-		rbd.setScope(RootBeanDefinition.SCOPE_PROTOTYPE);
-		ctx.registerBeanDefinition("test", rbd);
-		ctx.registerBeanDefinition("spouse", new RootBeanDefinition(TestBean.class));
+        RootBeanDefinition rbd = new RootBeanDefinition(AutowiredAnnotatedTestBean.class);
+        rbd.setScope(RootBeanDefinition.SCOPE_PROTOTYPE);
+        ctx.registerBeanDefinition("test", rbd);
+        ctx.registerBeanDefinition("spouse", new RootBeanDefinition(TestBean.class));
 
-		assertFastEnough(ctx);
-	}
+        assertFastEnough(ctx);
+    }
 
-	@Test
-	public void prototypeCreationWithOverriddenAutowiredPropertiesIsFastEnough() {
-		GenericApplicationContext ctx = createContext();
+    @Test
+    public void prototypeCreationWithOverriddenAutowiredPropertiesIsFastEnough() {
+        GenericApplicationContext ctx = createContext();
 
-		RootBeanDefinition rbd = new RootBeanDefinition(AutowiredAnnotatedTestBean.class);
-		rbd.setScope(RootBeanDefinition.SCOPE_PROTOTYPE);
-		rbd.getPropertyValues().add("spouse", new RuntimeBeanReference("spouse"));
-		ctx.registerBeanDefinition("test", rbd);
-		ctx.registerBeanDefinition("spouse", new RootBeanDefinition(TestBean.class));
+        RootBeanDefinition rbd = new RootBeanDefinition(AutowiredAnnotatedTestBean.class);
+        rbd.setScope(RootBeanDefinition.SCOPE_PROTOTYPE);
+        rbd.getPropertyValues().add("spouse", new RuntimeBeanReference("spouse"));
+        ctx.registerBeanDefinition("test", rbd);
+        ctx.registerBeanDefinition("spouse", new RootBeanDefinition(TestBean.class));
 
-		assertFastEnough(ctx);
-	}
+        assertFastEnough(ctx);
+    }
 
-	private GenericApplicationContext createContext() {
-		GenericApplicationContext ctx = new GenericApplicationContext();
-		AnnotationConfigUtils.registerAnnotationConfigProcessors(ctx);
-		ctx.refresh();
-		return ctx;
-	}
+    private GenericApplicationContext createContext() {
+        GenericApplicationContext ctx = new GenericApplicationContext();
+        AnnotationConfigUtils.registerAnnotationConfigProcessors(ctx);
+        ctx.refresh();
+        return ctx;
+    }
 
-	private void assertFastEnough(GenericApplicationContext ctx) {
-		AtomicBoolean done = new AtomicBoolean();
-		TestBean spouse = ctx.getBean("spouse", TestBean.class);
-		Executors.newSingleThreadExecutor().submit(() -> {
-			for (int i = 0; i < 100_000; i++) {
-				TestBean tb = ctx.getBean("test", TestBean.class);
-				assertThat(tb.getSpouse()).isSameAs(spouse);
-			}
-			done.set(true);
-		});
+    private void assertFastEnough(GenericApplicationContext ctx) {
+        AtomicBoolean done = new AtomicBoolean();
+        TestBean spouse = ctx.getBean("spouse", TestBean.class);
+        Executors.newSingleThreadExecutor().submit(() -> {
+            for (int i = 0; i < 100_000; i++) {
+                TestBean tb = ctx.getBean("test", TestBean.class);
+                assertThat(tb.getSpouse()).isSameAs(spouse);
+            }
+            done.set(true);
+        });
 
-		// "fast enough" is of course relative, but we're using 6 seconds with the hope
-		// that these tests typically pass on the CI server.
-		Awaitility.await()
-			.atMost(6, TimeUnit.SECONDS)
-			.pollInterval(100, TimeUnit.MILLISECONDS)
-			.untilTrue(done);
-	}
+        // "fast enough" is of course relative, but we're using 6 seconds with the hope
+        // that these tests typically pass on the CI server.
+        Awaitility.await()
+                .atMost(6, TimeUnit.SECONDS)
+                .pollInterval(100, TimeUnit.MILLISECONDS)
+                .untilTrue(done);
+    }
 
 
-	private static class ResourceAnnotatedTestBean extends TestBean {
+    private static class ResourceAnnotatedTestBean extends TestBean {
 
-		@Override
-		@Resource
-		@SuppressWarnings("deprecation")
-		@org.springframework.beans.factory.annotation.Required
-		public void setSpouse(ITestBean spouse) {
-			super.setSpouse(spouse);
-		}
-	}
+        @Override
+        @Resource
+        @SuppressWarnings("deprecation")
+        @org.springframework.beans.factory.annotation.Required
+        public void setSpouse(ITestBean spouse) {
+            super.setSpouse(spouse);
+        }
+    }
 
-	private static class AutowiredAnnotatedTestBean extends TestBean {
+    private static class AutowiredAnnotatedTestBean extends TestBean {
 
-		@Override
-		@Autowired
-		@SuppressWarnings("deprecation")
-		@org.springframework.beans.factory.annotation.Required
-		public void setSpouse(ITestBean spouse) {
-			super.setSpouse(spouse);
-		}
-	}
+        @Override
+        @Autowired
+        @SuppressWarnings("deprecation")
+        @org.springframework.beans.factory.annotation.Required
+        public void setSpouse(ITestBean spouse) {
+            super.setSpouse(spouse);
+        }
+    }
 
 }

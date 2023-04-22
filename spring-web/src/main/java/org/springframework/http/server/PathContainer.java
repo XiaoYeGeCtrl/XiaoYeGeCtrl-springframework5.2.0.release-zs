@@ -34,148 +34,153 @@ import org.springframework.util.MultiValueMap;
  */
 public interface PathContainer {
 
-	/**
-	 * The original path from which this instance was parsed.
-	 */
-	String value();
+    /**
+     * Parse the path value into a sequence of {@code "/"} {@link Separator Separator}
+     * and {@link PathSegment PathSegment} elements.
+     *
+     * @param path the encoded, raw path value to parse
+     * @return the parsed path
+     */
+    static PathContainer parsePath(String path) {
+        return DefaultPathContainer.createFromUrlPath(path, Options.HTTP_PATH);
+    }
 
-	/**
-	 * The contained path elements, either {@link Separator} or {@link PathSegment}.
-	 */
-	List<Element> elements();
+    /**
+     * Parse the path value into a sequence of {@link Separator Separator} and
+     * {@link PathSegment PathSegment} elements.
+     *
+     * @param path    the encoded, raw path value to parse
+     * @param options to customize parsing
+     * @return the parsed path
+     * @since 5.2
+     */
+    static PathContainer parsePath(String path, Options options) {
+        return DefaultPathContainer.createFromUrlPath(path, options);
+    }
 
-	/**
-	 * Extract a sub-path from the given offset into the elements list.
-	 * @param index the start element index (inclusive)
-	 * @return the sub-path
-	 */
-	default PathContainer subPath(int index) {
-		return subPath(index, elements().size());
-	}
+    /**
+     * The original path from which this instance was parsed.
+     */
+    String value();
 
-	/**
-	 * Extract a sub-path from the given start offset into the element list
-	 * (inclusive) and to the end offset (exclusive).
-	 * @param startIndex the start element index (inclusive)
-	 * @param endIndex the end element index (exclusive)
-	 * @return the sub-path
-	 */
-	default PathContainer subPath(int startIndex, int endIndex) {
-		return DefaultPathContainer.subPath(this, startIndex, endIndex);
-	}
+    /**
+     * The contained path elements, either {@link Separator} or {@link PathSegment}.
+     */
+    List<Element> elements();
 
+    /**
+     * Extract a sub-path from the given offset into the elements list.
+     *
+     * @param index the start element index (inclusive)
+     * @return the sub-path
+     */
+    default PathContainer subPath(int index) {
+        return subPath(index, elements().size());
+    }
 
-	/**
-	 * Parse the path value into a sequence of {@code "/"} {@link Separator Separator}
-	 * and {@link PathSegment PathSegment} elements.
-	 * @param path the encoded, raw path value to parse
-	 * @return the parsed path
-	 */
-	static PathContainer parsePath(String path) {
-		return DefaultPathContainer.createFromUrlPath(path, Options.HTTP_PATH);
-	}
-
-	/**
-	 * Parse the path value into a sequence of {@link Separator Separator} and
-	 * {@link PathSegment PathSegment} elements.
-	 * @param path the encoded, raw path value to parse
-	 * @param options to customize parsing
-	 * @return the parsed path
-	 * @since 5.2
-	 */
-	static PathContainer parsePath(String path, Options options) {
-		return DefaultPathContainer.createFromUrlPath(path, options);
-	}
-
-
-	/**
-	 * A path element, either separator or path segment.
-	 */
-	interface Element {
-
-		/**
-		 * The unmodified, original value of this element.
-		 */
-		String value();
-	}
+    /**
+     * Extract a sub-path from the given start offset into the element list
+     * (inclusive) and to the end offset (exclusive).
+     *
+     * @param startIndex the start element index (inclusive)
+     * @param endIndex   the end element index (exclusive)
+     * @return the sub-path
+     */
+    default PathContainer subPath(int startIndex, int endIndex) {
+        return DefaultPathContainer.subPath(this, startIndex, endIndex);
+    }
 
 
-	/**
-	 * Path separator element.
-	 */
-	interface Separator extends Element {
-	}
+    /**
+     * A path element, either separator or path segment.
+     */
+    interface Element {
+
+        /**
+         * The unmodified, original value of this element.
+         */
+        String value();
+    }
 
 
-	/**
-	 * Path segment element.
-	 */
-	interface PathSegment extends Element {
-
-		/**
-		 * Return the path segment value, decoded and sanitized, for path matching.
-		 */
-		String valueToMatch();
-
-		/**
-		 * Expose {@link #valueToMatch()} as a character array.
-		 */
-		char[] valueToMatchAsChars();
-
-		/**
-		 * Path parameters associated with this path segment.
-		 */
-		MultiValueMap<String, String> parameters();
-	}
+    /**
+     * Path separator element.
+     */
+    interface Separator extends Element {
+    }
 
 
-	/**
-	 * Options to customize parsing based on the type of input path.
-	 * @since 5.2
-	 */
-	class Options {
+    /**
+     * Path segment element.
+     */
+    interface PathSegment extends Element {
 
-		/**
-		 * Options for HTTP URL paths:
-		 * <p>Separator '/' with URL decoding and parsing of path params.
-		 */
-		public final static Options HTTP_PATH = Options.create('/', true);
+        /**
+         * Return the path segment value, decoded and sanitized, for path matching.
+         */
+        String valueToMatch();
 
-		/**
-		 * Options for a message route:
-		 * <p>Separator '.' without URL decoding nor parsing of params. Escape
-		 * sequences for the separator char in segment values are still decoded.
-		 */
-		public final static Options MESSAGE_ROUTE = Options.create('.', false);
+        /**
+         * Expose {@link #valueToMatch()} as a character array.
+         */
+        char[] valueToMatchAsChars();
 
-		private final char separator;
+        /**
+         * Path parameters associated with this path segment.
+         */
+        MultiValueMap<String, String> parameters();
+    }
 
-		private final boolean decodeAndParseSegments;
 
-		private Options(char separator, boolean decodeAndParseSegments) {
-			this.separator = separator;
-			this.decodeAndParseSegments = decodeAndParseSegments;
-		}
+    /**
+     * Options to customize parsing based on the type of input path.
+     *
+     * @since 5.2
+     */
+    class Options {
 
-		public char separator() {
-			return this.separator;
-		}
+        /**
+         * Options for HTTP URL paths:
+         * <p>Separator '/' with URL decoding and parsing of path params.
+         */
+        public final static Options HTTP_PATH = Options.create('/', true);
 
-		public boolean shouldDecodeAndParseSegments() {
-			return this.decodeAndParseSegments;
-		}
+        /**
+         * Options for a message route:
+         * <p>Separator '.' without URL decoding nor parsing of params. Escape
+         * sequences for the separator char in segment values are still decoded.
+         */
+        public final static Options MESSAGE_ROUTE = Options.create('.', false);
 
-		/**
-		 * Create an {@link Options} instance with the given settings.
-		 * @param separator the separator for parsing the path into segments;
-		 * currently this must be slash or dot.
-		 * @param decodeAndParseSegments whether to URL decode path segment
-		 * values and parse path parameters. If set to false, only escape
-		 * sequences for the separator char are decoded.
-		 */
-		public static Options create(char separator, boolean decodeAndParseSegments) {
-			return new Options(separator, decodeAndParseSegments);
-		}
-	}
+        private final char separator;
+
+        private final boolean decodeAndParseSegments;
+
+        private Options(char separator, boolean decodeAndParseSegments) {
+            this.separator = separator;
+            this.decodeAndParseSegments = decodeAndParseSegments;
+        }
+
+        /**
+         * Create an {@link Options} instance with the given settings.
+         *
+         * @param separator              the separator for parsing the path into segments;
+         *                               currently this must be slash or dot.
+         * @param decodeAndParseSegments whether to URL decode path segment
+         *                               values and parse path parameters. If set to false, only escape
+         *                               sequences for the separator char are decoded.
+         */
+        public static Options create(char separator, boolean decodeAndParseSegments) {
+            return new Options(separator, decodeAndParseSegments);
+        }
+
+        public char separator() {
+            return this.separator;
+        }
+
+        public boolean shouldDecodeAndParseSegments() {
+            return this.decodeAndParseSegments;
+        }
+    }
 
 }

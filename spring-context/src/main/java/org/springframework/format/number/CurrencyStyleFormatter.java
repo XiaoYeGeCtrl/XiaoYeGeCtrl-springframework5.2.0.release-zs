@@ -35,85 +35,85 @@ import org.springframework.lang.Nullable;
  *
  * @author Keith Donald
  * @author Juergen Hoeller
- * @since 4.2
  * @see #setLenient
  * @see #setRoundingMode
+ * @since 4.2
  */
 public class CurrencyStyleFormatter extends AbstractNumberFormatter {
 
-	private int fractionDigits = 2;
+    private int fractionDigits = 2;
 
-	@Nullable
-	private RoundingMode roundingMode;
+    @Nullable
+    private RoundingMode roundingMode;
 
-	@Nullable
-	private Currency currency;
+    @Nullable
+    private Currency currency;
 
-	@Nullable
-	private String pattern;
-
-
-	/**
-	 * Specify the desired number of fraction digits.
-	 * Default is 2.
-	 */
-	public void setFractionDigits(int fractionDigits) {
-		this.fractionDigits = fractionDigits;
-	}
-
-	/**
-	 * Specify the rounding mode to use for decimal parsing.
-	 * Default is {@link java.math.RoundingMode#UNNECESSARY}.
-	 */
-	public void setRoundingMode(RoundingMode roundingMode) {
-		this.roundingMode = roundingMode;
-	}
-
-	/**
-	 * Specify the currency, if known.
-	 */
-	public void setCurrency(Currency currency) {
-		this.currency = currency;
-	}
-
-	/**
-	 * Specify the pattern to use to format number values.
-	 * If not specified, the default DecimalFormat pattern is used.
-	 * @see java.text.DecimalFormat#applyPattern(String)
-	 */
-	public void setPattern(String pattern) {
-		this.pattern = pattern;
-	}
+    @Nullable
+    private String pattern;
 
 
-	@Override
-	public BigDecimal parse(String text, Locale locale) throws ParseException {
-		BigDecimal decimal = (BigDecimal) super.parse(text, locale);
-		if (this.roundingMode != null) {
-			decimal = decimal.setScale(this.fractionDigits, this.roundingMode);
-		}
-		else {
-			decimal = decimal.setScale(this.fractionDigits);
-		}
-		return decimal;
-	}
+    /**
+     * Specify the desired number of fraction digits.
+     * Default is 2.
+     */
+    public void setFractionDigits(int fractionDigits) {
+        this.fractionDigits = fractionDigits;
+    }
 
-	@Override
-	protected NumberFormat getNumberFormat(Locale locale) {
-		DecimalFormat format = (DecimalFormat) NumberFormat.getCurrencyInstance(locale);
-		format.setParseBigDecimal(true);
-		format.setMaximumFractionDigits(this.fractionDigits);
-		format.setMinimumFractionDigits(this.fractionDigits);
-		if (this.roundingMode != null) {
-			format.setRoundingMode(this.roundingMode);
-		}
-		if (this.currency != null) {
-			format.setCurrency(this.currency);
-		}
-		if (this.pattern != null) {
-			format.applyPattern(this.pattern);
-		}
-		return format;
-	}
+    /**
+     * Specify the rounding mode to use for decimal parsing.
+     * Default is {@link java.math.RoundingMode#UNNECESSARY}.
+     */
+    public void setRoundingMode(RoundingMode roundingMode) {
+        this.roundingMode = roundingMode;
+    }
+
+    /**
+     * Specify the currency, if known.
+     */
+    public void setCurrency(Currency currency) {
+        this.currency = currency;
+    }
+
+    /**
+     * Specify the pattern to use to format number values.
+     * If not specified, the default DecimalFormat pattern is used.
+     *
+     * @see java.text.DecimalFormat#applyPattern(String)
+     */
+    public void setPattern(String pattern) {
+        this.pattern = pattern;
+    }
+
+
+    @Override
+    public BigDecimal parse(String text, Locale locale) throws ParseException {
+        BigDecimal decimal = (BigDecimal) super.parse(text, locale);
+        if (this.roundingMode != null) {
+            decimal = decimal.setScale(this.fractionDigits, this.roundingMode);
+        } else {
+            decimal = decimal.setScale(this.fractionDigits);
+        }
+        return decimal;
+    }
+
+    @Override
+    protected NumberFormat getNumberFormat(Locale locale) {
+        DecimalFormat format = (DecimalFormat) NumberFormat.getCurrencyInstance(locale);
+        format.setParseBigDecimal(true);
+        format.setMaximumFractionDigits(this.fractionDigits);
+        format.setMinimumFractionDigits(this.fractionDigits);
+        if (this.roundingMode != null) {
+            format.setRoundingMode(this.roundingMode);
+        }
+        if (this.currency != null) {
+            format.setCurrency(this.currency);
+        }
+        if (this.pattern != null) {
+            format.applyPattern(this.pattern);
+        }
+        return format;
+    }
 
 }

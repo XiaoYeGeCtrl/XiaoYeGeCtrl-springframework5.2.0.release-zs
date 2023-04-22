@@ -33,77 +33,77 @@ import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException
  */
 public class FileEditorTests {
 
-	@Test
-	public void testClasspathFileName() throws Exception {
-		PropertyEditor fileEditor = new FileEditor();
-		fileEditor.setAsText("classpath:" + ClassUtils.classPackageAsResourcePath(getClass()) + "/" +
-				ClassUtils.getShortName(getClass()) + ".class");
-		Object value = fileEditor.getValue();
-		boolean condition = value instanceof File;
-		assertThat(condition).isTrue();
-		File file = (File) value;
-		assertThat(file.exists()).isTrue();
-	}
+    @Test
+    public void testClasspathFileName() throws Exception {
+        PropertyEditor fileEditor = new FileEditor();
+        fileEditor.setAsText("classpath:" + ClassUtils.classPackageAsResourcePath(getClass()) + "/" +
+                ClassUtils.getShortName(getClass()) + ".class");
+        Object value = fileEditor.getValue();
+        boolean condition = value instanceof File;
+        assertThat(condition).isTrue();
+        File file = (File) value;
+        assertThat(file.exists()).isTrue();
+    }
 
-	@Test
-	public void testWithNonExistentResource() throws Exception {
-		PropertyEditor propertyEditor = new FileEditor();
-		assertThatIllegalArgumentException().isThrownBy(() ->
-				propertyEditor.setAsText("classpath:no_way_this_file_is_found.doc"));
-	}
+    @Test
+    public void testWithNonExistentResource() throws Exception {
+        PropertyEditor propertyEditor = new FileEditor();
+        assertThatIllegalArgumentException().isThrownBy(() ->
+                propertyEditor.setAsText("classpath:no_way_this_file_is_found.doc"));
+    }
 
-	@Test
-	public void testWithNonExistentFile() throws Exception {
-		PropertyEditor fileEditor = new FileEditor();
-		fileEditor.setAsText("file:no_way_this_file_is_found.doc");
-		Object value = fileEditor.getValue();
-		boolean condition1 = value instanceof File;
-		assertThat(condition1).isTrue();
-		File file = (File) value;
-		boolean condition = !file.exists();
-		assertThat(condition).isTrue();
-	}
+    @Test
+    public void testWithNonExistentFile() throws Exception {
+        PropertyEditor fileEditor = new FileEditor();
+        fileEditor.setAsText("file:no_way_this_file_is_found.doc");
+        Object value = fileEditor.getValue();
+        boolean condition1 = value instanceof File;
+        assertThat(condition1).isTrue();
+        File file = (File) value;
+        boolean condition = !file.exists();
+        assertThat(condition).isTrue();
+    }
 
-	@Test
-	public void testAbsoluteFileName() throws Exception {
-		PropertyEditor fileEditor = new FileEditor();
-		fileEditor.setAsText("/no_way_this_file_is_found.doc");
-		Object value = fileEditor.getValue();
-		boolean condition1 = value instanceof File;
-		assertThat(condition1).isTrue();
-		File file = (File) value;
-		boolean condition = !file.exists();
-		assertThat(condition).isTrue();
-	}
+    @Test
+    public void testAbsoluteFileName() throws Exception {
+        PropertyEditor fileEditor = new FileEditor();
+        fileEditor.setAsText("/no_way_this_file_is_found.doc");
+        Object value = fileEditor.getValue();
+        boolean condition1 = value instanceof File;
+        assertThat(condition1).isTrue();
+        File file = (File) value;
+        boolean condition = !file.exists();
+        assertThat(condition).isTrue();
+    }
 
-	@Test
-	public void testUnqualifiedFileNameFound() throws Exception {
-		PropertyEditor fileEditor = new FileEditor();
-		String fileName = ClassUtils.classPackageAsResourcePath(getClass()) + "/" +
-				ClassUtils.getShortName(getClass()) + ".class";
-		fileEditor.setAsText(fileName);
-		Object value = fileEditor.getValue();
-		boolean condition = value instanceof File;
-		assertThat(condition).isTrue();
-		File file = (File) value;
-		assertThat(file.exists()).isTrue();
-		String absolutePath = file.getAbsolutePath().replace('\\', '/');
-		assertThat(absolutePath.endsWith(fileName)).isTrue();
-	}
+    @Test
+    public void testUnqualifiedFileNameFound() throws Exception {
+        PropertyEditor fileEditor = new FileEditor();
+        String fileName = ClassUtils.classPackageAsResourcePath(getClass()) + "/" +
+                ClassUtils.getShortName(getClass()) + ".class";
+        fileEditor.setAsText(fileName);
+        Object value = fileEditor.getValue();
+        boolean condition = value instanceof File;
+        assertThat(condition).isTrue();
+        File file = (File) value;
+        assertThat(file.exists()).isTrue();
+        String absolutePath = file.getAbsolutePath().replace('\\', '/');
+        assertThat(absolutePath.endsWith(fileName)).isTrue();
+    }
 
-	@Test
-	public void testUnqualifiedFileNameNotFound() throws Exception {
-		PropertyEditor fileEditor = new FileEditor();
-		String fileName = ClassUtils.classPackageAsResourcePath(getClass()) + "/" +
-				ClassUtils.getShortName(getClass()) + ".clazz";
-		fileEditor.setAsText(fileName);
-		Object value = fileEditor.getValue();
-		boolean condition = value instanceof File;
-		assertThat(condition).isTrue();
-		File file = (File) value;
-		assertThat(file.exists()).isFalse();
-		String absolutePath = file.getAbsolutePath().replace('\\', '/');
-		assertThat(absolutePath.endsWith(fileName)).isTrue();
-	}
+    @Test
+    public void testUnqualifiedFileNameNotFound() throws Exception {
+        PropertyEditor fileEditor = new FileEditor();
+        String fileName = ClassUtils.classPackageAsResourcePath(getClass()) + "/" +
+                ClassUtils.getShortName(getClass()) + ".clazz";
+        fileEditor.setAsText(fileName);
+        Object value = fileEditor.getValue();
+        boolean condition = value instanceof File;
+        assertThat(condition).isTrue();
+        File file = (File) value;
+        assertThat(file.exists()).isFalse();
+        String absolutePath = file.getAbsolutePath().replace('\\', '/');
+        assertThat(absolutePath.endsWith(fileName)).isTrue();
+    }
 
 }

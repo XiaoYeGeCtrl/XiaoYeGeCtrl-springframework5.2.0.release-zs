@@ -23,12 +23,12 @@ package org.springframework.scripting;
  */
 public interface ScriptBean {
 
-	String getName();
+    String getName();
 
-	void setName(String name);
+    void setName(String name);
 
-	int getAge();
+    int getAge();
 
-	void setAge(int age);
+    void setAge(int age);
 
 }

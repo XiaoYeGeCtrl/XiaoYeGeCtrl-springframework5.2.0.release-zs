@@ -38,104 +38,104 @@ import org.springframework.util.Assert;
  */
 public abstract class HandlerMethodArgumentResolverSupport implements HandlerMethodArgumentResolver {
 
-	protected final Log logger = LogFactory.getLog(getClass());
+    protected final Log logger = LogFactory.getLog(getClass());
 
-	private final ReactiveAdapterRegistry adapterRegistry;
-
-
-	protected HandlerMethodArgumentResolverSupport(ReactiveAdapterRegistry adapterRegistry) {
-		Assert.notNull(adapterRegistry, "ReactiveAdapterRegistry is required");
-		this.adapterRegistry = adapterRegistry;
-	}
+    private final ReactiveAdapterRegistry adapterRegistry;
 
 
-	/**
-	 * Return the configured {@link ReactiveAdapterRegistry}.
-	 */
-	public ReactiveAdapterRegistry getAdapterRegistry() {
-		return this.adapterRegistry;
-	}
+    protected HandlerMethodArgumentResolverSupport(ReactiveAdapterRegistry adapterRegistry) {
+        Assert.notNull(adapterRegistry, "ReactiveAdapterRegistry is required");
+        this.adapterRegistry = adapterRegistry;
+    }
 
 
-	/**
-	 * Evaluate the {@code Predicate} on the method parameter type or on
-	 * the generic type within a reactive type wrapper.
-	 */
-	protected boolean checkParameterType(MethodParameter parameter, Predicate<Class<?>> predicate) {
-		Class<?> type = parameter.getParameterType();
-		ReactiveAdapter adapter = getAdapterRegistry().getAdapter(type);
-		if (adapter != null) {
-			assertHasValues(adapter, parameter);
-			type = parameter.nested().getNestedParameterType();
-		}
-		return predicate.test(type);
-	}
+    /**
+     * Return the configured {@link ReactiveAdapterRegistry}.
+     */
+    public ReactiveAdapterRegistry getAdapterRegistry() {
+        return this.adapterRegistry;
+    }
 
-	private void assertHasValues(ReactiveAdapter adapter, MethodParameter param) {
-		if (adapter.isNoValue()) {
-			throw new IllegalArgumentException(
-					"No value reactive types not supported: " + param.getGenericParameterType());
-		}
-	}
 
-	/**
-	 * Evaluate the {@code Predicate} on the method parameter type but raise an
-	 * {@code IllegalStateException} if the same matches the generic type
-	 * within a reactive type wrapper.
-	 */
-	protected boolean checkParameterTypeNoReactiveWrapper(MethodParameter parameter, Predicate<Class<?>> predicate) {
-		Class<?> type = parameter.getParameterType();
-		ReactiveAdapter adapter = getAdapterRegistry().getAdapter(type);
-		if (adapter != null) {
-			assertHasValues(adapter, parameter);
-			type = parameter.nested().getNestedParameterType();
-		}
-		if (predicate.test(type)) {
-			if (adapter == null) {
-				return true;
-			}
-			throw buildReactiveWrapperException(parameter);
-		}
-		return false;
-	}
+    /**
+     * Evaluate the {@code Predicate} on the method parameter type or on
+     * the generic type within a reactive type wrapper.
+     */
+    protected boolean checkParameterType(MethodParameter parameter, Predicate<Class<?>> predicate) {
+        Class<?> type = parameter.getParameterType();
+        ReactiveAdapter adapter = getAdapterRegistry().getAdapter(type);
+        if (adapter != null) {
+            assertHasValues(adapter, parameter);
+            type = parameter.nested().getNestedParameterType();
+        }
+        return predicate.test(type);
+    }
 
-	private IllegalStateException buildReactiveWrapperException(MethodParameter parameter) {
-		return new IllegalStateException(getClass().getSimpleName() +
-				" does not support reactive type wrapper: " + parameter.getGenericParameterType());
-	}
+    private void assertHasValues(ReactiveAdapter adapter, MethodParameter param) {
+        if (adapter.isNoValue()) {
+            throw new IllegalArgumentException(
+                    "No value reactive types not supported: " + param.getGenericParameterType());
+        }
+    }
 
-	/**
-	 * Evaluate the {@code Predicate} on the method parameter type if it has the
-	 * given annotation, nesting within {@link java.util.Optional} if necessary,
-	 * but raise an {@code IllegalStateException} if the same matches the generic
-	 * type within a reactive type wrapper.
-	 */
-	protected <A extends Annotation> boolean checkAnnotatedParamNoReactiveWrapper(
-			MethodParameter parameter, Class<A> annotationType, BiPredicate<A, Class<?>> typePredicate) {
+    /**
+     * Evaluate the {@code Predicate} on the method parameter type but raise an
+     * {@code IllegalStateException} if the same matches the generic type
+     * within a reactive type wrapper.
+     */
+    protected boolean checkParameterTypeNoReactiveWrapper(MethodParameter parameter, Predicate<Class<?>> predicate) {
+        Class<?> type = parameter.getParameterType();
+        ReactiveAdapter adapter = getAdapterRegistry().getAdapter(type);
+        if (adapter != null) {
+            assertHasValues(adapter, parameter);
+            type = parameter.nested().getNestedParameterType();
+        }
+        if (predicate.test(type)) {
+            if (adapter == null) {
+                return true;
+            }
+            throw buildReactiveWrapperException(parameter);
+        }
+        return false;
+    }
 
-		A annotation = parameter.getParameterAnnotation(annotationType);
-		if (annotation == null) {
-			return false;
-		}
+    private IllegalStateException buildReactiveWrapperException(MethodParameter parameter) {
+        return new IllegalStateException(getClass().getSimpleName() +
+                " does not support reactive type wrapper: " + parameter.getGenericParameterType());
+    }
 
-		parameter = parameter.nestedIfOptional();
-		Class<?> type = parameter.getNestedParameterType();
+    /**
+     * Evaluate the {@code Predicate} on the method parameter type if it has the
+     * given annotation, nesting within {@link java.util.Optional} if necessary,
+     * but raise an {@code IllegalStateException} if the same matches the generic
+     * type within a reactive type wrapper.
+     */
+    protected <A extends Annotation> boolean checkAnnotatedParamNoReactiveWrapper(
+            MethodParameter parameter, Class<A> annotationType, BiPredicate<A, Class<?>> typePredicate) {
 
-		ReactiveAdapter adapter = getAdapterRegistry().getAdapter(type);
-		if (adapter != null) {
-			assertHasValues(adapter, parameter);
-			parameter = parameter.nested();
-			type = parameter.getNestedParameterType();
-		}
+        A annotation = parameter.getParameterAnnotation(annotationType);
+        if (annotation == null) {
+            return false;
+        }
 
-		if (typePredicate.test(annotation, type)) {
-			if (adapter == null) {
-				return true;
-			}
-			throw buildReactiveWrapperException(parameter);
-		}
+        parameter = parameter.nestedIfOptional();
+        Class<?> type = parameter.getNestedParameterType();
 
-		return false;
-	}
+        ReactiveAdapter adapter = getAdapterRegistry().getAdapter(type);
+        if (adapter != null) {
+            assertHasValues(adapter, parameter);
+            parameter = parameter.nested();
+            type = parameter.getNestedParameterType();
+        }
+
+        if (typePredicate.test(annotation, type)) {
+            if (adapter == null) {
+                return true;
+            }
+            throw buildReactiveWrapperException(parameter);
+        }
+
+        return false;
+    }
 
 }

@@ -32,7 +32,6 @@ import org.springframework.validation.DataBinder;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- *
  * Test fixture for {@link RedirectAttributesModelMap} tests.
  *
  * @author Rossen Stoyanchev
@@ -40,110 +39,110 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 public class RedirectAttributesModelMapTests {
 
-	private RedirectAttributesModelMap redirectAttributes;
+    private RedirectAttributesModelMap redirectAttributes;
 
-	private FormattingConversionService conversionService;
+    private FormattingConversionService conversionService;
 
-	@BeforeEach
-	public void setup() {
-		this.conversionService = new DefaultFormattingConversionService();
-		DataBinder dataBinder = new DataBinder(null);
-		dataBinder.setConversionService(conversionService);
+    @BeforeEach
+    public void setup() {
+        this.conversionService = new DefaultFormattingConversionService();
+        DataBinder dataBinder = new DataBinder(null);
+        dataBinder.setConversionService(conversionService);
 
-		this.redirectAttributes = new RedirectAttributesModelMap(dataBinder);
-	}
+        this.redirectAttributes = new RedirectAttributesModelMap(dataBinder);
+    }
 
-	@Test
-	public void addAttributePrimitiveType() {
-		this.redirectAttributes.addAttribute("speed", 65);
-		assertThat(this.redirectAttributes.get("speed")).isEqualTo("65");
-	}
+    @Test
+    public void addAttributePrimitiveType() {
+        this.redirectAttributes.addAttribute("speed", 65);
+        assertThat(this.redirectAttributes.get("speed")).isEqualTo("65");
+    }
 
-	@Test
-	public void addAttributeCustomType() {
-		String attrName = "person";
-		this.redirectAttributes.addAttribute(attrName, new TestBean("Fred"));
+    @Test
+    public void addAttributeCustomType() {
+        String attrName = "person";
+        this.redirectAttributes.addAttribute(attrName, new TestBean("Fred"));
 
-		assertThat(this.redirectAttributes.get(attrName)).as("ConversionService should have invoked toString()").isEqualTo("Fred");
+        assertThat(this.redirectAttributes.get(attrName)).as("ConversionService should have invoked toString()").isEqualTo("Fred");
 
-		this.conversionService.addConverter(new TestBeanConverter());
-		this.redirectAttributes.addAttribute(attrName, new TestBean("Fred"));
+        this.conversionService.addConverter(new TestBeanConverter());
+        this.redirectAttributes.addAttribute(attrName, new TestBean("Fred"));
 
-		assertThat(this.redirectAttributes.get(attrName)).as("Type converter should have been used").isEqualTo("[Fred]");
-	}
+        assertThat(this.redirectAttributes.get(attrName)).as("Type converter should have been used").isEqualTo("[Fred]");
+    }
 
-	@Test
-	public void addAttributeToString() {
-		String attrName = "person";
-		RedirectAttributesModelMap model = new RedirectAttributesModelMap();
-		model.addAttribute(attrName, new TestBean("Fred"));
+    @Test
+    public void addAttributeToString() {
+        String attrName = "person";
+        RedirectAttributesModelMap model = new RedirectAttributesModelMap();
+        model.addAttribute(attrName, new TestBean("Fred"));
 
-		assertThat(model.get(attrName)).as("toString() should have been used").isEqualTo("Fred");
-	}
+        assertThat(model.get(attrName)).as("toString() should have been used").isEqualTo("Fred");
+    }
 
-	@Test
-	public void addAttributeValue() {
-		this.redirectAttributes.addAttribute(new TestBean("Fred"));
+    @Test
+    public void addAttributeValue() {
+        this.redirectAttributes.addAttribute(new TestBean("Fred"));
 
-		assertThat(this.redirectAttributes.get("testBean")).isEqualTo("Fred");
-	}
+        assertThat(this.redirectAttributes.get("testBean")).isEqualTo("Fred");
+    }
 
-	@Test
-	public void addAllAttributesList() {
-		this.redirectAttributes.addAllAttributes(Arrays.asList(new TestBean("Fred"), new Integer(5)));
+    @Test
+    public void addAllAttributesList() {
+        this.redirectAttributes.addAllAttributes(Arrays.asList(new TestBean("Fred"), new Integer(5)));
 
-		assertThat(this.redirectAttributes.get("testBean")).isEqualTo("Fred");
-		assertThat(this.redirectAttributes.get("integer")).isEqualTo("5");
-	}
+        assertThat(this.redirectAttributes.get("testBean")).isEqualTo("Fred");
+        assertThat(this.redirectAttributes.get("integer")).isEqualTo("5");
+    }
 
-	@Test
-	public void addAttributesMap() {
-		Map<String, Object> map = new HashMap<>();
-		map.put("person", new TestBean("Fred"));
-		map.put("age", 33);
-		this.redirectAttributes.addAllAttributes(map);
+    @Test
+    public void addAttributesMap() {
+        Map<String, Object> map = new HashMap<>();
+        map.put("person", new TestBean("Fred"));
+        map.put("age", 33);
+        this.redirectAttributes.addAllAttributes(map);
 
-		assertThat(this.redirectAttributes.get("person")).isEqualTo("Fred");
-		assertThat(this.redirectAttributes.get("age")).isEqualTo("33");
-	}
+        assertThat(this.redirectAttributes.get("person")).isEqualTo("Fred");
+        assertThat(this.redirectAttributes.get("age")).isEqualTo("33");
+    }
 
-	@Test
-	public void mergeAttributes() {
-		Map<String, Object> map = new HashMap<>();
-		map.put("person", new TestBean("Fred"));
-		map.put("age", 33);
+    @Test
+    public void mergeAttributes() {
+        Map<String, Object> map = new HashMap<>();
+        map.put("person", new TestBean("Fred"));
+        map.put("age", 33);
 
-		this.redirectAttributes.addAttribute("person", new TestBean("Ralph"));
-		this.redirectAttributes.mergeAttributes(map);
+        this.redirectAttributes.addAttribute("person", new TestBean("Ralph"));
+        this.redirectAttributes.mergeAttributes(map);
 
-		assertThat(this.redirectAttributes.get("person")).isEqualTo("Ralph");
-		assertThat(this.redirectAttributes.get("age")).isEqualTo("33");
-	}
+        assertThat(this.redirectAttributes.get("person")).isEqualTo("Ralph");
+        assertThat(this.redirectAttributes.get("age")).isEqualTo("33");
+    }
 
-	@Test
-	public void put() {
-		this.redirectAttributes.put("testBean", new TestBean("Fred"));
+    @Test
+    public void put() {
+        this.redirectAttributes.put("testBean", new TestBean("Fred"));
 
-		assertThat(this.redirectAttributes.get("testBean")).isEqualTo("Fred");
-	}
+        assertThat(this.redirectAttributes.get("testBean")).isEqualTo("Fred");
+    }
 
-	@Test
-	public void putAll() {
-		Map<String, Object> map = new HashMap<>();
-		map.put("person", new TestBean("Fred"));
-		map.put("age", 33);
-		this.redirectAttributes.putAll(map);
+    @Test
+    public void putAll() {
+        Map<String, Object> map = new HashMap<>();
+        map.put("person", new TestBean("Fred"));
+        map.put("age", 33);
+        this.redirectAttributes.putAll(map);
 
-		assertThat(this.redirectAttributes.get("person")).isEqualTo("Fred");
-		assertThat(this.redirectAttributes.get("age")).isEqualTo("33");
-	}
+        assertThat(this.redirectAttributes.get("person")).isEqualTo("Fred");
+        assertThat(this.redirectAttributes.get("age")).isEqualTo("33");
+    }
 
-	public static class TestBeanConverter implements Converter<TestBean, String> {
+    public static class TestBeanConverter implements Converter<TestBean, String> {
 
-		@Override
-		public String convert(TestBean source) {
-			return "[" + source.getName() + "]";
-		}
-	}
+        @Override
+        public String convert(TestBean source) {
+            return "[" + source.getName() + "]";
+        }
+    }
 
 }

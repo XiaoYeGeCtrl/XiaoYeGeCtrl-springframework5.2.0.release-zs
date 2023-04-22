@@ -23,57 +23,56 @@ import org.springframework.lang.Nullable;
  * Only valid when used on a JavaBean getter or setter.
  *
  * @author Rob Harrop
- * @since 1.2
  * @see org.springframework.jmx.export.assembler.MetadataMBeanInfoAssembler
  * @see org.springframework.jmx.export.MBeanExporter
+ * @since 1.2
  */
 public class ManagedAttribute extends AbstractJmxAttribute {
 
-	/**
-	 * Empty attributes.
-	 */
-	public static final ManagedAttribute EMPTY = new ManagedAttribute();
+    /**
+     * Empty attributes.
+     */
+    public static final ManagedAttribute EMPTY = new ManagedAttribute();
 
 
-	@Nullable
-	private Object defaultValue;
+    @Nullable
+    private Object defaultValue;
 
-	@Nullable
-	private String persistPolicy;
+    @Nullable
+    private String persistPolicy;
 
-	private int persistPeriod = -1;
+    private int persistPeriod = -1;
 
+    /**
+     * Return the default value of this attribute.
+     */
+    @Nullable
+    public Object getDefaultValue() {
+        return this.defaultValue;
+    }
 
-	/**
-	 * Set the default value of this attribute.
-	 */
-	public void setDefaultValue(@Nullable Object defaultValue) {
-		this.defaultValue = defaultValue;
-	}
+    /**
+     * Set the default value of this attribute.
+     */
+    public void setDefaultValue(@Nullable Object defaultValue) {
+        this.defaultValue = defaultValue;
+    }
 
-	/**
-	 * Return the default value of this attribute.
-	 */
-	@Nullable
-	public Object getDefaultValue() {
-		return this.defaultValue;
-	}
+    @Nullable
+    public String getPersistPolicy() {
+        return this.persistPolicy;
+    }
 
-	public void setPersistPolicy(@Nullable String persistPolicy) {
-		this.persistPolicy = persistPolicy;
-	}
+    public void setPersistPolicy(@Nullable String persistPolicy) {
+        this.persistPolicy = persistPolicy;
+    }
 
-	@Nullable
-	public String getPersistPolicy() {
-		return this.persistPolicy;
-	}
+    public int getPersistPeriod() {
+        return this.persistPeriod;
+    }
 
-	public void setPersistPeriod(int persistPeriod) {
-		this.persistPeriod = persistPeriod;
-	}
-
-	public int getPersistPeriod() {
-		return this.persistPeriod;
-	}
+    public void setPersistPeriod(int persistPeriod) {
+        this.persistPeriod = persistPeriod;
+    }
 
 }

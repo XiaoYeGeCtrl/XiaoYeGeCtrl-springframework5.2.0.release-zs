@@ -35,39 +35,38 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 public class AtAspectJAfterThrowingTests {
 
-	@Test
-	public void testAccessThrowable() throws Exception {
-		ClassPathXmlApplicationContext ctx =
-			new ClassPathXmlApplicationContext(getClass().getSimpleName() + "-context.xml", getClass());
+    @Test
+    public void testAccessThrowable() throws Exception {
+        ClassPathXmlApplicationContext ctx =
+                new ClassPathXmlApplicationContext(getClass().getSimpleName() + "-context.xml", getClass());
 
-		ITestBean bean = (ITestBean) ctx.getBean("testBean");
-		ExceptionHandlingAspect aspect = (ExceptionHandlingAspect) ctx.getBean("aspect");
+        ITestBean bean = (ITestBean) ctx.getBean("testBean");
+        ExceptionHandlingAspect aspect = (ExceptionHandlingAspect) ctx.getBean("aspect");
 
-		assertThat(AopUtils.isAopProxy(bean)).isTrue();
-		try {
-			bean.unreliableFileOperation();
-		}
-		catch (IOException e) {
-			//
-		}
+        assertThat(AopUtils.isAopProxy(bean)).isTrue();
+        try {
+            bean.unreliableFileOperation();
+        } catch (IOException e) {
+            //
+        }
 
-		assertThat(aspect.handled).isEqualTo(1);
-		assertThat(aspect.lastException).isNotNull();
-	}
+        assertThat(aspect.handled).isEqualTo(1);
+        assertThat(aspect.lastException).isNotNull();
+    }
 }
 
 
 @Aspect
 class ExceptionHandlingAspect {
 
-	public int handled;
+    public int handled;
 
-	public IOException lastException;
+    public IOException lastException;
 
-	@AfterThrowing(pointcut = "within(org.springframework.tests.sample.beans.ITestBean+)", throwing = "ex")
-	public void handleIOException(IOException ex) {
-		handled++;
-		lastException = ex;
-	}
+    @AfterThrowing(pointcut = "within(org.springframework.tests.sample.beans.ITestBean+)", throwing = "ex")
+    public void handleIOException(IOException ex) {
+        handled++;
+        lastException = ex;
+    }
 
 }

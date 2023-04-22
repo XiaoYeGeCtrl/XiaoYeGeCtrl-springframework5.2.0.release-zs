@@ -23,5 +23,5 @@ package org.springframework.context.index.sample.type;
  * @author Stephane Nicoll
  */
 public class SampleSmartRepo
-		implements SmartRepo<SampleEntity, Long>, Repo<SampleEntity, Long> {
+        implements SmartRepo<SampleEntity, Long>, Repo<SampleEntity, Long> {
 }

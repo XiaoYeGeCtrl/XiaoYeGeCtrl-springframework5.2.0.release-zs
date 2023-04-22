@@ -40,24 +40,24 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class CompositeUriComponentsContributorTests {
 
 
-	@Test
-	public void supportsParameter() {
+    @Test
+    public void supportsParameter() {
 
-		List<HandlerMethodArgumentResolver> resolvers = new ArrayList<>();
-		resolvers.add(new RequestParamMethodArgumentResolver(false));
-		resolvers.add(new RequestHeaderMethodArgumentResolver(null));
-		resolvers.add(new RequestParamMethodArgumentResolver(true));
+        List<HandlerMethodArgumentResolver> resolvers = new ArrayList<>();
+        resolvers.add(new RequestParamMethodArgumentResolver(false));
+        resolvers.add(new RequestHeaderMethodArgumentResolver(null));
+        resolvers.add(new RequestParamMethodArgumentResolver(true));
 
-		Method method = ClassUtils.getMethod(this.getClass(), "handleRequest", String.class, String.class, String.class);
+        Method method = ClassUtils.getMethod(this.getClass(), "handleRequest", String.class, String.class, String.class);
 
-		CompositeUriComponentsContributor contributor = new CompositeUriComponentsContributor(resolvers);
-		assertThat(contributor.supportsParameter(new MethodParameter(method, 0))).isTrue();
-		assertThat(contributor.supportsParameter(new MethodParameter(method, 1))).isTrue();
-		assertThat(contributor.supportsParameter(new MethodParameter(method, 2))).isFalse();
-	}
+        CompositeUriComponentsContributor contributor = new CompositeUriComponentsContributor(resolvers);
+        assertThat(contributor.supportsParameter(new MethodParameter(method, 0))).isTrue();
+        assertThat(contributor.supportsParameter(new MethodParameter(method, 1))).isTrue();
+        assertThat(contributor.supportsParameter(new MethodParameter(method, 2))).isFalse();
+    }
 
 
-	public void handleRequest(@RequestParam String p1, String p2, @RequestHeader String h) {
-	}
+    public void handleRequest(@RequestParam String p1, String p2, @RequestHeader String h) {
+    }
 
 }

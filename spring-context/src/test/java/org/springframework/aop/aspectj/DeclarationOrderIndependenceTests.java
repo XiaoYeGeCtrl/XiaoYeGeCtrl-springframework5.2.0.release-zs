@@ -27,156 +27,159 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+interface TopsyTurvyTarget {
+
+    void doSomething();
+
+    int getX();
+}
+
 /**
  * @author Adrian Colyer
  * @author Chris Beams
  */
 public class DeclarationOrderIndependenceTests {
 
-	private TopsyTurvyAspect aspect;
+    private TopsyTurvyAspect aspect;
 
-	private TopsyTurvyTarget target;
-
-
-	@BeforeEach
-	public void setup() {
-		ClassPathXmlApplicationContext ctx =
-				new ClassPathXmlApplicationContext(getClass().getSimpleName() + ".xml", getClass());
-		aspect = (TopsyTurvyAspect) ctx.getBean("topsyTurvyAspect");
-		target = (TopsyTurvyTarget) ctx.getBean("topsyTurvyTarget");
-	}
+    private TopsyTurvyTarget target;
 
 
-	@Test
-	public void testTargetIsSerializable() {
-		boolean condition = this.target instanceof Serializable;
-		assertThat(condition).as("target bean is serializable").isTrue();
-	}
-
-	@Test
-	public void testTargetIsBeanNameAware() {
-		boolean condition = this.target instanceof BeanNameAware;
-		assertThat(condition).as("target bean is bean name aware").isTrue();
-	}
-
-	@Test
-	public void testBeforeAdviceFiringOk() {
-		AspectCollaborator collab = new AspectCollaborator();
-		this.aspect.setCollaborator(collab);
-		this.target.doSomething();
-		assertThat(collab.beforeFired).as("before advice fired").isTrue();
-	}
-
-	@Test
-	public void testAroundAdviceFiringOk() {
-		AspectCollaborator collab = new AspectCollaborator();
-		this.aspect.setCollaborator(collab);
-		this.target.getX();
-		assertThat(collab.aroundFired).as("around advice fired").isTrue();
-	}
-
-	@Test
-	public void testAfterReturningFiringOk() {
-		AspectCollaborator collab = new AspectCollaborator();
-		this.aspect.setCollaborator(collab);
-		this.target.getX();
-		assertThat(collab.afterReturningFired).as("after returning advice fired").isTrue();
-	}
+    @BeforeEach
+    public void setup() {
+        ClassPathXmlApplicationContext ctx =
+                new ClassPathXmlApplicationContext(getClass().getSimpleName() + ".xml", getClass());
+        aspect = (TopsyTurvyAspect) ctx.getBean("topsyTurvyAspect");
+        target = (TopsyTurvyTarget) ctx.getBean("topsyTurvyTarget");
+    }
 
 
-	/** public visibility is required */
-	public static class BeanNameAwareMixin implements BeanNameAware {
+    @Test
+    public void testTargetIsSerializable() {
+        boolean condition = this.target instanceof Serializable;
+        assertThat(condition).as("target bean is serializable").isTrue();
+    }
 
-		@SuppressWarnings("unused")
-		private String beanName;
+    @Test
+    public void testTargetIsBeanNameAware() {
+        boolean condition = this.target instanceof BeanNameAware;
+        assertThat(condition).as("target bean is bean name aware").isTrue();
+    }
 
-		@Override
-		public void setBeanName(String name) {
-			this.beanName = name;
-		}
+    @Test
+    public void testBeforeAdviceFiringOk() {
+        AspectCollaborator collab = new AspectCollaborator();
+        this.aspect.setCollaborator(collab);
+        this.target.doSomething();
+        assertThat(collab.beforeFired).as("before advice fired").isTrue();
+    }
 
-	}
+    @Test
+    public void testAroundAdviceFiringOk() {
+        AspectCollaborator collab = new AspectCollaborator();
+        this.aspect.setCollaborator(collab);
+        this.target.getX();
+        assertThat(collab.aroundFired).as("around advice fired").isTrue();
+    }
 
-	/** public visibility is required */
-	@SuppressWarnings("serial")
-	public static class SerializableMixin implements Serializable {
-	}
+    @Test
+    public void testAfterReturningFiringOk() {
+        AspectCollaborator collab = new AspectCollaborator();
+        this.aspect.setCollaborator(collab);
+        this.target.getX();
+        assertThat(collab.afterReturningFired).as("after returning advice fired").isTrue();
+    }
+
+
+    /**
+     * public visibility is required
+     */
+    public static class BeanNameAwareMixin implements BeanNameAware {
+
+        @SuppressWarnings("unused")
+        private String beanName;
+
+        @Override
+        public void setBeanName(String name) {
+            this.beanName = name;
+        }
+
+    }
+
+    /**
+     * public visibility is required
+     */
+    @SuppressWarnings("serial")
+    public static class SerializableMixin implements Serializable {
+    }
 
 }
-
 
 class TopsyTurvyAspect {
 
-	interface Collaborator {
-		void beforeAdviceFired();
-		void afterReturningAdviceFired();
-		void aroundAdviceFired();
-	}
+    private Collaborator collaborator;
 
-	private Collaborator collaborator;
+    public void setCollaborator(Collaborator collaborator) {
+        this.collaborator = collaborator;
+    }
 
-	public void setCollaborator(Collaborator collaborator) {
-		this.collaborator = collaborator;
-	}
+    public void before() {
+        this.collaborator.beforeAdviceFired();
+    }
 
-	public void before() {
-		this.collaborator.beforeAdviceFired();
-	}
+    public void afterReturning() {
+        this.collaborator.afterReturningAdviceFired();
+    }
 
-	public void afterReturning() {
-		this.collaborator.afterReturningAdviceFired();
-	}
+    public Object around(ProceedingJoinPoint pjp) throws Throwable {
+        Object ret = pjp.proceed();
+        this.collaborator.aroundAdviceFired();
+        return ret;
+    }
 
-	public Object around(ProceedingJoinPoint pjp) throws Throwable {
-		Object ret = pjp.proceed();
-		this.collaborator.aroundAdviceFired();
-		return ret;
-	}
+    interface Collaborator {
+        void beforeAdviceFired();
+
+        void afterReturningAdviceFired();
+
+        void aroundAdviceFired();
+    }
 }
-
-
-interface TopsyTurvyTarget {
-
-	void doSomething();
-
-	int getX();
-}
-
 
 class TopsyTurvyTargetImpl implements TopsyTurvyTarget {
 
-	private int x = 5;
+    private int x = 5;
 
-	@Override
-	public void doSomething() {
-		this.x = 10;
-	}
+    @Override
+    public void doSomething() {
+        this.x = 10;
+    }
 
-	@Override
-	public int getX() {
-		return x;
-	}
+    @Override
+    public int getX() {
+        return x;
+    }
 }
 
 
 class AspectCollaborator implements TopsyTurvyAspect.Collaborator {
 
-	public boolean afterReturningFired = false;
-	public boolean aroundFired = false;
-	public boolean beforeFired = false;
+    public boolean afterReturningFired = false;
+    public boolean aroundFired = false;
+    public boolean beforeFired = false;
 
-	@Override
-	public void afterReturningAdviceFired() {
-		this.afterReturningFired = true;
-	}
+    @Override
+    public void afterReturningAdviceFired() {
+        this.afterReturningFired = true;
+    }
 
-	@Override
-	public void aroundAdviceFired() {
-		this.aroundFired = true;
-	}
+    @Override
+    public void aroundAdviceFired() {
+        this.aroundFired = true;
+    }
 
-	@Override
-	public void beforeAdviceFired() {
-		this.beforeFired = true;
-	}
+    @Override
+    public void beforeAdviceFired() {
+        this.beforeFired = true;
+    }
 }

@@ -51,104 +51,103 @@ import org.springframework.web.util.JavaScriptUtils;
  */
 public class HtmlFileTransportHandler extends AbstractHttpSendingTransportHandler {
 
-	private static final String PARTIAL_HTML_CONTENT;
+    private static final String PARTIAL_HTML_CONTENT;
 
-	// Safari needs at least 1024 bytes to parse the website.
-	// https://code.google.com/p/browsersec/wiki/Part2#Survey_of_content_sniffing_behaviors
-	private static final int MINIMUM_PARTIAL_HTML_CONTENT_LENGTH = 1024;
-
-
-	static {
-		StringBuilder sb = new StringBuilder(
-				"<!doctype html>\n" +
-				"<html><head>\n" +
-				"  <meta http-equiv=\"X-UA-Compatible\" content=\"IE=edge\" />\n" +
-				"  <meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\" />\n" +
-				"</head><body><h2>Don't panic!</h2>\n" +
-				"  <script>\n" +
-				"    document.domain = document.domain;\n" +
-				"    var c = parent.%s;\n" +
-				"    c.start();\n" +
-				"    function p(d) {c.message(d);};\n" +
-				"    window.onload = function() {c.stop();};\n" +
-				"  </script>"
-				);
-
-		while (sb.length() < MINIMUM_PARTIAL_HTML_CONTENT_LENGTH) {
-			sb.append(" ");
-		}
-		PARTIAL_HTML_CONTENT = sb.toString();
-	}
+    // Safari needs at least 1024 bytes to parse the website.
+    // https://code.google.com/p/browsersec/wiki/Part2#Survey_of_content_sniffing_behaviors
+    private static final int MINIMUM_PARTIAL_HTML_CONTENT_LENGTH = 1024;
 
 
-	@Override
-	public TransportType getTransportType() {
-		return TransportType.HTML_FILE;
-	}
+    static {
+        StringBuilder sb = new StringBuilder(
+                "<!doctype html>\n" +
+                        "<html><head>\n" +
+                        "  <meta http-equiv=\"X-UA-Compatible\" content=\"IE=edge\" />\n" +
+                        "  <meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\" />\n" +
+                        "</head><body><h2>Don't panic!</h2>\n" +
+                        "  <script>\n" +
+                        "    document.domain = document.domain;\n" +
+                        "    var c = parent.%s;\n" +
+                        "    c.start();\n" +
+                        "    function p(d) {c.message(d);};\n" +
+                        "    window.onload = function() {c.stop();};\n" +
+                        "  </script>"
+        );
 
-	@Override
-	protected MediaType getContentType() {
-		return new MediaType("text", "html", StandardCharsets.UTF_8);
-	}
-
-	@Override
-	public boolean checkSessionType(SockJsSession session) {
-		return session instanceof HtmlFileStreamingSockJsSession;
-	}
-
-	@Override
-	public StreamingSockJsSession createSession(
-			String sessionId, WebSocketHandler handler, Map<String, Object> attributes) {
-
-		return new HtmlFileStreamingSockJsSession(sessionId, getServiceConfig(), handler, attributes);
-	}
-
-	@Override
-	public void handleRequestInternal(ServerHttpRequest request, ServerHttpResponse response,
-			AbstractHttpSockJsSession sockJsSession) throws SockJsException {
-
-		String callback = getCallbackParam(request);
-		if (!StringUtils.hasText(callback)) {
-			response.setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR);
-			try {
-				response.getBody().write("\"callback\" parameter required".getBytes(StandardCharsets.UTF_8));
-			}
-			catch (IOException ex) {
-				sockJsSession.tryCloseWithSockJsTransportError(ex, CloseStatus.SERVER_ERROR);
-				throw new SockJsTransportFailureException("Failed to write to response", sockJsSession.getId(), ex);
-			}
-			return;
-		}
-
-		super.handleRequestInternal(request, response, sockJsSession);
-	}
-
-	@Override
-	protected SockJsFrameFormat getFrameFormat(ServerHttpRequest request) {
-		return new DefaultSockJsFrameFormat("<script>\np(\"%s\");\n</script>\r\n") {
-			@Override
-			protected String preProcessContent(String content) {
-				return JavaScriptUtils.javaScriptEscape(content);
-			}
-		};
-	}
+        while (sb.length() < MINIMUM_PARTIAL_HTML_CONTENT_LENGTH) {
+            sb.append(" ");
+        }
+        PARTIAL_HTML_CONTENT = sb.toString();
+    }
 
 
-	private class HtmlFileStreamingSockJsSession extends StreamingSockJsSession {
+    @Override
+    public TransportType getTransportType() {
+        return TransportType.HTML_FILE;
+    }
 
-		public HtmlFileStreamingSockJsSession(String sessionId, SockJsServiceConfig config,
-				WebSocketHandler wsHandler, Map<String, Object> attributes) {
+    @Override
+    protected MediaType getContentType() {
+        return new MediaType("text", "html", StandardCharsets.UTF_8);
+    }
 
-			super(sessionId, config, wsHandler, attributes);
-		}
+    @Override
+    public boolean checkSessionType(SockJsSession session) {
+        return session instanceof HtmlFileStreamingSockJsSession;
+    }
 
-		@Override
-		protected byte[] getPrelude(ServerHttpRequest request) {
-			// We already validated the parameter above...
-			String callback = getCallbackParam(request);
-			String html = String.format(PARTIAL_HTML_CONTENT, callback);
-			return html.getBytes(StandardCharsets.UTF_8);
-		}
-	}
+    @Override
+    public StreamingSockJsSession createSession(
+            String sessionId, WebSocketHandler handler, Map<String, Object> attributes) {
+
+        return new HtmlFileStreamingSockJsSession(sessionId, getServiceConfig(), handler, attributes);
+    }
+
+    @Override
+    public void handleRequestInternal(ServerHttpRequest request, ServerHttpResponse response,
+                                      AbstractHttpSockJsSession sockJsSession) throws SockJsException {
+
+        String callback = getCallbackParam(request);
+        if (!StringUtils.hasText(callback)) {
+            response.setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR);
+            try {
+                response.getBody().write("\"callback\" parameter required".getBytes(StandardCharsets.UTF_8));
+            } catch (IOException ex) {
+                sockJsSession.tryCloseWithSockJsTransportError(ex, CloseStatus.SERVER_ERROR);
+                throw new SockJsTransportFailureException("Failed to write to response", sockJsSession.getId(), ex);
+            }
+            return;
+        }
+
+        super.handleRequestInternal(request, response, sockJsSession);
+    }
+
+    @Override
+    protected SockJsFrameFormat getFrameFormat(ServerHttpRequest request) {
+        return new DefaultSockJsFrameFormat("<script>\np(\"%s\");\n</script>\r\n") {
+            @Override
+            protected String preProcessContent(String content) {
+                return JavaScriptUtils.javaScriptEscape(content);
+            }
+        };
+    }
+
+
+    private class HtmlFileStreamingSockJsSession extends StreamingSockJsSession {
+
+        public HtmlFileStreamingSockJsSession(String sessionId, SockJsServiceConfig config,
+                                              WebSocketHandler wsHandler, Map<String, Object> attributes) {
+
+            super(sessionId, config, wsHandler, attributes);
+        }
+
+        @Override
+        protected byte[] getPrelude(ServerHttpRequest request) {
+            // We already validated the parameter above...
+            String callback = getCallbackParam(request);
+            String html = String.format(PARTIAL_HTML_CONTENT, callback);
+            return html.getBytes(StandardCharsets.UTF_8);
+        }
+    }
 
 }

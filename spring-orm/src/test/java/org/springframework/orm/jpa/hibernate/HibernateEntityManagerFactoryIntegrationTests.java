@@ -40,55 +40,55 @@ import static org.assertj.core.api.Assertions.assertThat;
 @SuppressWarnings("deprecation")
 public class HibernateEntityManagerFactoryIntegrationTests extends AbstractContainerEntityManagerFactoryIntegrationTests {
 
-	@Override
-	protected String[] getConfigLocations() {
-		return new String[] {"/org/springframework/orm/jpa/hibernate/hibernate-manager.xml",
-				"/org/springframework/orm/jpa/memdb.xml", "/org/springframework/orm/jpa/inject.xml"};
-	}
+    @Override
+    protected String[] getConfigLocations() {
+        return new String[]{"/org/springframework/orm/jpa/hibernate/hibernate-manager.xml",
+                "/org/springframework/orm/jpa/memdb.xml", "/org/springframework/orm/jpa/inject.xml"};
+    }
 
 
-	@Test
-	public void testCanCastNativeEntityManagerFactoryToHibernateEntityManagerFactoryImpl() {
-		EntityManagerFactoryInfo emfi = (EntityManagerFactoryInfo) entityManagerFactory;
-		boolean condition1 = emfi.getNativeEntityManagerFactory() instanceof org.hibernate.jpa.HibernateEntityManagerFactory;
-		assertThat(condition1).isTrue();
-		// as of Hibernate 5.2
-		boolean condition = emfi.getNativeEntityManagerFactory() instanceof SessionFactory;
-		assertThat(condition).isTrue();
-	}
+    @Test
+    public void testCanCastNativeEntityManagerFactoryToHibernateEntityManagerFactoryImpl() {
+        EntityManagerFactoryInfo emfi = (EntityManagerFactoryInfo) entityManagerFactory;
+        boolean condition1 = emfi.getNativeEntityManagerFactory() instanceof org.hibernate.jpa.HibernateEntityManagerFactory;
+        assertThat(condition1).isTrue();
+        // as of Hibernate 5.2
+        boolean condition = emfi.getNativeEntityManagerFactory() instanceof SessionFactory;
+        assertThat(condition).isTrue();
+    }
 
-	@Test
-	public void testCanCastSharedEntityManagerProxyToHibernateEntityManager() {
-		boolean condition1 = sharedEntityManager instanceof org.hibernate.jpa.HibernateEntityManager;
-		assertThat(condition1).isTrue();
-		// as of Hibernate 5.2
-		boolean condition = ((EntityManagerProxy) sharedEntityManager).getTargetEntityManager() instanceof Session;
-		assertThat(condition).isTrue();
-	}
+    @Test
+    public void testCanCastSharedEntityManagerProxyToHibernateEntityManager() {
+        boolean condition1 = sharedEntityManager instanceof org.hibernate.jpa.HibernateEntityManager;
+        assertThat(condition1).isTrue();
+        // as of Hibernate 5.2
+        boolean condition = ((EntityManagerProxy) sharedEntityManager).getTargetEntityManager() instanceof Session;
+        assertThat(condition).isTrue();
+    }
 
-	@Test
-	public void testCanUnwrapAopProxy() {
-		EntityManager em = entityManagerFactory.createEntityManager();
-		EntityManager proxy = ProxyFactory.getProxy(EntityManager.class, new SingletonTargetSource(em));
-		boolean condition = em instanceof org.hibernate.jpa.HibernateEntityManager;
-		assertThat(condition).isTrue();
-		boolean condition1 = proxy instanceof org.hibernate.jpa.HibernateEntityManager;
-		assertThat(condition1).isFalse();
-		assertThat(proxy.unwrap(org.hibernate.jpa.HibernateEntityManager.class) != null).isTrue();
-		assertThat(proxy.unwrap(org.hibernate.jpa.HibernateEntityManager.class)).isSameAs(em);
-		assertThat(proxy.getDelegate()).isSameAs(em.getDelegate());
-	}
+    @Test
+    public void testCanUnwrapAopProxy() {
+        EntityManager em = entityManagerFactory.createEntityManager();
+        EntityManager proxy = ProxyFactory.getProxy(EntityManager.class, new SingletonTargetSource(em));
+        boolean condition = em instanceof org.hibernate.jpa.HibernateEntityManager;
+        assertThat(condition).isTrue();
+        boolean condition1 = proxy instanceof org.hibernate.jpa.HibernateEntityManager;
+        assertThat(condition1).isFalse();
+        assertThat(proxy.unwrap(org.hibernate.jpa.HibernateEntityManager.class) != null).isTrue();
+        assertThat(proxy.unwrap(org.hibernate.jpa.HibernateEntityManager.class)).isSameAs(em);
+        assertThat(proxy.getDelegate()).isSameAs(em.getDelegate());
+    }
 
-	@Test  // SPR-16956
-	public void testReadOnly() {
-		assertThat(sharedEntityManager.unwrap(Session.class).getHibernateFlushMode()).isSameAs(FlushMode.AUTO);
-		assertThat(sharedEntityManager.unwrap(Session.class).isDefaultReadOnly()).isFalse();
-		endTransaction();
+    @Test  // SPR-16956
+    public void testReadOnly() {
+        assertThat(sharedEntityManager.unwrap(Session.class).getHibernateFlushMode()).isSameAs(FlushMode.AUTO);
+        assertThat(sharedEntityManager.unwrap(Session.class).isDefaultReadOnly()).isFalse();
+        endTransaction();
 
-		this.transactionDefinition.setReadOnly(true);
-		startNewTransaction();
-		assertThat(sharedEntityManager.unwrap(Session.class).getHibernateFlushMode()).isSameAs(FlushMode.MANUAL);
-		assertThat(sharedEntityManager.unwrap(Session.class).isDefaultReadOnly()).isTrue();
-	}
+        this.transactionDefinition.setReadOnly(true);
+        startNewTransaction();
+        assertThat(sharedEntityManager.unwrap(Session.class).getHibernateFlushMode()).isSameAs(FlushMode.MANUAL);
+        assertThat(sharedEntityManager.unwrap(Session.class).isDefaultReadOnly()).isTrue();
+    }
 
 }

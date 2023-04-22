@@ -38,34 +38,34 @@ import org.springframework.web.server.ServerWebExchange;
  * values for a header, not only the first one.
  *
  * @author Rossen Stoyanchev
- * @since 5.0
  * @see RequestHeaderMethodArgumentResolver
+ * @since 5.0
  */
 public class RequestHeaderMapMethodArgumentResolver extends HandlerMethodArgumentResolverSupport
-		implements SyncHandlerMethodArgumentResolver {
+        implements SyncHandlerMethodArgumentResolver {
 
-	public RequestHeaderMapMethodArgumentResolver(ReactiveAdapterRegistry adapterRegistry) {
-		super(adapterRegistry);
-	}
-
-
-	@Override
-	public boolean supportsParameter(MethodParameter param) {
-		return checkAnnotatedParamNoReactiveWrapper(param, RequestHeader.class, this::allParams);
-	}
-
-	private boolean allParams(RequestHeader annotation, Class<?> type) {
-		return Map.class.isAssignableFrom(type);
-	}
+    public RequestHeaderMapMethodArgumentResolver(ReactiveAdapterRegistry adapterRegistry) {
+        super(adapterRegistry);
+    }
 
 
-	@Override
-	public Object resolveArgumentValue(
-			MethodParameter methodParameter, BindingContext context, ServerWebExchange exchange) {
+    @Override
+    public boolean supportsParameter(MethodParameter param) {
+        return checkAnnotatedParamNoReactiveWrapper(param, RequestHeader.class, this::allParams);
+    }
 
-		boolean isMultiValueMap = MultiValueMap.class.isAssignableFrom(methodParameter.getParameterType());
-		HttpHeaders headers = exchange.getRequest().getHeaders();
-		return (isMultiValueMap ? headers : headers.toSingleValueMap());
-	}
+    private boolean allParams(RequestHeader annotation, Class<?> type) {
+        return Map.class.isAssignableFrom(type);
+    }
+
+
+    @Override
+    public Object resolveArgumentValue(
+            MethodParameter methodParameter, BindingContext context, ServerWebExchange exchange) {
+
+        boolean isMultiValueMap = MultiValueMap.class.isAssignableFrom(methodParameter.getParameterType());
+        HttpHeaders headers = exchange.getRequest().getHeaders();
+        return (isMultiValueMap ? headers : headers.toSingleValueMap());
+    }
 
 }

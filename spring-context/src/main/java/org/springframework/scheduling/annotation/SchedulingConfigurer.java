@@ -32,19 +32,20 @@ import org.springframework.scheduling.config.ScheduledTaskRegistrar;
  * <p>See @{@link EnableScheduling} for detailed usage examples.
  *
  * @author Chris Beams
- * @since 3.1
  * @see EnableScheduling
  * @see ScheduledTaskRegistrar
+ * @since 3.1
  */
 @FunctionalInterface
 public interface SchedulingConfigurer {
 
-	/**
-	 * Callback allowing a {@link org.springframework.scheduling.TaskScheduler
-	 * TaskScheduler} and specific {@link org.springframework.scheduling.config.Task Task}
-	 * instances to be registered against the given the {@link ScheduledTaskRegistrar}.
-	 * @param taskRegistrar the registrar to be configured.
-	 */
-	void configureTasks(ScheduledTaskRegistrar taskRegistrar);
+    /**
+     * Callback allowing a {@link org.springframework.scheduling.TaskScheduler
+     * TaskScheduler} and specific {@link org.springframework.scheduling.config.Task Task}
+     * instances to be registered against the given the {@link ScheduledTaskRegistrar}.
+     *
+     * @param taskRegistrar the registrar to be configured.
+     */
+    void configureTasks(ScheduledTaskRegistrar taskRegistrar);
 
 }

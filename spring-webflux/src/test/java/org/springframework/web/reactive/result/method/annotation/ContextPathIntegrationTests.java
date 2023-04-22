@@ -40,80 +40,78 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 class ContextPathIntegrationTests {
 
-	@Test
-	void multipleWebFluxApps() throws Exception {
-		AnnotationConfigApplicationContext context1 = new AnnotationConfigApplicationContext(WebAppConfig.class);
-		AnnotationConfigApplicationContext context2 = new AnnotationConfigApplicationContext(WebAppConfig.class);
+    @Test
+    void multipleWebFluxApps() throws Exception {
+        AnnotationConfigApplicationContext context1 = new AnnotationConfigApplicationContext(WebAppConfig.class);
+        AnnotationConfigApplicationContext context2 = new AnnotationConfigApplicationContext(WebAppConfig.class);
 
-		HttpHandler webApp1Handler = WebHttpHandlerBuilder.applicationContext(context1).build();
-		HttpHandler webApp2Handler = WebHttpHandlerBuilder.applicationContext(context2).build();
+        HttpHandler webApp1Handler = WebHttpHandlerBuilder.applicationContext(context1).build();
+        HttpHandler webApp2Handler = WebHttpHandlerBuilder.applicationContext(context2).build();
 
-		ReactorHttpServer server = new ReactorHttpServer();
-		server.registerHttpHandler("/webApp1", webApp1Handler);
-		server.registerHttpHandler("/webApp2", webApp2Handler);
-		server.afterPropertiesSet();
-		server.start();
+        ReactorHttpServer server = new ReactorHttpServer();
+        server.registerHttpHandler("/webApp1", webApp1Handler);
+        server.registerHttpHandler("/webApp2", webApp2Handler);
+        server.afterPropertiesSet();
+        server.start();
 
-		try {
-			RestTemplate restTemplate = new RestTemplate();
-			String actual;
+        try {
+            RestTemplate restTemplate = new RestTemplate();
+            String actual;
 
-			String url = "http://localhost:" + server.getPort() + "/webApp1/test";
-			actual = restTemplate.getForObject(url, String.class);
-			assertThat(actual).isEqualTo("Tested in /webApp1");
+            String url = "http://localhost:" + server.getPort() + "/webApp1/test";
+            actual = restTemplate.getForObject(url, String.class);
+            assertThat(actual).isEqualTo("Tested in /webApp1");
 
-			url = "http://localhost:" + server.getPort() + "/webApp2/test";
-			actual = restTemplate.getForObject(url, String.class);
-			assertThat(actual).isEqualTo("Tested in /webApp2");
-		}
-		finally {
-			server.stop();
-		}
-	}
+            url = "http://localhost:" + server.getPort() + "/webApp2/test";
+            actual = restTemplate.getForObject(url, String.class);
+            assertThat(actual).isEqualTo("Tested in /webApp2");
+        } finally {
+            server.stop();
+        }
+    }
 
-	@Test
-	void servletPathMapping() throws Exception {
-		AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(WebAppConfig.class);
+    @Test
+    void servletPathMapping() throws Exception {
+        AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(WebAppConfig.class);
 
-		TomcatHttpServer server = new TomcatHttpServer();
-		server.setContextPath("/app");
-		server.setServletMapping("/api/*");
+        TomcatHttpServer server = new TomcatHttpServer();
+        server.setContextPath("/app");
+        server.setServletMapping("/api/*");
 
-		HttpHandler httpHandler = WebHttpHandlerBuilder.applicationContext(context).build();
-		server.setHandler(httpHandler);
+        HttpHandler httpHandler = WebHttpHandlerBuilder.applicationContext(context).build();
+        server.setHandler(httpHandler);
 
-		server.afterPropertiesSet();
-		server.start();
+        server.afterPropertiesSet();
+        server.start();
 
-		try {
-			String url = "http://localhost:" + server.getPort() + "/app/api/test";
-			String actual = new RestTemplate().getForObject(url, String.class);
-			assertThat(actual).isEqualTo("Tested in /app/api");
-		}
-		finally {
-			server.stop();
-		}
-	}
+        try {
+            String url = "http://localhost:" + server.getPort() + "/app/api/test";
+            String actual = new RestTemplate().getForObject(url, String.class);
+            assertThat(actual).isEqualTo("Tested in /app/api");
+        } finally {
+            server.stop();
+        }
+    }
 
 
-	@EnableWebFlux
-	@Configuration
-	static class WebAppConfig {
+    @EnableWebFlux
+    @Configuration
+    static class WebAppConfig {
 
-		@Bean
-		TestController testController() {
-			return new TestController();
-		}
-	}
+        @Bean
+        TestController testController() {
+            return new TestController();
+        }
+    }
 
 
-	@RestController
-	static class TestController {
+    @RestController
+    static class TestController {
 
-		@GetMapping("/test")
-		String handle(ServerHttpRequest request) {
-			return "Tested in " + request.getPath().contextPath().value();
-		}
-	}
+        @GetMapping("/test")
+        String handle(ServerHttpRequest request) {
+            return "Tested in " + request.getPath().contextPath().value();
+        }
+    }
 
 }

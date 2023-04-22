@@ -47,61 +47,56 @@ import static org.assertj.core.api.Assertions.assertThat;
  * <em>parameterized test instance</em>.
  *
  * @author Sam Brannen
- * @since 2.5
  * @see org.springframework.test.context.junit4.rules.ParameterizedSpringRuleTests
+ * @since 2.5
  */
 @RunWith(Parameterized.class)
 @ContextConfiguration
-@TestExecutionListeners({ DependencyInjectionTestExecutionListener.class })
+@TestExecutionListeners({DependencyInjectionTestExecutionListener.class})
 public class ParameterizedDependencyInjectionTests {
 
-	private static final AtomicInteger invocationCount = new AtomicInteger();
+    private static final AtomicInteger invocationCount = new AtomicInteger();
 
-	private static final TestContextManager testContextManager = new TestContextManager(ParameterizedDependencyInjectionTests.class);
+    private static final TestContextManager testContextManager = new TestContextManager(ParameterizedDependencyInjectionTests.class);
+    @Parameter(0)
+    public String employeeBeanName;
+    @Parameter(1)
+    public String employeeName;
+    @Autowired
+    private ApplicationContext applicationContext;
+    @Autowired
+    private Pet pet;
 
-	@Autowired
-	private ApplicationContext applicationContext;
+    @Parameters(name = "bean [{0}], employee [{1}]")
+    public static String[][] employeeData() {
+        return new String[][]{{"employee1", "John Smith"}, {"employee2", "Jane Smith"}};
+    }
 
-	@Autowired
-	private Pet pet;
+    @BeforeClass
+    public static void BeforeClass() {
+        invocationCount.set(0);
+    }
 
-	@Parameter(0)
-	public String employeeBeanName;
+    @AfterClass
+    public static void verifyNumParameterizedRuns() {
+        assertThat(invocationCount.get()).as("Number of times the parameterized test method was executed.").isEqualTo(employeeData().length);
+    }
 
-	@Parameter(1)
-	public String employeeName;
+    @Before
+    public void injectDependencies() throws Exception {
+        testContextManager.prepareTestInstance(this);
+    }
 
+    @Test
+    public final void verifyPetAndEmployee() {
+        invocationCount.incrementAndGet();
 
-	@Parameters(name = "bean [{0}], employee [{1}]")
-	public static String[][] employeeData() {
-		return new String[][] { { "employee1", "John Smith" }, { "employee2", "Jane Smith" } };
-	}
+        // Verifying dependency injection:
+        assertThat(this.pet).as("The pet field should have been autowired.").isNotNull();
 
-	@BeforeClass
-	public static void BeforeClass() {
-		invocationCount.set(0);
-	}
-
-	@Before
-	public void injectDependencies() throws Exception {
-		testContextManager.prepareTestInstance(this);
-	}
-
-	@Test
-	public final void verifyPetAndEmployee() {
-		invocationCount.incrementAndGet();
-
-		// Verifying dependency injection:
-		assertThat(this.pet).as("The pet field should have been autowired.").isNotNull();
-
-		// Verifying 'parameterized' support:
-		Employee employee = this.applicationContext.getBean(this.employeeBeanName, Employee.class);
-		assertThat(employee.getName()).as("Name of the employee configured as bean [" + this.employeeBeanName + "].").isEqualTo(this.employeeName);
-	}
-
-	@AfterClass
-	public static void verifyNumParameterizedRuns() {
-		assertThat(invocationCount.get()).as("Number of times the parameterized test method was executed.").isEqualTo(employeeData().length);
-	}
+        // Verifying 'parameterized' support:
+        Employee employee = this.applicationContext.getBean(this.employeeBeanName, Employee.class);
+        assertThat(employee.getName()).as("Name of the employee configured as bean [" + this.employeeBeanName + "].").isEqualTo(this.employeeName);
+    }
 
 }

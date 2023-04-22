@@ -41,86 +41,91 @@ import org.springframework.cache.CacheManager;
  *
  * @author Costin Leau
  * @author Juergen Hoeller
- * @since 3.1
  * @see org.springframework.aop.framework.ProxyFactoryBean
  * @see CacheInterceptor
+ * @since 3.1
  */
 @SuppressWarnings("serial")
 public class CacheProxyFactoryBean extends AbstractSingletonProxyFactoryBean
-		implements BeanFactoryAware, SmartInitializingSingleton {
+        implements BeanFactoryAware, SmartInitializingSingleton {
 
-	private final CacheInterceptor cacheInterceptor = new CacheInterceptor();
+    private final CacheInterceptor cacheInterceptor = new CacheInterceptor();
 
-	private Pointcut pointcut = Pointcut.TRUE;
-
-
-	/**
-	 * Set one or more sources to find cache operations.
-	 * @see CacheInterceptor#setCacheOperationSources
-	 */
-	public void setCacheOperationSources(CacheOperationSource... cacheOperationSources) {
-		this.cacheInterceptor.setCacheOperationSources(cacheOperationSources);
-	}
-
-	/**
-	 * Set the default {@link KeyGenerator} that this cache aspect should delegate to
-	 * if no specific key generator has been set for the operation.
-	 * <p>The default is a {@link SimpleKeyGenerator}.
-	 * @since 5.0.3
-	 * @see CacheInterceptor#setKeyGenerator
-	 */
-	public void setKeyGenerator(KeyGenerator keyGenerator) {
-		this.cacheInterceptor.setKeyGenerator(keyGenerator);
-	}
-
-	/**
-	 * Set the default {@link CacheResolver} that this cache aspect should delegate
-	 * to if no specific cache resolver has been set for the operation.
-	 * <p>The default resolver resolves the caches against their names and the
-	 * default cache manager.
-	 * @since 5.0.3
-	 * @see CacheInterceptor#setCacheResolver
-	 */
-	public void setCacheResolver(CacheResolver cacheResolver) {
-		this.cacheInterceptor.setCacheResolver(cacheResolver);
-	}
-
-	/**
-	 * Set the {@link CacheManager} to use to create a default {@link CacheResolver}.
-	 * Replace the current {@link CacheResolver}, if any.
-	 * @since 5.0.3
-	 * @see CacheInterceptor#setCacheManager
-	 */
-	public void setCacheManager(CacheManager cacheManager) {
-		this.cacheInterceptor.setCacheManager(cacheManager);
-	}
-
-	/**
-	 * Set a pointcut, i.e. a bean that triggers conditional invocation of the
-	 * {@link CacheInterceptor} depending on the method and attributes passed.
-	 * <p>Note: Additional interceptors are always invoked.
-	 * @see #setPreInterceptors
-	 * @see #setPostInterceptors
-	 */
-	public void setPointcut(Pointcut pointcut) {
-		this.pointcut = pointcut;
-	}
-
-	@Override
-	public void setBeanFactory(BeanFactory beanFactory) {
-		this.cacheInterceptor.setBeanFactory(beanFactory);
-	}
-
-	@Override
-	public void afterSingletonsInstantiated() {
-		this.cacheInterceptor.afterSingletonsInstantiated();
-	}
+    private Pointcut pointcut = Pointcut.TRUE;
 
 
-	@Override
-	protected Object createMainInterceptor() {
-		this.cacheInterceptor.afterPropertiesSet();
-		return new DefaultPointcutAdvisor(this.pointcut, this.cacheInterceptor);
-	}
+    /**
+     * Set one or more sources to find cache operations.
+     *
+     * @see CacheInterceptor#setCacheOperationSources
+     */
+    public void setCacheOperationSources(CacheOperationSource... cacheOperationSources) {
+        this.cacheInterceptor.setCacheOperationSources(cacheOperationSources);
+    }
+
+    /**
+     * Set the default {@link KeyGenerator} that this cache aspect should delegate to
+     * if no specific key generator has been set for the operation.
+     * <p>The default is a {@link SimpleKeyGenerator}.
+     *
+     * @see CacheInterceptor#setKeyGenerator
+     * @since 5.0.3
+     */
+    public void setKeyGenerator(KeyGenerator keyGenerator) {
+        this.cacheInterceptor.setKeyGenerator(keyGenerator);
+    }
+
+    /**
+     * Set the default {@link CacheResolver} that this cache aspect should delegate
+     * to if no specific cache resolver has been set for the operation.
+     * <p>The default resolver resolves the caches against their names and the
+     * default cache manager.
+     *
+     * @see CacheInterceptor#setCacheResolver
+     * @since 5.0.3
+     */
+    public void setCacheResolver(CacheResolver cacheResolver) {
+        this.cacheInterceptor.setCacheResolver(cacheResolver);
+    }
+
+    /**
+     * Set the {@link CacheManager} to use to create a default {@link CacheResolver}.
+     * Replace the current {@link CacheResolver}, if any.
+     *
+     * @see CacheInterceptor#setCacheManager
+     * @since 5.0.3
+     */
+    public void setCacheManager(CacheManager cacheManager) {
+        this.cacheInterceptor.setCacheManager(cacheManager);
+    }
+
+    /**
+     * Set a pointcut, i.e. a bean that triggers conditional invocation of the
+     * {@link CacheInterceptor} depending on the method and attributes passed.
+     * <p>Note: Additional interceptors are always invoked.
+     *
+     * @see #setPreInterceptors
+     * @see #setPostInterceptors
+     */
+    public void setPointcut(Pointcut pointcut) {
+        this.pointcut = pointcut;
+    }
+
+    @Override
+    public void setBeanFactory(BeanFactory beanFactory) {
+        this.cacheInterceptor.setBeanFactory(beanFactory);
+    }
+
+    @Override
+    public void afterSingletonsInstantiated() {
+        this.cacheInterceptor.afterSingletonsInstantiated();
+    }
+
+
+    @Override
+    protected Object createMainInterceptor() {
+        this.cacheInterceptor.afterPropertiesSet();
+        return new DefaultPointcutAdvisor(this.pointcut, this.cacheInterceptor);
+    }
 
 }

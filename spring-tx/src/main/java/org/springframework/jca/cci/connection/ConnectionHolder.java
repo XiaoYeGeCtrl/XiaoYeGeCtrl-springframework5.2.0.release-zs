@@ -29,22 +29,22 @@ import org.springframework.transaction.support.ResourceHolderSupport;
  *
  * @author Thierry Templier
  * @author Juergen Hoeller
- * @since 1.2
  * @see CciLocalTransactionManager
  * @see ConnectionFactoryUtils
+ * @since 1.2
  */
 public class ConnectionHolder extends ResourceHolderSupport {
 
-	private final Connection connection;
+    private final Connection connection;
 
 
-	public ConnectionHolder(Connection connection) {
-		this.connection = connection;
-	}
+    public ConnectionHolder(Connection connection) {
+        this.connection = connection;
+    }
 
 
-	public Connection getConnection() {
-		return this.connection;
-	}
+    public Connection getConnection() {
+        return this.connection;
+    }
 
 }

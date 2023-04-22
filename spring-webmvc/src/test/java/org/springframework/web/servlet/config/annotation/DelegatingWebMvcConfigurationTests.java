@@ -58,168 +58,159 @@ import static org.mockito.Mockito.verify;
 @ExtendWith(MockitoExtension.class)
 public class DelegatingWebMvcConfigurationTests {
 
-	@Mock
-	private WebMvcConfigurer webMvcConfigurer;
+    private final DelegatingWebMvcConfiguration delegatingConfig = new DelegatingWebMvcConfiguration();
+    @Mock
+    private WebMvcConfigurer webMvcConfigurer;
+    @Captor
+    private ArgumentCaptor<List<HttpMessageConverter<?>>> converters;
+    @Captor
+    private ArgumentCaptor<ContentNegotiationConfigurer> contentNegotiationConfigurer;
+    @Captor
+    private ArgumentCaptor<FormattingConversionService> conversionService;
+    @Captor
+    private ArgumentCaptor<List<HandlerMethodArgumentResolver>> resolvers;
+    @Captor
+    private ArgumentCaptor<List<HandlerMethodReturnValueHandler>> handlers;
+    @Captor
+    private ArgumentCaptor<AsyncSupportConfigurer> asyncConfigurer;
+    @Captor
+    private ArgumentCaptor<List<HandlerExceptionResolver>> exceptionResolvers;
 
-	@Captor
-	private ArgumentCaptor<List<HttpMessageConverter<?>>> converters;
+    @Test
+    public void requestMappingHandlerAdapter() throws Exception {
+        delegatingConfig.setConfigurers(Collections.singletonList(webMvcConfigurer));
+        RequestMappingHandlerAdapter adapter = this.delegatingConfig.requestMappingHandlerAdapter(
+                this.delegatingConfig.mvcContentNegotiationManager(), this.delegatingConfig.mvcConversionService(),
+                this.delegatingConfig.mvcValidator());
 
-	@Captor
-	private ArgumentCaptor<ContentNegotiationConfigurer> contentNegotiationConfigurer;
+        ConfigurableWebBindingInitializer initializer =
+                (ConfigurableWebBindingInitializer) adapter.getWebBindingInitializer();
 
-	@Captor
-	private ArgumentCaptor<FormattingConversionService> conversionService;
+        verify(webMvcConfigurer).configureMessageConverters(converters.capture());
+        verify(webMvcConfigurer).configureContentNegotiation(contentNegotiationConfigurer.capture());
+        verify(webMvcConfigurer).addFormatters(conversionService.capture());
+        verify(webMvcConfigurer).addArgumentResolvers(resolvers.capture());
+        verify(webMvcConfigurer).addReturnValueHandlers(handlers.capture());
+        verify(webMvcConfigurer).configureAsyncSupport(asyncConfigurer.capture());
 
-	@Captor
-	private ArgumentCaptor<List<HandlerMethodArgumentResolver>> resolvers;
+        assertThat(initializer).isNotNull();
+        assertThat(initializer.getConversionService()).isSameAs(conversionService.getValue());
+        boolean condition = initializer.getValidator() instanceof LocalValidatorFactoryBean;
+        assertThat(condition).isTrue();
+        assertThat(resolvers.getValue().size()).isEqualTo(0);
+        assertThat(handlers.getValue().size()).isEqualTo(0);
+        assertThat(adapter.getMessageConverters()).isEqualTo(converters.getValue());
+        assertThat(asyncConfigurer).isNotNull();
+    }
 
-	@Captor
-	private ArgumentCaptor<List<HandlerMethodReturnValueHandler>> handlers;
+    @Test
+    public void configureMessageConverters() {
+        final HttpMessageConverter<?> customConverter = mock(HttpMessageConverter.class);
+        final StringHttpMessageConverter stringConverter = new StringHttpMessageConverter();
+        List<WebMvcConfigurer> configurers = new ArrayList<>();
+        configurers.add(new WebMvcConfigurer() {
+            @Override
+            public void configureMessageConverters(List<HttpMessageConverter<?>> converters) {
+                converters.add(stringConverter);
+            }
 
-	@Captor
-	private ArgumentCaptor<AsyncSupportConfigurer> asyncConfigurer;
+            @Override
+            public void extendMessageConverters(List<HttpMessageConverter<?>> converters) {
+                converters.add(0, customConverter);
+            }
+        });
+        delegatingConfig.setConfigurers(configurers);
 
-	@Captor
-	private ArgumentCaptor<List<HandlerExceptionResolver>> exceptionResolvers;
+        RequestMappingHandlerAdapter adapter = delegatingConfig.requestMappingHandlerAdapter(
+                this.delegatingConfig.mvcContentNegotiationManager(), this.delegatingConfig.mvcConversionService(),
+                this.delegatingConfig.mvcValidator());
+        assertThat(adapter.getMessageConverters().size()).as("Only one custom converter should be registered").isEqualTo(2);
+        assertThat(adapter.getMessageConverters().get(0)).isSameAs(customConverter);
+        assertThat(adapter.getMessageConverters().get(1)).isSameAs(stringConverter);
+    }
 
-	private final DelegatingWebMvcConfiguration delegatingConfig = new DelegatingWebMvcConfiguration();
+    @Test
+    public void getCustomValidator() {
+        given(webMvcConfigurer.getValidator()).willReturn(new LocalValidatorFactoryBean());
 
+        delegatingConfig.setConfigurers(Collections.singletonList(webMvcConfigurer));
+        delegatingConfig.mvcValidator();
 
-	@Test
-	public void requestMappingHandlerAdapter() throws Exception {
-		delegatingConfig.setConfigurers(Collections.singletonList(webMvcConfigurer));
-		RequestMappingHandlerAdapter adapter = this.delegatingConfig.requestMappingHandlerAdapter(
-				this.delegatingConfig.mvcContentNegotiationManager(), this.delegatingConfig.mvcConversionService(),
-				this.delegatingConfig.mvcValidator());
+        verify(webMvcConfigurer).getValidator();
+    }
 
-		ConfigurableWebBindingInitializer initializer =
-				(ConfigurableWebBindingInitializer) adapter.getWebBindingInitializer();
+    @Test
+    public void getCustomMessageCodesResolver() {
+        given(webMvcConfigurer.getMessageCodesResolver()).willReturn(new DefaultMessageCodesResolver());
 
-		verify(webMvcConfigurer).configureMessageConverters(converters.capture());
-		verify(webMvcConfigurer).configureContentNegotiation(contentNegotiationConfigurer.capture());
-		verify(webMvcConfigurer).addFormatters(conversionService.capture());
-		verify(webMvcConfigurer).addArgumentResolvers(resolvers.capture());
-		verify(webMvcConfigurer).addReturnValueHandlers(handlers.capture());
-		verify(webMvcConfigurer).configureAsyncSupport(asyncConfigurer.capture());
+        delegatingConfig.setConfigurers(Collections.singletonList(webMvcConfigurer));
+        delegatingConfig.getMessageCodesResolver();
 
-		assertThat(initializer).isNotNull();
-		assertThat(initializer.getConversionService()).isSameAs(conversionService.getValue());
-		boolean condition = initializer.getValidator() instanceof LocalValidatorFactoryBean;
-		assertThat(condition).isTrue();
-		assertThat(resolvers.getValue().size()).isEqualTo(0);
-		assertThat(handlers.getValue().size()).isEqualTo(0);
-		assertThat(adapter.getMessageConverters()).isEqualTo(converters.getValue());
-		assertThat(asyncConfigurer).isNotNull();
-	}
+        verify(webMvcConfigurer).getMessageCodesResolver();
+    }
 
-	@Test
-	public void configureMessageConverters() {
-		final HttpMessageConverter<?> customConverter = mock(HttpMessageConverter.class);
-		final StringHttpMessageConverter stringConverter = new StringHttpMessageConverter();
-		List<WebMvcConfigurer> configurers = new ArrayList<>();
-		configurers.add(new WebMvcConfigurer() {
-			@Override
-			public void configureMessageConverters(List<HttpMessageConverter<?>> converters) {
-				converters.add(stringConverter);
-			}
+    @Test
+    public void handlerExceptionResolver() throws Exception {
+        delegatingConfig.setConfigurers(Collections.singletonList(webMvcConfigurer));
+        delegatingConfig.handlerExceptionResolver(delegatingConfig.mvcContentNegotiationManager());
 
-			@Override
-			public void extendMessageConverters(List<HttpMessageConverter<?>> converters) {
-				converters.add(0, customConverter);
-			}
-		});
-		delegatingConfig.setConfigurers(configurers);
+        verify(webMvcConfigurer).configureMessageConverters(converters.capture());
+        verify(webMvcConfigurer).configureContentNegotiation(contentNegotiationConfigurer.capture());
+        verify(webMvcConfigurer).configureHandlerExceptionResolvers(exceptionResolvers.capture());
 
-		RequestMappingHandlerAdapter adapter = delegatingConfig.requestMappingHandlerAdapter(
-				this.delegatingConfig.mvcContentNegotiationManager(), this.delegatingConfig.mvcConversionService(),
-				this.delegatingConfig.mvcValidator());
-		assertThat(adapter.getMessageConverters().size()).as("Only one custom converter should be registered").isEqualTo(2);
-		assertThat(adapter.getMessageConverters().get(0)).isSameAs(customConverter);
-		assertThat(adapter.getMessageConverters().get(1)).isSameAs(stringConverter);
-	}
+        assertThat(exceptionResolvers.getValue().size()).isEqualTo(3);
+        boolean condition2 = exceptionResolvers.getValue().get(0) instanceof ExceptionHandlerExceptionResolver;
+        assertThat(condition2).isTrue();
+        boolean condition1 = exceptionResolvers.getValue().get(1) instanceof ResponseStatusExceptionResolver;
+        assertThat(condition1).isTrue();
+        boolean condition = exceptionResolvers.getValue().get(2) instanceof DefaultHandlerExceptionResolver;
+        assertThat(condition).isTrue();
+        assertThat(converters.getValue().size() > 0).isTrue();
+    }
 
-	@Test
-	public void getCustomValidator() {
-		given(webMvcConfigurer.getValidator()).willReturn(new LocalValidatorFactoryBean());
+    @Test
+    public void configureExceptionResolvers() throws Exception {
+        List<WebMvcConfigurer> configurers = new ArrayList<>();
+        configurers.add(new WebMvcConfigurer() {
+            @Override
+            public void configureHandlerExceptionResolvers(List<HandlerExceptionResolver> exceptionResolvers) {
+                exceptionResolvers.add(new DefaultHandlerExceptionResolver());
+            }
+        });
+        delegatingConfig.setConfigurers(configurers);
 
-		delegatingConfig.setConfigurers(Collections.singletonList(webMvcConfigurer));
-		delegatingConfig.mvcValidator();
+        HandlerExceptionResolverComposite composite =
+                (HandlerExceptionResolverComposite) delegatingConfig
+                        .handlerExceptionResolver(delegatingConfig.mvcContentNegotiationManager());
+        assertThat(composite.getExceptionResolvers().size()).as("Only one custom converter is expected").isEqualTo(1);
+    }
 
-		verify(webMvcConfigurer).getValidator();
-	}
+    @Test
+    public void configurePathMatch() throws Exception {
+        final PathMatcher pathMatcher = mock(PathMatcher.class);
+        final UrlPathHelper pathHelper = mock(UrlPathHelper.class);
 
-	@Test
-	public void getCustomMessageCodesResolver() {
-		given(webMvcConfigurer.getMessageCodesResolver()).willReturn(new DefaultMessageCodesResolver());
+        List<WebMvcConfigurer> configurers = new ArrayList<>();
+        configurers.add(new WebMvcConfigurer() {
+            @Override
+            public void configurePathMatch(PathMatchConfigurer configurer) {
+                configurer.setUseRegisteredSuffixPatternMatch(true)
+                        .setUseTrailingSlashMatch(false)
+                        .setUrlPathHelper(pathHelper)
+                        .setPathMatcher(pathMatcher);
+            }
+        });
+        delegatingConfig.setConfigurers(configurers);
 
-		delegatingConfig.setConfigurers(Collections.singletonList(webMvcConfigurer));
-		delegatingConfig.getMessageCodesResolver();
-
-		verify(webMvcConfigurer).getMessageCodesResolver();
-	}
-
-	@Test
-	public void handlerExceptionResolver() throws Exception {
-		delegatingConfig.setConfigurers(Collections.singletonList(webMvcConfigurer));
-		delegatingConfig.handlerExceptionResolver(delegatingConfig.mvcContentNegotiationManager());
-
-		verify(webMvcConfigurer).configureMessageConverters(converters.capture());
-		verify(webMvcConfigurer).configureContentNegotiation(contentNegotiationConfigurer.capture());
-		verify(webMvcConfigurer).configureHandlerExceptionResolvers(exceptionResolvers.capture());
-
-		assertThat(exceptionResolvers.getValue().size()).isEqualTo(3);
-		boolean condition2 = exceptionResolvers.getValue().get(0) instanceof ExceptionHandlerExceptionResolver;
-		assertThat(condition2).isTrue();
-		boolean condition1 = exceptionResolvers.getValue().get(1) instanceof ResponseStatusExceptionResolver;
-		assertThat(condition1).isTrue();
-		boolean condition = exceptionResolvers.getValue().get(2) instanceof DefaultHandlerExceptionResolver;
-		assertThat(condition).isTrue();
-		assertThat(converters.getValue().size() > 0).isTrue();
-	}
-
-	@Test
-	public void configureExceptionResolvers() throws Exception {
-		List<WebMvcConfigurer> configurers = new ArrayList<>();
-		configurers.add(new WebMvcConfigurer() {
-			@Override
-			public void configureHandlerExceptionResolvers(List<HandlerExceptionResolver> exceptionResolvers) {
-				exceptionResolvers.add(new DefaultHandlerExceptionResolver());
-			}
-		});
-		delegatingConfig.setConfigurers(configurers);
-
-		HandlerExceptionResolverComposite composite =
-				(HandlerExceptionResolverComposite) delegatingConfig
-						.handlerExceptionResolver(delegatingConfig.mvcContentNegotiationManager());
-		assertThat(composite.getExceptionResolvers().size()).as("Only one custom converter is expected").isEqualTo(1);
-	}
-
-	@Test
-	public void configurePathMatch() throws Exception {
-		final PathMatcher pathMatcher = mock(PathMatcher.class);
-		final UrlPathHelper pathHelper = mock(UrlPathHelper.class);
-
-		List<WebMvcConfigurer> configurers = new ArrayList<>();
-		configurers.add(new WebMvcConfigurer() {
-			@Override
-			public void configurePathMatch(PathMatchConfigurer configurer) {
-				configurer.setUseRegisteredSuffixPatternMatch(true)
-						.setUseTrailingSlashMatch(false)
-						.setUrlPathHelper(pathHelper)
-						.setPathMatcher(pathMatcher);
-			}
-		});
-		delegatingConfig.setConfigurers(configurers);
-
-		RequestMappingHandlerMapping handlerMapping = delegatingConfig.requestMappingHandlerMapping(
-				delegatingConfig.mvcContentNegotiationManager(), delegatingConfig.mvcConversionService(),
-				delegatingConfig.mvcResourceUrlProvider());
-		assertThat(handlerMapping).isNotNull();
-		assertThat(handlerMapping.useRegisteredSuffixPatternMatch()).as("PathMatchConfigurer should configure RegisteredSuffixPatternMatch").isEqualTo(true);
-		assertThat(handlerMapping.useSuffixPatternMatch()).as("PathMatchConfigurer should configure SuffixPatternMatch").isEqualTo(true);
-		assertThat(handlerMapping.useTrailingSlashMatch()).as("PathMatchConfigurer should configure TrailingSlashMatch").isEqualTo(false);
-		assertThat(handlerMapping.getUrlPathHelper()).as("PathMatchConfigurer should configure UrlPathHelper").isEqualTo(pathHelper);
-		assertThat(handlerMapping.getPathMatcher()).as("PathMatchConfigurer should configure PathMatcher").isEqualTo(pathMatcher);
-	}
+        RequestMappingHandlerMapping handlerMapping = delegatingConfig.requestMappingHandlerMapping(
+                delegatingConfig.mvcContentNegotiationManager(), delegatingConfig.mvcConversionService(),
+                delegatingConfig.mvcResourceUrlProvider());
+        assertThat(handlerMapping).isNotNull();
+        assertThat(handlerMapping.useRegisteredSuffixPatternMatch()).as("PathMatchConfigurer should configure RegisteredSuffixPatternMatch").isEqualTo(true);
+        assertThat(handlerMapping.useSuffixPatternMatch()).as("PathMatchConfigurer should configure SuffixPatternMatch").isEqualTo(true);
+        assertThat(handlerMapping.useTrailingSlashMatch()).as("PathMatchConfigurer should configure TrailingSlashMatch").isEqualTo(false);
+        assertThat(handlerMapping.getUrlPathHelper()).as("PathMatchConfigurer should configure UrlPathHelper").isEqualTo(pathHelper);
+        assertThat(handlerMapping.getPathMatcher()).as("PathMatchConfigurer should configure PathMatcher").isEqualTo(pathMatcher);
+    }
 
 }

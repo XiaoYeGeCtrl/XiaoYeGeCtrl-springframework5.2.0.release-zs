@@ -35,42 +35,41 @@ import org.springframework.lang.Nullable;
  * For unrestricted resolution, choose {@link ReflectiveMethodResolver} instead.
  *
  * @author Juergen Hoeller
- * @since 4.3.15
  * @see #forInstanceMethodInvocation()
  * @see DataBindingPropertyAccessor
+ * @since 4.3.15
  */
 public final class DataBindingMethodResolver extends ReflectiveMethodResolver {
 
-	private DataBindingMethodResolver() {
-		super();
-	}
+    private DataBindingMethodResolver() {
+        super();
+    }
 
-	@Override
-	@Nullable
-	public MethodExecutor resolve(EvaluationContext context, Object targetObject, String name,
-			List<TypeDescriptor> argumentTypes) throws AccessException {
+    /**
+     * Create a new data-binding method resolver for instance method resolution.
+     */
+    public static DataBindingMethodResolver forInstanceMethodInvocation() {
+        return new DataBindingMethodResolver();
+    }
 
-		if (targetObject instanceof Class) {
-			throw new IllegalArgumentException("DataBindingMethodResolver does not support Class targets");
-		}
-		return super.resolve(context, targetObject, name, argumentTypes);
-	}
+    @Override
+    @Nullable
+    public MethodExecutor resolve(EvaluationContext context, Object targetObject, String name,
+                                  List<TypeDescriptor> argumentTypes) throws AccessException {
 
-	@Override
-	protected boolean isCandidateForInvocation(Method method, Class<?> targetClass) {
-		if (Modifier.isStatic(method.getModifiers())) {
-			return false;
-		}
-		Class<?> clazz = method.getDeclaringClass();
-		return (clazz != Object.class && clazz != Class.class && !ClassLoader.class.isAssignableFrom(targetClass));
-	}
+        if (targetObject instanceof Class) {
+            throw new IllegalArgumentException("DataBindingMethodResolver does not support Class targets");
+        }
+        return super.resolve(context, targetObject, name, argumentTypes);
+    }
 
-
-	/**
-	 * Create a new data-binding method resolver for instance method resolution.
-	 */
-	public static DataBindingMethodResolver forInstanceMethodInvocation() {
-		return new DataBindingMethodResolver();
-	}
+    @Override
+    protected boolean isCandidateForInvocation(Method method, Class<?> targetClass) {
+        if (Modifier.isStatic(method.getModifiers())) {
+            return false;
+        }
+        Class<?> clazz = method.getDeclaringClass();
+        return (clazz != Object.class && clazz != Class.class && !ClassLoader.class.isAssignableFrom(targetClass));
+    }
 
 }

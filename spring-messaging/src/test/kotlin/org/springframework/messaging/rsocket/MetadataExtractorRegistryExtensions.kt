@@ -25,26 +25,26 @@ import java.util.function.BiConsumer
 
 class MetadataExtractorRegistryExtensions {
 
-	@Test
-	fun `metadataToExtract with String parameter`() {
-		val extractor = mockk<MetadataExtractorRegistry>(relaxed = true)
-		val name = "name"
-		val mimeType = MimeType.valueOf("application/json")
-		extractor.metadataToExtract<String>(mimeType, name)
-		verify {
-			extractor.metadataToExtract(mimeType, object: ParameterizedTypeReference<String>() {}, name)
-		}
-	}
+    @Test
+    fun `metadataToExtract with String parameter`() {
+        val extractor = mockk<MetadataExtractorRegistry>(relaxed = true)
+        val name = "name"
+        val mimeType = MimeType.valueOf("application/json")
+        extractor.metadataToExtract<String>(mimeType, name)
+        verify {
+            extractor.metadataToExtract(mimeType, object : ParameterizedTypeReference<String>() {}, name)
+        }
+    }
 
-	@Test
-	fun `metadataToExtract with BiConsumer parameter`() {
-		val extractor = mockk<MetadataExtractorRegistry>(relaxed = true)
-		val mimeType = MimeType.valueOf("application/json")
-		extractor.metadataToExtract<Map<String, String>>(mimeType) { jsonMap, outputMap ->
-			outputMap.putAll(jsonMap)
-		}
-		verify {
-			extractor.metadataToExtract(mimeType, object: ParameterizedTypeReference<Map<String, String>>() {}, any<BiConsumer<Map<String, String>, MutableMap<String, Any>>>())
-		}
-	}
+    @Test
+    fun `metadataToExtract with BiConsumer parameter`() {
+        val extractor = mockk<MetadataExtractorRegistry>(relaxed = true)
+        val mimeType = MimeType.valueOf("application/json")
+        extractor.metadataToExtract<Map<String, String>>(mimeType) { jsonMap, outputMap ->
+            outputMap.putAll(jsonMap)
+        }
+        verify {
+            extractor.metadataToExtract(mimeType, object : ParameterizedTypeReference<Map<String, String>>() {}, any<BiConsumer<Map<String, String>, MutableMap<String, Any>>>())
+        }
+    }
 }

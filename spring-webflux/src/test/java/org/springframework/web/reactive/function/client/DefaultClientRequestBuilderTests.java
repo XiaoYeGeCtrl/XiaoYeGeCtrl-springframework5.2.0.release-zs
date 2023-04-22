@@ -50,140 +50,141 @@ import static org.springframework.http.HttpMethod.POST;
  */
 public class DefaultClientRequestBuilderTests {
 
-	@Test
-	public void from() throws URISyntaxException {
-		ClientRequest other = ClientRequest.create(GET, URI.create("https://example.com"))
-				.header("foo", "bar")
-				.cookie("baz", "qux").build();
-		ClientRequest result = ClientRequest.from(other)
-				.headers(httpHeaders -> httpHeaders.set("foo", "baar"))
-				.cookies(cookies -> cookies.set("baz", "quux"))
-		.build();
-		assertThat(result.url()).isEqualTo(new URI("https://example.com"));
-		assertThat(result.method()).isEqualTo(GET);
-		assertThat(result.headers().size()).isEqualTo(1);
-		assertThat(result.headers().getFirst("foo")).isEqualTo("baar");
-		assertThat(result.cookies().size()).isEqualTo(1);
-		assertThat(result.cookies().getFirst("baz")).isEqualTo("quux");
-	}
+    @Test
+    public void from() throws URISyntaxException {
+        ClientRequest other = ClientRequest.create(GET, URI.create("https://example.com"))
+                .header("foo", "bar")
+                .cookie("baz", "qux").build();
+        ClientRequest result = ClientRequest.from(other)
+                .headers(httpHeaders -> httpHeaders.set("foo", "baar"))
+                .cookies(cookies -> cookies.set("baz", "quux"))
+                .build();
+        assertThat(result.url()).isEqualTo(new URI("https://example.com"));
+        assertThat(result.method()).isEqualTo(GET);
+        assertThat(result.headers().size()).isEqualTo(1);
+        assertThat(result.headers().getFirst("foo")).isEqualTo("baar");
+        assertThat(result.cookies().size()).isEqualTo(1);
+        assertThat(result.cookies().getFirst("baz")).isEqualTo("quux");
+    }
 
-	@Test
-	public void method() throws URISyntaxException {
-		URI url = new URI("https://example.com");
-		ClientRequest.Builder builder = ClientRequest.create(DELETE, url);
-		assertThat(builder.build().method()).isEqualTo(DELETE);
+    @Test
+    public void method() throws URISyntaxException {
+        URI url = new URI("https://example.com");
+        ClientRequest.Builder builder = ClientRequest.create(DELETE, url);
+        assertThat(builder.build().method()).isEqualTo(DELETE);
 
-		builder.method(OPTIONS);
-		assertThat(builder.build().method()).isEqualTo(OPTIONS);
-	}
+        builder.method(OPTIONS);
+        assertThat(builder.build().method()).isEqualTo(OPTIONS);
+    }
 
-	@Test
-	public void url() throws URISyntaxException {
-		URI url1 = new URI("https://example.com/foo");
-		URI url2 = new URI("https://example.com/bar");
-		ClientRequest.Builder builder = ClientRequest.create(DELETE, url1);
-		assertThat(builder.build().url()).isEqualTo(url1);
+    @Test
+    public void url() throws URISyntaxException {
+        URI url1 = new URI("https://example.com/foo");
+        URI url2 = new URI("https://example.com/bar");
+        ClientRequest.Builder builder = ClientRequest.create(DELETE, url1);
+        assertThat(builder.build().url()).isEqualTo(url1);
 
-		builder.url(url2);
-		assertThat(builder.build().url()).isEqualTo(url2);
-	}
+        builder.url(url2);
+        assertThat(builder.build().url()).isEqualTo(url2);
+    }
 
-	@Test
-	public void cookie() {
-		ClientRequest result = ClientRequest.create(GET, URI.create("https://example.com"))
-				.cookie("foo", "bar").build();
-		assertThat(result.cookies().getFirst("foo")).isEqualTo("bar");
-	}
+    @Test
+    public void cookie() {
+        ClientRequest result = ClientRequest.create(GET, URI.create("https://example.com"))
+                .cookie("foo", "bar").build();
+        assertThat(result.cookies().getFirst("foo")).isEqualTo("bar");
+    }
 
-	@Test
-	public void build() {
-		ClientRequest result = ClientRequest.create(GET, URI.create("https://example.com"))
-				.header("MyKey", "MyValue")
-				.cookie("foo", "bar")
-				.build();
+    @Test
+    public void build() {
+        ClientRequest result = ClientRequest.create(GET, URI.create("https://example.com"))
+                .header("MyKey", "MyValue")
+                .cookie("foo", "bar")
+                .build();
 
-		MockClientHttpRequest request = new MockClientHttpRequest(GET, "/");
-		ExchangeStrategies strategies = mock(ExchangeStrategies.class);
+        MockClientHttpRequest request = new MockClientHttpRequest(GET, "/");
+        ExchangeStrategies strategies = mock(ExchangeStrategies.class);
 
-		result.writeTo(request, strategies).block();
+        result.writeTo(request, strategies).block();
 
-		assertThat(request.getHeaders().getFirst("MyKey")).isEqualTo("MyValue");
-		assertThat(request.getCookies().getFirst("foo").getValue()).isEqualTo("bar");
-		StepVerifier.create(request.getBody()).expectComplete().verify();
-	}
+        assertThat(request.getHeaders().getFirst("MyKey")).isEqualTo("MyValue");
+        assertThat(request.getCookies().getFirst("foo").getValue()).isEqualTo("bar");
+        StepVerifier.create(request.getBody()).expectComplete().verify();
+    }
 
-	@Test
-	public void bodyInserter() {
-		String body = "foo";
-		BodyInserter<String, ClientHttpRequest> inserter =
-				(response, strategies) -> {
-					byte[] bodyBytes = body.getBytes(UTF_8);
-					DataBuffer buffer = new DefaultDataBufferFactory().wrap(bodyBytes);
+    @Test
+    public void bodyInserter() {
+        String body = "foo";
+        BodyInserter<String, ClientHttpRequest> inserter =
+                (response, strategies) -> {
+                    byte[] bodyBytes = body.getBytes(UTF_8);
+                    DataBuffer buffer = new DefaultDataBufferFactory().wrap(bodyBytes);
 
-					return response.writeWith(Mono.just(buffer));
-				};
+                    return response.writeWith(Mono.just(buffer));
+                };
 
-		ClientRequest result = ClientRequest.create(POST, URI.create("https://example.com"))
-				.body(inserter).build();
+        ClientRequest result = ClientRequest.create(POST, URI.create("https://example.com"))
+                .body(inserter).build();
 
-		List<HttpMessageWriter<?>> messageWriters = new ArrayList<>();
-		messageWriters.add(new EncoderHttpMessageWriter<>(CharSequenceEncoder.allMimeTypes()));
+        List<HttpMessageWriter<?>> messageWriters = new ArrayList<>();
+        messageWriters.add(new EncoderHttpMessageWriter<>(CharSequenceEncoder.allMimeTypes()));
 
-		ExchangeStrategies strategies = mock(ExchangeStrategies.class);
-		given(strategies.messageWriters()).willReturn(messageWriters);
+        ExchangeStrategies strategies = mock(ExchangeStrategies.class);
+        given(strategies.messageWriters()).willReturn(messageWriters);
 
-		MockClientHttpRequest request = new MockClientHttpRequest(GET, "/");
-		result.writeTo(request, strategies).block();
-		assertThat(request.getBody()).isNotNull();
+        MockClientHttpRequest request = new MockClientHttpRequest(GET, "/");
+        result.writeTo(request, strategies).block();
+        assertThat(request.getBody()).isNotNull();
 
-		StepVerifier.create(request.getBody())
-				.expectNextCount(1)
-				.verifyComplete();
-	}
+        StepVerifier.create(request.getBody())
+                .expectNextCount(1)
+                .verifyComplete();
+    }
 
-	@Test
-	public void bodyClass() {
-		String body = "foo";
-		Publisher<String> publisher = Mono.just(body);
-		ClientRequest result = ClientRequest.create(POST, URI.create("https://example.com"))
-				.body(publisher, String.class).build();
+    @Test
+    public void bodyClass() {
+        String body = "foo";
+        Publisher<String> publisher = Mono.just(body);
+        ClientRequest result = ClientRequest.create(POST, URI.create("https://example.com"))
+                .body(publisher, String.class).build();
 
-		List<HttpMessageWriter<?>> messageWriters = new ArrayList<>();
-		messageWriters.add(new EncoderHttpMessageWriter<>(CharSequenceEncoder.allMimeTypes()));
+        List<HttpMessageWriter<?>> messageWriters = new ArrayList<>();
+        messageWriters.add(new EncoderHttpMessageWriter<>(CharSequenceEncoder.allMimeTypes()));
 
-		ExchangeStrategies strategies = mock(ExchangeStrategies.class);
-		given(strategies.messageWriters()).willReturn(messageWriters);
+        ExchangeStrategies strategies = mock(ExchangeStrategies.class);
+        given(strategies.messageWriters()).willReturn(messageWriters);
 
-		MockClientHttpRequest request = new MockClientHttpRequest(GET, "/");
-		result.writeTo(request, strategies).block();
-		assertThat(request.getBody()).isNotNull();
+        MockClientHttpRequest request = new MockClientHttpRequest(GET, "/");
+        result.writeTo(request, strategies).block();
+        assertThat(request.getBody()).isNotNull();
 
-		StepVerifier.create(request.getBody())
-				.expectNextCount(1)
-				.verifyComplete();
-	}
+        StepVerifier.create(request.getBody())
+                .expectNextCount(1)
+                .verifyComplete();
+    }
 
-	@Test
-	public void bodyParameterizedTypeReference() {
-		String body = "foo";
-		Publisher<String> publisher = Mono.just(body);
-		ParameterizedTypeReference<String> typeReference = new ParameterizedTypeReference<String>() {};
-		ClientRequest result = ClientRequest.create(POST, URI.create("https://example.com"))
-				.body(publisher, typeReference).build();
+    @Test
+    public void bodyParameterizedTypeReference() {
+        String body = "foo";
+        Publisher<String> publisher = Mono.just(body);
+        ParameterizedTypeReference<String> typeReference = new ParameterizedTypeReference<String>() {
+        };
+        ClientRequest result = ClientRequest.create(POST, URI.create("https://example.com"))
+                .body(publisher, typeReference).build();
 
-		List<HttpMessageWriter<?>> messageWriters = new ArrayList<>();
-		messageWriters.add(new EncoderHttpMessageWriter<>(CharSequenceEncoder.allMimeTypes()));
+        List<HttpMessageWriter<?>> messageWriters = new ArrayList<>();
+        messageWriters.add(new EncoderHttpMessageWriter<>(CharSequenceEncoder.allMimeTypes()));
 
-		ExchangeStrategies strategies = mock(ExchangeStrategies.class);
-		given(strategies.messageWriters()).willReturn(messageWriters);
+        ExchangeStrategies strategies = mock(ExchangeStrategies.class);
+        given(strategies.messageWriters()).willReturn(messageWriters);
 
-		MockClientHttpRequest request = new MockClientHttpRequest(GET, "/");
-		result.writeTo(request, strategies).block();
-		assertThat(request.getBody()).isNotNull();
+        MockClientHttpRequest request = new MockClientHttpRequest(GET, "/");
+        result.writeTo(request, strategies).block();
+        assertThat(request.getBody()).isNotNull();
 
-		StepVerifier.create(request.getBody())
-				.expectNextCount(1)
-				.verifyComplete();
-	}
+        StepVerifier.create(request.getBody())
+                .expectNextCount(1)
+                .verifyComplete();
+    }
 
 }

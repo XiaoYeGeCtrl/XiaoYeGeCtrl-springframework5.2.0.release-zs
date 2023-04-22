@@ -55,39 +55,39 @@ import static org.assertj.core.api.Assertions.assertThat;
 @ComposedContextConfiguration(BarConfig.class)
 public class InitializerConfiguredViaMetaAnnotationTests {
 
-	@Autowired
-	String foo;
+    @Autowired
+    String foo;
 
-	@Autowired
-	String bar;
+    @Autowired
+    String bar;
 
-	@Autowired
-	List<String> strings;
-
-
-	@Test
-	public void beansFromInitializerAndComposedAnnotation() {
-		assertThat(strings.size()).isEqualTo(2);
-		assertThat(foo).isEqualTo("foo");
-		assertThat(bar).isEqualTo("bar");
-	}
+    @Autowired
+    List<String> strings;
 
 
-	static class FooConfigInitializer implements ApplicationContextInitializer<GenericApplicationContext> {
+    @Test
+    public void beansFromInitializerAndComposedAnnotation() {
+        assertThat(strings.size()).isEqualTo(2);
+        assertThat(foo).isEqualTo("foo");
+        assertThat(bar).isEqualTo("bar");
+    }
 
-		@Override
-		public void initialize(GenericApplicationContext applicationContext) {
-			new AnnotatedBeanDefinitionReader(applicationContext).register(FooConfig.class);
-		}
-	}
 
-	@ContextConfiguration(loader = AnnotationConfigContextLoader.class, initializers = FooConfigInitializer.class)
-	@Retention(RetentionPolicy.RUNTIME)
-	@Target(ElementType.TYPE)
-	@interface ComposedContextConfiguration {
+    @ContextConfiguration(loader = AnnotationConfigContextLoader.class, initializers = FooConfigInitializer.class)
+    @Retention(RetentionPolicy.RUNTIME)
+    @Target(ElementType.TYPE)
+    @interface ComposedContextConfiguration {
 
-		@AliasFor(annotation = ContextConfiguration.class, attribute = "classes")
-		Class<?>[] value() default {};
-	}
+        @AliasFor(annotation = ContextConfiguration.class, attribute = "classes")
+        Class<?>[] value() default {};
+    }
+
+    static class FooConfigInitializer implements ApplicationContextInitializer<GenericApplicationContext> {
+
+        @Override
+        public void initialize(GenericApplicationContext applicationContext) {
+            new AnnotatedBeanDefinitionReader(applicationContext).register(FooConfig.class);
+        }
+    }
 
 }

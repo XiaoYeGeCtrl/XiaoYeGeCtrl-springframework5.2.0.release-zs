@@ -36,21 +36,21 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 class CustomizedGenericXmlContextLoaderTests {
 
-	@Test
-	void customizeContext() throws Exception {
-		StringBuilder builder = new StringBuilder();
-		String expectedContents = "customizeContext() was called";
+    @Test
+    void customizeContext() throws Exception {
+        StringBuilder builder = new StringBuilder();
+        String expectedContents = "customizeContext() was called";
 
-		new GenericXmlContextLoader() {
+        new GenericXmlContextLoader() {
 
-			@Override
-			protected void customizeContext(GenericApplicationContext context) {
-				assertThat(context.isActive()).as("The context should not yet have been refreshed.").isFalse();
-				builder.append(expectedContents);
-			}
-		}.loadContext("classpath:/org/springframework/test/context/support/CustomizedGenericXmlContextLoaderTests-context.xml");
+            @Override
+            protected void customizeContext(GenericApplicationContext context) {
+                assertThat(context.isActive()).as("The context should not yet have been refreshed.").isFalse();
+                builder.append(expectedContents);
+            }
+        }.loadContext("classpath:/org/springframework/test/context/support/CustomizedGenericXmlContextLoaderTests-context.xml");
 
-		assertThat(builder.toString()).as("customizeContext() should have been called.").isEqualTo(expectedContents);
-	}
+        assertThat(builder.toString()).as("customizeContext() should have been called.").isEqualTo(expectedContents);
+    }
 
 }

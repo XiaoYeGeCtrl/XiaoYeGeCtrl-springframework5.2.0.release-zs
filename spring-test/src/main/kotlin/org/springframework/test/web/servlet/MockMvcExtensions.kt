@@ -28,8 +28,8 @@ import java.net.URI
  * @since 5.2
  */
 fun MockMvc.get(urlTemplate: String, vararg vars: Any?, dsl: MockHttpServletRequestDsl.() -> Unit = {}): ResultActionsDsl {
-	val requestBuilder = MockMvcRequestBuilders.get(urlTemplate, *vars)
-	return MockHttpServletRequestDsl(requestBuilder).apply(dsl).perform(this)
+    val requestBuilder = MockMvcRequestBuilders.get(urlTemplate, *vars)
+    return MockHttpServletRequestDsl(requestBuilder).apply(dsl).perform(this)
 }
 
 /**
@@ -40,8 +40,8 @@ fun MockMvc.get(urlTemplate: String, vararg vars: Any?, dsl: MockHttpServletRequ
  * @since 5.2
  */
 fun MockMvc.get(uri: URI, dsl: MockHttpServletRequestDsl.() -> Unit = {}): ResultActionsDsl {
-	val requestBuilder = MockMvcRequestBuilders.get(uri)
-	return MockHttpServletRequestDsl(requestBuilder).apply(dsl).perform(this)
+    val requestBuilder = MockMvcRequestBuilders.get(uri)
+    return MockHttpServletRequestDsl(requestBuilder).apply(dsl).perform(this)
 }
 
 /**
@@ -52,8 +52,8 @@ fun MockMvc.get(uri: URI, dsl: MockHttpServletRequestDsl.() -> Unit = {}): Resul
  * @since 5.2
  */
 fun MockMvc.post(urlTemplate: String, vararg vars: Any?, dsl: MockHttpServletRequestDsl.() -> Unit = {}): ResultActionsDsl {
-	val requestBuilder = MockMvcRequestBuilders.post(urlTemplate, *vars)
-	return MockHttpServletRequestDsl(requestBuilder).apply(dsl).perform(this)
+    val requestBuilder = MockMvcRequestBuilders.post(urlTemplate, *vars)
+    return MockHttpServletRequestDsl(requestBuilder).apply(dsl).perform(this)
 }
 
 /**
@@ -64,8 +64,8 @@ fun MockMvc.post(urlTemplate: String, vararg vars: Any?, dsl: MockHttpServletReq
  * @since 5.2
  */
 fun MockMvc.post(uri: URI, dsl: MockHttpServletRequestDsl.() -> Unit = {}): ResultActionsDsl {
-	val requestBuilder = MockMvcRequestBuilders.post(uri)
-	return MockHttpServletRequestDsl(requestBuilder).apply(dsl).perform(this)
+    val requestBuilder = MockMvcRequestBuilders.post(uri)
+    return MockHttpServletRequestDsl(requestBuilder).apply(dsl).perform(this)
 }
 
 /**
@@ -76,8 +76,8 @@ fun MockMvc.post(uri: URI, dsl: MockHttpServletRequestDsl.() -> Unit = {}): Resu
  * @since 5.2
  */
 fun MockMvc.put(urlTemplate: String, vararg vars: Any?, dsl: MockHttpServletRequestDsl.() -> Unit = {}): ResultActionsDsl {
-	val requestBuilder = MockMvcRequestBuilders.put(urlTemplate, *vars)
-	return MockHttpServletRequestDsl(requestBuilder).apply(dsl).perform(this)
+    val requestBuilder = MockMvcRequestBuilders.put(urlTemplate, *vars)
+    return MockHttpServletRequestDsl(requestBuilder).apply(dsl).perform(this)
 }
 
 /**
@@ -88,8 +88,8 @@ fun MockMvc.put(urlTemplate: String, vararg vars: Any?, dsl: MockHttpServletRequ
  * @since 5.2
  */
 fun MockMvc.put(uri: URI, dsl: MockHttpServletRequestDsl.() -> Unit = {}): ResultActionsDsl {
-	val requestBuilder = MockMvcRequestBuilders.put(uri)
-	return MockHttpServletRequestDsl(requestBuilder).apply(dsl).perform(this)
+    val requestBuilder = MockMvcRequestBuilders.put(uri)
+    return MockHttpServletRequestDsl(requestBuilder).apply(dsl).perform(this)
 }
 
 /**
@@ -100,8 +100,8 @@ fun MockMvc.put(uri: URI, dsl: MockHttpServletRequestDsl.() -> Unit = {}): Resul
  * @since 5.2
  */
 fun MockMvc.patch(urlTemplate: String, vararg vars: Any?, dsl: MockHttpServletRequestDsl.() -> Unit = {}): ResultActionsDsl {
-	val requestBuilder = MockMvcRequestBuilders.patch(urlTemplate, *vars)
-	return MockHttpServletRequestDsl(requestBuilder).apply(dsl).perform(this)
+    val requestBuilder = MockMvcRequestBuilders.patch(urlTemplate, *vars)
+    return MockHttpServletRequestDsl(requestBuilder).apply(dsl).perform(this)
 }
 
 /**
@@ -112,8 +112,8 @@ fun MockMvc.patch(urlTemplate: String, vararg vars: Any?, dsl: MockHttpServletRe
  * @since 5.2
  */
 fun MockMvc.patch(uri: URI, dsl: MockHttpServletRequestDsl.() -> Unit = {}): ResultActionsDsl {
-	val requestBuilder = MockMvcRequestBuilders.patch(uri)
-	return MockHttpServletRequestDsl(requestBuilder).apply(dsl).perform(this)
+    val requestBuilder = MockMvcRequestBuilders.patch(uri)
+    return MockHttpServletRequestDsl(requestBuilder).apply(dsl).perform(this)
 }
 
 /**
@@ -124,8 +124,8 @@ fun MockMvc.patch(uri: URI, dsl: MockHttpServletRequestDsl.() -> Unit = {}): Res
  * @since 5.2
  */
 fun MockMvc.delete(urlTemplate: String, vararg vars: Any?, dsl: MockHttpServletRequestDsl.() -> Unit = {}): ResultActionsDsl {
-	val requestBuilder = MockMvcRequestBuilders.delete(urlTemplate, *vars)
-	return MockHttpServletRequestDsl(requestBuilder).apply(dsl).perform(this)
+    val requestBuilder = MockMvcRequestBuilders.delete(urlTemplate, *vars)
+    return MockHttpServletRequestDsl(requestBuilder).apply(dsl).perform(this)
 }
 
 /**
@@ -136,8 +136,8 @@ fun MockMvc.delete(urlTemplate: String, vararg vars: Any?, dsl: MockHttpServletR
  * @since 5.2
  */
 fun MockMvc.delete(uri: URI, dsl: MockHttpServletRequestDsl.() -> Unit = {}): ResultActionsDsl {
-	val requestBuilder = MockMvcRequestBuilders.delete(uri)
-	return MockHttpServletRequestDsl(requestBuilder).apply(dsl).perform(this)
+    val requestBuilder = MockMvcRequestBuilders.delete(uri)
+    return MockHttpServletRequestDsl(requestBuilder).apply(dsl).perform(this)
 }
 
 /**
@@ -148,8 +148,8 @@ fun MockMvc.delete(uri: URI, dsl: MockHttpServletRequestDsl.() -> Unit = {}): Re
  * @since 5.2
  */
 fun MockMvc.options(urlTemplate: String, vararg vars: Any?, dsl: MockHttpServletRequestDsl.() -> Unit = {}): ResultActionsDsl {
-	val requestBuilder = MockMvcRequestBuilders.options(urlTemplate, *vars)
-	return MockHttpServletRequestDsl(requestBuilder).apply(dsl).perform(this)
+    val requestBuilder = MockMvcRequestBuilders.options(urlTemplate, *vars)
+    return MockHttpServletRequestDsl(requestBuilder).apply(dsl).perform(this)
 }
 
 /**
@@ -160,8 +160,8 @@ fun MockMvc.options(urlTemplate: String, vararg vars: Any?, dsl: MockHttpServlet
  * @since 5.2
  */
 fun MockMvc.options(uri: URI, dsl: MockHttpServletRequestDsl.() -> Unit = {}): ResultActionsDsl {
-	val requestBuilder = MockMvcRequestBuilders.options(uri)
-	return MockHttpServletRequestDsl(requestBuilder).apply(dsl).perform(this)
+    val requestBuilder = MockMvcRequestBuilders.options(uri)
+    return MockHttpServletRequestDsl(requestBuilder).apply(dsl).perform(this)
 }
 
 /**
@@ -172,8 +172,8 @@ fun MockMvc.options(uri: URI, dsl: MockHttpServletRequestDsl.() -> Unit = {}): R
  * @since 5.2
  */
 fun MockMvc.head(urlTemplate: String, vararg vars: Any?, dsl: MockHttpServletRequestDsl.() -> Unit = {}): ResultActionsDsl {
-	val requestBuilder = MockMvcRequestBuilders.head(urlTemplate, *vars)
-	return MockHttpServletRequestDsl(requestBuilder).apply(dsl).perform(this)
+    val requestBuilder = MockMvcRequestBuilders.head(urlTemplate, *vars)
+    return MockHttpServletRequestDsl(requestBuilder).apply(dsl).perform(this)
 }
 
 /**
@@ -184,8 +184,8 @@ fun MockMvc.head(urlTemplate: String, vararg vars: Any?, dsl: MockHttpServletReq
  * @since 5.2
  */
 fun MockMvc.head(uri: URI, dsl: MockHttpServletRequestDsl.() -> Unit = {}): ResultActionsDsl {
-	val requestBuilder = MockMvcRequestBuilders.head(uri)
-	return MockHttpServletRequestDsl(requestBuilder).apply(dsl).perform(this)
+    val requestBuilder = MockMvcRequestBuilders.head(uri)
+    return MockHttpServletRequestDsl(requestBuilder).apply(dsl).perform(this)
 }
 
 /**
@@ -196,8 +196,8 @@ fun MockMvc.head(uri: URI, dsl: MockHttpServletRequestDsl.() -> Unit = {}): Resu
  * @since 5.2
  */
 fun MockMvc.request(method: HttpMethod, urlTemplate: String, vararg vars: Any?, dsl: MockHttpServletRequestDsl.() -> Unit = {}): ResultActionsDsl {
-	val requestBuilder = MockMvcRequestBuilders.request(method, urlTemplate, *vars)
-	return MockHttpServletRequestDsl(requestBuilder).apply(dsl).perform(this)
+    val requestBuilder = MockMvcRequestBuilders.request(method, urlTemplate, *vars)
+    return MockHttpServletRequestDsl(requestBuilder).apply(dsl).perform(this)
 }
 
 /**
@@ -208,8 +208,8 @@ fun MockMvc.request(method: HttpMethod, urlTemplate: String, vararg vars: Any?, 
  * @since 5.2
  */
 fun MockMvc.request(method: HttpMethod, uri: URI, dsl: MockHttpServletRequestDsl.() -> Unit = {}): ResultActionsDsl {
-	val requestBuilder = MockMvcRequestBuilders.request(method, uri)
-	return MockHttpServletRequestDsl(requestBuilder).apply(dsl).perform(this)
+    val requestBuilder = MockMvcRequestBuilders.request(method, uri)
+    return MockHttpServletRequestDsl(requestBuilder).apply(dsl).perform(this)
 }
 
 /**
@@ -220,8 +220,8 @@ fun MockMvc.request(method: HttpMethod, uri: URI, dsl: MockHttpServletRequestDsl
  * @since 5.2
  */
 fun MockMvc.multipart(urlTemplate: String, vararg vars: Any?, dsl: MockMultipartHttpServletRequestDsl.() -> Unit = {}): ResultActionsDsl {
-	val requestBuilder = MockMvcRequestBuilders.multipart(urlTemplate, *vars)
-	return MockMultipartHttpServletRequestDsl(requestBuilder).apply(dsl).perform(this)
+    val requestBuilder = MockMvcRequestBuilders.multipart(urlTemplate, *vars)
+    return MockMultipartHttpServletRequestDsl(requestBuilder).apply(dsl).perform(this)
 }
 
 /**
@@ -232,6 +232,6 @@ fun MockMvc.multipart(urlTemplate: String, vararg vars: Any?, dsl: MockMultipart
  * @since 5.2
  */
 fun MockMvc.multipart(uri: URI, dsl: MockMultipartHttpServletRequestDsl.() -> Unit = {}): ResultActionsDsl {
-	val requestBuilder = MockMvcRequestBuilders.multipart(uri)
-	return MockMultipartHttpServletRequestDsl(requestBuilder).apply(dsl).perform(this)
+    val requestBuilder = MockMvcRequestBuilders.multipart(uri)
+    return MockMultipartHttpServletRequestDsl(requestBuilder).apply(dsl).perform(this)
 }

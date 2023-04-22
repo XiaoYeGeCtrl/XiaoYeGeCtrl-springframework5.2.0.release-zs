@@ -24,10 +24,11 @@ package org.springframework.messaging.support;
  */
 public interface MessageHeaderInitializer {
 
-	/**
-	 * Initialize the given {@code MessageHeaderAccessor}.
-	 * @param headerAccessor the MessageHeaderAccessor to initialize
-	 */
-	void initHeaders(MessageHeaderAccessor headerAccessor);
+    /**
+     * Initialize the given {@code MessageHeaderAccessor}.
+     *
+     * @param headerAccessor the MessageHeaderAccessor to initialize
+     */
+    void initHeaders(MessageHeaderAccessor headerAccessor);
 
 }

@@ -48,130 +48,128 @@ import org.springframework.web.socket.sockjs.transport.TransportType;
  */
 public class WebSocketTransport implements Transport, Lifecycle {
 
-	private static final Log logger = LogFactory.getLog(WebSocketTransport.class);
+    private static final Log logger = LogFactory.getLog(WebSocketTransport.class);
 
-	private final WebSocketClient webSocketClient;
+    private final WebSocketClient webSocketClient;
 
-	private volatile boolean running = false;
-
-
-	public WebSocketTransport(WebSocketClient webSocketClient) {
-		Assert.notNull(webSocketClient, "WebSocketClient is required");
-		this.webSocketClient = webSocketClient;
-	}
+    private volatile boolean running = false;
 
 
-	/**
-	 * Return the configured {@code WebSocketClient}.
-	 */
-	public WebSocketClient getWebSocketClient() {
-		return this.webSocketClient;
-	}
-
-	@Override
-	public List<TransportType> getTransportTypes() {
-		return Collections.singletonList(TransportType.WEBSOCKET);
-	}
-
-	@Override
-	public ListenableFuture<WebSocketSession> connect(TransportRequest request, WebSocketHandler handler) {
-		final SettableListenableFuture<WebSocketSession> future = new SettableListenableFuture<>();
-		WebSocketClientSockJsSession session = new WebSocketClientSockJsSession(request, handler, future);
-		handler = new ClientSockJsWebSocketHandler(session);
-		request.addTimeoutTask(session.getTimeoutTask());
-
-		URI url = request.getTransportUrl();
-		WebSocketHttpHeaders headers = new WebSocketHttpHeaders(request.getHandshakeHeaders());
-		if (logger.isDebugEnabled()) {
-			logger.debug("Starting WebSocket session on " + url);
-		}
-		this.webSocketClient.doHandshake(handler, headers, url).addCallback(
-				new ListenableFutureCallback<WebSocketSession>() {
-					@Override
-					public void onSuccess(@Nullable WebSocketSession webSocketSession) {
-						// WebSocket session ready, SockJS Session not yet
-					}
-					@Override
-					public void onFailure(Throwable ex) {
-						future.setException(ex);
-					}
-				});
-		return future;
-	}
+    public WebSocketTransport(WebSocketClient webSocketClient) {
+        Assert.notNull(webSocketClient, "WebSocketClient is required");
+        this.webSocketClient = webSocketClient;
+    }
 
 
-	@Override
-	public void start() {
-		if (!isRunning()) {
-			if (this.webSocketClient instanceof Lifecycle) {
-				((Lifecycle) this.webSocketClient).start();
-			}
-			else {
-				this.running = true;
-			}
-		}
-	}
+    /**
+     * Return the configured {@code WebSocketClient}.
+     */
+    public WebSocketClient getWebSocketClient() {
+        return this.webSocketClient;
+    }
 
-	@Override
-	public void stop() {
-		if (isRunning()) {
-			if (this.webSocketClient instanceof Lifecycle) {
-				((Lifecycle) this.webSocketClient).stop();
-			}
-			else {
-				this.running = false;
-			}
-		}
-	}
+    @Override
+    public List<TransportType> getTransportTypes() {
+        return Collections.singletonList(TransportType.WEBSOCKET);
+    }
 
-	@Override
-	public boolean isRunning() {
-		if (this.webSocketClient instanceof Lifecycle) {
-			return ((Lifecycle) this.webSocketClient).isRunning();
-		}
-		else {
-			return this.running;
-		}
-	}
+    @Override
+    public ListenableFuture<WebSocketSession> connect(TransportRequest request, WebSocketHandler handler) {
+        final SettableListenableFuture<WebSocketSession> future = new SettableListenableFuture<>();
+        WebSocketClientSockJsSession session = new WebSocketClientSockJsSession(request, handler, future);
+        handler = new ClientSockJsWebSocketHandler(session);
+        request.addTimeoutTask(session.getTimeoutTask());
+
+        URI url = request.getTransportUrl();
+        WebSocketHttpHeaders headers = new WebSocketHttpHeaders(request.getHandshakeHeaders());
+        if (logger.isDebugEnabled()) {
+            logger.debug("Starting WebSocket session on " + url);
+        }
+        this.webSocketClient.doHandshake(handler, headers, url).addCallback(
+                new ListenableFutureCallback<WebSocketSession>() {
+                    @Override
+                    public void onSuccess(@Nullable WebSocketSession webSocketSession) {
+                        // WebSocket session ready, SockJS Session not yet
+                    }
+
+                    @Override
+                    public void onFailure(Throwable ex) {
+                        future.setException(ex);
+                    }
+                });
+        return future;
+    }
 
 
-	@Override
-	public String toString() {
-		return "WebSocketTransport[client=" + this.webSocketClient + "]";
-	}
+    @Override
+    public void start() {
+        if (!isRunning()) {
+            if (this.webSocketClient instanceof Lifecycle) {
+                ((Lifecycle) this.webSocketClient).start();
+            } else {
+                this.running = true;
+            }
+        }
+    }
+
+    @Override
+    public void stop() {
+        if (isRunning()) {
+            if (this.webSocketClient instanceof Lifecycle) {
+                ((Lifecycle) this.webSocketClient).stop();
+            } else {
+                this.running = false;
+            }
+        }
+    }
+
+    @Override
+    public boolean isRunning() {
+        if (this.webSocketClient instanceof Lifecycle) {
+            return ((Lifecycle) this.webSocketClient).isRunning();
+        } else {
+            return this.running;
+        }
+    }
 
 
-	private static class ClientSockJsWebSocketHandler extends TextWebSocketHandler {
+    @Override
+    public String toString() {
+        return "WebSocketTransport[client=" + this.webSocketClient + "]";
+    }
 
-		private final WebSocketClientSockJsSession sockJsSession;
 
-		private final AtomicBoolean connected = new AtomicBoolean(false);
+    private static class ClientSockJsWebSocketHandler extends TextWebSocketHandler {
 
-		public ClientSockJsWebSocketHandler(WebSocketClientSockJsSession session) {
-			Assert.notNull(session, "Session must not be null");
-			this.sockJsSession = session;
-		}
+        private final WebSocketClientSockJsSession sockJsSession;
 
-		@Override
-		public void afterConnectionEstablished(WebSocketSession webSocketSession) throws Exception {
-			Assert.state(this.connected.compareAndSet(false, true), "Already connected");
-			this.sockJsSession.initializeDelegateSession(webSocketSession);
-		}
+        private final AtomicBoolean connected = new AtomicBoolean(false);
 
-		@Override
-		public void handleTextMessage(WebSocketSession webSocketSession, TextMessage message) throws Exception {
-			this.sockJsSession.handleFrame(message.getPayload());
-		}
+        public ClientSockJsWebSocketHandler(WebSocketClientSockJsSession session) {
+            Assert.notNull(session, "Session must not be null");
+            this.sockJsSession = session;
+        }
 
-		@Override
-		public void handleTransportError(WebSocketSession webSocketSession, Throwable ex) throws Exception {
-			this.sockJsSession.handleTransportError(ex);
-		}
+        @Override
+        public void afterConnectionEstablished(WebSocketSession webSocketSession) throws Exception {
+            Assert.state(this.connected.compareAndSet(false, true), "Already connected");
+            this.sockJsSession.initializeDelegateSession(webSocketSession);
+        }
 
-		@Override
-		public void afterConnectionClosed(WebSocketSession webSocketSession, CloseStatus status) throws Exception {
-			this.sockJsSession.afterTransportClosed(status);
-		}
-	}
+        @Override
+        public void handleTextMessage(WebSocketSession webSocketSession, TextMessage message) throws Exception {
+            this.sockJsSession.handleFrame(message.getPayload());
+        }
+
+        @Override
+        public void handleTransportError(WebSocketSession webSocketSession, Throwable ex) throws Exception {
+            this.sockJsSession.handleTransportError(ex);
+        }
+
+        @Override
+        public void afterConnectionClosed(WebSocketSession webSocketSession, CloseStatus status) throws Exception {
+            this.sockJsSession.afterTransportClosed(status);
+        }
+    }
 
 }

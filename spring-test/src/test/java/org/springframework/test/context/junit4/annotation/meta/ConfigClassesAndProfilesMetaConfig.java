@@ -38,8 +38,8 @@ import org.springframework.test.context.ContextConfiguration;
 @Target(ElementType.TYPE)
 public @interface ConfigClassesAndProfilesMetaConfig {
 
-	Class<?>[] classes() default {};
+    Class<?>[] classes() default {};
 
-	String[] profiles() default {};
+    String[] profiles() default {};
 
 }

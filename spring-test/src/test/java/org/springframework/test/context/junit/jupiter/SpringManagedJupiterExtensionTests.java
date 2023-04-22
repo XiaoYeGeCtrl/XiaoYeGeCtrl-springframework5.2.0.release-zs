@@ -49,82 +49,82 @@ import static org.assertj.core.api.Assertions.assertThat;
 @TestInstance(Lifecycle.PER_CLASS)
 class SpringManagedJupiterExtensionTests {
 
-	@Autowired
-	@RegisterExtension
-	TestTemplateInvocationContextProvider provider;
+    @Autowired
+    @RegisterExtension
+    TestTemplateInvocationContextProvider provider;
 
 
-	@TestTemplate
-	void testTemplate(String parameter) {
-		assertThat("foo".equals(parameter) || "bar".equals(parameter)).isTrue();
-	}
+    @TestTemplate
+    void testTemplate(String parameter) {
+        assertThat("foo".equals(parameter) || "bar".equals(parameter)).isTrue();
+    }
 
 
-	@Configuration
-	static class Config {
+    @Configuration
+    static class Config {
 
-		@Bean
-		String foo() {
-			return "foo";
-		}
+        @Bean
+        String foo() {
+            return "foo";
+        }
 
-		@Bean
-		String bar() {
-			return "bar";
-		}
+        @Bean
+        String bar() {
+            return "bar";
+        }
 
-		@Bean
-		TestTemplateInvocationContextProvider provider(List<String> parameters) {
-			return new StringInvocationContextProvider(parameters);
-		}
-	}
+        @Bean
+        TestTemplateInvocationContextProvider provider(List<String> parameters) {
+            return new StringInvocationContextProvider(parameters);
+        }
+    }
 
-	private static class StringInvocationContextProvider implements TestTemplateInvocationContextProvider {
+    private static class StringInvocationContextProvider implements TestTemplateInvocationContextProvider {
 
-		private final List<String> parameters;
+        private final List<String> parameters;
 
 
-		StringInvocationContextProvider(List<String> parameters) {
-			this.parameters = parameters;
-		}
+        StringInvocationContextProvider(List<String> parameters) {
+            this.parameters = parameters;
+        }
 
-		@Override
-		public boolean supportsTestTemplate(ExtensionContext context) {
-			return true;
-		}
+        @Override
+        public boolean supportsTestTemplate(ExtensionContext context) {
+            return true;
+        }
 
-		@Override
-		public Stream<TestTemplateInvocationContext> provideTestTemplateInvocationContexts(ExtensionContext context) {
-			return this.parameters.stream().map(this::invocationContext);
-		}
+        @Override
+        public Stream<TestTemplateInvocationContext> provideTestTemplateInvocationContexts(ExtensionContext context) {
+            return this.parameters.stream().map(this::invocationContext);
+        }
 
-		private TestTemplateInvocationContext invocationContext(String parameter) {
-			return new TestTemplateInvocationContext() {
+        private TestTemplateInvocationContext invocationContext(String parameter) {
+            return new TestTemplateInvocationContext() {
 
-				@Override
-				public String getDisplayName(int invocationIndex) {
-					return parameter;
-				}
+                @Override
+                public String getDisplayName(int invocationIndex) {
+                    return parameter;
+                }
 
-				@Override
-				public List<Extension> getAdditionalExtensions() {
-					return Collections.singletonList(new ParameterResolver() {
+                @Override
+                public List<Extension> getAdditionalExtensions() {
+                    return Collections.singletonList(new ParameterResolver() {
 
-						@Override
-						public boolean supportsParameter(ParameterContext parameterContext,
-								ExtensionContext extensionContext) {
-							return parameterContext.getParameter().getType() == String.class;
-						}
+                        @Override
+                        public boolean supportsParameter(ParameterContext parameterContext,
+                                                         ExtensionContext extensionContext) {
+                            return parameterContext.getParameter().getType() == String.class;
+                        }
 
-						@Override
-						public Object resolveParameter(ParameterContext parameterContext,
-								ExtensionContext extensionContext) {
-							return parameter;
-						}
-					});
-				}
-			};
-		}
-	}
+                        @Override
+                        public Object resolveParameter(ParameterContext parameterContext,
+                                                       ExtensionContext extensionContext) {
+                            return parameter;
+                        }
+                    });
+                }
+            };
+        }
+    }
 
 }

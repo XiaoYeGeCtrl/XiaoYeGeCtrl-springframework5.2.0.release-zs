@@ -50,196 +50,186 @@ import org.springframework.web.socket.server.HandshakeFailureException;
  */
 public class WebLogicRequestUpgradeStrategy extends AbstractTyrusRequestUpgradeStrategy {
 
-	private static final TyrusMuxableWebSocketHelper webSocketHelper = new TyrusMuxableWebSocketHelper();
+    private static final TyrusMuxableWebSocketHelper webSocketHelper = new TyrusMuxableWebSocketHelper();
 
-	private static final WebLogicServletWriterHelper servletWriterHelper = new WebLogicServletWriterHelper();
+    private static final WebLogicServletWriterHelper servletWriterHelper = new WebLogicServletWriterHelper();
 
-	private static final Connection.CloseListener noOpCloseListener = (reason -> {});
+    private static final Connection.CloseListener noOpCloseListener = (reason -> {
+    });
 
+    private static Class<?> type(String className) throws ClassNotFoundException {
+        return WebLogicRequestUpgradeStrategy.class.getClassLoader().loadClass(className);
+    }
 
-	@Override
-	protected void handleSuccess(HttpServletRequest request, HttpServletResponse response,
-			UpgradeInfo upgradeInfo, TyrusUpgradeResponse upgradeResponse) throws IOException, ServletException {
+    private static Method method(String className, String method, Class<?>... paramTypes)
+            throws ClassNotFoundException, NoSuchMethodException {
 
-		response.setStatus(upgradeResponse.getStatus());
-		upgradeResponse.getHeaders().forEach((key, value) -> response.addHeader(key, Utils.getHeaderFromList(value)));
+        return type(className).getDeclaredMethod(method, paramTypes);
+    }
 
-		AsyncContext asyncContext = request.startAsync();
-		asyncContext.setTimeout(-1L);
+    private static Object getNativeRequest(ServletRequest request) {
+        while (request instanceof ServletRequestWrapper) {
+            request = ((ServletRequestWrapper) request).getRequest();
+        }
+        return request;
+    }
 
-		Object nativeRequest = getNativeRequest(request);
-		BeanWrapper beanWrapper = new BeanWrapperImpl(nativeRequest);
-		Object httpSocket = beanWrapper.getPropertyValue("connection.connectionHandler.rawConnection");
-		Object webSocket = webSocketHelper.newInstance(request, httpSocket);
-		webSocketHelper.upgrade(webSocket, httpSocket, request.getServletContext());
+    @Override
+    protected void handleSuccess(HttpServletRequest request, HttpServletResponse response,
+                                 UpgradeInfo upgradeInfo, TyrusUpgradeResponse upgradeResponse) throws IOException, ServletException {
 
-		response.flushBuffer();
+        response.setStatus(upgradeResponse.getStatus());
+        upgradeResponse.getHeaders().forEach((key, value) -> response.addHeader(key, Utils.getHeaderFromList(value)));
 
-		boolean isProtected = request.getUserPrincipal() != null;
-		Writer servletWriter = servletWriterHelper.newInstance(webSocket, isProtected);
-		Connection connection = upgradeInfo.createConnection(servletWriter, noOpCloseListener);
-		new BeanWrapperImpl(webSocket).setPropertyValue("connection", connection);
-		new BeanWrapperImpl(servletWriter).setPropertyValue("connection", connection);
-		webSocketHelper.registerForReadEvent(webSocket);
-	}
+        AsyncContext asyncContext = request.startAsync();
+        asyncContext.setTimeout(-1L);
 
+        Object nativeRequest = getNativeRequest(request);
+        BeanWrapper beanWrapper = new BeanWrapperImpl(nativeRequest);
+        Object httpSocket = beanWrapper.getPropertyValue("connection.connectionHandler.rawConnection");
+        Object webSocket = webSocketHelper.newInstance(request, httpSocket);
+        webSocketHelper.upgrade(webSocket, httpSocket, request.getServletContext());
 
-	private static Class<?> type(String className) throws ClassNotFoundException {
-		return WebLogicRequestUpgradeStrategy.class.getClassLoader().loadClass(className);
-	}
+        response.flushBuffer();
 
-	private static Method method(String className, String method, Class<?>... paramTypes)
-			throws ClassNotFoundException, NoSuchMethodException {
+        boolean isProtected = request.getUserPrincipal() != null;
+        Writer servletWriter = servletWriterHelper.newInstance(webSocket, isProtected);
+        Connection connection = upgradeInfo.createConnection(servletWriter, noOpCloseListener);
+        new BeanWrapperImpl(webSocket).setPropertyValue("connection", connection);
+        new BeanWrapperImpl(servletWriter).setPropertyValue("connection", connection);
+        webSocketHelper.registerForReadEvent(webSocket);
+    }
 
-		return type(className).getDeclaredMethod(method, paramTypes);
-	}
+    /**
+     * Helps to create and invoke {@code weblogic.servlet.internal.MuxableSocketHTTP}.
+     */
+    private static class TyrusMuxableWebSocketHelper {
 
-	private static Object getNativeRequest(ServletRequest request) {
-		while (request instanceof ServletRequestWrapper) {
-			request = ((ServletRequestWrapper) request).getRequest();
-		}
-		return request;
-	}
+        private static final Class<?> type;
 
+        private static final Constructor<?> constructor;
 
-	/**
-	 * Helps to create and invoke {@code weblogic.servlet.internal.MuxableSocketHTTP}.
-	 */
-	private static class TyrusMuxableWebSocketHelper {
+        private static final SubjectHelper subjectHelper;
 
-		private static final Class<?> type;
+        private static final Method upgradeMethod;
 
-		private static final Constructor<?> constructor;
+        private static final Method readEventMethod;
 
-		private static final SubjectHelper subjectHelper;
+        static {
+            try {
+                type = type("weblogic.websocket.tyrus.TyrusMuxableWebSocket");
 
-		private static final Method upgradeMethod;
+                constructor = type.getDeclaredConstructor(
+                        type("weblogic.servlet.internal.MuxableSocketHTTP"),
+                        type("weblogic.websocket.tyrus.CoherenceServletFilterService"),
+                        type("weblogic.servlet.spi.SubjectHandle"));
+                subjectHelper = new SubjectHelper();
 
-		private static final Method readEventMethod;
+                upgradeMethod = type.getMethod("upgrade", type("weblogic.socket.MuxableSocket"), ServletContext.class);
+                readEventMethod = type.getMethod("registerForReadEvent");
+            } catch (Exception ex) {
+                throw new IllegalStateException("No compatible WebSocket version found", ex);
+            }
+        }
 
-		static {
-			try {
-				type = type("weblogic.websocket.tyrus.TyrusMuxableWebSocket");
+        private Object newInstance(HttpServletRequest request, @Nullable Object httpSocket) {
+            try {
+                Object[] args = new Object[]{httpSocket, null, subjectHelper.getSubject(request)};
+                return constructor.newInstance(args);
+            } catch (Exception ex) {
+                throw new HandshakeFailureException("Failed to create TyrusMuxableWebSocket", ex);
+            }
+        }
 
-				constructor = type.getDeclaredConstructor(
-						type("weblogic.servlet.internal.MuxableSocketHTTP"),
-						type("weblogic.websocket.tyrus.CoherenceServletFilterService"),
-						type("weblogic.servlet.spi.SubjectHandle"));
-				subjectHelper = new SubjectHelper();
+        private void upgrade(Object webSocket, @Nullable Object httpSocket, ServletContext servletContext) {
+            try {
+                upgradeMethod.invoke(webSocket, httpSocket, servletContext);
+            } catch (Exception ex) {
+                throw new HandshakeFailureException("Failed to upgrade TyrusMuxableWebSocket", ex);
+            }
+        }
 
-				upgradeMethod = type.getMethod("upgrade", type("weblogic.socket.MuxableSocket"), ServletContext.class);
-				readEventMethod = type.getMethod("registerForReadEvent");
-			}
-			catch (Exception ex) {
-				throw new IllegalStateException("No compatible WebSocket version found", ex);
-			}
-		}
-
-		private Object newInstance(HttpServletRequest request, @Nullable Object httpSocket) {
-			try {
-				Object[] args = new Object[] {httpSocket, null, subjectHelper.getSubject(request)};
-				return constructor.newInstance(args);
-			}
-			catch (Exception ex) {
-				throw new HandshakeFailureException("Failed to create TyrusMuxableWebSocket", ex);
-			}
-		}
-
-		private void upgrade(Object webSocket, @Nullable Object httpSocket, ServletContext servletContext) {
-			try {
-				upgradeMethod.invoke(webSocket, httpSocket, servletContext);
-			}
-			catch (Exception ex) {
-				throw new HandshakeFailureException("Failed to upgrade TyrusMuxableWebSocket", ex);
-			}
-		}
-
-		private void registerForReadEvent(Object webSocket) {
-			try {
-				readEventMethod.invoke(webSocket);
-			}
-			catch (Exception ex) {
-				throw new HandshakeFailureException("Failed to register WebSocket for read event", ex);
-			}
-		}
-	}
+        private void registerForReadEvent(Object webSocket) {
+            try {
+                readEventMethod.invoke(webSocket);
+            } catch (Exception ex) {
+                throw new HandshakeFailureException("Failed to register WebSocket for read event", ex);
+            }
+        }
+    }
 
 
-	private static class SubjectHelper {
+    private static class SubjectHelper {
 
-		private final Method securityContextMethod;
+        private final Method securityContextMethod;
 
-		private final Method currentUserMethod;
+        private final Method currentUserMethod;
 
-		private final Method providerMethod;
+        private final Method providerMethod;
 
-		private final Method anonymousSubjectMethod;
+        private final Method anonymousSubjectMethod;
 
-		public SubjectHelper() {
-			try {
-				String className = "weblogic.servlet.internal.WebAppServletContext";
-				this.securityContextMethod = method(className, "getSecurityContext");
+        public SubjectHelper() {
+            try {
+                String className = "weblogic.servlet.internal.WebAppServletContext";
+                this.securityContextMethod = method(className, "getSecurityContext");
 
-				className = "weblogic.servlet.security.internal.SecurityModule";
-				this.currentUserMethod = method(className, "getCurrentUser",
-						type("weblogic.servlet.security.internal.ServletSecurityContext"),
-						HttpServletRequest.class);
+                className = "weblogic.servlet.security.internal.SecurityModule";
+                this.currentUserMethod = method(className, "getCurrentUser",
+                        type("weblogic.servlet.security.internal.ServletSecurityContext"),
+                        HttpServletRequest.class);
 
-				className = "weblogic.servlet.security.internal.WebAppSecurity";
-				this.providerMethod = method(className, "getProvider");
-				this.anonymousSubjectMethod = this.providerMethod.getReturnType().getDeclaredMethod("getAnonymousSubject");
-			}
-			catch (Exception ex) {
-				throw new IllegalStateException("No compatible WebSocket version found", ex);
-			}
-		}
+                className = "weblogic.servlet.security.internal.WebAppSecurity";
+                this.providerMethod = method(className, "getProvider");
+                this.anonymousSubjectMethod = this.providerMethod.getReturnType().getDeclaredMethod("getAnonymousSubject");
+            } catch (Exception ex) {
+                throw new IllegalStateException("No compatible WebSocket version found", ex);
+            }
+        }
 
-		public Object getSubject(HttpServletRequest request) {
-			try {
-				ServletContext servletContext = request.getServletContext();
-				Object securityContext = this.securityContextMethod.invoke(servletContext);
-				Object subject = this.currentUserMethod.invoke(null, securityContext, request);
-				if (subject == null) {
-					Object securityProvider = this.providerMethod.invoke(null);
-					subject = this.anonymousSubjectMethod.invoke(securityProvider);
-				}
-				return subject;
-			}
-			catch (Exception ex) {
-				throw new HandshakeFailureException("Failed to obtain SubjectHandle", ex);
-			}
-		}
-	}
+        public Object getSubject(HttpServletRequest request) {
+            try {
+                ServletContext servletContext = request.getServletContext();
+                Object securityContext = this.securityContextMethod.invoke(servletContext);
+                Object subject = this.currentUserMethod.invoke(null, securityContext, request);
+                if (subject == null) {
+                    Object securityProvider = this.providerMethod.invoke(null);
+                    subject = this.anonymousSubjectMethod.invoke(securityProvider);
+                }
+                return subject;
+            } catch (Exception ex) {
+                throw new HandshakeFailureException("Failed to obtain SubjectHandle", ex);
+            }
+        }
+    }
 
 
-	/**
-	 * Helps to create and invoke {@code weblogic.websocket.tyrus.TyrusServletWriter}.
-	 */
-	private static class WebLogicServletWriterHelper {
+    /**
+     * Helps to create and invoke {@code weblogic.websocket.tyrus.TyrusServletWriter}.
+     */
+    private static class WebLogicServletWriterHelper {
 
-		private static final Constructor<?> constructor;
+        private static final Constructor<?> constructor;
 
-		static {
-			try {
-				Class<?> writerType = type("weblogic.websocket.tyrus.TyrusServletWriter");
-				Class<?> listenerType = type("weblogic.websocket.tyrus.TyrusServletWriter$CloseListener");
-				Class<?> webSocketType = TyrusMuxableWebSocketHelper.type;
-				constructor = writerType.getDeclaredConstructor(webSocketType, listenerType, boolean.class);
-				ReflectionUtils.makeAccessible(constructor);
-			}
-			catch (Exception ex) {
-				throw new IllegalStateException("No compatible WebSocket version found", ex);
-			}
-		}
+        static {
+            try {
+                Class<?> writerType = type("weblogic.websocket.tyrus.TyrusServletWriter");
+                Class<?> listenerType = type("weblogic.websocket.tyrus.TyrusServletWriter$CloseListener");
+                Class<?> webSocketType = TyrusMuxableWebSocketHelper.type;
+                constructor = writerType.getDeclaredConstructor(webSocketType, listenerType, boolean.class);
+                ReflectionUtils.makeAccessible(constructor);
+            } catch (Exception ex) {
+                throw new IllegalStateException("No compatible WebSocket version found", ex);
+            }
+        }
 
-		private Writer newInstance(Object webSocket, boolean isProtected) {
-			try {
-				return (Writer) constructor.newInstance(webSocket, null, isProtected);
-			}
-			catch (Exception ex) {
-				throw new HandshakeFailureException("Failed to create TyrusServletWriter", ex);
-			}
-		}
-	}
+        private Writer newInstance(Object webSocket, boolean isProtected) {
+            try {
+                return (Writer) constructor.newInstance(webSocket, null, isProtected);
+            } catch (Exception ex) {
+                throw new HandshakeFailureException("Failed to create TyrusServletWriter", ex);
+            }
+        }
+    }
 
 }

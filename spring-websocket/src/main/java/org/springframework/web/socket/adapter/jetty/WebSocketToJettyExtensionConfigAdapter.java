@@ -29,9 +29,9 @@ import org.springframework.web.socket.WebSocketExtension;
  */
 public class WebSocketToJettyExtensionConfigAdapter extends ExtensionConfig {
 
-	public WebSocketToJettyExtensionConfigAdapter(WebSocketExtension extension) {
-		super(extension.getName());
-		extension.getParameters().forEach(super::setParameter);
-	}
+    public WebSocketToJettyExtensionConfigAdapter(WebSocketExtension extension) {
+        super(extension.getName());
+        extension.getParameters().forEach(super::setParameter);
+    }
 
 }

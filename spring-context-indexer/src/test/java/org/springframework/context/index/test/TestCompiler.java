@@ -39,86 +39,85 @@ import javax.tools.ToolProvider;
  */
 public class TestCompiler {
 
-	public static final File ORIGINAL_SOURCE_FOLDER = new File("src/test/java");
+    public static final File ORIGINAL_SOURCE_FOLDER = new File("src/test/java");
 
-	private final JavaCompiler compiler;
+    private final JavaCompiler compiler;
 
-	private final StandardJavaFileManager fileManager;
+    private final StandardJavaFileManager fileManager;
 
-	private final File outputLocation;
-
-
-	public TestCompiler(Path tempDir) throws IOException {
-		this(ToolProvider.getSystemJavaCompiler(), tempDir);
-	}
-
-	public TestCompiler(JavaCompiler compiler, Path tempDir) throws IOException {
-		this.compiler = compiler;
-		this.fileManager = compiler.getStandardFileManager(null, null, null);
-		this.outputLocation = tempDir.toFile();
-		Iterable<? extends File> temp = Collections.singletonList(this.outputLocation);
-		this.fileManager.setLocation(StandardLocation.CLASS_OUTPUT, temp);
-		this.fileManager.setLocation(StandardLocation.SOURCE_OUTPUT, temp);
-	}
+    private final File outputLocation;
 
 
-	public TestCompilationTask getTask(Class<?>... types) {
-		List<String> names = Arrays.stream(types).map(Class::getName).collect(Collectors.toList());
-		return getTask(names.toArray(new String[names.size()]));
-	}
+    public TestCompiler(Path tempDir) throws IOException {
+        this(ToolProvider.getSystemJavaCompiler(), tempDir);
+    }
 
-	public TestCompilationTask getTask(String... types) {
-		Iterable<? extends JavaFileObject> javaFileObjects = getJavaFileObjects(types);
-		return getTask(javaFileObjects);
-	}
+    public TestCompiler(JavaCompiler compiler, Path tempDir) throws IOException {
+        this.compiler = compiler;
+        this.fileManager = compiler.getStandardFileManager(null, null, null);
+        this.outputLocation = tempDir.toFile();
+        Iterable<? extends File> temp = Collections.singletonList(this.outputLocation);
+        this.fileManager.setLocation(StandardLocation.CLASS_OUTPUT, temp);
+        this.fileManager.setLocation(StandardLocation.SOURCE_OUTPUT, temp);
+    }
 
-	private TestCompilationTask getTask(Iterable<? extends JavaFileObject> javaFileObjects) {
-		return new TestCompilationTask(
-				this.compiler.getTask(null, this.fileManager, null, null, null, javaFileObjects));
-	}
+    private static String sourcePathFor(String type) {
+        return type.replace(".", "/") + ".java";
+    }
 
-	public File getOutputLocation() {
-		return this.outputLocation;
-	}
+    public TestCompilationTask getTask(Class<?>... types) {
+        List<String> names = Arrays.stream(types).map(Class::getName).collect(Collectors.toList());
+        return getTask(names.toArray(new String[names.size()]));
+    }
 
-	private Iterable<? extends JavaFileObject> getJavaFileObjects(String... types) {
-		File[] files = new File[types.length];
-		for (int i = 0; i < types.length; i++) {
-			files[i] = getFile(types[i]);
-		}
-		return this.fileManager.getJavaFileObjects(files);
-	}
+    public TestCompilationTask getTask(String... types) {
+        Iterable<? extends JavaFileObject> javaFileObjects = getJavaFileObjects(types);
+        return getTask(javaFileObjects);
+    }
 
-	private File getFile(String type) {
-		return new File(getSourceFolder(), sourcePathFor(type));
-	}
+    private TestCompilationTask getTask(Iterable<? extends JavaFileObject> javaFileObjects) {
+        return new TestCompilationTask(
+                this.compiler.getTask(null, this.fileManager, null, null, null, javaFileObjects));
+    }
 
-	private static String sourcePathFor(String type) {
-		return type.replace(".", "/") + ".java";
-	}
+    public File getOutputLocation() {
+        return this.outputLocation;
+    }
 
-	private File getSourceFolder() {
-		return ORIGINAL_SOURCE_FOLDER;
-	}
+    private Iterable<? extends JavaFileObject> getJavaFileObjects(String... types) {
+        File[] files = new File[types.length];
+        for (int i = 0; i < types.length; i++) {
+            files[i] = getFile(types[i]);
+        }
+        return this.fileManager.getJavaFileObjects(files);
+    }
+
+    private File getFile(String type) {
+        return new File(getSourceFolder(), sourcePathFor(type));
+    }
+
+    private File getSourceFolder() {
+        return ORIGINAL_SOURCE_FOLDER;
+    }
 
 
-	/**
-	 * A compilation task.
-	 */
-	public static class TestCompilationTask {
+    /**
+     * A compilation task.
+     */
+    public static class TestCompilationTask {
 
-		private final JavaCompiler.CompilationTask task;
+        private final JavaCompiler.CompilationTask task;
 
-		public TestCompilationTask(JavaCompiler.CompilationTask task) {
-			this.task = task;
-		}
+        public TestCompilationTask(JavaCompiler.CompilationTask task) {
+            this.task = task;
+        }
 
-		public void call(Processor... processors) {
-			this.task.setProcessors(Arrays.asList(processors));
-			if (!this.task.call()) {
-				throw new IllegalStateException("Compilation failed");
-			}
-		}
-	}
+        public void call(Processor... processors) {
+            this.task.setProcessors(Arrays.asList(processors));
+            if (!this.task.call()) {
+                throw new IllegalStateException("Compilation failed");
+            }
+        }
+    }
 
 }

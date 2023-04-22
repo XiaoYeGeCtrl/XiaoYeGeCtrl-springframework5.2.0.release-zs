@@ -66,196 +66,196 @@ import static org.junit.platform.testkit.engine.TestExecutionResultConditions.me
  */
 class FailingBeforeAndAfterMethodsSpringExtensionTests {
 
-	@ParameterizedTest
-	@ValueSource(classes = {
-		AlwaysFailingBeforeTestClassTestCase.class,
-		AlwaysFailingAfterTestClassTestCase.class,
-		AlwaysFailingPrepareTestInstanceTestCase.class,
-		AlwaysFailingBeforeTestMethodTestCase.class,
-		AlwaysFailingBeforeTestExecutionTestCase.class,
-		AlwaysFailingAfterTestExecutionTestCase.class,
-		AlwaysFailingAfterTestMethodTestCase.class,
-		FailingBeforeTransactionTestCase.class,
-		FailingAfterTransactionTestCase.class
-	})
-	void failingBeforeAndAfterCallbacks(Class<?> testClass) {
-		Events events = EngineTestKit.engine("junit-jupiter")
-			.selectors(selectClass(testClass))
-			.execute()
-			.tests()
-			.assertStatistics(stats -> stats
-				.skipped(0)
-				.aborted(0)
-				.started(getExpectedStartedCount(testClass))
-				.succeeded(getExpectedSucceededCount(testClass))
-				.failed(getExpectedFailedCount(testClass)));
+    @ParameterizedTest
+    @ValueSource(classes = {
+            AlwaysFailingBeforeTestClassTestCase.class,
+            AlwaysFailingAfterTestClassTestCase.class,
+            AlwaysFailingPrepareTestInstanceTestCase.class,
+            AlwaysFailingBeforeTestMethodTestCase.class,
+            AlwaysFailingBeforeTestExecutionTestCase.class,
+            AlwaysFailingAfterTestExecutionTestCase.class,
+            AlwaysFailingAfterTestMethodTestCase.class,
+            FailingBeforeTransactionTestCase.class,
+            FailingAfterTransactionTestCase.class
+    })
+    void failingBeforeAndAfterCallbacks(Class<?> testClass) {
+        Events events = EngineTestKit.engine("junit-jupiter")
+                .selectors(selectClass(testClass))
+                .execute()
+                .tests()
+                .assertStatistics(stats -> stats
+                        .skipped(0)
+                        .aborted(0)
+                        .started(getExpectedStartedCount(testClass))
+                        .succeeded(getExpectedSucceededCount(testClass))
+                        .failed(getExpectedFailedCount(testClass)));
 
-		// Ensure it was an AssertionError that failed the test and not
-		// something else like an error in the @Configuration class, etc.
-		if (getExpectedFailedCount(testClass) > 0) {
-			events.assertThatEvents().haveExactly(1,
-				event(test("testNothing"),
-					finishedWithFailure(
-						instanceOf(AssertionError.class),
-						message(msg -> msg.contains("always failing")))));
-		}
-	}
+        // Ensure it was an AssertionError that failed the test and not
+        // something else like an error in the @Configuration class, etc.
+        if (getExpectedFailedCount(testClass) > 0) {
+            events.assertThatEvents().haveExactly(1,
+                    event(test("testNothing"),
+                            finishedWithFailure(
+                                    instanceOf(AssertionError.class),
+                                    message(msg -> msg.contains("always failing")))));
+        }
+    }
 
-	private int getExpectedStartedCount(Class<?> testClass) {
-		return (testClass == AlwaysFailingBeforeTestClassTestCase.class ? 0 : 1);
-	}
+    private int getExpectedStartedCount(Class<?> testClass) {
+        return (testClass == AlwaysFailingBeforeTestClassTestCase.class ? 0 : 1);
+    }
 
-	private int getExpectedSucceededCount(Class<?> testClass) {
-		return (testClass == AlwaysFailingAfterTestClassTestCase.class ? 1 : 0);
-	}
+    private int getExpectedSucceededCount(Class<?> testClass) {
+        return (testClass == AlwaysFailingAfterTestClassTestCase.class ? 1 : 0);
+    }
 
-	private int getExpectedFailedCount(Class<?> testClass) {
-		if (testClass == AlwaysFailingBeforeTestClassTestCase.class
-				|| testClass == AlwaysFailingAfterTestClassTestCase.class) {
-			return 0;
-		}
-		return 1;
-	}
+    private int getExpectedFailedCount(Class<?> testClass) {
+        if (testClass == AlwaysFailingBeforeTestClassTestCase.class
+                || testClass == AlwaysFailingAfterTestClassTestCase.class) {
+            return 0;
+        }
+        return 1;
+    }
 
 
-	// -------------------------------------------------------------------
+    // -------------------------------------------------------------------
 
-	private static class AlwaysFailingBeforeTestClassTestExecutionListener implements TestExecutionListener {
+    private static class AlwaysFailingBeforeTestClassTestExecutionListener implements TestExecutionListener {
 
-		@Override
-		public void beforeTestClass(TestContext testContext) {
-			fail("always failing beforeTestClass()");
-		}
-	}
+        @Override
+        public void beforeTestClass(TestContext testContext) {
+            fail("always failing beforeTestClass()");
+        }
+    }
 
-	private static class AlwaysFailingAfterTestClassTestExecutionListener implements TestExecutionListener {
+    private static class AlwaysFailingAfterTestClassTestExecutionListener implements TestExecutionListener {
 
-		@Override
-		public void afterTestClass(TestContext testContext) {
-			fail("always failing afterTestClass()");
-		}
-	}
+        @Override
+        public void afterTestClass(TestContext testContext) {
+            fail("always failing afterTestClass()");
+        }
+    }
 
-	private static class AlwaysFailingPrepareTestInstanceTestExecutionListener implements TestExecutionListener {
+    private static class AlwaysFailingPrepareTestInstanceTestExecutionListener implements TestExecutionListener {
 
-		@Override
-		public void prepareTestInstance(TestContext testContext) throws Exception {
-			fail("always failing prepareTestInstance()");
-		}
-	}
+        @Override
+        public void prepareTestInstance(TestContext testContext) throws Exception {
+            fail("always failing prepareTestInstance()");
+        }
+    }
 
-	private static class AlwaysFailingBeforeTestMethodTestExecutionListener implements TestExecutionListener {
+    private static class AlwaysFailingBeforeTestMethodTestExecutionListener implements TestExecutionListener {
 
-		@Override
-		public void beforeTestMethod(TestContext testContext) {
-			fail("always failing beforeTestMethod()");
-		}
-	}
+        @Override
+        public void beforeTestMethod(TestContext testContext) {
+            fail("always failing beforeTestMethod()");
+        }
+    }
 
-	private static class AlwaysFailingBeforeTestExecutionTestExecutionListener implements TestExecutionListener {
+    private static class AlwaysFailingBeforeTestExecutionTestExecutionListener implements TestExecutionListener {
 
-		@Override
-		public void beforeTestExecution(TestContext testContext) {
-			fail("always failing beforeTestExecution()");
-		}
-	}
+        @Override
+        public void beforeTestExecution(TestContext testContext) {
+            fail("always failing beforeTestExecution()");
+        }
+    }
 
-	private static class AlwaysFailingAfterTestMethodTestExecutionListener implements TestExecutionListener {
+    private static class AlwaysFailingAfterTestMethodTestExecutionListener implements TestExecutionListener {
 
-		@Override
-		public void afterTestMethod(TestContext testContext) {
-			fail("always failing afterTestMethod()");
-		}
-	}
+        @Override
+        public void afterTestMethod(TestContext testContext) {
+            fail("always failing afterTestMethod()");
+        }
+    }
 
-	private static class AlwaysFailingAfterTestExecutionTestExecutionListener implements TestExecutionListener {
+    private static class AlwaysFailingAfterTestExecutionTestExecutionListener implements TestExecutionListener {
 
-		@Override
-		public void afterTestExecution(TestContext testContext) {
-			fail("always failing afterTestExecution()");
-		}
-	}
+        @Override
+        public void afterTestExecution(TestContext testContext) {
+            fail("always failing afterTestExecution()");
+        }
+    }
 
-	@FailingTestCase
-	@ExtendWith(SpringExtension.class)
-	private static abstract class BaseTestCase {
+    @FailingTestCase
+    @ExtendWith(SpringExtension.class)
+    private static abstract class BaseTestCase {
 
-		@Test
-		void testNothing() {
-		}
-	}
+        @Test
+        void testNothing() {
+        }
+    }
 
-	@TestExecutionListeners(AlwaysFailingBeforeTestClassTestExecutionListener.class)
-	static class AlwaysFailingBeforeTestClassTestCase extends BaseTestCase {
-	}
+    @TestExecutionListeners(AlwaysFailingBeforeTestClassTestExecutionListener.class)
+    static class AlwaysFailingBeforeTestClassTestCase extends BaseTestCase {
+    }
 
-	@TestExecutionListeners(AlwaysFailingAfterTestClassTestExecutionListener.class)
-	static class AlwaysFailingAfterTestClassTestCase extends BaseTestCase {
-	}
+    @TestExecutionListeners(AlwaysFailingAfterTestClassTestExecutionListener.class)
+    static class AlwaysFailingAfterTestClassTestCase extends BaseTestCase {
+    }
 
-	@TestExecutionListeners(AlwaysFailingPrepareTestInstanceTestExecutionListener.class)
-	static class AlwaysFailingPrepareTestInstanceTestCase extends BaseTestCase {
-	}
+    @TestExecutionListeners(AlwaysFailingPrepareTestInstanceTestExecutionListener.class)
+    static class AlwaysFailingPrepareTestInstanceTestCase extends BaseTestCase {
+    }
 
-	@TestExecutionListeners(AlwaysFailingBeforeTestMethodTestExecutionListener.class)
-	static class AlwaysFailingBeforeTestMethodTestCase extends BaseTestCase {
-	}
+    @TestExecutionListeners(AlwaysFailingBeforeTestMethodTestExecutionListener.class)
+    static class AlwaysFailingBeforeTestMethodTestCase extends BaseTestCase {
+    }
 
-	@TestExecutionListeners(AlwaysFailingBeforeTestExecutionTestExecutionListener.class)
-	static class AlwaysFailingBeforeTestExecutionTestCase extends BaseTestCase {
-	}
+    @TestExecutionListeners(AlwaysFailingBeforeTestExecutionTestExecutionListener.class)
+    static class AlwaysFailingBeforeTestExecutionTestCase extends BaseTestCase {
+    }
 
-	@TestExecutionListeners(AlwaysFailingAfterTestExecutionTestExecutionListener.class)
-	static class AlwaysFailingAfterTestExecutionTestCase extends BaseTestCase {
-	}
+    @TestExecutionListeners(AlwaysFailingAfterTestExecutionTestExecutionListener.class)
+    static class AlwaysFailingAfterTestExecutionTestCase extends BaseTestCase {
+    }
 
-	@TestExecutionListeners(AlwaysFailingAfterTestMethodTestExecutionListener.class)
-	static class AlwaysFailingAfterTestMethodTestCase extends BaseTestCase {
-	}
+    @TestExecutionListeners(AlwaysFailingAfterTestMethodTestExecutionListener.class)
+    static class AlwaysFailingAfterTestMethodTestCase extends BaseTestCase {
+    }
 
-	@FailingTestCase
-	@SpringJUnitConfig(DatabaseConfig.class)
-	@Transactional
-	static class FailingBeforeTransactionTestCase {
+    @FailingTestCase
+    @SpringJUnitConfig(DatabaseConfig.class)
+    @Transactional
+    static class FailingBeforeTransactionTestCase {
 
-		@Test
-		void testNothing() {
-		}
+        @Test
+        void testNothing() {
+        }
 
-		@BeforeTransaction
-		void beforeTransaction() {
-			fail("always failing beforeTransaction()");
-		}
-	}
+        @BeforeTransaction
+        void beforeTransaction() {
+            fail("always failing beforeTransaction()");
+        }
+    }
 
-	@FailingTestCase
-	@SpringJUnitConfig(DatabaseConfig.class)
-	@Transactional
-	static class FailingAfterTransactionTestCase {
+    @FailingTestCase
+    @SpringJUnitConfig(DatabaseConfig.class)
+    @Transactional
+    static class FailingAfterTransactionTestCase {
 
-		@Test
-		void testNothing() {
-		}
+        @Test
+        void testNothing() {
+        }
 
-		@AfterTransaction
-		void afterTransaction() {
-			fail("always failing afterTransaction()");
-		}
-	}
+        @AfterTransaction
+        void afterTransaction() {
+            fail("always failing afterTransaction()");
+        }
+    }
 
-	// Must not be private.
-	@Configuration
-	static class DatabaseConfig {
+    // Must not be private.
+    @Configuration
+    static class DatabaseConfig {
 
-		@Bean
-		PlatformTransactionManager transactionManager() {
-			return new DataSourceTransactionManager(dataSource());
-		}
+        @Bean
+        PlatformTransactionManager transactionManager() {
+            return new DataSourceTransactionManager(dataSource());
+        }
 
-		@Bean
-		DataSource dataSource() {
-			return new EmbeddedDatabaseBuilder().generateUniqueName(true).build();
-		}
-	}
+        @Bean
+        DataSource dataSource() {
+            return new EmbeddedDatabaseBuilder().generateUniqueName(true).build();
+        }
+    }
 
 }

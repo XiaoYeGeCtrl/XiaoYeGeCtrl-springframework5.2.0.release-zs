@@ -23,13 +23,13 @@ import org.springframework.beans.factory.BeanFactoryAware;
 @SuppressWarnings("serial")
 public class TestProxyFactoryBean extends AbstractSingletonProxyFactoryBean implements BeanFactoryAware {
 
-	@Override
-	protected Object createMainInterceptor() {
-		return new NoOpAdvice();
-	}
+    @Override
+    protected Object createMainInterceptor() {
+        return new NoOpAdvice();
+    }
 
-	@Override
-	public void setBeanFactory(BeanFactory beanFactory) {
-	}
+    @Override
+    public void setBeanFactory(BeanFactory beanFactory) {
+    }
 
 }

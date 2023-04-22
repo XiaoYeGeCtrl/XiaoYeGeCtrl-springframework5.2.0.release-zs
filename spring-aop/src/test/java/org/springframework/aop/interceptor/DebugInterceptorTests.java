@@ -37,62 +37,62 @@ import static org.mockito.Mockito.verify;
  */
 public class DebugInterceptorTests {
 
-	@Test
-	public void testSunnyDayPathLogsCorrectly() throws Throwable {
+    @Test
+    public void testSunnyDayPathLogsCorrectly() throws Throwable {
 
-		MethodInvocation methodInvocation = mock(MethodInvocation.class);
+        MethodInvocation methodInvocation = mock(MethodInvocation.class);
 
-		Log log = mock(Log.class);
-		given(log.isTraceEnabled()).willReturn(true);
+        Log log = mock(Log.class);
+        given(log.isTraceEnabled()).willReturn(true);
 
-		DebugInterceptor interceptor = new StubDebugInterceptor(log);
-		interceptor.invoke(methodInvocation);
-		checkCallCountTotal(interceptor);
+        DebugInterceptor interceptor = new StubDebugInterceptor(log);
+        interceptor.invoke(methodInvocation);
+        checkCallCountTotal(interceptor);
 
-		verify(log, times(2)).trace(anyString());
-	}
+        verify(log, times(2)).trace(anyString());
+    }
 
-	@Test
-	public void testExceptionPathStillLogsCorrectly() throws Throwable {
+    @Test
+    public void testExceptionPathStillLogsCorrectly() throws Throwable {
 
-		MethodInvocation methodInvocation = mock(MethodInvocation.class);
+        MethodInvocation methodInvocation = mock(MethodInvocation.class);
 
-		IllegalArgumentException exception = new IllegalArgumentException();
-		given(methodInvocation.proceed()).willThrow(exception);
+        IllegalArgumentException exception = new IllegalArgumentException();
+        given(methodInvocation.proceed()).willThrow(exception);
 
-		Log log = mock(Log.class);
-		given(log.isTraceEnabled()).willReturn(true);
+        Log log = mock(Log.class);
+        given(log.isTraceEnabled()).willReturn(true);
 
-		DebugInterceptor interceptor = new StubDebugInterceptor(log);
-		assertThatIllegalArgumentException().isThrownBy(() ->
-				interceptor.invoke(methodInvocation));
-		checkCallCountTotal(interceptor);
+        DebugInterceptor interceptor = new StubDebugInterceptor(log);
+        assertThatIllegalArgumentException().isThrownBy(() ->
+                interceptor.invoke(methodInvocation));
+        checkCallCountTotal(interceptor);
 
-		verify(log).trace(anyString());
-		verify(log).trace(anyString(), eq(exception));
-	}
+        verify(log).trace(anyString());
+        verify(log).trace(anyString(), eq(exception));
+    }
 
-	private void checkCallCountTotal(DebugInterceptor interceptor) {
-		assertThat(interceptor.getCount()).as("Intercepted call count not being incremented correctly").isEqualTo(1);
-	}
-
-
-	@SuppressWarnings("serial")
-	private static final class StubDebugInterceptor extends DebugInterceptor {
-
-		private final Log log;
+    private void checkCallCountTotal(DebugInterceptor interceptor) {
+        assertThat(interceptor.getCount()).as("Intercepted call count not being incremented correctly").isEqualTo(1);
+    }
 
 
-		public StubDebugInterceptor(Log log) {
-			super(true);
-			this.log = log;
-		}
+    @SuppressWarnings("serial")
+    private static final class StubDebugInterceptor extends DebugInterceptor {
 
-		@Override
-		protected Log getLoggerForInvocation(MethodInvocation invocation) {
-			return log;
-		}
+        private final Log log;
 
-	}
+
+        public StubDebugInterceptor(Log log) {
+            super(true);
+            this.log = log;
+        }
+
+        @Override
+        protected Log getLoggerForInvocation(MethodInvocation invocation) {
+            return log;
+        }
+
+    }
 
 }

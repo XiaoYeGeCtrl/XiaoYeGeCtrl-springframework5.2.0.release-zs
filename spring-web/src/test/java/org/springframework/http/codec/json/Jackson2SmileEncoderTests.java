@@ -47,112 +47,108 @@ import static org.springframework.http.MediaType.APPLICATION_XML;
  */
 public class Jackson2SmileEncoderTests extends AbstractEncoderTests<Jackson2SmileEncoder> {
 
-	private final static MimeType SMILE_MIME_TYPE = new MimeType("application", "x-jackson-smile");
-	private final static MimeType STREAM_SMILE_MIME_TYPE = new MimeType("application", "stream+x-jackson-smile");
+    private final static MimeType SMILE_MIME_TYPE = new MimeType("application", "x-jackson-smile");
+    private final static MimeType STREAM_SMILE_MIME_TYPE = new MimeType("application", "stream+x-jackson-smile");
 
-	private final Jackson2SmileEncoder encoder = new Jackson2SmileEncoder();
+    private final Jackson2SmileEncoder encoder = new Jackson2SmileEncoder();
 
-	private final ObjectMapper mapper = Jackson2ObjectMapperBuilder.smile().build();
+    private final ObjectMapper mapper = Jackson2ObjectMapperBuilder.smile().build();
 
-	public Jackson2SmileEncoderTests() {
-		super(new Jackson2SmileEncoder());
+    public Jackson2SmileEncoderTests() {
+        super(new Jackson2SmileEncoder());
 
-	}
+    }
 
-	public Consumer<DataBuffer> pojoConsumer(Pojo expected) {
-		return dataBuffer -> {
-			try {
-				Pojo actual = this.mapper.reader().forType(Pojo.class)
-						.readValue(DataBufferTestUtils.dumpBytes(dataBuffer));
-				assertThat(actual).isEqualTo(expected);
-				release(dataBuffer);
-			}
-			catch (IOException ex) {
-				throw new UncheckedIOException(ex);
-			}
-		};
-	}
-
-
-	@Override
-	@Test
-	public void canEncode() {
-		ResolvableType pojoType = ResolvableType.forClass(Pojo.class);
-		assertThat(this.encoder.canEncode(pojoType, SMILE_MIME_TYPE)).isTrue();
-		assertThat(this.encoder.canEncode(pojoType, STREAM_SMILE_MIME_TYPE)).isTrue();
-		assertThat(this.encoder.canEncode(pojoType, null)).isTrue();
-
-		// SPR-15464
-		assertThat(this.encoder.canEncode(ResolvableType.NONE, null)).isTrue();
-	}
-
-	@Test
-	public void canNotEncode() {
-		assertThat(this.encoder.canEncode(ResolvableType.forClass(String.class), null)).isFalse();
-		assertThat(this.encoder.canEncode(ResolvableType.forClass(Pojo.class), APPLICATION_XML)).isFalse();
-
-		ResolvableType sseType = ResolvableType.forClass(ServerSentEvent.class);
-		assertThat(this.encoder.canEncode(sseType, SMILE_MIME_TYPE)).isFalse();
-	}
-
-	@Override
-	@Test
-	public void encode() {
-		List<Pojo> list = Arrays.asList(
-				new Pojo("foo", "bar"),
-				new Pojo("foofoo", "barbar"),
-				new Pojo("foofoofoo", "barbarbar"));
-
-		Flux<Pojo> input = Flux.fromIterable(list);
-
-		testEncode(input, Pojo.class, step -> step
-				.consumeNextWith(expect(list, List.class)));
-	}
-
-	@Test
-	public void encodeError() throws Exception {
-		Mono<Pojo> input = Mono.error(new InputException());
-
-		testEncode(input, Pojo.class, step -> step
-				.expectError(InputException.class)
-				.verify());
-
-	}
-
-	@Test
-	public void encodeAsStream() throws Exception {
-		Pojo pojo1 = new Pojo("foo", "bar");
-		Pojo pojo2 = new Pojo("foofoo", "barbar");
-		Pojo pojo3 = new Pojo("foofoofoo", "barbarbar");
-		Flux<Pojo> input = Flux.just(pojo1, pojo2, pojo3);
-		ResolvableType type = ResolvableType.forClass(Pojo.class);
-
-		testEncodeAll(input, type, step -> step
-				.consumeNextWith(expect(pojo1, Pojo.class))
-				.consumeNextWith(expect(pojo2, Pojo.class))
-				.consumeNextWith(expect(pojo3, Pojo.class))
-				.verifyComplete(),
-		STREAM_SMILE_MIME_TYPE, null);
-	}
+    public Consumer<DataBuffer> pojoConsumer(Pojo expected) {
+        return dataBuffer -> {
+            try {
+                Pojo actual = this.mapper.reader().forType(Pojo.class)
+                        .readValue(DataBufferTestUtils.dumpBytes(dataBuffer));
+                assertThat(actual).isEqualTo(expected);
+                release(dataBuffer);
+            } catch (IOException ex) {
+                throw new UncheckedIOException(ex);
+            }
+        };
+    }
 
 
-	private <T> Consumer<DataBuffer> expect(T expected, Class<T> expectedType) {
-		return dataBuffer -> {
-			try {
-				Object actual = this.mapper.reader().forType(expectedType)
-						.readValue(dataBuffer.asInputStream());
-				assertThat(actual).isEqualTo(expected);
-			}
-			catch (IOException e) {
-				throw new UncheckedIOException(e);
-			}
-			finally {
-				release(dataBuffer);
-			}
-		};
+    @Override
+    @Test
+    public void canEncode() {
+        ResolvableType pojoType = ResolvableType.forClass(Pojo.class);
+        assertThat(this.encoder.canEncode(pojoType, SMILE_MIME_TYPE)).isTrue();
+        assertThat(this.encoder.canEncode(pojoType, STREAM_SMILE_MIME_TYPE)).isTrue();
+        assertThat(this.encoder.canEncode(pojoType, null)).isTrue();
 
-	}
+        // SPR-15464
+        assertThat(this.encoder.canEncode(ResolvableType.NONE, null)).isTrue();
+    }
 
+    @Test
+    public void canNotEncode() {
+        assertThat(this.encoder.canEncode(ResolvableType.forClass(String.class), null)).isFalse();
+        assertThat(this.encoder.canEncode(ResolvableType.forClass(Pojo.class), APPLICATION_XML)).isFalse();
+
+        ResolvableType sseType = ResolvableType.forClass(ServerSentEvent.class);
+        assertThat(this.encoder.canEncode(sseType, SMILE_MIME_TYPE)).isFalse();
+    }
+
+    @Override
+    @Test
+    public void encode() {
+        List<Pojo> list = Arrays.asList(
+                new Pojo("foo", "bar"),
+                new Pojo("foofoo", "barbar"),
+                new Pojo("foofoofoo", "barbarbar"));
+
+        Flux<Pojo> input = Flux.fromIterable(list);
+
+        testEncode(input, Pojo.class, step -> step
+                .consumeNextWith(expect(list, List.class)));
+    }
+
+    @Test
+    public void encodeError() throws Exception {
+        Mono<Pojo> input = Mono.error(new InputException());
+
+        testEncode(input, Pojo.class, step -> step
+                .expectError(InputException.class)
+                .verify());
+
+    }
+
+    @Test
+    public void encodeAsStream() throws Exception {
+        Pojo pojo1 = new Pojo("foo", "bar");
+        Pojo pojo2 = new Pojo("foofoo", "barbar");
+        Pojo pojo3 = new Pojo("foofoofoo", "barbarbar");
+        Flux<Pojo> input = Flux.just(pojo1, pojo2, pojo3);
+        ResolvableType type = ResolvableType.forClass(Pojo.class);
+
+        testEncodeAll(input, type, step -> step
+                        .consumeNextWith(expect(pojo1, Pojo.class))
+                        .consumeNextWith(expect(pojo2, Pojo.class))
+                        .consumeNextWith(expect(pojo3, Pojo.class))
+                        .verifyComplete(),
+                STREAM_SMILE_MIME_TYPE, null);
+    }
+
+
+    private <T> Consumer<DataBuffer> expect(T expected, Class<T> expectedType) {
+        return dataBuffer -> {
+            try {
+                Object actual = this.mapper.reader().forType(expectedType)
+                        .readValue(dataBuffer.asInputStream());
+                assertThat(actual).isEqualTo(expected);
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
+            } finally {
+                release(dataBuffer);
+            }
+        };
+
+    }
 
 
 }

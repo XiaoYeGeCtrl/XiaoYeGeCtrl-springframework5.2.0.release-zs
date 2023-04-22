@@ -33,24 +33,24 @@ import static org.assertj.core.api.Assertions.assertThat;
 @ExtendWith(SpringExtension.class)
 class TestPropertySourceInterfaceTests implements TestPropertySourceTestInterface {
 
-	@Autowired
-	Environment env;
+    @Autowired
+    Environment env;
 
 
-	@Test
-	void propertiesAreAvailableInEnvironment() {
-		assertThat(property("foo")).isEqualTo("bar");
-		assertThat(property("enigma")).isEqualTo("42");
-	}
+    @Test
+    void propertiesAreAvailableInEnvironment() {
+        assertThat(property("foo")).isEqualTo("bar");
+        assertThat(property("enigma")).isEqualTo("42");
+    }
 
-	private String property(String key) {
-		return env.getProperty(key);
-	}
+    private String property(String key) {
+        return env.getProperty(key);
+    }
 
 
-	@Configuration
-	static class Config {
-		/* no user beans required for these tests */
-	}
+    @Configuration
+    static class Config {
+        /* no user beans required for these tests */
+    }
 
 }

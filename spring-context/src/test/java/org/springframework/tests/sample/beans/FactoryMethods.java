@@ -26,8 +26,8 @@ package org.springframework.tests.sample.beans;
  */
 public class FactoryMethods {
 
-	public static FactoryMethods nullInstance() {
-		return null;
-	}
+    public static FactoryMethods nullInstance() {
+        return null;
+    }
 
 }

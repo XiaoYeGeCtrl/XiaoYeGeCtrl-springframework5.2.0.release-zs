@@ -30,20 +30,20 @@ import org.springframework.context.annotation.Role;
  * @author Chris Beams
  * @author Stephane Nicoll
  * @author Juergen Hoeller
- * @since 3.1
  * @see org.springframework.cache.annotation.EnableCaching
  * @see org.springframework.cache.annotation.CachingConfigurationSelector
+ * @since 3.1
  */
 @Configuration
 @Role(BeanDefinition.ROLE_INFRASTRUCTURE)
 public class AspectJCachingConfiguration extends AbstractCachingConfiguration {
 
-	@Bean(name = CacheManagementConfigUtils.CACHE_ASPECT_BEAN_NAME)
-	@Role(BeanDefinition.ROLE_INFRASTRUCTURE)
-	public AnnotationCacheAspect cacheAspect() {
-		AnnotationCacheAspect cacheAspect = AnnotationCacheAspect.aspectOf();
-		cacheAspect.configure(this.errorHandler, this.keyGenerator, this.cacheResolver, this.cacheManager);
-		return cacheAspect;
-	}
+    @Bean(name = CacheManagementConfigUtils.CACHE_ASPECT_BEAN_NAME)
+    @Role(BeanDefinition.ROLE_INFRASTRUCTURE)
+    public AnnotationCacheAspect cacheAspect() {
+        AnnotationCacheAspect cacheAspect = AnnotationCacheAspect.aspectOf();
+        cacheAspect.configure(this.errorHandler, this.keyGenerator, this.cacheResolver, this.cacheManager);
+        return cacheAspect;
+    }
 
 }

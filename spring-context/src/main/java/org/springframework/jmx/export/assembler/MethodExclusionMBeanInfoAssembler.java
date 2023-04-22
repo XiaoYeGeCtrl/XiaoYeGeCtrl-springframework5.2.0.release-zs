@@ -48,83 +48,85 @@ import org.springframework.util.StringUtils;
  *
  * @author Rob Harrop
  * @author Seth Ladd
- * @since 1.2.5
  * @see #setIgnoredMethods
  * @see #setIgnoredMethodMappings
  * @see InterfaceBasedMBeanInfoAssembler
  * @see SimpleReflectiveMBeanInfoAssembler
  * @see MethodNameBasedMBeanInfoAssembler
  * @see org.springframework.jmx.export.MBeanExporter
+ * @since 1.2.5
  */
 public class MethodExclusionMBeanInfoAssembler extends AbstractConfigurableMBeanInfoAssembler {
 
-	@Nullable
-	private Set<String> ignoredMethods;
+    @Nullable
+    private Set<String> ignoredMethods;
 
-	@Nullable
-	private Map<String, Set<String>> ignoredMethodMappings;
-
-
-	/**
-	 * Set the array of method names to be <b>ignored</b> when creating the management info.
-	 * <p>These method names will be used for a bean if no entry corresponding to
-	 * that bean is found in the {@code ignoredMethodsMappings} property.
-	 * @see #setIgnoredMethodMappings(java.util.Properties)
-	 */
-	public void setIgnoredMethods(String... ignoredMethodNames) {
-		this.ignoredMethods = new HashSet<>(Arrays.asList(ignoredMethodNames));
-	}
-
-	/**
-	 * Set the mappings of bean keys to a comma-separated list of method names.
-	 * <p>These method names are <b>ignored</b> when creating the management interface.
-	 * <p>The property key must match the bean key and the property value must match
-	 * the list of method names. When searching for method names to ignore for a bean,
-	 * Spring will check these mappings first.
-	 */
-	public void setIgnoredMethodMappings(Properties mappings) {
-		this.ignoredMethodMappings = new HashMap<>();
-		for (Enumeration<?> en = mappings.keys(); en.hasMoreElements();) {
-			String beanKey = (String) en.nextElement();
-			String[] methodNames = StringUtils.commaDelimitedListToStringArray(mappings.getProperty(beanKey));
-			this.ignoredMethodMappings.put(beanKey, new HashSet<>(Arrays.asList(methodNames)));
-		}
-	}
+    @Nullable
+    private Map<String, Set<String>> ignoredMethodMappings;
 
 
-	@Override
-	protected boolean includeReadAttribute(Method method, String beanKey) {
-		return isNotIgnored(method, beanKey);
-	}
+    /**
+     * Set the array of method names to be <b>ignored</b> when creating the management info.
+     * <p>These method names will be used for a bean if no entry corresponding to
+     * that bean is found in the {@code ignoredMethodsMappings} property.
+     *
+     * @see #setIgnoredMethodMappings(java.util.Properties)
+     */
+    public void setIgnoredMethods(String... ignoredMethodNames) {
+        this.ignoredMethods = new HashSet<>(Arrays.asList(ignoredMethodNames));
+    }
 
-	@Override
-	protected boolean includeWriteAttribute(Method method, String beanKey) {
-		return isNotIgnored(method, beanKey);
-	}
+    /**
+     * Set the mappings of bean keys to a comma-separated list of method names.
+     * <p>These method names are <b>ignored</b> when creating the management interface.
+     * <p>The property key must match the bean key and the property value must match
+     * the list of method names. When searching for method names to ignore for a bean,
+     * Spring will check these mappings first.
+     */
+    public void setIgnoredMethodMappings(Properties mappings) {
+        this.ignoredMethodMappings = new HashMap<>();
+        for (Enumeration<?> en = mappings.keys(); en.hasMoreElements(); ) {
+            String beanKey = (String) en.nextElement();
+            String[] methodNames = StringUtils.commaDelimitedListToStringArray(mappings.getProperty(beanKey));
+            this.ignoredMethodMappings.put(beanKey, new HashSet<>(Arrays.asList(methodNames)));
+        }
+    }
 
-	@Override
-	protected boolean includeOperation(Method method, String beanKey) {
-		return isNotIgnored(method, beanKey);
-	}
 
-	/**
-	 * Determine whether the given method is supposed to be included,
-	 * that is, not configured as to be ignored.
-	 * @param method the operation method
-	 * @param beanKey the key associated with the MBean in the beans map
-	 * of the {@code MBeanExporter}
-	 */
-	protected boolean isNotIgnored(Method method, String beanKey) {
-		if (this.ignoredMethodMappings != null) {
-			Set<String> methodNames = this.ignoredMethodMappings.get(beanKey);
-			if (methodNames != null) {
-				return !methodNames.contains(method.getName());
-			}
-		}
-		if (this.ignoredMethods != null) {
-			return !this.ignoredMethods.contains(method.getName());
-		}
-		return true;
-	}
+    @Override
+    protected boolean includeReadAttribute(Method method, String beanKey) {
+        return isNotIgnored(method, beanKey);
+    }
+
+    @Override
+    protected boolean includeWriteAttribute(Method method, String beanKey) {
+        return isNotIgnored(method, beanKey);
+    }
+
+    @Override
+    protected boolean includeOperation(Method method, String beanKey) {
+        return isNotIgnored(method, beanKey);
+    }
+
+    /**
+     * Determine whether the given method is supposed to be included,
+     * that is, not configured as to be ignored.
+     *
+     * @param method  the operation method
+     * @param beanKey the key associated with the MBean in the beans map
+     *                of the {@code MBeanExporter}
+     */
+    protected boolean isNotIgnored(Method method, String beanKey) {
+        if (this.ignoredMethodMappings != null) {
+            Set<String> methodNames = this.ignoredMethodMappings.get(beanKey);
+            if (methodNames != null) {
+                return !methodNames.contains(method.getName());
+            }
+        }
+        if (this.ignoredMethods != null) {
+            return !this.ignoredMethods.contains(method.getName());
+        }
+        return true;
+    }
 
 }

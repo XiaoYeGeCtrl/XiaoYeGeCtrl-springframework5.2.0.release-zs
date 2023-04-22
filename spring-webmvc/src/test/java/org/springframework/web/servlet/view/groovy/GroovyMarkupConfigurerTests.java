@@ -40,130 +40,127 @@ import static org.assertj.core.api.Assertions.assertThatIOException;
  */
 public class GroovyMarkupConfigurerTests {
 
-	private static final String RESOURCE_LOADER_PATH = "classpath:org/springframework/web/servlet/view/groovy/";
-
-	private StaticApplicationContext applicationContext;
-
-	private static final String TEMPLATE_PREFIX = "org/springframework/web/servlet/view/groovy/";
-
-	private GroovyMarkupConfigurer configurer;
+    private static final String RESOURCE_LOADER_PATH = "classpath:org/springframework/web/servlet/view/groovy/";
+    private static final String TEMPLATE_PREFIX = "org/springframework/web/servlet/view/groovy/";
+    private StaticApplicationContext applicationContext;
+    private GroovyMarkupConfigurer configurer;
 
 
-	@BeforeEach
-	public void setup() throws Exception {
-		this.applicationContext = new StaticApplicationContext();
-		this.configurer = new GroovyMarkupConfigurer();
-		this.configurer.setResourceLoaderPath(RESOURCE_LOADER_PATH);
-	}
+    @BeforeEach
+    public void setup() throws Exception {
+        this.applicationContext = new StaticApplicationContext();
+        this.configurer = new GroovyMarkupConfigurer();
+        this.configurer.setResourceLoaderPath(RESOURCE_LOADER_PATH);
+    }
 
-	@Test
-	public void defaultTemplateEngine() throws Exception {
-		this.configurer.setApplicationContext(this.applicationContext);
-		this.configurer.afterPropertiesSet();
+    @Test
+    public void defaultTemplateEngine() throws Exception {
+        this.configurer.setApplicationContext(this.applicationContext);
+        this.configurer.afterPropertiesSet();
 
-		TemplateEngine engine = this.configurer.getTemplateEngine();
-		assertThat(engine).isNotNull();
-		assertThat(engine.getClass()).isEqualTo(MarkupTemplateEngine.class);
+        TemplateEngine engine = this.configurer.getTemplateEngine();
+        assertThat(engine).isNotNull();
+        assertThat(engine.getClass()).isEqualTo(MarkupTemplateEngine.class);
 
-		MarkupTemplateEngine markupEngine = (MarkupTemplateEngine) engine;
-		TemplateConfiguration configuration = markupEngine.getTemplateConfiguration();
-		assertThat(configuration).isNotNull();
-		assertThat(configuration.getClass()).isEqualTo(GroovyMarkupConfigurer.class);
-	}
+        MarkupTemplateEngine markupEngine = (MarkupTemplateEngine) engine;
+        TemplateConfiguration configuration = markupEngine.getTemplateConfiguration();
+        assertThat(configuration).isNotNull();
+        assertThat(configuration.getClass()).isEqualTo(GroovyMarkupConfigurer.class);
+    }
 
-	@Test
-	public void customTemplateEngine() throws Exception {
-		this.configurer.setApplicationContext(this.applicationContext);
-		this.configurer.setTemplateEngine(new TestTemplateEngine());
-		this.configurer.afterPropertiesSet();
+    @Test
+    public void customTemplateEngine() throws Exception {
+        this.configurer.setApplicationContext(this.applicationContext);
+        this.configurer.setTemplateEngine(new TestTemplateEngine());
+        this.configurer.afterPropertiesSet();
 
-		TemplateEngine engine = this.configurer.getTemplateEngine();
-		assertThat(engine).isNotNull();
-		assertThat(engine.getClass()).isEqualTo(TestTemplateEngine.class);
-	}
+        TemplateEngine engine = this.configurer.getTemplateEngine();
+        assertThat(engine).isNotNull();
+        assertThat(engine.getClass()).isEqualTo(TestTemplateEngine.class);
+    }
 
-	@Test
-	public void customTemplateConfiguration() throws Exception {
-		this.configurer.setApplicationContext(this.applicationContext);
-		this.configurer.setCacheTemplates(false);
-		this.configurer.afterPropertiesSet();
+    @Test
+    public void customTemplateConfiguration() throws Exception {
+        this.configurer.setApplicationContext(this.applicationContext);
+        this.configurer.setCacheTemplates(false);
+        this.configurer.afterPropertiesSet();
 
-		TemplateEngine engine = this.configurer.getTemplateEngine();
-		assertThat(engine).isNotNull();
-		assertThat(engine.getClass()).isEqualTo(MarkupTemplateEngine.class);
+        TemplateEngine engine = this.configurer.getTemplateEngine();
+        assertThat(engine).isNotNull();
+        assertThat(engine.getClass()).isEqualTo(MarkupTemplateEngine.class);
 
-		MarkupTemplateEngine markupEngine = (MarkupTemplateEngine) engine;
-		TemplateConfiguration configuration = markupEngine.getTemplateConfiguration();
-		assertThat(configuration).isNotNull();
-		assertThat(configuration.isCacheTemplates()).isFalse();
-	}
+        MarkupTemplateEngine markupEngine = (MarkupTemplateEngine) engine;
+        TemplateConfiguration configuration = markupEngine.getTemplateConfiguration();
+        assertThat(configuration).isNotNull();
+        assertThat(configuration.isCacheTemplates()).isFalse();
+    }
 
-	@Test
-	@SuppressWarnings("resource")
-	public void parentLoader() throws Exception {
+    @Test
+    @SuppressWarnings("resource")
+    public void parentLoader() throws Exception {
 
-		this.configurer.setApplicationContext(this.applicationContext);
+        this.configurer.setApplicationContext(this.applicationContext);
 
-		ClassLoader classLoader = this.configurer.createTemplateClassLoader();
-		assertThat(classLoader).isNotNull();
-		URLClassLoader urlClassLoader = (URLClassLoader) classLoader;
-		assertThat(urlClassLoader.getURLs()).hasSize(1);
-		assertThat(urlClassLoader.getURLs()[0].toString())
-				.endsWith("org/springframework/web/servlet/view/groovy/");
+        ClassLoader classLoader = this.configurer.createTemplateClassLoader();
+        assertThat(classLoader).isNotNull();
+        URLClassLoader urlClassLoader = (URLClassLoader) classLoader;
+        assertThat(urlClassLoader.getURLs()).hasSize(1);
+        assertThat(urlClassLoader.getURLs()[0].toString())
+                .endsWith("org/springframework/web/servlet/view/groovy/");
 
-		this.configurer.setResourceLoaderPath(RESOURCE_LOADER_PATH + ",classpath:org/springframework/web/servlet/view/");
-		classLoader = this.configurer.createTemplateClassLoader();
-		assertThat(classLoader).isNotNull();
-		urlClassLoader = (URLClassLoader) classLoader;
-		assertThat(urlClassLoader.getURLs()).hasSize(2);
-		assertThat(urlClassLoader.getURLs()[0].toString())
-				.endsWith("org/springframework/web/servlet/view/groovy/");
-		assertThat(urlClassLoader.getURLs()[1].toString())
-				.endsWith("org/springframework/web/servlet/view/");
-	}
+        this.configurer.setResourceLoaderPath(RESOURCE_LOADER_PATH + ",classpath:org/springframework/web/servlet/view/");
+        classLoader = this.configurer.createTemplateClassLoader();
+        assertThat(classLoader).isNotNull();
+        urlClassLoader = (URLClassLoader) classLoader;
+        assertThat(urlClassLoader.getURLs()).hasSize(2);
+        assertThat(urlClassLoader.getURLs()[0].toString())
+                .endsWith("org/springframework/web/servlet/view/groovy/");
+        assertThat(urlClassLoader.getURLs()[1].toString())
+                .endsWith("org/springframework/web/servlet/view/");
+    }
 
-	private class TestTemplateEngine extends MarkupTemplateEngine {
+    @Test
+    public void resolveSampleTemplate() throws Exception {
+        URL url = this.configurer.resolveTemplate(getClass().getClassLoader(), TEMPLATE_PREFIX + "test.tpl");
+        assertThat(url).isNotNull();
+    }
 
-		public TestTemplateEngine() {
-			super(new TemplateConfiguration());
-		}
-	}
+    @Test
+    public void resolveI18nFullLocale() throws Exception {
+        LocaleContextHolder.setLocale(Locale.GERMANY);
+        URL url = this.configurer.resolveTemplate(getClass().getClassLoader(), TEMPLATE_PREFIX + "i18n.tpl");
+        assertThat(url).isNotNull();
+        assertThat(url.getPath()).contains("i18n_de_DE.tpl");
+    }
 
-	@Test
-	public void resolveSampleTemplate() throws Exception {
-		URL url = this.configurer.resolveTemplate(getClass().getClassLoader(), TEMPLATE_PREFIX + "test.tpl");
-		assertThat(url).isNotNull();
-	}
+    @Test
+    public void resolveI18nPartialLocale() throws Exception {
+        LocaleContextHolder.setLocale(Locale.FRANCE);
+        URL url = this.configurer.resolveTemplate(getClass().getClassLoader(), TEMPLATE_PREFIX + "i18n.tpl");
+        assertThat(url).isNotNull();
+        assertThat(url.getPath()).contains("i18n_fr.tpl");
+    }
 
-	@Test
-	public void resolveI18nFullLocale() throws Exception {
-		LocaleContextHolder.setLocale(Locale.GERMANY);
-		URL url = this.configurer.resolveTemplate(getClass().getClassLoader(), TEMPLATE_PREFIX + "i18n.tpl");
-		assertThat(url).isNotNull();
-		assertThat(url.getPath()).contains("i18n_de_DE.tpl");
-	}
+    @Test
+    public void resolveI18nDefaultLocale() throws Exception {
+        LocaleContextHolder.setLocale(Locale.US);
+        URL url = this.configurer.resolveTemplate(getClass().getClassLoader(), TEMPLATE_PREFIX + "i18n.tpl");
+        assertThat(url).isNotNull();
+        assertThat(url.getPath()).contains("i18n.tpl");
+    }
 
-	@Test
-	public void resolveI18nPartialLocale() throws Exception {
-		LocaleContextHolder.setLocale(Locale.FRANCE);
-		URL url = this.configurer.resolveTemplate(getClass().getClassLoader(), TEMPLATE_PREFIX + "i18n.tpl");
-		assertThat(url).isNotNull();
-		assertThat(url.getPath()).contains("i18n_fr.tpl");
-	}
+    @Test
+    public void failMissingTemplate() throws Exception {
+        LocaleContextHolder.setLocale(Locale.US);
+        assertThatIOException().isThrownBy(() ->
+                this.configurer.resolveTemplate(getClass().getClassLoader(), TEMPLATE_PREFIX + "missing.tpl"));
+    }
 
-	@Test
-	public void resolveI18nDefaultLocale() throws Exception {
-		LocaleContextHolder.setLocale(Locale.US);
-		URL url = this.configurer.resolveTemplate(getClass().getClassLoader(), TEMPLATE_PREFIX + "i18n.tpl");
-		assertThat(url).isNotNull();
-		assertThat(url.getPath()).contains("i18n.tpl");
-	}
+    private class TestTemplateEngine extends MarkupTemplateEngine {
 
-	@Test
-	public void failMissingTemplate() throws Exception {
-		LocaleContextHolder.setLocale(Locale.US);
-		assertThatIOException().isThrownBy(() ->
-			this.configurer.resolveTemplate(getClass().getClassLoader(), TEMPLATE_PREFIX + "missing.tpl"));
-	}
+        public TestTemplateEngine() {
+            super(new TemplateConfiguration());
+        }
+    }
 
 }

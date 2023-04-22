@@ -44,56 +44,56 @@ import static org.springframework.test.context.cache.ContextCacheTestUtils.reset
  *
  * @author Sam Brannen
  * @author Juergen Hoeller
- * @since 2.5
  * @see ContextCacheTests
  * @see LruContextCacheTests
+ * @since 2.5
  */
 @SpringJUnitConfig(locations = "../junit4/SpringJUnit4ClassRunnerAppCtxTests-context.xml")
-@TestExecutionListeners({ DependencyInjectionTestExecutionListener.class, DirtiesContextTestExecutionListener.class })
+@TestExecutionListeners({DependencyInjectionTestExecutionListener.class, DirtiesContextTestExecutionListener.class})
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class SpringExtensionContextCacheTests {
 
-	private static ApplicationContext dirtiedApplicationContext;
+    private static ApplicationContext dirtiedApplicationContext;
 
-	@Autowired
-	ApplicationContext applicationContext;
+    @Autowired
+    ApplicationContext applicationContext;
 
-	@BeforeAll
-	static void verifyInitialCacheState() {
-		dirtiedApplicationContext = null;
-		resetContextCache();
-		assertContextCacheStatistics("BeforeClass", 0, 0, 0);
-	}
+    @BeforeAll
+    static void verifyInitialCacheState() {
+        dirtiedApplicationContext = null;
+        resetContextCache();
+        assertContextCacheStatistics("BeforeClass", 0, 0, 0);
+    }
 
-	@AfterAll
-	static void verifyFinalCacheState() {
-		assertContextCacheStatistics("AfterClass", 1, 1, 2);
-	}
+    @AfterAll
+    static void verifyFinalCacheState() {
+        assertContextCacheStatistics("AfterClass", 1, 1, 2);
+    }
 
-	@Test
-	@DirtiesContext
-	@Order(1)
-	void dirtyContext() {
-		assertContextCacheStatistics("dirtyContext()", 1, 0, 1);
-		assertThat(this.applicationContext).as("The application context should have been autowired.").isNotNull();
-		SpringExtensionContextCacheTests.dirtiedApplicationContext = this.applicationContext;
-	}
+    @Test
+    @DirtiesContext
+    @Order(1)
+    void dirtyContext() {
+        assertContextCacheStatistics("dirtyContext()", 1, 0, 1);
+        assertThat(this.applicationContext).as("The application context should have been autowired.").isNotNull();
+        SpringExtensionContextCacheTests.dirtiedApplicationContext = this.applicationContext;
+    }
 
-	@Test
-	@Order(2)
-	void verifyContextDirty() {
-		assertContextCacheStatistics("verifyContextWasDirtied()", 1, 0, 2);
-		assertThat(this.applicationContext).as("The application context should have been autowired.").isNotNull();
-		assertThat(this.applicationContext).as("The application context should have been 'dirtied'.").isNotSameAs(SpringExtensionContextCacheTests.dirtiedApplicationContext);
-		SpringExtensionContextCacheTests.dirtiedApplicationContext = this.applicationContext;
-	}
+    @Test
+    @Order(2)
+    void verifyContextDirty() {
+        assertContextCacheStatistics("verifyContextWasDirtied()", 1, 0, 2);
+        assertThat(this.applicationContext).as("The application context should have been autowired.").isNotNull();
+        assertThat(this.applicationContext).as("The application context should have been 'dirtied'.").isNotSameAs(SpringExtensionContextCacheTests.dirtiedApplicationContext);
+        SpringExtensionContextCacheTests.dirtiedApplicationContext = this.applicationContext;
+    }
 
-	@Test
-	@Order(3)
-	void verifyContextNotDirty() {
-		assertContextCacheStatistics("verifyContextWasNotDirtied()", 1, 1, 2);
-		assertThat(this.applicationContext).as("The application context should have been autowired.").isNotNull();
-		assertThat(this.applicationContext).as("The application context should NOT have been 'dirtied'.").isSameAs(SpringExtensionContextCacheTests.dirtiedApplicationContext);
-	}
+    @Test
+    @Order(3)
+    void verifyContextNotDirty() {
+        assertContextCacheStatistics("verifyContextWasNotDirtied()", 1, 1, 2);
+        assertThat(this.applicationContext).as("The application context should have been autowired.").isNotNull();
+        assertThat(this.applicationContext).as("The application context should NOT have been 'dirtied'.").isSameAs(SpringExtensionContextCacheTests.dirtiedApplicationContext);
+    }
 
 }

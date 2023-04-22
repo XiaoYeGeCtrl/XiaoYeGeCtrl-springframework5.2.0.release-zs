@@ -22,29 +22,31 @@ package org.springframework.jmx;
  *
  * @author Rob Harrop
  * @author Juergen Hoeller
- * @since 1.2
  * @see org.springframework.jmx.support.JmxUtils#locateMBeanServer
+ * @since 1.2
  */
 @SuppressWarnings("serial")
 public class MBeanServerNotFoundException extends JmxException {
 
-	/**
-	 * Create a new {@code MBeanServerNotFoundException} with the
-	 * supplied error message.
-	 * @param msg the error message
-	 */
-	public MBeanServerNotFoundException(String msg) {
-		super(msg);
-	}
+    /**
+     * Create a new {@code MBeanServerNotFoundException} with the
+     * supplied error message.
+     *
+     * @param msg the error message
+     */
+    public MBeanServerNotFoundException(String msg) {
+        super(msg);
+    }
 
-	/**
-	 * Create a new {@code MBeanServerNotFoundException} with the
-	 * specified error message and root cause.
-	 * @param msg the error message
-	 * @param cause the root cause
-	 */
-	public MBeanServerNotFoundException(String msg, Throwable cause) {
-		super(msg, cause);
-	}
+    /**
+     * Create a new {@code MBeanServerNotFoundException} with the
+     * specified error message and root cause.
+     *
+     * @param msg   the error message
+     * @param cause the root cause
+     */
+    public MBeanServerNotFoundException(String msg, Throwable cause) {
+        super(msg, cause);
+    }
 
 }

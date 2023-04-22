@@ -26,9 +26,9 @@ import org.aspectj.lang.ProceedingJoinPoint;
  */
 public class MessengerScrambler {
 
-	public String scramble(ProceedingJoinPoint pjp) throws Throwable {
-		String message = (String) pjp.proceed();
-		return new StringBuffer(message).reverse().toString();
-	}
+    public String scramble(ProceedingJoinPoint pjp) throws Throwable {
+        String message = (String) pjp.proceed();
+        return new StringBuffer(message).reverse().toString();
+    }
 
 }

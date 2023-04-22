@@ -33,65 +33,65 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
  */
 public class ChannelRegistration {
 
-	@Nullable
-	private TaskExecutorRegistration registration;
+    private final List<ChannelInterceptor> interceptors = new ArrayList<>();
+    @Nullable
+    private TaskExecutorRegistration registration;
 
-	private final List<ChannelInterceptor> interceptors = new ArrayList<>();
+    /**
+     * Configure the thread pool backing this message channel.
+     */
+    public TaskExecutorRegistration taskExecutor() {
+        return taskExecutor(null);
+    }
 
+    /**
+     * Configure the thread pool backing this message channel using a custom
+     * ThreadPoolTaskExecutor.
+     *
+     * @param taskExecutor the executor to use (or {@code null} for a default executor)
+     */
+    public TaskExecutorRegistration taskExecutor(@Nullable ThreadPoolTaskExecutor taskExecutor) {
+        if (this.registration == null) {
+            this.registration = (taskExecutor != null ? new TaskExecutorRegistration(taskExecutor) :
+                    new TaskExecutorRegistration());
+        }
+        return this.registration;
+    }
 
-	/**
-	 * Configure the thread pool backing this message channel.
-	 */
-	public TaskExecutorRegistration taskExecutor() {
-		return taskExecutor(null);
-	}
+    /**
+     * Configure the given interceptors for this message channel,
+     * adding them to the channel's current list of interceptors.
+     *
+     * @since 4.3.12
+     */
+    public ChannelRegistration interceptors(ChannelInterceptor... interceptors) {
+        this.interceptors.addAll(Arrays.asList(interceptors));
+        return this;
+    }
 
-	/**
-	 * Configure the thread pool backing this message channel using a custom
-	 * ThreadPoolTaskExecutor.
-	 * @param taskExecutor the executor to use (or {@code null} for a default executor)
-	 */
-	public TaskExecutorRegistration taskExecutor(@Nullable ThreadPoolTaskExecutor taskExecutor) {
-		if (this.registration == null) {
-			this.registration = (taskExecutor != null ? new TaskExecutorRegistration(taskExecutor) :
-					new TaskExecutorRegistration());
-		}
-		return this.registration;
-	}
+    protected boolean hasTaskExecutor() {
+        return (this.registration != null);
+    }
 
-	/**
-	 * Configure the given interceptors for this message channel,
-	 * adding them to the channel's current list of interceptors.
-	 * @since 4.3.12
-	 */
-	public ChannelRegistration interceptors(ChannelInterceptor... interceptors) {
-		this.interceptors.addAll(Arrays.asList(interceptors));
-		return this;
-	}
+    protected boolean hasInterceptors() {
+        return !this.interceptors.isEmpty();
+    }
 
-	/**
-	 * Configure interceptors for the message channel.
-	 * @deprecated as of 4.3.12, in favor of {@link #interceptors(ChannelInterceptor...)}
-	 */
-	@Deprecated
-	public ChannelRegistration setInterceptors(@Nullable ChannelInterceptor... interceptors) {
-		if (interceptors != null) {
-			this.interceptors.addAll(Arrays.asList(interceptors));
-		}
-		return this;
-	}
+    protected List<ChannelInterceptor> getInterceptors() {
+        return this.interceptors;
+    }
 
-
-	protected boolean hasTaskExecutor() {
-		return (this.registration != null);
-	}
-
-	protected boolean hasInterceptors() {
-		return !this.interceptors.isEmpty();
-	}
-
-	protected List<ChannelInterceptor> getInterceptors() {
-		return this.interceptors;
-	}
+    /**
+     * Configure interceptors for the message channel.
+     *
+     * @deprecated as of 4.3.12, in favor of {@link #interceptors(ChannelInterceptor...)}
+     */
+    @Deprecated
+    public ChannelRegistration setInterceptors(@Nullable ChannelInterceptor... interceptors) {
+        if (interceptors != null) {
+            this.interceptors.addAll(Arrays.asList(interceptors));
+        }
+        return this;
+    }
 
 }

@@ -48,121 +48,121 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 public class StreamingResponseBodyReturnValueHandlerTests {
 
-	private StreamingResponseBodyReturnValueHandler handler;
+    private StreamingResponseBodyReturnValueHandler handler;
 
-	private ModelAndViewContainer mavContainer;
+    private ModelAndViewContainer mavContainer;
 
-	private NativeWebRequest webRequest;
+    private NativeWebRequest webRequest;
 
-	private MockHttpServletRequest request;
+    private MockHttpServletRequest request;
 
-	private MockHttpServletResponse response;
-
-
-	@BeforeEach
-	public void setup() throws Exception {
-		this.handler = new StreamingResponseBodyReturnValueHandler();
-		this.mavContainer = new ModelAndViewContainer();
-
-		this.request = new MockHttpServletRequest("GET", "/path");
-		this.response = new MockHttpServletResponse();
-		this.webRequest = new ServletWebRequest(this.request, this.response);
-
-		AsyncWebRequest asyncWebRequest = new StandardServletAsyncWebRequest(this.request, this.response);
-		WebAsyncUtils.getAsyncManager(this.webRequest).setAsyncWebRequest(asyncWebRequest);
-		this.request.setAsyncSupported(true);
-	}
+    private MockHttpServletResponse response;
 
 
-	@Test
-	public void supportsReturnType() throws Exception {
-		assertThat(this.handler.supportsReturnType(returnType(TestController.class, "handle"))).isTrue();
-		assertThat(this.handler.supportsReturnType(returnType(TestController.class, "handleResponseEntity"))).isTrue();
-		assertThat(this.handler.supportsReturnType(returnType(TestController.class, "handleResponseEntityString"))).isFalse();
-		assertThat(this.handler.supportsReturnType(returnType(TestController.class, "handleResponseEntityParameterized"))).isFalse();
-	}
+    @BeforeEach
+    public void setup() throws Exception {
+        this.handler = new StreamingResponseBodyReturnValueHandler();
+        this.mavContainer = new ModelAndViewContainer();
 
-	@Test
-	public void streamingResponseBody() throws Exception {
-		CountDownLatch latch = new CountDownLatch(1);
+        this.request = new MockHttpServletRequest("GET", "/path");
+        this.response = new MockHttpServletResponse();
+        this.webRequest = new ServletWebRequest(this.request, this.response);
 
-		MethodParameter returnType = returnType(TestController.class, "handle");
-		StreamingResponseBody streamingBody = outputStream -> {
-			outputStream.write("foo".getBytes(StandardCharsets.UTF_8));
-			latch.countDown();
-		};
-		this.handler.handleReturnValue(streamingBody, returnType, this.mavContainer, this.webRequest);
-
-		assertThat(this.request.isAsyncStarted()).isTrue();
-		assertThat(latch.await(5, TimeUnit.SECONDS)).isTrue();
-		assertThat(this.response.getContentAsString()).isEqualTo("foo");
-	}
+        AsyncWebRequest asyncWebRequest = new StandardServletAsyncWebRequest(this.request, this.response);
+        WebAsyncUtils.getAsyncManager(this.webRequest).setAsyncWebRequest(asyncWebRequest);
+        this.request.setAsyncSupported(true);
+    }
 
 
-	@Test
-	public void responseEntity() throws Exception {
-		CountDownLatch latch = new CountDownLatch(1);
+    @Test
+    public void supportsReturnType() throws Exception {
+        assertThat(this.handler.supportsReturnType(returnType(TestController.class, "handle"))).isTrue();
+        assertThat(this.handler.supportsReturnType(returnType(TestController.class, "handleResponseEntity"))).isTrue();
+        assertThat(this.handler.supportsReturnType(returnType(TestController.class, "handleResponseEntityString"))).isFalse();
+        assertThat(this.handler.supportsReturnType(returnType(TestController.class, "handleResponseEntityParameterized"))).isFalse();
+    }
 
-		MethodParameter returnType = returnType(TestController.class, "handleResponseEntity");
-		ResponseEntity<StreamingResponseBody> emitter = ResponseEntity.ok().header("foo", "bar")
-				.body(outputStream -> {
-					outputStream.write("foo".getBytes(StandardCharsets.UTF_8));
-					latch.countDown();
-				});
-		this.handler.handleReturnValue(emitter, returnType, this.mavContainer, this.webRequest);
+    @Test
+    public void streamingResponseBody() throws Exception {
+        CountDownLatch latch = new CountDownLatch(1);
 
-		assertThat(this.request.isAsyncStarted()).isTrue();
-		assertThat(this.response.getStatus()).isEqualTo(200);
-		assertThat(this.response.getHeader("foo")).isEqualTo("bar");
+        MethodParameter returnType = returnType(TestController.class, "handle");
+        StreamingResponseBody streamingBody = outputStream -> {
+            outputStream.write("foo".getBytes(StandardCharsets.UTF_8));
+            latch.countDown();
+        };
+        this.handler.handleReturnValue(streamingBody, returnType, this.mavContainer, this.webRequest);
 
-		assertThat(latch.await(5, TimeUnit.SECONDS)).isTrue();
-		assertThat(this.response.getContentAsString()).isEqualTo("foo");
-
-	}
-
-	@Test
-	public void responseEntityNoContent() throws Exception {
-		MethodParameter returnType = returnType(TestController.class, "handleResponseEntity");
-		ResponseEntity<?> emitter = ResponseEntity.noContent().build();
-		this.handler.handleReturnValue(emitter, returnType, this.mavContainer, this.webRequest);
-
-		assertThat(this.request.isAsyncStarted()).isFalse();
-		assertThat(this.response.getStatus()).isEqualTo(204);
-	}
-
-	@Test
-	public void responseEntityWithHeadersAndNoContent() throws Exception {
-		ResponseEntity<?> emitter = ResponseEntity.noContent().header("foo", "bar").build();
-		MethodParameter returnType = returnType(TestController.class, "handleResponseEntity");
-		this.handler.handleReturnValue(emitter, returnType, this.mavContainer, this.webRequest);
-
-		assertThat(this.response.getHeaders("foo")).isEqualTo(Collections.singletonList("bar"));
-	}
-
-	private MethodParameter returnType(Class<?> clazz, String methodName) throws NoSuchMethodException {
-		Method method = clazz.getDeclaredMethod(methodName);
-		return new MethodParameter(method, -1);
-	}
+        assertThat(this.request.isAsyncStarted()).isTrue();
+        assertThat(latch.await(5, TimeUnit.SECONDS)).isTrue();
+        assertThat(this.response.getContentAsString()).isEqualTo("foo");
+    }
 
 
-	@SuppressWarnings("unused")
-	private static class TestController {
+    @Test
+    public void responseEntity() throws Exception {
+        CountDownLatch latch = new CountDownLatch(1);
 
-		private StreamingResponseBody handle() {
-			return null;
-		}
+        MethodParameter returnType = returnType(TestController.class, "handleResponseEntity");
+        ResponseEntity<StreamingResponseBody> emitter = ResponseEntity.ok().header("foo", "bar")
+                .body(outputStream -> {
+                    outputStream.write("foo".getBytes(StandardCharsets.UTF_8));
+                    latch.countDown();
+                });
+        this.handler.handleReturnValue(emitter, returnType, this.mavContainer, this.webRequest);
 
-		private ResponseEntity<StreamingResponseBody> handleResponseEntity() {
-			return null;
-		}
+        assertThat(this.request.isAsyncStarted()).isTrue();
+        assertThat(this.response.getStatus()).isEqualTo(200);
+        assertThat(this.response.getHeader("foo")).isEqualTo("bar");
 
-		private ResponseEntity<String> handleResponseEntityString() {
-			return null;
-		}
+        assertThat(latch.await(5, TimeUnit.SECONDS)).isTrue();
+        assertThat(this.response.getContentAsString()).isEqualTo("foo");
 
-		private ResponseEntity<AtomicReference<String>> handleResponseEntityParameterized() {
-			return null;
-		}
-	}
+    }
+
+    @Test
+    public void responseEntityNoContent() throws Exception {
+        MethodParameter returnType = returnType(TestController.class, "handleResponseEntity");
+        ResponseEntity<?> emitter = ResponseEntity.noContent().build();
+        this.handler.handleReturnValue(emitter, returnType, this.mavContainer, this.webRequest);
+
+        assertThat(this.request.isAsyncStarted()).isFalse();
+        assertThat(this.response.getStatus()).isEqualTo(204);
+    }
+
+    @Test
+    public void responseEntityWithHeadersAndNoContent() throws Exception {
+        ResponseEntity<?> emitter = ResponseEntity.noContent().header("foo", "bar").build();
+        MethodParameter returnType = returnType(TestController.class, "handleResponseEntity");
+        this.handler.handleReturnValue(emitter, returnType, this.mavContainer, this.webRequest);
+
+        assertThat(this.response.getHeaders("foo")).isEqualTo(Collections.singletonList("bar"));
+    }
+
+    private MethodParameter returnType(Class<?> clazz, String methodName) throws NoSuchMethodException {
+        Method method = clazz.getDeclaredMethod(methodName);
+        return new MethodParameter(method, -1);
+    }
+
+
+    @SuppressWarnings("unused")
+    private static class TestController {
+
+        private StreamingResponseBody handle() {
+            return null;
+        }
+
+        private ResponseEntity<StreamingResponseBody> handleResponseEntity() {
+            return null;
+        }
+
+        private ResponseEntity<String> handleResponseEntityString() {
+            return null;
+        }
+
+        private ResponseEntity<AtomicReference<String>> handleResponseEntityParameterized() {
+            return null;
+        }
+    }
 
 }

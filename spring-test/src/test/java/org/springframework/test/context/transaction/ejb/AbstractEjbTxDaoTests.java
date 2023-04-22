@@ -47,44 +47,44 @@ import static org.assertj.core.api.Assertions.assertThat;
 @TestMethodOrder(MethodOrderer.Alphanumeric.class)
 abstract class AbstractEjbTxDaoTests {
 
-	protected static final String TEST_NAME = "test-name";
+    protected static final String TEST_NAME = "test-name";
 
-	@EJB
-	protected TestEntityDao dao;
+    @EJB
+    protected TestEntityDao dao;
 
-	@PersistenceContext
-	protected EntityManager em;
+    @PersistenceContext
+    protected EntityManager em;
 
 
-	@Test
-	void test1InitialState() {
-		int count = dao.getCount(TEST_NAME);
-		assertThat(count).as("New TestEntity should have count=0.").isEqualTo(0);
-	}
+    @Test
+    void test1InitialState() {
+        int count = dao.getCount(TEST_NAME);
+        assertThat(count).as("New TestEntity should have count=0.").isEqualTo(0);
+    }
 
-	@Test
-	void test2IncrementCount1() {
-		int count = dao.incrementCount(TEST_NAME);
-		assertThat(count).as("Expected count=1 after first increment.").isEqualTo(1);
-	}
+    @Test
+    void test2IncrementCount1() {
+        int count = dao.incrementCount(TEST_NAME);
+        assertThat(count).as("Expected count=1 after first increment.").isEqualTo(1);
+    }
 
-	/**
-	 * The default implementation of this method assumes that the transaction
-	 * for {@link #test2IncrementCount1()} was committed. Therefore, it is
-	 * expected that the previous increment has been persisted in the database.
-	 */
-	@Test
-	void test3IncrementCount2() {
-		int count = dao.getCount(TEST_NAME);
-		assertThat(count).as("Expected count=1 after test2IncrementCount1().").isEqualTo(1);
+    /**
+     * The default implementation of this method assumes that the transaction
+     * for {@link #test2IncrementCount1()} was committed. Therefore, it is
+     * expected that the previous increment has been persisted in the database.
+     */
+    @Test
+    void test3IncrementCount2() {
+        int count = dao.getCount(TEST_NAME);
+        assertThat(count).as("Expected count=1 after test2IncrementCount1().").isEqualTo(1);
 
-		count = dao.incrementCount(TEST_NAME);
-		assertThat(count).as("Expected count=2 now.").isEqualTo(2);
-	}
+        count = dao.incrementCount(TEST_NAME);
+        assertThat(count).as("Expected count=2 now.").isEqualTo(2);
+    }
 
-	@AfterEach
-	void synchronizePersistenceContext() {
-		em.flush();
-	}
+    @AfterEach
+    void synchronizePersistenceContext() {
+        em.flush();
+    }
 
 }

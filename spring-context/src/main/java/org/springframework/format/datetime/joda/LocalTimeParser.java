@@ -33,21 +33,22 @@ import org.springframework.format.Parser;
  */
 public final class LocalTimeParser implements Parser<LocalTime> {
 
-	private final DateTimeFormatter formatter;
+    private final DateTimeFormatter formatter;
 
 
-	/**
-	 * Create a new DateTimeParser.
-	 * @param formatter the Joda DateTimeFormatter instance
-	 */
-	public LocalTimeParser(DateTimeFormatter formatter) {
-		this.formatter = formatter;
-	}
+    /**
+     * Create a new DateTimeParser.
+     *
+     * @param formatter the Joda DateTimeFormatter instance
+     */
+    public LocalTimeParser(DateTimeFormatter formatter) {
+        this.formatter = formatter;
+    }
 
 
-	@Override
-	public LocalTime parse(String text, Locale locale) throws ParseException {
-		return JodaTimeContextHolder.getFormatter(this.formatter, locale).parseLocalTime(text);
-	}
+    @Override
+    public LocalTime parse(String text, Locale locale) throws ParseException {
+        return JodaTimeContextHolder.getFormatter(this.formatter, locale).parseLocalTime(text);
+    }
 
 }

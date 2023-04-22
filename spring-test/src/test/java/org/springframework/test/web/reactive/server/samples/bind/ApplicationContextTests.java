@@ -36,46 +36,46 @@ import org.springframework.web.reactive.config.EnableWebFlux;
  */
 public class ApplicationContextTests {
 
-	private WebTestClient client;
+    private WebTestClient client;
 
 
-	@BeforeEach
-	public void setUp() throws Exception {
+    @BeforeEach
+    public void setUp() throws Exception {
 
-		AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext();
-		context.register(WebConfig.class);
-		context.refresh();
+        AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext();
+        context.register(WebConfig.class);
+        context.refresh();
 
-		this.client = WebTestClient.bindToApplicationContext(context).build();
-	}
+        this.client = WebTestClient.bindToApplicationContext(context).build();
+    }
 
-	@Test
-	public void test() throws Exception {
-		this.client.get().uri("/test")
-				.exchange()
-				.expectStatus().isOk()
-				.expectBody(String.class).isEqualTo("It works!");
-	}
+    @Test
+    public void test() throws Exception {
+        this.client.get().uri("/test")
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody(String.class).isEqualTo("It works!");
+    }
 
 
-	@Configuration
-	@EnableWebFlux
-	static class WebConfig {
+    @Configuration
+    @EnableWebFlux
+    static class WebConfig {
 
-		@Bean
-		public TestController controller() {
-			return new TestController();
-		}
+        @Bean
+        public TestController controller() {
+            return new TestController();
+        }
 
-	}
+    }
 
-	@RestController
-	static class TestController {
+    @RestController
+    static class TestController {
 
-		@GetMapping("/test")
-		public String handle() {
-			return "It works!";
-		}
-	}
+        @GetMapping("/test")
+        public String handle() {
+            return "It works!";
+        }
+    }
 
 }

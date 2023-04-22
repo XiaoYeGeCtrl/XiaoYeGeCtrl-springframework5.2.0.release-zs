@@ -52,400 +52,408 @@ import org.springframework.util.StringUtils;
  * @author Rob Harrop
  * @author Juergen Hoeller
  * @author Jennifer Hickey
- * @since 1.2
  * @see #setAttributeSource
  * @see org.springframework.jmx.export.annotation.AnnotationJmxAttributeSource
+ * @since 1.2
  */
 public class MetadataMBeanInfoAssembler extends AbstractReflectiveMBeanInfoAssembler
-		implements AutodetectCapableMBeanInfoAssembler, InitializingBean {
+        implements AutodetectCapableMBeanInfoAssembler, InitializingBean {
 
-	@Nullable
-	private JmxAttributeSource attributeSource;
-
-
-	/**
-	 * Create a new {@code MetadataMBeanInfoAssembler} which needs to be
-	 * configured through the {@link #setAttributeSource} method.
-	 */
-	public MetadataMBeanInfoAssembler() {
-	}
-
-	/**
-	 * Create a new {@code MetadataMBeanInfoAssembler} for the given
-	 * {@code JmxAttributeSource}.
-	 * @param attributeSource the JmxAttributeSource to use
-	 */
-	public MetadataMBeanInfoAssembler(JmxAttributeSource attributeSource) {
-		Assert.notNull(attributeSource, "JmxAttributeSource must not be null");
-		this.attributeSource = attributeSource;
-	}
+    @Nullable
+    private JmxAttributeSource attributeSource;
 
 
-	/**
-	 * Set the {@code JmxAttributeSource} implementation to use for
-	 * reading the metadata from the bean class.
-	 * @see org.springframework.jmx.export.annotation.AnnotationJmxAttributeSource
-	 */
-	public void setAttributeSource(JmxAttributeSource attributeSource) {
-		Assert.notNull(attributeSource, "JmxAttributeSource must not be null");
-		this.attributeSource = attributeSource;
-	}
+    /**
+     * Create a new {@code MetadataMBeanInfoAssembler} which needs to be
+     * configured through the {@link #setAttributeSource} method.
+     */
+    public MetadataMBeanInfoAssembler() {
+    }
 
-	@Override
-	public void afterPropertiesSet() {
-		if (this.attributeSource == null) {
-			throw new IllegalArgumentException("Property 'attributeSource' is required");
-		}
-	}
-
-	private JmxAttributeSource obtainAttributeSource() {
-		Assert.state(this.attributeSource != null, "No JmxAttributeSource set");
-		return this.attributeSource;
-	}
+    /**
+     * Create a new {@code MetadataMBeanInfoAssembler} for the given
+     * {@code JmxAttributeSource}.
+     *
+     * @param attributeSource the JmxAttributeSource to use
+     */
+    public MetadataMBeanInfoAssembler(JmxAttributeSource attributeSource) {
+        Assert.notNull(attributeSource, "JmxAttributeSource must not be null");
+        this.attributeSource = attributeSource;
+    }
 
 
-	/**
-	 * Throws an IllegalArgumentException if it encounters a JDK dynamic proxy.
-	 * Metadata can only be read from target classes and CGLIB proxies!
-	 */
-	@Override
-	protected void checkManagedBean(Object managedBean) throws IllegalArgumentException {
-		if (AopUtils.isJdkDynamicProxy(managedBean)) {
-			throw new IllegalArgumentException(
-					"MetadataMBeanInfoAssembler does not support JDK dynamic proxies - " +
-					"export the target beans directly or use CGLIB proxies instead");
-		}
-	}
+    /**
+     * Set the {@code JmxAttributeSource} implementation to use for
+     * reading the metadata from the bean class.
+     *
+     * @see org.springframework.jmx.export.annotation.AnnotationJmxAttributeSource
+     */
+    public void setAttributeSource(JmxAttributeSource attributeSource) {
+        Assert.notNull(attributeSource, "JmxAttributeSource must not be null");
+        this.attributeSource = attributeSource;
+    }
 
-	/**
-	 * Used for autodetection of beans. Checks to see if the bean's class has a
-	 * {@code ManagedResource} attribute. If so it will add it list of included beans.
-	 * @param beanClass the class of the bean
-	 * @param beanName the name of the bean in the bean factory
-	 */
-	@Override
-	public boolean includeBean(Class<?> beanClass, String beanName) {
-		return (obtainAttributeSource().getManagedResource(getClassToExpose(beanClass)) != null);
-	}
+    @Override
+    public void afterPropertiesSet() {
+        if (this.attributeSource == null) {
+            throw new IllegalArgumentException("Property 'attributeSource' is required");
+        }
+    }
 
-	/**
-	 * Vote on the inclusion of an attribute accessor.
-	 * @param method the accessor method
-	 * @param beanKey the key associated with the MBean in the beans map
-	 * @return whether the method has the appropriate metadata
-	 */
-	@Override
-	protected boolean includeReadAttribute(Method method, String beanKey) {
-		return hasManagedAttribute(method) || hasManagedMetric(method);
-	}
-
-	/**
-	 * Votes on the inclusion of an attribute mutator.
-	 * @param method the mutator method
-	 * @param beanKey the key associated with the MBean in the beans map
-	 * @return whether the method has the appropriate metadata
-	 */
-	@Override
-	protected boolean includeWriteAttribute(Method method, String beanKey) {
-		return hasManagedAttribute(method);
-	}
-
-	/**
-	 * Votes on the inclusion of an operation.
-	 * @param method the operation method
-	 * @param beanKey the key associated with the MBean in the beans map
-	 * @return whether the method has the appropriate metadata
-	 */
-	@Override
-	protected boolean includeOperation(Method method, String beanKey) {
-		PropertyDescriptor pd = BeanUtils.findPropertyForMethod(method);
-		return (pd != null && hasManagedAttribute(method)) || hasManagedOperation(method);
-	}
-
-	/**
-	 * Checks to see if the given Method has the {@code ManagedAttribute} attribute.
-	 */
-	private boolean hasManagedAttribute(Method method) {
-		return (obtainAttributeSource().getManagedAttribute(method) != null);
-	}
-
-	/**
-	 * Checks to see if the given Method has the {@code ManagedMetric} attribute.
-	 */
-	private boolean hasManagedMetric(Method method) {
-		return (obtainAttributeSource().getManagedMetric(method) != null);
-	}
-
-	/**
-	 * Checks to see if the given Method has the {@code ManagedOperation} attribute.
-	 * @param method the method to check
-	 */
-	private boolean hasManagedOperation(Method method) {
-		return (obtainAttributeSource().getManagedOperation(method) != null);
-	}
+    private JmxAttributeSource obtainAttributeSource() {
+        Assert.state(this.attributeSource != null, "No JmxAttributeSource set");
+        return this.attributeSource;
+    }
 
 
-	/**
-	 * Reads managed resource description from the source level metadata.
-	 * Returns an empty {@code String} if no description can be found.
-	 */
-	@Override
-	protected String getDescription(Object managedBean, String beanKey) {
-		ManagedResource mr = obtainAttributeSource().getManagedResource(getClassToExpose(managedBean));
-		return (mr != null ? mr.getDescription() : "");
-	}
+    /**
+     * Throws an IllegalArgumentException if it encounters a JDK dynamic proxy.
+     * Metadata can only be read from target classes and CGLIB proxies!
+     */
+    @Override
+    protected void checkManagedBean(Object managedBean) throws IllegalArgumentException {
+        if (AopUtils.isJdkDynamicProxy(managedBean)) {
+            throw new IllegalArgumentException(
+                    "MetadataMBeanInfoAssembler does not support JDK dynamic proxies - " +
+                            "export the target beans directly or use CGLIB proxies instead");
+        }
+    }
 
-	/**
-	 * Creates a description for the attribute corresponding to this property
-	 * descriptor. Attempts to create the description using metadata from either
-	 * the getter or setter attributes, otherwise uses the property name.
-	 */
-	@Override
-	protected String getAttributeDescription(PropertyDescriptor propertyDescriptor, String beanKey) {
-		Method readMethod = propertyDescriptor.getReadMethod();
-		Method writeMethod = propertyDescriptor.getWriteMethod();
+    /**
+     * Used for autodetection of beans. Checks to see if the bean's class has a
+     * {@code ManagedResource} attribute. If so it will add it list of included beans.
+     *
+     * @param beanClass the class of the bean
+     * @param beanName  the name of the bean in the bean factory
+     */
+    @Override
+    public boolean includeBean(Class<?> beanClass, String beanName) {
+        return (obtainAttributeSource().getManagedResource(getClassToExpose(beanClass)) != null);
+    }
 
-		ManagedAttribute getter =
-				(readMethod != null ? obtainAttributeSource().getManagedAttribute(readMethod) : null);
-		ManagedAttribute setter =
-				(writeMethod != null ? obtainAttributeSource().getManagedAttribute(writeMethod) : null);
+    /**
+     * Vote on the inclusion of an attribute accessor.
+     *
+     * @param method  the accessor method
+     * @param beanKey the key associated with the MBean in the beans map
+     * @return whether the method has the appropriate metadata
+     */
+    @Override
+    protected boolean includeReadAttribute(Method method, String beanKey) {
+        return hasManagedAttribute(method) || hasManagedMetric(method);
+    }
 
-		if (getter != null && StringUtils.hasText(getter.getDescription())) {
-			return getter.getDescription();
-		}
-		else if (setter != null && StringUtils.hasText(setter.getDescription())) {
-			return setter.getDescription();
-		}
+    /**
+     * Votes on the inclusion of an attribute mutator.
+     *
+     * @param method  the mutator method
+     * @param beanKey the key associated with the MBean in the beans map
+     * @return whether the method has the appropriate metadata
+     */
+    @Override
+    protected boolean includeWriteAttribute(Method method, String beanKey) {
+        return hasManagedAttribute(method);
+    }
 
-		ManagedMetric metric = (readMethod != null ? obtainAttributeSource().getManagedMetric(readMethod) : null);
-		if (metric != null && StringUtils.hasText(metric.getDescription())) {
-			return metric.getDescription();
-		}
+    /**
+     * Votes on the inclusion of an operation.
+     *
+     * @param method  the operation method
+     * @param beanKey the key associated with the MBean in the beans map
+     * @return whether the method has the appropriate metadata
+     */
+    @Override
+    protected boolean includeOperation(Method method, String beanKey) {
+        PropertyDescriptor pd = BeanUtils.findPropertyForMethod(method);
+        return (pd != null && hasManagedAttribute(method)) || hasManagedOperation(method);
+    }
 
-		return propertyDescriptor.getDisplayName();
-	}
+    /**
+     * Checks to see if the given Method has the {@code ManagedAttribute} attribute.
+     */
+    private boolean hasManagedAttribute(Method method) {
+        return (obtainAttributeSource().getManagedAttribute(method) != null);
+    }
 
-	/**
-	 * Retrieves the description for the supplied {@code Method} from the
-	 * metadata. Uses the method name is no description is present in the metadata.
-	 */
-	@Override
-	protected String getOperationDescription(Method method, String beanKey) {
-		PropertyDescriptor pd = BeanUtils.findPropertyForMethod(method);
-		if (pd != null) {
-			ManagedAttribute ma = obtainAttributeSource().getManagedAttribute(method);
-			if (ma != null && StringUtils.hasText(ma.getDescription())) {
-				return ma.getDescription();
-			}
-			ManagedMetric metric = obtainAttributeSource().getManagedMetric(method);
-			if (metric != null && StringUtils.hasText(metric.getDescription())) {
-				return metric.getDescription();
-			}
-			return method.getName();
-		}
-		else {
-			ManagedOperation mo = obtainAttributeSource().getManagedOperation(method);
-			if (mo != null && StringUtils.hasText(mo.getDescription())) {
-				return mo.getDescription();
-			}
-			return method.getName();
-		}
-	}
+    /**
+     * Checks to see if the given Method has the {@code ManagedMetric} attribute.
+     */
+    private boolean hasManagedMetric(Method method) {
+        return (obtainAttributeSource().getManagedMetric(method) != null);
+    }
 
-	/**
-	 * Reads {@code MBeanParameterInfo} from the {@code ManagedOperationParameter}
-	 * attributes attached to a method. Returns an empty array of {@code MBeanParameterInfo}
-	 * if no attributes are found.
-	 */
-	@Override
-	protected MBeanParameterInfo[] getOperationParameters(Method method, String beanKey) {
-		ManagedOperationParameter[] params = obtainAttributeSource().getManagedOperationParameters(method);
-		if (ObjectUtils.isEmpty(params)) {
-			return super.getOperationParameters(method, beanKey);
-		}
+    /**
+     * Checks to see if the given Method has the {@code ManagedOperation} attribute.
+     *
+     * @param method the method to check
+     */
+    private boolean hasManagedOperation(Method method) {
+        return (obtainAttributeSource().getManagedOperation(method) != null);
+    }
 
-		MBeanParameterInfo[] parameterInfo = new MBeanParameterInfo[params.length];
-		Class<?>[] methodParameters = method.getParameterTypes();
-		for (int i = 0; i < params.length; i++) {
-			ManagedOperationParameter param = params[i];
-			parameterInfo[i] =
-					new MBeanParameterInfo(param.getName(), methodParameters[i].getName(), param.getDescription());
-		}
-		return parameterInfo;
-	}
 
-	/**
-	 * Reads the {@link ManagedNotification} metadata from the {@code Class} of the managed resource
-	 * and generates and returns the corresponding {@link ModelMBeanNotificationInfo} metadata.
-	 */
-	@Override
-	protected ModelMBeanNotificationInfo[] getNotificationInfo(Object managedBean, String beanKey) {
-		ManagedNotification[] notificationAttributes =
-				obtainAttributeSource().getManagedNotifications(getClassToExpose(managedBean));
-		ModelMBeanNotificationInfo[] notificationInfos =
-				new ModelMBeanNotificationInfo[notificationAttributes.length];
+    /**
+     * Reads managed resource description from the source level metadata.
+     * Returns an empty {@code String} if no description can be found.
+     */
+    @Override
+    protected String getDescription(Object managedBean, String beanKey) {
+        ManagedResource mr = obtainAttributeSource().getManagedResource(getClassToExpose(managedBean));
+        return (mr != null ? mr.getDescription() : "");
+    }
 
-		for (int i = 0; i < notificationAttributes.length; i++) {
-			ManagedNotification attribute = notificationAttributes[i];
-			notificationInfos[i] = JmxMetadataUtils.convertToModelMBeanNotificationInfo(attribute);
-		}
+    /**
+     * Creates a description for the attribute corresponding to this property
+     * descriptor. Attempts to create the description using metadata from either
+     * the getter or setter attributes, otherwise uses the property name.
+     */
+    @Override
+    protected String getAttributeDescription(PropertyDescriptor propertyDescriptor, String beanKey) {
+        Method readMethod = propertyDescriptor.getReadMethod();
+        Method writeMethod = propertyDescriptor.getWriteMethod();
 
-		return notificationInfos;
-	}
+        ManagedAttribute getter =
+                (readMethod != null ? obtainAttributeSource().getManagedAttribute(readMethod) : null);
+        ManagedAttribute setter =
+                (writeMethod != null ? obtainAttributeSource().getManagedAttribute(writeMethod) : null);
 
-	/**
-	 * Adds descriptor fields from the {@code ManagedResource} attribute
-	 * to the MBean descriptor. Specifically, adds the {@code currencyTimeLimit},
-	 * {@code persistPolicy}, {@code persistPeriod}, {@code persistLocation}
-	 * and {@code persistName} descriptor fields if they are present in the metadata.
-	 */
-	@Override
-	protected void populateMBeanDescriptor(Descriptor desc, Object managedBean, String beanKey) {
-		ManagedResource mr = obtainAttributeSource().getManagedResource(getClassToExpose(managedBean));
-		if (mr == null) {
-			throw new InvalidMetadataException(
-					"No ManagedResource attribute found for class: " + getClassToExpose(managedBean));
-		}
+        if (getter != null && StringUtils.hasText(getter.getDescription())) {
+            return getter.getDescription();
+        } else if (setter != null && StringUtils.hasText(setter.getDescription())) {
+            return setter.getDescription();
+        }
 
-		applyCurrencyTimeLimit(desc, mr.getCurrencyTimeLimit());
+        ManagedMetric metric = (readMethod != null ? obtainAttributeSource().getManagedMetric(readMethod) : null);
+        if (metric != null && StringUtils.hasText(metric.getDescription())) {
+            return metric.getDescription();
+        }
 
-		if (mr.isLog()) {
-			desc.setField(FIELD_LOG, "true");
-		}
-		if (StringUtils.hasLength(mr.getLogFile())) {
-			desc.setField(FIELD_LOG_FILE, mr.getLogFile());
-		}
+        return propertyDescriptor.getDisplayName();
+    }
 
-		if (StringUtils.hasLength(mr.getPersistPolicy())) {
-			desc.setField(FIELD_PERSIST_POLICY, mr.getPersistPolicy());
-		}
-		if (mr.getPersistPeriod() >= 0) {
-			desc.setField(FIELD_PERSIST_PERIOD, Integer.toString(mr.getPersistPeriod()));
-		}
-		if (StringUtils.hasLength(mr.getPersistName())) {
-			desc.setField(FIELD_PERSIST_NAME, mr.getPersistName());
-		}
-		if (StringUtils.hasLength(mr.getPersistLocation())) {
-			desc.setField(FIELD_PERSIST_LOCATION, mr.getPersistLocation());
-		}
-	}
+    /**
+     * Retrieves the description for the supplied {@code Method} from the
+     * metadata. Uses the method name is no description is present in the metadata.
+     */
+    @Override
+    protected String getOperationDescription(Method method, String beanKey) {
+        PropertyDescriptor pd = BeanUtils.findPropertyForMethod(method);
+        if (pd != null) {
+            ManagedAttribute ma = obtainAttributeSource().getManagedAttribute(method);
+            if (ma != null && StringUtils.hasText(ma.getDescription())) {
+                return ma.getDescription();
+            }
+            ManagedMetric metric = obtainAttributeSource().getManagedMetric(method);
+            if (metric != null && StringUtils.hasText(metric.getDescription())) {
+                return metric.getDescription();
+            }
+            return method.getName();
+        } else {
+            ManagedOperation mo = obtainAttributeSource().getManagedOperation(method);
+            if (mo != null && StringUtils.hasText(mo.getDescription())) {
+                return mo.getDescription();
+            }
+            return method.getName();
+        }
+    }
 
-	/**
-	 * Adds descriptor fields from the {@code ManagedAttribute} attribute or the {@code ManagedMetric} attribute
-	 * to the attribute descriptor.
-	 */
-	@Override
-	protected void populateAttributeDescriptor(
-			Descriptor desc, @Nullable Method getter, @Nullable Method setter, String beanKey) {
+    /**
+     * Reads {@code MBeanParameterInfo} from the {@code ManagedOperationParameter}
+     * attributes attached to a method. Returns an empty array of {@code MBeanParameterInfo}
+     * if no attributes are found.
+     */
+    @Override
+    protected MBeanParameterInfo[] getOperationParameters(Method method, String beanKey) {
+        ManagedOperationParameter[] params = obtainAttributeSource().getManagedOperationParameters(method);
+        if (ObjectUtils.isEmpty(params)) {
+            return super.getOperationParameters(method, beanKey);
+        }
 
-		if (getter != null) {
-			ManagedMetric metric = obtainAttributeSource().getManagedMetric(getter);
-			if (metric != null) {
-				populateMetricDescriptor(desc, metric);
-				return;
-			}
-		}
+        MBeanParameterInfo[] parameterInfo = new MBeanParameterInfo[params.length];
+        Class<?>[] methodParameters = method.getParameterTypes();
+        for (int i = 0; i < params.length; i++) {
+            ManagedOperationParameter param = params[i];
+            parameterInfo[i] =
+                    new MBeanParameterInfo(param.getName(), methodParameters[i].getName(), param.getDescription());
+        }
+        return parameterInfo;
+    }
 
-		ManagedAttribute gma = (getter != null ? obtainAttributeSource().getManagedAttribute(getter) : null);
-		ManagedAttribute sma = (setter != null ? obtainAttributeSource().getManagedAttribute(setter) : null);
-		populateAttributeDescriptor(desc,
-				(gma != null ? gma : ManagedAttribute.EMPTY),
-				(sma != null ? sma : ManagedAttribute.EMPTY));
-	}
+    /**
+     * Reads the {@link ManagedNotification} metadata from the {@code Class} of the managed resource
+     * and generates and returns the corresponding {@link ModelMBeanNotificationInfo} metadata.
+     */
+    @Override
+    protected ModelMBeanNotificationInfo[] getNotificationInfo(Object managedBean, String beanKey) {
+        ManagedNotification[] notificationAttributes =
+                obtainAttributeSource().getManagedNotifications(getClassToExpose(managedBean));
+        ModelMBeanNotificationInfo[] notificationInfos =
+                new ModelMBeanNotificationInfo[notificationAttributes.length];
 
-	private void populateAttributeDescriptor(Descriptor desc, ManagedAttribute gma, ManagedAttribute sma) {
-		applyCurrencyTimeLimit(desc, resolveIntDescriptor(gma.getCurrencyTimeLimit(), sma.getCurrencyTimeLimit()));
+        for (int i = 0; i < notificationAttributes.length; i++) {
+            ManagedNotification attribute = notificationAttributes[i];
+            notificationInfos[i] = JmxMetadataUtils.convertToModelMBeanNotificationInfo(attribute);
+        }
 
-		Object defaultValue = resolveObjectDescriptor(gma.getDefaultValue(), sma.getDefaultValue());
-		desc.setField(FIELD_DEFAULT, defaultValue);
+        return notificationInfos;
+    }
 
-		String persistPolicy = resolveStringDescriptor(gma.getPersistPolicy(), sma.getPersistPolicy());
-		if (StringUtils.hasLength(persistPolicy)) {
-			desc.setField(FIELD_PERSIST_POLICY, persistPolicy);
-		}
-		int persistPeriod = resolveIntDescriptor(gma.getPersistPeriod(), sma.getPersistPeriod());
-		if (persistPeriod >= 0) {
-			desc.setField(FIELD_PERSIST_PERIOD, Integer.toString(persistPeriod));
-		}
-	}
+    /**
+     * Adds descriptor fields from the {@code ManagedResource} attribute
+     * to the MBean descriptor. Specifically, adds the {@code currencyTimeLimit},
+     * {@code persistPolicy}, {@code persistPeriod}, {@code persistLocation}
+     * and {@code persistName} descriptor fields if they are present in the metadata.
+     */
+    @Override
+    protected void populateMBeanDescriptor(Descriptor desc, Object managedBean, String beanKey) {
+        ManagedResource mr = obtainAttributeSource().getManagedResource(getClassToExpose(managedBean));
+        if (mr == null) {
+            throw new InvalidMetadataException(
+                    "No ManagedResource attribute found for class: " + getClassToExpose(managedBean));
+        }
 
-	private void populateMetricDescriptor(Descriptor desc, ManagedMetric metric) {
-		applyCurrencyTimeLimit(desc, metric.getCurrencyTimeLimit());
+        applyCurrencyTimeLimit(desc, mr.getCurrencyTimeLimit());
 
-		if (StringUtils.hasLength(metric.getPersistPolicy())) {
-			desc.setField(FIELD_PERSIST_POLICY, metric.getPersistPolicy());
-		}
-		if (metric.getPersistPeriod() >= 0) {
-			desc.setField(FIELD_PERSIST_PERIOD, Integer.toString(metric.getPersistPeriod()));
-		}
+        if (mr.isLog()) {
+            desc.setField(FIELD_LOG, "true");
+        }
+        if (StringUtils.hasLength(mr.getLogFile())) {
+            desc.setField(FIELD_LOG_FILE, mr.getLogFile());
+        }
 
-		if (StringUtils.hasLength(metric.getDisplayName())) {
-			desc.setField(FIELD_DISPLAY_NAME, metric.getDisplayName());
-		}
+        if (StringUtils.hasLength(mr.getPersistPolicy())) {
+            desc.setField(FIELD_PERSIST_POLICY, mr.getPersistPolicy());
+        }
+        if (mr.getPersistPeriod() >= 0) {
+            desc.setField(FIELD_PERSIST_PERIOD, Integer.toString(mr.getPersistPeriod()));
+        }
+        if (StringUtils.hasLength(mr.getPersistName())) {
+            desc.setField(FIELD_PERSIST_NAME, mr.getPersistName());
+        }
+        if (StringUtils.hasLength(mr.getPersistLocation())) {
+            desc.setField(FIELD_PERSIST_LOCATION, mr.getPersistLocation());
+        }
+    }
 
-		if (StringUtils.hasLength(metric.getUnit())) {
-			desc.setField(FIELD_UNITS, metric.getUnit());
-		}
+    /**
+     * Adds descriptor fields from the {@code ManagedAttribute} attribute or the {@code ManagedMetric} attribute
+     * to the attribute descriptor.
+     */
+    @Override
+    protected void populateAttributeDescriptor(
+            Descriptor desc, @Nullable Method getter, @Nullable Method setter, String beanKey) {
 
-		if (StringUtils.hasLength(metric.getCategory())) {
-			desc.setField(FIELD_METRIC_CATEGORY, metric.getCategory());
-		}
+        if (getter != null) {
+            ManagedMetric metric = obtainAttributeSource().getManagedMetric(getter);
+            if (metric != null) {
+                populateMetricDescriptor(desc, metric);
+                return;
+            }
+        }
 
-		desc.setField(FIELD_METRIC_TYPE, metric.getMetricType().toString());
-	}
+        ManagedAttribute gma = (getter != null ? obtainAttributeSource().getManagedAttribute(getter) : null);
+        ManagedAttribute sma = (setter != null ? obtainAttributeSource().getManagedAttribute(setter) : null);
+        populateAttributeDescriptor(desc,
+                (gma != null ? gma : ManagedAttribute.EMPTY),
+                (sma != null ? sma : ManagedAttribute.EMPTY));
+    }
 
-	/**
-	 * Adds descriptor fields from the {@code ManagedAttribute} attribute
-	 * to the attribute descriptor. Specifically, adds the {@code currencyTimeLimit}
-	 * descriptor field if it is present in the metadata.
-	 */
-	@Override
-	protected void populateOperationDescriptor(Descriptor desc, Method method, String beanKey) {
-		ManagedOperation mo = obtainAttributeSource().getManagedOperation(method);
-		if (mo != null) {
-			applyCurrencyTimeLimit(desc, mo.getCurrencyTimeLimit());
-		}
-	}
+    private void populateAttributeDescriptor(Descriptor desc, ManagedAttribute gma, ManagedAttribute sma) {
+        applyCurrencyTimeLimit(desc, resolveIntDescriptor(gma.getCurrencyTimeLimit(), sma.getCurrencyTimeLimit()));
 
-	/**
-	 * Determines which of two {@code int} values should be used as the value
-	 * for an attribute descriptor. In general, only the getter or the setter will
-	 * be have a non-negative value so we use that value. In the event that both values
-	 * are non-negative, we use the greater of the two. This method can be used to
-	 * resolve any {@code int} valued descriptor where there are two possible values.
-	 * @param getter the int value associated with the getter for this attribute
-	 * @param setter the int associated with the setter for this attribute
-	 */
-	private int resolveIntDescriptor(int getter, int setter) {
-		return (getter >= setter ? getter : setter);
-	}
+        Object defaultValue = resolveObjectDescriptor(gma.getDefaultValue(), sma.getDefaultValue());
+        desc.setField(FIELD_DEFAULT, defaultValue);
 
-	/**
-	 * Locates the value of a descriptor based on values attached
-	 * to both the getter and setter methods. If both have values
-	 * supplied then the value attached to the getter is preferred.
-	 * @param getter the Object value associated with the get method
-	 * @param setter the Object value associated with the set method
-	 * @return the appropriate Object to use as the value for the descriptor
-	 */
-	@Nullable
-	private Object resolveObjectDescriptor(@Nullable Object getter, @Nullable Object setter) {
-		return (getter != null ? getter : setter);
-	}
+        String persistPolicy = resolveStringDescriptor(gma.getPersistPolicy(), sma.getPersistPolicy());
+        if (StringUtils.hasLength(persistPolicy)) {
+            desc.setField(FIELD_PERSIST_POLICY, persistPolicy);
+        }
+        int persistPeriod = resolveIntDescriptor(gma.getPersistPeriod(), sma.getPersistPeriod());
+        if (persistPeriod >= 0) {
+            desc.setField(FIELD_PERSIST_PERIOD, Integer.toString(persistPeriod));
+        }
+    }
 
-	/**
-	 * Locates the value of a descriptor based on values attached
-	 * to both the getter and setter methods. If both have values
-	 * supplied then the value attached to the getter is preferred.
-	 * The supplied default value is used to check to see if the value
-	 * associated with the getter has changed from the default.
-	 * @param getter the String value associated with the get method
-	 * @param setter the String value associated with the set method
-	 * @return the appropriate String to use as the value for the descriptor
-	 */
-	@Nullable
-	private String resolveStringDescriptor(@Nullable String getter, @Nullable String setter) {
-		return (StringUtils.hasLength(getter) ? getter : setter);
-	}
+    private void populateMetricDescriptor(Descriptor desc, ManagedMetric metric) {
+        applyCurrencyTimeLimit(desc, metric.getCurrencyTimeLimit());
+
+        if (StringUtils.hasLength(metric.getPersistPolicy())) {
+            desc.setField(FIELD_PERSIST_POLICY, metric.getPersistPolicy());
+        }
+        if (metric.getPersistPeriod() >= 0) {
+            desc.setField(FIELD_PERSIST_PERIOD, Integer.toString(metric.getPersistPeriod()));
+        }
+
+        if (StringUtils.hasLength(metric.getDisplayName())) {
+            desc.setField(FIELD_DISPLAY_NAME, metric.getDisplayName());
+        }
+
+        if (StringUtils.hasLength(metric.getUnit())) {
+            desc.setField(FIELD_UNITS, metric.getUnit());
+        }
+
+        if (StringUtils.hasLength(metric.getCategory())) {
+            desc.setField(FIELD_METRIC_CATEGORY, metric.getCategory());
+        }
+
+        desc.setField(FIELD_METRIC_TYPE, metric.getMetricType().toString());
+    }
+
+    /**
+     * Adds descriptor fields from the {@code ManagedAttribute} attribute
+     * to the attribute descriptor. Specifically, adds the {@code currencyTimeLimit}
+     * descriptor field if it is present in the metadata.
+     */
+    @Override
+    protected void populateOperationDescriptor(Descriptor desc, Method method, String beanKey) {
+        ManagedOperation mo = obtainAttributeSource().getManagedOperation(method);
+        if (mo != null) {
+            applyCurrencyTimeLimit(desc, mo.getCurrencyTimeLimit());
+        }
+    }
+
+    /**
+     * Determines which of two {@code int} values should be used as the value
+     * for an attribute descriptor. In general, only the getter or the setter will
+     * be have a non-negative value so we use that value. In the event that both values
+     * are non-negative, we use the greater of the two. This method can be used to
+     * resolve any {@code int} valued descriptor where there are two possible values.
+     *
+     * @param getter the int value associated with the getter for this attribute
+     * @param setter the int associated with the setter for this attribute
+     */
+    private int resolveIntDescriptor(int getter, int setter) {
+        return (getter >= setter ? getter : setter);
+    }
+
+    /**
+     * Locates the value of a descriptor based on values attached
+     * to both the getter and setter methods. If both have values
+     * supplied then the value attached to the getter is preferred.
+     *
+     * @param getter the Object value associated with the get method
+     * @param setter the Object value associated with the set method
+     * @return the appropriate Object to use as the value for the descriptor
+     */
+    @Nullable
+    private Object resolveObjectDescriptor(@Nullable Object getter, @Nullable Object setter) {
+        return (getter != null ? getter : setter);
+    }
+
+    /**
+     * Locates the value of a descriptor based on values attached
+     * to both the getter and setter methods. If both have values
+     * supplied then the value attached to the getter is preferred.
+     * The supplied default value is used to check to see if the value
+     * associated with the getter has changed from the default.
+     *
+     * @param getter the String value associated with the get method
+     * @param setter the String value associated with the set method
+     * @return the appropriate String to use as the value for the descriptor
+     */
+    @Nullable
+    private String resolveStringDescriptor(@Nullable String getter, @Nullable String setter) {
+        return (StringUtils.hasLength(getter) ? getter : setter);
+    }
 
 }

@@ -55,126 +55,126 @@ import static org.mockito.Mockito.mock;
  */
 public abstract class AbstractRequestAttributesArgumentResolverTests {
 
-	private ServletWebRequest webRequest;
+    private ServletWebRequest webRequest;
 
-	private HandlerMethodArgumentResolver resolver;
+    private HandlerMethodArgumentResolver resolver;
 
-	private Method handleMethod;
-
-
-	@BeforeEach
-	public void setup() throws Exception {
-		HttpServletRequest request = new MockHttpServletRequest();
-		HttpServletResponse response = new MockHttpServletResponse();
-		this.webRequest = new ServletWebRequest(request, response);
-
-		this.resolver = createResolver();
-
-		this.handleMethod = AbstractRequestAttributesArgumentResolverTests.class
-				.getDeclaredMethod(getHandleMethodName(), Foo.class, Foo.class, Foo.class, Optional.class);
-	}
+    private Method handleMethod;
 
 
-	protected abstract HandlerMethodArgumentResolver createResolver();
+    @BeforeEach
+    public void setup() throws Exception {
+        HttpServletRequest request = new MockHttpServletRequest();
+        HttpServletResponse response = new MockHttpServletResponse();
+        this.webRequest = new ServletWebRequest(request, response);
 
-	protected abstract String getHandleMethodName();
+        this.resolver = createResolver();
 
-	protected abstract int getScope();
-
-
-	@Test
-	public void supportsParameter() throws Exception {
-		assertThat(this.resolver.supportsParameter(new MethodParameter(this.handleMethod, 0))).isTrue();
-		assertThat(this.resolver.supportsParameter(new MethodParameter(this.handleMethod, -1))).isFalse();
-	}
-
-	@Test
-	public void resolve() throws Exception {
-		MethodParameter param = initMethodParameter(0);
-		assertThatExceptionOfType(ServletRequestBindingException.class).isThrownBy(() ->
-				testResolveArgument(param))
-			.withMessageStartingWith("Missing ");
-
-		Foo foo = new Foo();
-		this.webRequest.setAttribute("foo", foo, getScope());
-		assertThat(testResolveArgument(param)).isSameAs(foo);
-	}
-
-	@Test
-	public void resolveWithName() throws Exception {
-		MethodParameter param = initMethodParameter(1);
-		Foo foo = new Foo();
-		this.webRequest.setAttribute("specialFoo", foo, getScope());
-		assertThat(testResolveArgument(param)).isSameAs(foo);
-	}
-
-	@Test
-	public void resolveNotRequired() throws Exception {
-		MethodParameter param = initMethodParameter(2);
-		assertThat(testResolveArgument(param)).isNull();
-
-		Foo foo = new Foo();
-		this.webRequest.setAttribute("foo", foo, getScope());
-		assertThat(testResolveArgument(param)).isSameAs(foo);
-	}
-
-	@Test
-	public void resolveOptional() throws Exception {
-		WebDataBinder dataBinder = new WebRequestDataBinder(null);
-		dataBinder.setConversionService(new DefaultConversionService());
-		WebDataBinderFactory factory = mock(WebDataBinderFactory.class);
-		given(factory.createBinder(this.webRequest, null, "foo")).willReturn(dataBinder);
-
-		MethodParameter param = initMethodParameter(3);
-		Object actual = testResolveArgument(param, factory);
-		assertThat(actual).isNotNull();
-		assertThat(actual.getClass()).isEqualTo(Optional.class);
-		assertThat(((Optional<?>) actual).isPresent()).isFalse();
-
-		Foo foo = new Foo();
-		this.webRequest.setAttribute("foo", foo, getScope());
-
-		actual = testResolveArgument(param, factory);
-		assertThat(actual).isNotNull();
-		assertThat(actual.getClass()).isEqualTo(Optional.class);
-		assertThat(((Optional<?>) actual).isPresent()).isTrue();
-		assertThat(((Optional<?>) actual).get()).isSameAs(foo);
-	}
-
-	private Object testResolveArgument(MethodParameter param) throws Exception {
-		return testResolveArgument(param, null);
-	}
-
-	private Object testResolveArgument(MethodParameter param, WebDataBinderFactory factory) throws Exception {
-		ModelAndViewContainer mavContainer = new ModelAndViewContainer();
-		return this.resolver.resolveArgument(param, mavContainer, this.webRequest, factory);
-	}
-
-	private MethodParameter initMethodParameter(int parameterIndex) {
-		MethodParameter param = new SynthesizingMethodParameter(this.handleMethod, parameterIndex);
-		param.initParameterNameDiscovery(new DefaultParameterNameDiscoverer());
-		return param.withContainingClass(this.resolver.getClass());
-	}
+        this.handleMethod = AbstractRequestAttributesArgumentResolverTests.class
+                .getDeclaredMethod(getHandleMethodName(), Foo.class, Foo.class, Foo.class, Optional.class);
+    }
 
 
-	@SuppressWarnings("unused")
-	private void handleWithRequestAttribute(
-			@RequestAttribute Foo foo,
-			@RequestAttribute("specialFoo") Foo namedFoo,
-			@RequestAttribute(name="foo", required = false) Foo notRequiredFoo,
-			@RequestAttribute(name="foo") Optional<Foo> optionalFoo) {
-	}
+    protected abstract HandlerMethodArgumentResolver createResolver();
 
-	@SuppressWarnings("unused")
-	private void handleWithSessionAttribute(
-			@SessionAttribute Foo foo,
-			@SessionAttribute("specialFoo") Foo namedFoo,
-			@SessionAttribute(name="foo", required = false) Foo notRequiredFoo,
-			@SessionAttribute(name="foo") Optional<Foo> optionalFoo) {
-	}
+    protected abstract String getHandleMethodName();
+
+    protected abstract int getScope();
 
 
-	private static class Foo {
-	}
+    @Test
+    public void supportsParameter() throws Exception {
+        assertThat(this.resolver.supportsParameter(new MethodParameter(this.handleMethod, 0))).isTrue();
+        assertThat(this.resolver.supportsParameter(new MethodParameter(this.handleMethod, -1))).isFalse();
+    }
+
+    @Test
+    public void resolve() throws Exception {
+        MethodParameter param = initMethodParameter(0);
+        assertThatExceptionOfType(ServletRequestBindingException.class).isThrownBy(() ->
+                testResolveArgument(param))
+                .withMessageStartingWith("Missing ");
+
+        Foo foo = new Foo();
+        this.webRequest.setAttribute("foo", foo, getScope());
+        assertThat(testResolveArgument(param)).isSameAs(foo);
+    }
+
+    @Test
+    public void resolveWithName() throws Exception {
+        MethodParameter param = initMethodParameter(1);
+        Foo foo = new Foo();
+        this.webRequest.setAttribute("specialFoo", foo, getScope());
+        assertThat(testResolveArgument(param)).isSameAs(foo);
+    }
+
+    @Test
+    public void resolveNotRequired() throws Exception {
+        MethodParameter param = initMethodParameter(2);
+        assertThat(testResolveArgument(param)).isNull();
+
+        Foo foo = new Foo();
+        this.webRequest.setAttribute("foo", foo, getScope());
+        assertThat(testResolveArgument(param)).isSameAs(foo);
+    }
+
+    @Test
+    public void resolveOptional() throws Exception {
+        WebDataBinder dataBinder = new WebRequestDataBinder(null);
+        dataBinder.setConversionService(new DefaultConversionService());
+        WebDataBinderFactory factory = mock(WebDataBinderFactory.class);
+        given(factory.createBinder(this.webRequest, null, "foo")).willReturn(dataBinder);
+
+        MethodParameter param = initMethodParameter(3);
+        Object actual = testResolveArgument(param, factory);
+        assertThat(actual).isNotNull();
+        assertThat(actual.getClass()).isEqualTo(Optional.class);
+        assertThat(((Optional<?>) actual).isPresent()).isFalse();
+
+        Foo foo = new Foo();
+        this.webRequest.setAttribute("foo", foo, getScope());
+
+        actual = testResolveArgument(param, factory);
+        assertThat(actual).isNotNull();
+        assertThat(actual.getClass()).isEqualTo(Optional.class);
+        assertThat(((Optional<?>) actual).isPresent()).isTrue();
+        assertThat(((Optional<?>) actual).get()).isSameAs(foo);
+    }
+
+    private Object testResolveArgument(MethodParameter param) throws Exception {
+        return testResolveArgument(param, null);
+    }
+
+    private Object testResolveArgument(MethodParameter param, WebDataBinderFactory factory) throws Exception {
+        ModelAndViewContainer mavContainer = new ModelAndViewContainer();
+        return this.resolver.resolveArgument(param, mavContainer, this.webRequest, factory);
+    }
+
+    private MethodParameter initMethodParameter(int parameterIndex) {
+        MethodParameter param = new SynthesizingMethodParameter(this.handleMethod, parameterIndex);
+        param.initParameterNameDiscovery(new DefaultParameterNameDiscoverer());
+        return param.withContainingClass(this.resolver.getClass());
+    }
+
+
+    @SuppressWarnings("unused")
+    private void handleWithRequestAttribute(
+            @RequestAttribute Foo foo,
+            @RequestAttribute("specialFoo") Foo namedFoo,
+            @RequestAttribute(name = "foo", required = false) Foo notRequiredFoo,
+            @RequestAttribute(name = "foo") Optional<Foo> optionalFoo) {
+    }
+
+    @SuppressWarnings("unused")
+    private void handleWithSessionAttribute(
+            @SessionAttribute Foo foo,
+            @SessionAttribute("specialFoo") Foo namedFoo,
+            @SessionAttribute(name = "foo", required = false) Foo notRequiredFoo,
+            @SessionAttribute(name = "foo") Optional<Foo> optionalFoo) {
+    }
+
+
+    private static class Foo {
+    }
 
 }

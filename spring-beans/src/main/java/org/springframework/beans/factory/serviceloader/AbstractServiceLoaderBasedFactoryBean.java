@@ -29,56 +29,57 @@ import org.springframework.util.ClassUtils;
  * JDK 1.6 {@link java.util.ServiceLoader} facility.
  *
  * @author Juergen Hoeller
- * @since 2.5
  * @see java.util.ServiceLoader
+ * @since 2.5
  */
 public abstract class AbstractServiceLoaderBasedFactoryBean extends AbstractFactoryBean<Object>
-		implements BeanClassLoaderAware {
+        implements BeanClassLoaderAware {
 
-	@Nullable
-	private Class<?> serviceType;
+    @Nullable
+    private Class<?> serviceType;
 
-	@Nullable
-	private ClassLoader beanClassLoader = ClassUtils.getDefaultClassLoader();
+    @Nullable
+    private ClassLoader beanClassLoader = ClassUtils.getDefaultClassLoader();
+
+    /**
+     * Return the desired service type.
+     */
+    @Nullable
+    public Class<?> getServiceType() {
+        return this.serviceType;
+    }
+
+    /**
+     * Specify the desired service type (typically the service's public API).
+     */
+    public void setServiceType(@Nullable Class<?> serviceType) {
+        this.serviceType = serviceType;
+    }
+
+    @Override
+    public void setBeanClassLoader(@Nullable ClassLoader beanClassLoader) {
+        this.beanClassLoader = beanClassLoader;
+    }
 
 
-	/**
-	 * Specify the desired service type (typically the service's public API).
-	 */
-	public void setServiceType(@Nullable Class<?> serviceType) {
-		this.serviceType = serviceType;
-	}
+    /**
+     * Delegates to {@link #getObjectToExpose(java.util.ServiceLoader)}.
+     *
+     * @return the object to expose
+     */
+    @Override
+    protected Object createInstance() {
+        Assert.notNull(getServiceType(), "Property 'serviceType' is required");
+        return getObjectToExpose(ServiceLoader.load(getServiceType(), this.beanClassLoader));
+    }
 
-	/**
-	 * Return the desired service type.
-	 */
-	@Nullable
-	public Class<?> getServiceType() {
-		return this.serviceType;
-	}
-
-	@Override
-	public void setBeanClassLoader(@Nullable ClassLoader beanClassLoader) {
-		this.beanClassLoader = beanClassLoader;
-	}
-
-
-	/**
-	 * Delegates to {@link #getObjectToExpose(java.util.ServiceLoader)}.
-	 * @return the object to expose
-	 */
-	@Override
-	protected Object createInstance() {
-		Assert.notNull(getServiceType(), "Property 'serviceType' is required");
-		return getObjectToExpose(ServiceLoader.load(getServiceType(), this.beanClassLoader));
-	}
-
-	/**
-	 * Determine the actual object to expose for the given ServiceLoader.
-	 * <p>Left to concrete subclasses.
-	 * @param serviceLoader the ServiceLoader for the configured service class
-	 * @return the object to expose
-	 */
-	protected abstract Object getObjectToExpose(ServiceLoader<?> serviceLoader);
+    /**
+     * Determine the actual object to expose for the given ServiceLoader.
+     * <p>Left to concrete subclasses.
+     *
+     * @param serviceLoader the ServiceLoader for the configured service class
+     * @return the object to expose
+     */
+    protected abstract Object getObjectToExpose(ServiceLoader<?> serviceLoader);
 
 }

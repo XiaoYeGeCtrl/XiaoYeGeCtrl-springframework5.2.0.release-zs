@@ -39,22 +39,22 @@ import static org.assertj.core.api.Assertions.assertThat;
 @ContextConfiguration
 public class LookUpNonexistentTxMgrTests {
 
-	private static final CallCountingTransactionManager txManager = new CallCountingTransactionManager();
+    private static final CallCountingTransactionManager txManager = new CallCountingTransactionManager();
 
-	@Configuration
-	static class Config {
+    @Test
+    public void nonTransactionalTest() {
+        assertThat(txManager.begun).isEqualTo(0);
+        assertThat(txManager.inflight).isEqualTo(0);
+        assertThat(txManager.commits).isEqualTo(0);
+        assertThat(txManager.rollbacks).isEqualTo(0);
+    }
 
-		@Bean
-		public PlatformTransactionManager transactionManager() {
-			return txManager;
-		}
-	}
+    @Configuration
+    static class Config {
 
-	@Test
-	public void nonTransactionalTest() {
-		assertThat(txManager.begun).isEqualTo(0);
-		assertThat(txManager.inflight).isEqualTo(0);
-		assertThat(txManager.commits).isEqualTo(0);
-		assertThat(txManager.rollbacks).isEqualTo(0);
-	}
+        @Bean
+        public PlatformTransactionManager transactionManager() {
+            return txManager;
+        }
+    }
 }

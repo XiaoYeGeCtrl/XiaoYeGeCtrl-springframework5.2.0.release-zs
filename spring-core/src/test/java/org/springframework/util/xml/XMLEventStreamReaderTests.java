@@ -37,35 +37,34 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class XMLEventStreamReaderTests {
 
-	private static final String XML =
-			"<?pi content?><root xmlns='namespace'><prefix:child xmlns:prefix='namespace2'>content</prefix:child></root>"
-			;
+    private static final String XML =
+            "<?pi content?><root xmlns='namespace'><prefix:child xmlns:prefix='namespace2'>content</prefix:child></root>";
 
-	private XMLEventStreamReader streamReader;
+    private XMLEventStreamReader streamReader;
 
-	@BeforeEach
-	void createStreamReader() throws Exception {
-		XMLInputFactory inputFactory = XMLInputFactory.newInstance();
-		XMLEventReader eventReader = inputFactory.createXMLEventReader(new StringReader(XML));
-		streamReader = new XMLEventStreamReader(eventReader);
-	}
+    @BeforeEach
+    void createStreamReader() throws Exception {
+        XMLInputFactory inputFactory = XMLInputFactory.newInstance();
+        XMLEventReader eventReader = inputFactory.createXMLEventReader(new StringReader(XML));
+        streamReader = new XMLEventStreamReader(eventReader);
+    }
 
-	@Test
-	void readAll() throws Exception {
-		while (streamReader.hasNext()) {
-			streamReader.next();
-		}
-	}
+    @Test
+    void readAll() throws Exception {
+        while (streamReader.hasNext()) {
+            streamReader.next();
+        }
+    }
 
-	@Test
-	void readCorrect() throws Exception {
-		Transformer transformer = TransformerFactory.newInstance().newTransformer();
-		StAXSource source = new StAXSource(streamReader);
-		StringWriter writer = new StringWriter();
-		transformer.transform(source, new StreamResult(writer));
-		Predicate<Node> nodeFilter = n ->
-				n.getNodeType() != Node.DOCUMENT_TYPE_NODE && n.getNodeType() != Node.PROCESSING_INSTRUCTION_NODE;
-		assertThat(XmlContent.from(writer)).isSimilarTo(XML, nodeFilter);
-	}
+    @Test
+    void readCorrect() throws Exception {
+        Transformer transformer = TransformerFactory.newInstance().newTransformer();
+        StAXSource source = new StAXSource(streamReader);
+        StringWriter writer = new StringWriter();
+        transformer.transform(source, new StreamResult(writer));
+        Predicate<Node> nodeFilter = n ->
+                n.getNodeType() != Node.DOCUMENT_TYPE_NODE && n.getNodeType() != Node.PROCESSING_INSTRUCTION_NODE;
+        assertThat(XmlContent.from(writer)).isSimilarTo(XML, nodeFilter);
+    }
 
 }

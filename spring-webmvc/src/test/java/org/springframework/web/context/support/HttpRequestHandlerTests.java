@@ -43,47 +43,47 @@ import static org.assertj.core.api.Assertions.assertThatIOException;
  */
 public class HttpRequestHandlerTests {
 
-	@Test
-	public void testHttpRequestHandlerServletPassThrough() throws Exception {
-		MockServletContext servletContext = new MockServletContext();
-		final MockHttpServletRequest request = new MockHttpServletRequest();
-		final MockHttpServletResponse response = new MockHttpServletResponse();
+    @Test
+    public void testHttpRequestHandlerServletPassThrough() throws Exception {
+        MockServletContext servletContext = new MockServletContext();
+        final MockHttpServletRequest request = new MockHttpServletRequest();
+        final MockHttpServletResponse response = new MockHttpServletResponse();
 
-		StaticWebApplicationContext wac = new StaticWebApplicationContext();
-		wac.getBeanFactory().registerSingleton("myHandler", new HttpRequestHandler() {
-			@Override
-			public void handleRequest(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
-				assertThat(req).isSameAs(request);
-				assertThat(res).isSameAs(response);
-				String exception = request.getParameter("exception");
-				if ("ServletException".equals(exception)) {
-					throw new ServletException("test");
-				}
-				if ("IOException".equals(exception)) {
-					throw new IOException("test");
-				}
-				res.getWriter().write("myResponse");
-			}
-		});
-		wac.setServletContext(servletContext);
-		wac.refresh();
-		servletContext.setAttribute(WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE, wac);
+        StaticWebApplicationContext wac = new StaticWebApplicationContext();
+        wac.getBeanFactory().registerSingleton("myHandler", new HttpRequestHandler() {
+            @Override
+            public void handleRequest(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
+                assertThat(req).isSameAs(request);
+                assertThat(res).isSameAs(response);
+                String exception = request.getParameter("exception");
+                if ("ServletException".equals(exception)) {
+                    throw new ServletException("test");
+                }
+                if ("IOException".equals(exception)) {
+                    throw new IOException("test");
+                }
+                res.getWriter().write("myResponse");
+            }
+        });
+        wac.setServletContext(servletContext);
+        wac.refresh();
+        servletContext.setAttribute(WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE, wac);
 
-		Servlet servlet = new HttpRequestHandlerServlet();
-		servlet.init(new MockServletConfig(servletContext, "myHandler"));
+        Servlet servlet = new HttpRequestHandlerServlet();
+        servlet.init(new MockServletConfig(servletContext, "myHandler"));
 
-		servlet.service(request, response);
-		assertThat(response.getContentAsString()).isEqualTo("myResponse");
+        servlet.service(request, response);
+        assertThat(response.getContentAsString()).isEqualTo("myResponse");
 
-		request.setParameter("exception", "ServletException");
-		assertThatExceptionOfType(ServletException.class).isThrownBy(() ->
-				servlet.service(request, response))
-			.withMessage("test");
+        request.setParameter("exception", "ServletException");
+        assertThatExceptionOfType(ServletException.class).isThrownBy(() ->
+                servlet.service(request, response))
+                .withMessage("test");
 
-		request.setParameter("exception", "IOException");
-		assertThatIOException().isThrownBy(() ->
-				servlet.service(request, response))
-			.withMessage("test");
-	}
+        request.setParameter("exception", "IOException");
+        assertThatIOException().isThrownBy(() ->
+                servlet.service(request, response))
+                .withMessage("test");
+    }
 
 }

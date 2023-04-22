@@ -46,148 +46,148 @@ import static org.springframework.transaction.support.TransactionSynchronization
  */
 @ContextConfiguration
 public class ConcreteTransactionalJUnit4SpringContextTests extends AbstractTransactionalJUnit4SpringContextTests
-		implements BeanNameAware, InitializingBean {
+        implements BeanNameAware, InitializingBean {
 
-	private static final String JANE = "jane";
-	private static final String SUE = "sue";
-	private static final String YODA = "yoda";
+    private static final String JANE = "jane";
+    private static final String SUE = "sue";
+    private static final String YODA = "yoda";
 
-	private Employee employee;
+    private Employee employee;
 
-	@Autowired
-	private Pet pet;
+    @Autowired
+    private Pet pet;
 
-	@Autowired(required = false)
-	private Long nonrequiredLong;
+    @Autowired(required = false)
+    private Long nonrequiredLong;
 
-	@Resource
-	private String foo;
+    @Resource
+    private String foo;
 
-	private String bar;
+    private String bar;
 
-	private String beanName;
+    private String beanName;
 
-	private boolean beanInitialized = false;
-
-
-	@Autowired
-	private void setEmployee(Employee employee) {
-		this.employee = employee;
-	}
-
-	@Resource
-	private void setBar(String bar) {
-		this.bar = bar;
-	}
-
-	@Override
-	public void setBeanName(String beanName) {
-		this.beanName = beanName;
-	}
-
-	@Override
-	public void afterPropertiesSet() {
-		this.beanInitialized = true;
-	}
+    private boolean beanInitialized = false;
 
 
-	@Before
-	public void setUp() {
-		long expected = (isActualTransactionActive() ? 2 : 1);
-		assertThat(countRowsInPersonTable()).as("Verifying the number of rows in the person table before a test method.").isEqualTo(expected);
-	}
+    @Autowired
+    private void setEmployee(Employee employee) {
+        this.employee = employee;
+    }
 
-	@After
-	public void tearDown() {
-		long expected = (isActualTransactionActive() ? 4 : 1);
-		assertThat(countRowsInPersonTable()).as("Verifying the number of rows in the person table after a test method.").isEqualTo(expected);
-	}
+    @Resource
+    private void setBar(String bar) {
+        this.bar = bar;
+    }
 
-	@BeforeTransaction
-	public void beforeTransaction() {
-		assertThat(countRowsInPersonTable()).as("Verifying the number of rows in the person table before a transactional test method.").isEqualTo(1);
-		assertThat(addPerson(YODA)).as("Adding yoda").isEqualTo(1);
-	}
+    @Override
+    public void setBeanName(String beanName) {
+        this.beanName = beanName;
+    }
 
-	@AfterTransaction
-	public void afterTransaction() {
-		assertThat(deletePerson(YODA)).as("Deleting yoda").isEqualTo(1);
-		assertThat(countRowsInPersonTable()).as("Verifying the number of rows in the person table after a transactional test method.").isEqualTo(1);
-	}
+    @Override
+    public void afterPropertiesSet() {
+        this.beanInitialized = true;
+    }
 
 
-	@Test
-	@Transactional(propagation = Propagation.NOT_SUPPORTED)
-	public void verifyBeanNameSet() {
-		assertThatTransaction().isNotActive();
-		assertThat(this.beanName.startsWith(getClass().getName())).as("The bean name of this test instance should have been set to the fully qualified class name " +
-				"due to BeanNameAware semantics.").isTrue();
-	}
+    @Before
+    public void setUp() {
+        long expected = (isActualTransactionActive() ? 2 : 1);
+        assertThat(countRowsInPersonTable()).as("Verifying the number of rows in the person table before a test method.").isEqualTo(expected);
+    }
 
-	@Test
-	@Transactional(propagation = Propagation.NOT_SUPPORTED)
-	public void verifyApplicationContext() {
-		assertThatTransaction().isNotActive();
-		assertThat(super.applicationContext).as("The application context should have been set due to ApplicationContextAware semantics.").isNotNull();
-	}
+    @After
+    public void tearDown() {
+        long expected = (isActualTransactionActive() ? 4 : 1);
+        assertThat(countRowsInPersonTable()).as("Verifying the number of rows in the person table after a test method.").isEqualTo(expected);
+    }
 
-	@Test
-	@Transactional(propagation = Propagation.NOT_SUPPORTED)
-	public void verifyBeanInitialized() {
-		assertThatTransaction().isNotActive();
-		assertThat(this.beanInitialized).as("This test bean should have been initialized due to InitializingBean semantics.").isTrue();
-	}
+    @BeforeTransaction
+    public void beforeTransaction() {
+        assertThat(countRowsInPersonTable()).as("Verifying the number of rows in the person table before a transactional test method.").isEqualTo(1);
+        assertThat(addPerson(YODA)).as("Adding yoda").isEqualTo(1);
+    }
 
-	@Test
-	@Transactional(propagation = Propagation.NOT_SUPPORTED)
-	public void verifyAnnotationAutowiredFields() {
-		assertThatTransaction().isNotActive();
-		assertThat(this.nonrequiredLong).as("The nonrequiredLong property should NOT have been autowired.").isNull();
-		assertThat(this.pet).as("The pet field should have been autowired.").isNotNull();
-		assertThat(this.pet.getName()).isEqualTo("Fido");
-	}
-
-	@Test
-	@Transactional(propagation = Propagation.NOT_SUPPORTED)
-	public void verifyAnnotationAutowiredMethods() {
-		assertThatTransaction().isNotActive();
-		assertThat(this.employee).as("The employee setter method should have been autowired.").isNotNull();
-		assertThat(this.employee.getName()).isEqualTo("John Smith");
-	}
-
-	@Test
-	@Transactional(propagation = Propagation.NOT_SUPPORTED)
-	public void verifyResourceAnnotationWiredFields() {
-		assertThatTransaction().isNotActive();
-		assertThat(this.foo).as("The foo field should have been wired via @Resource.").isEqualTo("Foo");
-	}
-
-	@Test
-	@Transactional(propagation = Propagation.NOT_SUPPORTED)
-	public void verifyResourceAnnotationWiredMethods() {
-		assertThatTransaction().isNotActive();
-		assertThat(this.bar).as("The bar method should have been wired via @Resource.").isEqualTo("Bar");
-	}
-
-	@Test
-	public void modifyTestDataWithinTransaction() {
-		assertThatTransaction().isActive();
-		assertThat(addPerson(JANE)).as("Adding jane").isEqualTo(1);
-		assertThat(addPerson(SUE)).as("Adding sue").isEqualTo(1);
-		assertThat(countRowsInPersonTable()).as("Verifying the number of rows in the person table in modifyTestDataWithinTransaction().").isEqualTo(4);
-	}
+    @AfterTransaction
+    public void afterTransaction() {
+        assertThat(deletePerson(YODA)).as("Deleting yoda").isEqualTo(1);
+        assertThat(countRowsInPersonTable()).as("Verifying the number of rows in the person table after a transactional test method.").isEqualTo(1);
+    }
 
 
-	private int addPerson(String name) {
-		return super.jdbcTemplate.update("INSERT INTO person VALUES(?)", name);
-	}
+    @Test
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    public void verifyBeanNameSet() {
+        assertThatTransaction().isNotActive();
+        assertThat(this.beanName.startsWith(getClass().getName())).as("The bean name of this test instance should have been set to the fully qualified class name " +
+                "due to BeanNameAware semantics.").isTrue();
+    }
 
-	private int deletePerson(String name) {
-		return super.jdbcTemplate.update("DELETE FROM person WHERE name=?", name);
-	}
+    @Test
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    public void verifyApplicationContext() {
+        assertThatTransaction().isNotActive();
+        assertThat(super.applicationContext).as("The application context should have been set due to ApplicationContextAware semantics.").isNotNull();
+    }
 
-	private int countRowsInPersonTable() {
-		return countRowsInTable("person");
-	}
+    @Test
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    public void verifyBeanInitialized() {
+        assertThatTransaction().isNotActive();
+        assertThat(this.beanInitialized).as("This test bean should have been initialized due to InitializingBean semantics.").isTrue();
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    public void verifyAnnotationAutowiredFields() {
+        assertThatTransaction().isNotActive();
+        assertThat(this.nonrequiredLong).as("The nonrequiredLong property should NOT have been autowired.").isNull();
+        assertThat(this.pet).as("The pet field should have been autowired.").isNotNull();
+        assertThat(this.pet.getName()).isEqualTo("Fido");
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    public void verifyAnnotationAutowiredMethods() {
+        assertThatTransaction().isNotActive();
+        assertThat(this.employee).as("The employee setter method should have been autowired.").isNotNull();
+        assertThat(this.employee.getName()).isEqualTo("John Smith");
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    public void verifyResourceAnnotationWiredFields() {
+        assertThatTransaction().isNotActive();
+        assertThat(this.foo).as("The foo field should have been wired via @Resource.").isEqualTo("Foo");
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    public void verifyResourceAnnotationWiredMethods() {
+        assertThatTransaction().isNotActive();
+        assertThat(this.bar).as("The bar method should have been wired via @Resource.").isEqualTo("Bar");
+    }
+
+    @Test
+    public void modifyTestDataWithinTransaction() {
+        assertThatTransaction().isActive();
+        assertThat(addPerson(JANE)).as("Adding jane").isEqualTo(1);
+        assertThat(addPerson(SUE)).as("Adding sue").isEqualTo(1);
+        assertThat(countRowsInPersonTable()).as("Verifying the number of rows in the person table in modifyTestDataWithinTransaction().").isEqualTo(4);
+    }
+
+
+    private int addPerson(String name) {
+        return super.jdbcTemplate.update("INSERT INTO person VALUES(?)", name);
+    }
+
+    private int deletePerson(String name) {
+        return super.jdbcTemplate.update("DELETE FROM person WHERE name=?", name);
+    }
+
+    private int countRowsInPersonTable() {
+        return countRowsInTable("person");
+    }
 
 }

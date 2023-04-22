@@ -38,163 +38,162 @@ import static org.springframework.web.servlet.function.RequestPredicates.HEAD;
  */
 public class RouterFunctionBuilderTests {
 
-	@Test
-	public void route() {
-		RouterFunction<ServerResponse> route = RouterFunctions.route()
-				.GET("/foo", request -> ServerResponse.ok().build())
-				.POST("/", RequestPredicates.contentType(MediaType.TEXT_PLAIN),
-						request -> ServerResponse.noContent().build())
-				.route(HEAD("/foo"), request -> ServerResponse.accepted().build())
-				.build();
+    private static ServerResponse handle(HandlerFunction<ServerResponse> handlerFunction,
+                                         ServerRequest request) {
+        try {
+            return handlerFunction.handle(request);
+        } catch (Exception ex) {
+            throw new AssertionError(ex.getMessage(), ex);
+        }
+    }
 
-		MockHttpServletRequest servletRequest = new MockHttpServletRequest("GET", "/foo");
-		ServerRequest getFooRequest = new DefaultServerRequest(servletRequest, emptyList());
+    @Test
+    public void route() {
+        RouterFunction<ServerResponse> route = RouterFunctions.route()
+                .GET("/foo", request -> ServerResponse.ok().build())
+                .POST("/", RequestPredicates.contentType(MediaType.TEXT_PLAIN),
+                        request -> ServerResponse.noContent().build())
+                .route(HEAD("/foo"), request -> ServerResponse.accepted().build())
+                .build();
 
-		Optional<Integer> responseStatus = route.route(getFooRequest)
-				.map(handlerFunction -> handle(handlerFunction, getFooRequest))
-				.map(ServerResponse::statusCode)
-				.map(HttpStatus::value);
-		assertThat(responseStatus.get().intValue()).isEqualTo(200);
+        MockHttpServletRequest servletRequest = new MockHttpServletRequest("GET", "/foo");
+        ServerRequest getFooRequest = new DefaultServerRequest(servletRequest, emptyList());
 
-		servletRequest = new MockHttpServletRequest("HEAD", "/foo");
-		ServerRequest headFooRequest = new DefaultServerRequest(servletRequest, emptyList());
+        Optional<Integer> responseStatus = route.route(getFooRequest)
+                .map(handlerFunction -> handle(handlerFunction, getFooRequest))
+                .map(ServerResponse::statusCode)
+                .map(HttpStatus::value);
+        assertThat(responseStatus.get().intValue()).isEqualTo(200);
 
-		responseStatus = route.route(headFooRequest)
-				.map(handlerFunction -> handle(handlerFunction, getFooRequest))
-				.map(ServerResponse::statusCode)
-				.map(HttpStatus::value);
-		assertThat(responseStatus.get().intValue()).isEqualTo(202);
+        servletRequest = new MockHttpServletRequest("HEAD", "/foo");
+        ServerRequest headFooRequest = new DefaultServerRequest(servletRequest, emptyList());
 
-		servletRequest = new MockHttpServletRequest("POST", "/");
-		servletRequest.setContentType("text/plain");
-		ServerRequest barRequest = new DefaultServerRequest(servletRequest, emptyList());
+        responseStatus = route.route(headFooRequest)
+                .map(handlerFunction -> handle(handlerFunction, getFooRequest))
+                .map(ServerResponse::statusCode)
+                .map(HttpStatus::value);
+        assertThat(responseStatus.get().intValue()).isEqualTo(202);
 
-		responseStatus = route.route(barRequest)
-				.map(handlerFunction -> handle(handlerFunction, barRequest))
-				.map(ServerResponse::statusCode)
-				.map(HttpStatus::value);
-		assertThat(responseStatus.get().intValue()).isEqualTo(204);
+        servletRequest = new MockHttpServletRequest("POST", "/");
+        servletRequest.setContentType("text/plain");
+        ServerRequest barRequest = new DefaultServerRequest(servletRequest, emptyList());
 
-		servletRequest = new MockHttpServletRequest("POST", "/");
-		ServerRequest invalidRequest = new DefaultServerRequest(servletRequest, emptyList());
+        responseStatus = route.route(barRequest)
+                .map(handlerFunction -> handle(handlerFunction, barRequest))
+                .map(ServerResponse::statusCode)
+                .map(HttpStatus::value);
+        assertThat(responseStatus.get().intValue()).isEqualTo(204);
 
-		responseStatus = route.route(invalidRequest)
-				.map(handlerFunction -> handle(handlerFunction, invalidRequest))
-				.map(ServerResponse::statusCode)
-				.map(HttpStatus::value);
+        servletRequest = new MockHttpServletRequest("POST", "/");
+        ServerRequest invalidRequest = new DefaultServerRequest(servletRequest, emptyList());
 
-		assertThat(responseStatus.isPresent()).isFalse();
+        responseStatus = route.route(invalidRequest)
+                .map(handlerFunction -> handle(handlerFunction, invalidRequest))
+                .map(ServerResponse::statusCode)
+                .map(HttpStatus::value);
 
-	}
+        assertThat(responseStatus.isPresent()).isFalse();
 
-	private static ServerResponse handle(HandlerFunction<ServerResponse> handlerFunction,
-			ServerRequest request) {
-		try {
-			return handlerFunction.handle(request);
-		}
-		catch (Exception ex) {
-			throw new AssertionError(ex.getMessage(), ex);
-		}
-	}
+    }
 
-	@Test
-	public void resources() {
-		Resource resource = new ClassPathResource("/org/springframework/web/servlet/function/");
-		assertThat(resource.exists()).isTrue();
+    @Test
+    public void resources() {
+        Resource resource = new ClassPathResource("/org/springframework/web/servlet/function/");
+        assertThat(resource.exists()).isTrue();
 
-		RouterFunction<ServerResponse> route = RouterFunctions.route()
-				.resources("/resources/**", resource)
-				.build();
+        RouterFunction<ServerResponse> route = RouterFunctions.route()
+                .resources("/resources/**", resource)
+                .build();
 
-		MockHttpServletRequest servletRequest =
-				new MockHttpServletRequest("GET", "/resources/response.txt");
-		ServerRequest resourceRequest = new DefaultServerRequest(servletRequest, emptyList());
+        MockHttpServletRequest servletRequest =
+                new MockHttpServletRequest("GET", "/resources/response.txt");
+        ServerRequest resourceRequest = new DefaultServerRequest(servletRequest, emptyList());
 
-		Optional<Integer> responseStatus = route.route(resourceRequest)
-				.map(handlerFunction -> handle(handlerFunction, resourceRequest))
-				.map(ServerResponse::statusCode)
-				.map(HttpStatus::value);
-		assertThat(responseStatus.get().intValue()).isEqualTo(200);
+        Optional<Integer> responseStatus = route.route(resourceRequest)
+                .map(handlerFunction -> handle(handlerFunction, resourceRequest))
+                .map(ServerResponse::statusCode)
+                .map(HttpStatus::value);
+        assertThat(responseStatus.get().intValue()).isEqualTo(200);
 
-		servletRequest = new MockHttpServletRequest("POST", "/resources/foo.txt");
-		ServerRequest invalidRequest = new DefaultServerRequest(servletRequest, emptyList());
+        servletRequest = new MockHttpServletRequest("POST", "/resources/foo.txt");
+        ServerRequest invalidRequest = new DefaultServerRequest(servletRequest, emptyList());
 
-		responseStatus = route.route(invalidRequest)
-				.map(handlerFunction -> handle(handlerFunction, invalidRequest))
-				.map(ServerResponse::statusCode)
-				.map(HttpStatus::value);
-		assertThat(responseStatus.isPresent()).isFalse();
-	}
+        responseStatus = route.route(invalidRequest)
+                .map(handlerFunction -> handle(handlerFunction, invalidRequest))
+                .map(ServerResponse::statusCode)
+                .map(HttpStatus::value);
+        assertThat(responseStatus.isPresent()).isFalse();
+    }
 
-	@Test
-	public void nest() {
-		RouterFunction<ServerResponse> route = RouterFunctions.route()
-				.path("/foo", builder ->
-						builder.path("/bar",
-								() -> RouterFunctions.route()
-										.GET("/baz", request -> ServerResponse.ok().build())
-										.build()))
-				.build();
+    @Test
+    public void nest() {
+        RouterFunction<ServerResponse> route = RouterFunctions.route()
+                .path("/foo", builder ->
+                        builder.path("/bar",
+                                () -> RouterFunctions.route()
+                                        .GET("/baz", request -> ServerResponse.ok().build())
+                                        .build()))
+                .build();
 
-		MockHttpServletRequest servletRequest = new MockHttpServletRequest("GET", "/foo/bar/baz");
-		ServerRequest fooRequest = new DefaultServerRequest(servletRequest, emptyList());
+        MockHttpServletRequest servletRequest = new MockHttpServletRequest("GET", "/foo/bar/baz");
+        ServerRequest fooRequest = new DefaultServerRequest(servletRequest, emptyList());
 
-		Optional<Integer> responseStatus = route.route(fooRequest)
-				.map(handlerFunction -> handle(handlerFunction, fooRequest))
-				.map(ServerResponse::statusCode)
-				.map(HttpStatus::value);
-		assertThat(responseStatus.get().intValue()).isEqualTo(200);
-	}
+        Optional<Integer> responseStatus = route.route(fooRequest)
+                .map(handlerFunction -> handle(handlerFunction, fooRequest))
+                .map(ServerResponse::statusCode)
+                .map(HttpStatus::value);
+        assertThat(responseStatus.get().intValue()).isEqualTo(200);
+    }
 
-	@Test
-	public void filters() {
-		AtomicInteger filterCount = new AtomicInteger();
+    @Test
+    public void filters() {
+        AtomicInteger filterCount = new AtomicInteger();
 
-		RouterFunction<ServerResponse> route = RouterFunctions.route()
-				.GET("/foo", request -> ServerResponse.ok().build())
-				.GET("/bar", request -> {
-					throw new IllegalStateException();
-				})
-				.before(request -> {
-					int count = filterCount.getAndIncrement();
-					assertThat(count).isEqualTo(0);
-					return request;
-				})
-				.after((request, response) -> {
-					int count = filterCount.getAndIncrement();
-					assertThat(count).isEqualTo(3);
-					return response;
-				})
-				.filter((request, next) -> {
-					int count = filterCount.getAndIncrement();
-					assertThat(count).isEqualTo(1);
-					ServerResponse responseMono = next.handle(request);
-					count = filterCount.getAndIncrement();
-					assertThat(count).isEqualTo(2);
-					return responseMono;
-				})
-				.onError(IllegalStateException.class,
-						(e, request) -> ServerResponse.status(HttpStatus.INTERNAL_SERVER_ERROR)
-								.build())
-				.build();
+        RouterFunction<ServerResponse> route = RouterFunctions.route()
+                .GET("/foo", request -> ServerResponse.ok().build())
+                .GET("/bar", request -> {
+                    throw new IllegalStateException();
+                })
+                .before(request -> {
+                    int count = filterCount.getAndIncrement();
+                    assertThat(count).isEqualTo(0);
+                    return request;
+                })
+                .after((request, response) -> {
+                    int count = filterCount.getAndIncrement();
+                    assertThat(count).isEqualTo(3);
+                    return response;
+                })
+                .filter((request, next) -> {
+                    int count = filterCount.getAndIncrement();
+                    assertThat(count).isEqualTo(1);
+                    ServerResponse responseMono = next.handle(request);
+                    count = filterCount.getAndIncrement();
+                    assertThat(count).isEqualTo(2);
+                    return responseMono;
+                })
+                .onError(IllegalStateException.class,
+                        (e, request) -> ServerResponse.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                                .build())
+                .build();
 
-		MockHttpServletRequest servletRequest = new MockHttpServletRequest("GET", "/foo");
-		ServerRequest fooRequest = new DefaultServerRequest(servletRequest, emptyList());
+        MockHttpServletRequest servletRequest = new MockHttpServletRequest("GET", "/foo");
+        ServerRequest fooRequest = new DefaultServerRequest(servletRequest, emptyList());
 
-		route.route(fooRequest)
-				.map(handlerFunction -> handle(handlerFunction, fooRequest));
-		assertThat(filterCount.get()).isEqualTo(4);
+        route.route(fooRequest)
+                .map(handlerFunction -> handle(handlerFunction, fooRequest));
+        assertThat(filterCount.get()).isEqualTo(4);
 
-		filterCount.set(0);
+        filterCount.set(0);
 
-		servletRequest = new MockHttpServletRequest("GET", "/bar");
-		ServerRequest barRequest = new DefaultServerRequest(servletRequest, emptyList());
+        servletRequest = new MockHttpServletRequest("GET", "/bar");
+        ServerRequest barRequest = new DefaultServerRequest(servletRequest, emptyList());
 
-		Optional<Integer> responseStatus = route.route(barRequest)
-				.map(handlerFunction -> handle(handlerFunction, barRequest))
-				.map(ServerResponse::statusCode)
-				.map(HttpStatus::value);
-		assertThat(responseStatus.get().intValue()).isEqualTo(500);
-	}
+        Optional<Integer> responseStatus = route.route(barRequest)
+                .map(handlerFunction -> handle(handlerFunction, barRequest))
+                .map(ServerResponse::statusCode)
+                .map(HttpStatus::value);
+        assertThat(responseStatus.get().intValue()).isEqualTo(500);
+    }
 
 }

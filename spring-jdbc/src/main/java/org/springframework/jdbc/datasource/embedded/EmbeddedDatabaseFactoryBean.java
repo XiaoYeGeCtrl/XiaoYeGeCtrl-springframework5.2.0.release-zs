@@ -42,52 +42,53 @@ import org.springframework.lang.Nullable;
  * @since 3.0
  */
 public class EmbeddedDatabaseFactoryBean extends EmbeddedDatabaseFactory
-		implements FactoryBean<DataSource>, InitializingBean, DisposableBean {
+        implements FactoryBean<DataSource>, InitializingBean, DisposableBean {
 
-	@Nullable
-	private DatabasePopulator databaseCleaner;
-
-
-	/**
-	 * Set a script execution to be run in the bean destruction callback,
-	 * cleaning up the database and leaving it in a known state for others.
-	 * @param databaseCleaner the database script executor to run on destroy
-	 * @see #setDatabasePopulator
-	 * @see org.springframework.jdbc.datasource.init.DataSourceInitializer#setDatabaseCleaner
-	 */
-	public void setDatabaseCleaner(DatabasePopulator databaseCleaner) {
-		this.databaseCleaner = databaseCleaner;
-	}
-
-	@Override
-	public void afterPropertiesSet() {
-		initDatabase();
-	}
+    @Nullable
+    private DatabasePopulator databaseCleaner;
 
 
-	@Override
-	@Nullable
-	public DataSource getObject() {
-		return getDataSource();
-	}
+    /**
+     * Set a script execution to be run in the bean destruction callback,
+     * cleaning up the database and leaving it in a known state for others.
+     *
+     * @param databaseCleaner the database script executor to run on destroy
+     * @see #setDatabasePopulator
+     * @see org.springframework.jdbc.datasource.init.DataSourceInitializer#setDatabaseCleaner
+     */
+    public void setDatabaseCleaner(DatabasePopulator databaseCleaner) {
+        this.databaseCleaner = databaseCleaner;
+    }
 
-	@Override
-	public Class<? extends DataSource> getObjectType() {
-		return DataSource.class;
-	}
-
-	@Override
-	public boolean isSingleton() {
-		return true;
-	}
+    @Override
+    public void afterPropertiesSet() {
+        initDatabase();
+    }
 
 
-	@Override
-	public void destroy() {
-		if (this.databaseCleaner != null && getDataSource() != null) {
-			DatabasePopulatorUtils.execute(this.databaseCleaner, getDataSource());
-		}
-		shutdownDatabase();
-	}
+    @Override
+    @Nullable
+    public DataSource getObject() {
+        return getDataSource();
+    }
+
+    @Override
+    public Class<? extends DataSource> getObjectType() {
+        return DataSource.class;
+    }
+
+    @Override
+    public boolean isSingleton() {
+        return true;
+    }
+
+
+    @Override
+    public void destroy() {
+        if (this.databaseCleaner != null && getDataSource() != null) {
+            DatabasePopulatorUtils.execute(this.databaseCleaner, getDataSource());
+        }
+        shutdownDatabase();
+    }
 
 }

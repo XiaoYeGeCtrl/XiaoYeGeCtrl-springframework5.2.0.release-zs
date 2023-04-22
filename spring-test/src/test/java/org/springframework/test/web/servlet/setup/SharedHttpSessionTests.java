@@ -37,69 +37,69 @@ import static org.springframework.test.web.servlet.setup.SharedHttpSessionConfig
  */
 public class SharedHttpSessionTests {
 
-	@Test
-	public void httpSession() throws Exception {
-		MockMvc mockMvc = MockMvcBuilders.standaloneSetup(new TestController())
-				.apply(sharedHttpSession())
-				.build();
+    @Test
+    public void httpSession() throws Exception {
+        MockMvc mockMvc = MockMvcBuilders.standaloneSetup(new TestController())
+                .apply(sharedHttpSession())
+                .build();
 
-		String url = "/session";
+        String url = "/session";
 
-		MvcResult result = mockMvc.perform(get(url)).andExpect(status().isOk()).andReturn();
-		HttpSession session = result.getRequest().getSession(false);
-		assertThat(session).isNotNull();
-		assertThat(session.getAttribute("counter")).isEqualTo(1);
+        MvcResult result = mockMvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+        HttpSession session = result.getRequest().getSession(false);
+        assertThat(session).isNotNull();
+        assertThat(session.getAttribute("counter")).isEqualTo(1);
 
-		result = mockMvc.perform(get(url)).andExpect(status().isOk()).andReturn();
-		session = result.getRequest().getSession(false);
-		assertThat(session).isNotNull();
-		assertThat(session.getAttribute("counter")).isEqualTo(2);
+        result = mockMvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+        session = result.getRequest().getSession(false);
+        assertThat(session).isNotNull();
+        assertThat(session.getAttribute("counter")).isEqualTo(2);
 
-		result = mockMvc.perform(get(url)).andExpect(status().isOk()).andReturn();
-		session = result.getRequest().getSession(false);
-		assertThat(session).isNotNull();
-		assertThat(session.getAttribute("counter")).isEqualTo(3);
-	}
+        result = mockMvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+        session = result.getRequest().getSession(false);
+        assertThat(session).isNotNull();
+        assertThat(session.getAttribute("counter")).isEqualTo(3);
+    }
 
-	@Test
-	public void noHttpSession() throws Exception {
-		MockMvc mockMvc = MockMvcBuilders.standaloneSetup(new TestController())
-				.apply(sharedHttpSession())
-				.build();
+    @Test
+    public void noHttpSession() throws Exception {
+        MockMvc mockMvc = MockMvcBuilders.standaloneSetup(new TestController())
+                .apply(sharedHttpSession())
+                .build();
 
-		String url = "/no-session";
+        String url = "/no-session";
 
-		MvcResult result = mockMvc.perform(get(url)).andExpect(status().isOk()).andReturn();
-		HttpSession session = result.getRequest().getSession(false);
-		assertThat(session).isNull();
+        MvcResult result = mockMvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+        HttpSession session = result.getRequest().getSession(false);
+        assertThat(session).isNull();
 
-		result = mockMvc.perform(get(url)).andExpect(status().isOk()).andReturn();
-		session = result.getRequest().getSession(false);
-		assertThat(session).isNull();
+        result = mockMvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+        session = result.getRequest().getSession(false);
+        assertThat(session).isNull();
 
-		url = "/session";
+        url = "/session";
 
-		result = mockMvc.perform(get(url)).andExpect(status().isOk()).andReturn();
-		session = result.getRequest().getSession(false);
-		assertThat(session).isNotNull();
-		assertThat(session.getAttribute("counter")).isEqualTo(1);
-	}
+        result = mockMvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+        session = result.getRequest().getSession(false);
+        assertThat(session).isNotNull();
+        assertThat(session.getAttribute("counter")).isEqualTo(1);
+    }
 
 
-	@Controller
-	private static class TestController {
+    @Controller
+    private static class TestController {
 
-		@GetMapping("/session")
-		public String handle(HttpSession session) {
-			Integer counter = (Integer) session.getAttribute("counter");
-			session.setAttribute("counter", (counter != null ? counter + 1 : 1));
-			return "view";
-		}
+        @GetMapping("/session")
+        public String handle(HttpSession session) {
+            Integer counter = (Integer) session.getAttribute("counter");
+            session.setAttribute("counter", (counter != null ? counter + 1 : 1));
+            return "view";
+        }
 
-		@GetMapping("/no-session")
-		public String handle() {
-			return "view";
-		}
-	}
+        @GetMapping("/no-session")
+        public String handle() {
+            return "view";
+        }
+    }
 
 }

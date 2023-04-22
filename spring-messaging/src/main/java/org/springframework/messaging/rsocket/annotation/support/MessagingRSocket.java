@@ -61,160 +61,160 @@ import org.springframework.util.RouteMatcher;
  */
 class MessagingRSocket extends AbstractRSocket {
 
-	private final MimeType dataMimeType;
+    private final MimeType dataMimeType;
 
-	private final MimeType metadataMimeType;
+    private final MimeType metadataMimeType;
 
-	private final MetadataExtractor metadataExtractor;
+    private final MetadataExtractor metadataExtractor;
 
-	private final ReactiveMessageHandler messageHandler;
+    private final ReactiveMessageHandler messageHandler;
 
-	private final RouteMatcher routeMatcher;
+    private final RouteMatcher routeMatcher;
 
-	private final RSocketRequester requester;
+    private final RSocketRequester requester;
 
-	private final RSocketStrategies strategies;
-
-
-	MessagingRSocket(MimeType dataMimeType, MimeType metadataMimeType, MetadataExtractor metadataExtractor,
-			RSocketRequester requester, ReactiveMessageHandler messageHandler, RouteMatcher routeMatcher,
-			RSocketStrategies strategies) {
-
-		Assert.notNull(dataMimeType, "'dataMimeType' is required");
-		Assert.notNull(metadataMimeType, "'metadataMimeType' is required");
-		Assert.notNull(metadataExtractor, "MetadataExtractor is required");
-		Assert.notNull(requester, "RSocketRequester is required");
-		Assert.notNull(messageHandler, "ReactiveMessageHandler is required");
-		Assert.notNull(routeMatcher, "RouteMatcher is required");
-		Assert.notNull(strategies, "RSocketStrategies is required");
-
-		this.dataMimeType = dataMimeType;
-		this.metadataMimeType = metadataMimeType;
-		this.metadataExtractor = metadataExtractor;
-		this.requester = requester;
-		this.messageHandler = messageHandler;
-		this.routeMatcher = routeMatcher;
-		this.strategies = strategies;
-	}
+    private final RSocketStrategies strategies;
 
 
-	/**
-	 * Wrap the {@link ConnectionSetupPayload} with a {@link Message} and
-	 * delegate to {@link #handle(Payload, FrameType)} for handling.
-	 * @param payload the connection payload
-	 * @return completion handle for success or error
-	 */
-	public Mono<Void> handleConnectionSetupPayload(ConnectionSetupPayload payload) {
-		// frameDecoder does not apply to connectionSetupPayload
-		// so retain here since handle expects it..
-		payload.retain();
-		return handle(payload, FrameType.SETUP);
-	}
+    MessagingRSocket(MimeType dataMimeType, MimeType metadataMimeType, MetadataExtractor metadataExtractor,
+                     RSocketRequester requester, ReactiveMessageHandler messageHandler, RouteMatcher routeMatcher,
+                     RSocketStrategies strategies) {
+
+        Assert.notNull(dataMimeType, "'dataMimeType' is required");
+        Assert.notNull(metadataMimeType, "'metadataMimeType' is required");
+        Assert.notNull(metadataExtractor, "MetadataExtractor is required");
+        Assert.notNull(requester, "RSocketRequester is required");
+        Assert.notNull(messageHandler, "ReactiveMessageHandler is required");
+        Assert.notNull(routeMatcher, "RouteMatcher is required");
+        Assert.notNull(strategies, "RSocketStrategies is required");
+
+        this.dataMimeType = dataMimeType;
+        this.metadataMimeType = metadataMimeType;
+        this.metadataExtractor = metadataExtractor;
+        this.requester = requester;
+        this.messageHandler = messageHandler;
+        this.routeMatcher = routeMatcher;
+        this.strategies = strategies;
+    }
 
 
-	@Override
-	public Mono<Void> fireAndForget(Payload payload) {
-		return handle(payload, FrameType.REQUEST_FNF);
-	}
-
-	@Override
-	public Mono<Payload> requestResponse(Payload payload) {
-		return handleAndReply(payload, FrameType.REQUEST_RESPONSE, Flux.just(payload)).next();
-	}
-
-	@Override
-	public Flux<Payload> requestStream(Payload payload) {
-		return handleAndReply(payload, FrameType.REQUEST_STREAM, Flux.just(payload));
-	}
-
-	@Override
-	public Flux<Payload> requestChannel(Publisher<Payload> payloads) {
-		return Flux.from(payloads)
-				.switchOnFirst((signal, innerFlux) -> {
-					Payload firstPayload = signal.get();
-					return firstPayload == null ? innerFlux :
-							handleAndReply(firstPayload, FrameType.REQUEST_CHANNEL, innerFlux);
-				});
-	}
-
-	@Override
-	public Mono<Void> metadataPush(Payload payload) {
-		// Not very useful until createHeaders does more with metadata
-		return handle(payload, FrameType.METADATA_PUSH);
-	}
+    /**
+     * Wrap the {@link ConnectionSetupPayload} with a {@link Message} and
+     * delegate to {@link #handle(Payload, FrameType)} for handling.
+     *
+     * @param payload the connection payload
+     * @return completion handle for success or error
+     */
+    public Mono<Void> handleConnectionSetupPayload(ConnectionSetupPayload payload) {
+        // frameDecoder does not apply to connectionSetupPayload
+        // so retain here since handle expects it..
+        payload.retain();
+        return handle(payload, FrameType.SETUP);
+    }
 
 
-	private Mono<Void> handle(Payload payload, FrameType frameType) {
-		MessageHeaders headers = createHeaders(payload, frameType, null);
-		DataBuffer dataBuffer = retainDataAndReleasePayload(payload);
-		int refCount = refCount(dataBuffer);
-		Message<?> message = MessageBuilder.createMessage(dataBuffer, headers);
-		return Mono.defer(() -> this.messageHandler.handleMessage(message))
-				.doFinally(s -> {
-					if (refCount(dataBuffer) == refCount) {
-						DataBufferUtils.release(dataBuffer);
-					}
-				});
-	}
+    @Override
+    public Mono<Void> fireAndForget(Payload payload) {
+        return handle(payload, FrameType.REQUEST_FNF);
+    }
 
-	private int refCount(DataBuffer dataBuffer) {
-		return dataBuffer instanceof NettyDataBuffer ?
-				((NettyDataBuffer) dataBuffer).getNativeBuffer().refCnt() : 1;
-	}
+    @Override
+    public Mono<Payload> requestResponse(Payload payload) {
+        return handleAndReply(payload, FrameType.REQUEST_RESPONSE, Flux.just(payload)).next();
+    }
 
-	private Flux<Payload> handleAndReply(Payload firstPayload, FrameType frameType, Flux<Payload> payloads) {
-		MonoProcessor<Flux<Payload>> replyMono = MonoProcessor.create();
-		MessageHeaders headers = createHeaders(firstPayload, frameType, replyMono);
+    @Override
+    public Flux<Payload> requestStream(Payload payload) {
+        return handleAndReply(payload, FrameType.REQUEST_STREAM, Flux.just(payload));
+    }
 
-		AtomicBoolean read = new AtomicBoolean();
-		Flux<DataBuffer> buffers = payloads.map(this::retainDataAndReleasePayload).doOnSubscribe(s -> read.set(true));
-		Message<Flux<DataBuffer>> message = MessageBuilder.createMessage(buffers, headers);
+    @Override
+    public Flux<Payload> requestChannel(Publisher<Payload> payloads) {
+        return Flux.from(payloads)
+                .switchOnFirst((signal, innerFlux) -> {
+                    Payload firstPayload = signal.get();
+                    return firstPayload == null ? innerFlux :
+                            handleAndReply(firstPayload, FrameType.REQUEST_CHANNEL, innerFlux);
+                });
+    }
 
-		return Mono.defer(() -> this.messageHandler.handleMessage(message))
-				.doFinally(s -> {
-					// Subscription should have happened by now due to ChannelSendOperator
-					if (!read.get()) {
-						buffers.subscribe(DataBufferUtils::release);
-					}
-				})
-				.thenMany(Flux.defer(() -> replyMono.isTerminated() ?
-						replyMono.flatMapMany(Function.identity()) :
-						Mono.error(new IllegalStateException("Something went wrong: reply Mono not set"))));
-	}
+    @Override
+    public Mono<Void> metadataPush(Payload payload) {
+        // Not very useful until createHeaders does more with metadata
+        return handle(payload, FrameType.METADATA_PUSH);
+    }
 
-	private DataBuffer retainDataAndReleasePayload(Payload payload) {
-		return PayloadUtils.retainDataAndReleasePayload(payload, this.strategies.dataBufferFactory());
-	}
 
-	private MessageHeaders createHeaders(Payload payload, FrameType frameType,
-			@Nullable MonoProcessor<?> replyMono) {
+    private Mono<Void> handle(Payload payload, FrameType frameType) {
+        MessageHeaders headers = createHeaders(payload, frameType, null);
+        DataBuffer dataBuffer = retainDataAndReleasePayload(payload);
+        int refCount = refCount(dataBuffer);
+        Message<?> message = MessageBuilder.createMessage(dataBuffer, headers);
+        return Mono.defer(() -> this.messageHandler.handleMessage(message))
+                .doFinally(s -> {
+                    if (refCount(dataBuffer) == refCount) {
+                        DataBufferUtils.release(dataBuffer);
+                    }
+                });
+    }
 
-		MessageHeaderAccessor headers = new MessageHeaderAccessor();
-		headers.setLeaveMutable(true);
+    private int refCount(DataBuffer dataBuffer) {
+        return dataBuffer instanceof NettyDataBuffer ?
+                ((NettyDataBuffer) dataBuffer).getNativeBuffer().refCnt() : 1;
+    }
 
-		Map<String, Object> metadataValues = this.metadataExtractor.extract(payload, this.metadataMimeType);
+    private Flux<Payload> handleAndReply(Payload firstPayload, FrameType frameType, Flux<Payload> payloads) {
+        MonoProcessor<Flux<Payload>> replyMono = MonoProcessor.create();
+        MessageHeaders headers = createHeaders(firstPayload, frameType, replyMono);
 
-		metadataValues.putIfAbsent(MetadataExtractor.ROUTE_KEY, "");
-		for (Map.Entry<String, Object> entry : metadataValues.entrySet()) {
-			if (entry.getKey().equals(MetadataExtractor.ROUTE_KEY)) {
-				RouteMatcher.Route route = this.routeMatcher.parseRoute((String) entry.getValue());
-				headers.setHeader(DestinationPatternsMessageCondition.LOOKUP_DESTINATION_HEADER, route);
-			}
-			else {
-				headers.setHeader(entry.getKey(), entry.getValue());
-			}
-		}
+        AtomicBoolean read = new AtomicBoolean();
+        Flux<DataBuffer> buffers = payloads.map(this::retainDataAndReleasePayload).doOnSubscribe(s -> read.set(true));
+        Message<Flux<DataBuffer>> message = MessageBuilder.createMessage(buffers, headers);
 
-		headers.setContentType(this.dataMimeType);
-		headers.setHeader(RSocketFrameTypeMessageCondition.FRAME_TYPE_HEADER, frameType);
-		headers.setHeader(RSocketRequesterMethodArgumentResolver.RSOCKET_REQUESTER_HEADER, this.requester);
-		if (replyMono != null) {
-			headers.setHeader(RSocketPayloadReturnValueHandler.RESPONSE_HEADER, replyMono);
-		}
-		headers.setHeader(HandlerMethodReturnValueHandler.DATA_BUFFER_FACTORY_HEADER,
-				this.strategies.dataBufferFactory());
+        return Mono.defer(() -> this.messageHandler.handleMessage(message))
+                .doFinally(s -> {
+                    // Subscription should have happened by now due to ChannelSendOperator
+                    if (!read.get()) {
+                        buffers.subscribe(DataBufferUtils::release);
+                    }
+                })
+                .thenMany(Flux.defer(() -> replyMono.isTerminated() ?
+                        replyMono.flatMapMany(Function.identity()) :
+                        Mono.error(new IllegalStateException("Something went wrong: reply Mono not set"))));
+    }
 
-		return headers.getMessageHeaders();
-	}
+    private DataBuffer retainDataAndReleasePayload(Payload payload) {
+        return PayloadUtils.retainDataAndReleasePayload(payload, this.strategies.dataBufferFactory());
+    }
+
+    private MessageHeaders createHeaders(Payload payload, FrameType frameType,
+                                         @Nullable MonoProcessor<?> replyMono) {
+
+        MessageHeaderAccessor headers = new MessageHeaderAccessor();
+        headers.setLeaveMutable(true);
+
+        Map<String, Object> metadataValues = this.metadataExtractor.extract(payload, this.metadataMimeType);
+
+        metadataValues.putIfAbsent(MetadataExtractor.ROUTE_KEY, "");
+        for (Map.Entry<String, Object> entry : metadataValues.entrySet()) {
+            if (entry.getKey().equals(MetadataExtractor.ROUTE_KEY)) {
+                RouteMatcher.Route route = this.routeMatcher.parseRoute((String) entry.getValue());
+                headers.setHeader(DestinationPatternsMessageCondition.LOOKUP_DESTINATION_HEADER, route);
+            } else {
+                headers.setHeader(entry.getKey(), entry.getValue());
+            }
+        }
+
+        headers.setContentType(this.dataMimeType);
+        headers.setHeader(RSocketFrameTypeMessageCondition.FRAME_TYPE_HEADER, frameType);
+        headers.setHeader(RSocketRequesterMethodArgumentResolver.RSOCKET_REQUESTER_HEADER, this.requester);
+        if (replyMono != null) {
+            headers.setHeader(RSocketPayloadReturnValueHandler.RESPONSE_HEADER, replyMono);
+        }
+        headers.setHeader(HandlerMethodReturnValueHandler.DATA_BUFFER_FACTORY_HEADER,
+                this.strategies.dataBufferFactory());
+
+        return headers.getMessageHeaders();
+    }
 
 }

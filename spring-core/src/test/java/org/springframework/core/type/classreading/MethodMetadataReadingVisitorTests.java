@@ -39,34 +39,33 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 @SuppressWarnings("deprecation")
 class MethodMetadataReadingVisitorTests extends AbstractMethodMetadataTests {
 
-	@Override
-	protected AnnotationMetadata get(Class<?> source) {
-		try {
-			ClassLoader classLoader = source.getClassLoader();
-			String className = source.getName();
-			String resourcePath = ResourceLoader.CLASSPATH_URL_PREFIX
-					+ ClassUtils.convertClassNameToResourcePath(className)
-					+ ClassUtils.CLASS_FILE_SUFFIX;
-			Resource resource = new DefaultResourceLoader().getResource(resourcePath);
-			try (InputStream inputStream = new BufferedInputStream(
-					resource.getInputStream())) {
-				ClassReader classReader = new ClassReader(inputStream);
-				AnnotationMetadataReadingVisitor metadata = new AnnotationMetadataReadingVisitor(
-						classLoader);
-				classReader.accept(metadata, ClassReader.SKIP_DEBUG);
-				return metadata;
-			}
-		}
-		catch (Exception ex) {
-			throw new IllegalStateException(ex);
-		}
-	}
+    @Override
+    protected AnnotationMetadata get(Class<?> source) {
+        try {
+            ClassLoader classLoader = source.getClassLoader();
+            String className = source.getName();
+            String resourcePath = ResourceLoader.CLASSPATH_URL_PREFIX
+                    + ClassUtils.convertClassNameToResourcePath(className)
+                    + ClassUtils.CLASS_FILE_SUFFIX;
+            Resource resource = new DefaultResourceLoader().getResource(resourcePath);
+            try (InputStream inputStream = new BufferedInputStream(
+                    resource.getInputStream())) {
+                ClassReader classReader = new ClassReader(inputStream);
+                AnnotationMetadataReadingVisitor metadata = new AnnotationMetadataReadingVisitor(
+                        classLoader);
+                classReader.accept(metadata, ClassReader.SKIP_DEBUG);
+                return metadata;
+            }
+        } catch (Exception ex) {
+            throw new IllegalStateException(ex);
+        }
+    }
 
-	@Override
-	@Test
-	public void getAnnotationsReturnsDirectAnnotations() {
-		assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(
-				super::getAnnotationsReturnsDirectAnnotations);
-	}
+    @Override
+    @Test
+    public void getAnnotationsReturnsDirectAnnotations() {
+        assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(
+                super::getAnnotationsReturnsDirectAnnotations);
+    }
 
 }

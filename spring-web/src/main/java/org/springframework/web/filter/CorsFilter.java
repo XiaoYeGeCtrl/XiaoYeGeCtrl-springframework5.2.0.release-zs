@@ -48,48 +48,49 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
  * to help with its initialization.
  *
  * @author Sebastien Deleuze
- * @since 4.2
  * @see <a href="https://www.w3.org/TR/cors/">CORS W3C recommendation</a>
+ * @since 4.2
  */
 public class CorsFilter extends OncePerRequestFilter {
 
-	private final CorsConfigurationSource configSource;
+    private final CorsConfigurationSource configSource;
 
-	private CorsProcessor processor = new DefaultCorsProcessor();
-
-
-	/**
-	 * Constructor accepting a {@link CorsConfigurationSource} used by the filter
-	 * to find the {@link CorsConfiguration} to use for each incoming request.
-	 * @see UrlBasedCorsConfigurationSource
-	 */
-	public CorsFilter(CorsConfigurationSource configSource) {
-		Assert.notNull(configSource, "CorsConfigurationSource must not be null");
-		this.configSource = configSource;
-	}
+    private CorsProcessor processor = new DefaultCorsProcessor();
 
 
-	/**
-	 * Configure a custom {@link CorsProcessor} to use to apply the matched
-	 * {@link CorsConfiguration} for a request.
-	 * <p>By default {@link DefaultCorsProcessor} is used.
-	 */
-	public void setCorsProcessor(CorsProcessor processor) {
-		Assert.notNull(processor, "CorsProcessor must not be null");
-		this.processor = processor;
-	}
+    /**
+     * Constructor accepting a {@link CorsConfigurationSource} used by the filter
+     * to find the {@link CorsConfiguration} to use for each incoming request.
+     *
+     * @see UrlBasedCorsConfigurationSource
+     */
+    public CorsFilter(CorsConfigurationSource configSource) {
+        Assert.notNull(configSource, "CorsConfigurationSource must not be null");
+        this.configSource = configSource;
+    }
 
 
-	@Override
-	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
-			FilterChain filterChain) throws ServletException, IOException {
+    /**
+     * Configure a custom {@link CorsProcessor} to use to apply the matched
+     * {@link CorsConfiguration} for a request.
+     * <p>By default {@link DefaultCorsProcessor} is used.
+     */
+    public void setCorsProcessor(CorsProcessor processor) {
+        Assert.notNull(processor, "CorsProcessor must not be null");
+        this.processor = processor;
+    }
 
-		CorsConfiguration corsConfiguration = this.configSource.getCorsConfiguration(request);
-		boolean isValid = this.processor.processRequest(corsConfiguration, request, response);
-		if (!isValid || CorsUtils.isPreFlightRequest(request)) {
-			return;
-		}
-		filterChain.doFilter(request, response);
-	}
+
+    @Override
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
+                                    FilterChain filterChain) throws ServletException, IOException {
+
+        CorsConfiguration corsConfiguration = this.configSource.getCorsConfiguration(request);
+        boolean isValid = this.processor.processRequest(corsConfiguration, request, response);
+        if (!isValid || CorsUtils.isPreFlightRequest(request)) {
+            return;
+        }
+        filterChain.doFilter(request, response);
+    }
 
 }

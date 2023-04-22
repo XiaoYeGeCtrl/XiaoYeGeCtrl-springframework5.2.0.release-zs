@@ -40,84 +40,84 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 public class AppCacheManifestTransformerTests {
 
-	private AppCacheManifestTransformer transformer;
+    private AppCacheManifestTransformer transformer;
 
-	private ResourceTransformerChain chain;
+    private ResourceTransformerChain chain;
 
-	private HttpServletRequest request;
-
-
-	@BeforeEach
-	public void setup() {
-		VersionResourceResolver versionResolver = new VersionResourceResolver();
-		versionResolver.setStrategyMap(Collections.singletonMap("/**", new ContentVersionStrategy()));
-		PathResourceResolver pathResolver = new PathResourceResolver();
-		pathResolver.setAllowedLocations(new ClassPathResource("test/", getClass()));
-		List<ResourceResolver> resolvers = new ArrayList<>();
-		resolvers.add(versionResolver);
-		resolvers.add(pathResolver);
-		ResourceResolverChain resolverChain = new DefaultResourceResolverChain(resolvers);
-
-		this.chain = new DefaultResourceTransformerChain(resolverChain, Collections.emptyList());
-		this.transformer = new AppCacheManifestTransformer();
-		this.transformer.setResourceUrlProvider(createUrlProvider(resolvers));
-	}
-
-	private ResourceUrlProvider createUrlProvider(List<ResourceResolver> resolvers) {
-		ClassPathResource allowedLocation = new ClassPathResource("test/", getClass());
-		ResourceHttpRequestHandler resourceHandler = new ResourceHttpRequestHandler();
-
-		resourceHandler.setResourceResolvers(resolvers);
-		resourceHandler.setLocations(Collections.singletonList(allowedLocation));
-
-		ResourceUrlProvider resourceUrlProvider = new ResourceUrlProvider();
-		resourceUrlProvider.setHandlerMap(Collections.singletonMap("/static/**", resourceHandler));
-		return resourceUrlProvider;
-	}
+    private HttpServletRequest request;
 
 
-	@Test
-	public void noTransformIfExtensionDoesNotMatch() throws Exception {
-		this.request = new MockHttpServletRequest("GET", "/static/foo.css");
-		Resource resource = getResource("foo.css");
-		Resource result = this.transformer.transform(this.request, resource, this.chain);
+    @BeforeEach
+    public void setup() {
+        VersionResourceResolver versionResolver = new VersionResourceResolver();
+        versionResolver.setStrategyMap(Collections.singletonMap("/**", new ContentVersionStrategy()));
+        PathResourceResolver pathResolver = new PathResourceResolver();
+        pathResolver.setAllowedLocations(new ClassPathResource("test/", getClass()));
+        List<ResourceResolver> resolvers = new ArrayList<>();
+        resolvers.add(versionResolver);
+        resolvers.add(pathResolver);
+        ResourceResolverChain resolverChain = new DefaultResourceResolverChain(resolvers);
 
-		assertThat(result).isEqualTo(resource);
-	}
+        this.chain = new DefaultResourceTransformerChain(resolverChain, Collections.emptyList());
+        this.transformer = new AppCacheManifestTransformer();
+        this.transformer.setResourceUrlProvider(createUrlProvider(resolvers));
+    }
 
-	@Test
-	public void syntaxErrorInManifest() throws Exception {
-		this.request = new MockHttpServletRequest("GET", "/static/error.appcache");
-		Resource resource = getResource("error.appcache");
-		Resource result = this.transformer.transform(this.request, resource, this.chain);
+    private ResourceUrlProvider createUrlProvider(List<ResourceResolver> resolvers) {
+        ClassPathResource allowedLocation = new ClassPathResource("test/", getClass());
+        ResourceHttpRequestHandler resourceHandler = new ResourceHttpRequestHandler();
 
-		assertThat(result).isEqualTo(resource);
-	}
+        resourceHandler.setResourceResolvers(resolvers);
+        resourceHandler.setLocations(Collections.singletonList(allowedLocation));
 
-	@Test
-	public void transformManifest() throws Exception {
-		this.request = new MockHttpServletRequest("GET", "/static/test.appcache");
-		Resource resource = getResource("test.appcache");
-		Resource actual = this.transformer.transform(this.request, resource, this.chain);
+        ResourceUrlProvider resourceUrlProvider = new ResourceUrlProvider();
+        resourceUrlProvider.setHandlerMap(Collections.singletonMap("/static/**", resourceHandler));
+        return resourceUrlProvider;
+    }
 
-		byte[] bytes = FileCopyUtils.copyToByteArray(actual.getInputStream());
-		String content = new String(bytes, "UTF-8");
 
-		assertThat(content).as("rewrite resource links")
-				.contains("/static/foo-e36d2e05253c6c7085a91522ce43a0b4.css")
-				.contains("/static/bar-11e16cf79faee7ac698c805cf28248d2.css")
-				.contains("/static/js/bar-bd508c62235b832d960298ca6c0b7645.js");
+    @Test
+    public void noTransformIfExtensionDoesNotMatch() throws Exception {
+        this.request = new MockHttpServletRequest("GET", "/static/foo.css");
+        Resource resource = getResource("foo.css");
+        Resource result = this.transformer.transform(this.request, resource, this.chain);
 
-		assertThat(content).as("not rewrite external resources")
-				.contains("//example.org/style.css")
-				.contains("https://example.org/image.png");
+        assertThat(result).isEqualTo(resource);
+    }
 
-		assertThat(content).as("generate fingerprint")
-				.contains("# Hash: 65ebc023e50b2b731fcace2871f0dae3");
-	}
+    @Test
+    public void syntaxErrorInManifest() throws Exception {
+        this.request = new MockHttpServletRequest("GET", "/static/error.appcache");
+        Resource resource = getResource("error.appcache");
+        Resource result = this.transformer.transform(this.request, resource, this.chain);
 
-	private Resource getResource(String filePath) {
-		return new ClassPathResource("test/" + filePath, getClass());
-	}
+        assertThat(result).isEqualTo(resource);
+    }
+
+    @Test
+    public void transformManifest() throws Exception {
+        this.request = new MockHttpServletRequest("GET", "/static/test.appcache");
+        Resource resource = getResource("test.appcache");
+        Resource actual = this.transformer.transform(this.request, resource, this.chain);
+
+        byte[] bytes = FileCopyUtils.copyToByteArray(actual.getInputStream());
+        String content = new String(bytes, "UTF-8");
+
+        assertThat(content).as("rewrite resource links")
+                .contains("/static/foo-e36d2e05253c6c7085a91522ce43a0b4.css")
+                .contains("/static/bar-11e16cf79faee7ac698c805cf28248d2.css")
+                .contains("/static/js/bar-bd508c62235b832d960298ca6c0b7645.js");
+
+        assertThat(content).as("not rewrite external resources")
+                .contains("//example.org/style.css")
+                .contains("https://example.org/image.png");
+
+        assertThat(content).as("generate fingerprint")
+                .contains("# Hash: 65ebc023e50b2b731fcace2871f0dae3");
+    }
+
+    private Resource getResource(String filePath) {
+        return new ClassPathResource("test/" + filePath, getClass());
+    }
 
 }

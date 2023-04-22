@@ -30,30 +30,30 @@ import org.springframework.util.MimeTypeUtils;
  */
 public class ByteArrayMessageConverter extends AbstractMessageConverter {
 
-	public ByteArrayMessageConverter() {
-		super(MimeTypeUtils.APPLICATION_OCTET_STREAM);
-	}
+    public ByteArrayMessageConverter() {
+        super(MimeTypeUtils.APPLICATION_OCTET_STREAM);
+    }
 
 
-	@Override
-	protected boolean supports(Class<?> clazz) {
-		return (byte[].class == clazz);
-	}
+    @Override
+    protected boolean supports(Class<?> clazz) {
+        return (byte[].class == clazz);
+    }
 
-	@Override
-	@Nullable
-	protected Object convertFromInternal(
-			Message<?> message, @Nullable Class<?> targetClass, @Nullable Object conversionHint) {
+    @Override
+    @Nullable
+    protected Object convertFromInternal(
+            Message<?> message, @Nullable Class<?> targetClass, @Nullable Object conversionHint) {
 
-		return message.getPayload();
-	}
+        return message.getPayload();
+    }
 
-	@Override
-	@Nullable
-	protected Object convertToInternal(
-			Object payload, @Nullable MessageHeaders headers, @Nullable Object conversionHint) {
+    @Override
+    @Nullable
+    protected Object convertToInternal(
+            Object payload, @Nullable MessageHeaders headers, @Nullable Object conversionHint) {
 
-		return payload;
-	}
+        return payload;
+    }
 
 }

@@ -33,18 +33,18 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 @SuppressWarnings("serial")
 public class SpringJtaSessionContext extends JTASessionContext {
 
-	public SpringJtaSessionContext(SessionFactoryImplementor factory) {
-		super(factory);
-	}
+    public SpringJtaSessionContext(SessionFactoryImplementor factory) {
+        super(factory);
+    }
 
-	@Override
-	@SuppressWarnings("deprecation")
-	protected Session buildOrObtainSession() {
-		Session session = super.buildOrObtainSession();
-		if (TransactionSynchronizationManager.isCurrentTransactionReadOnly()) {
-			session.setFlushMode(FlushMode.MANUAL);
-		}
-		return session;
-	}
+    @Override
+    @SuppressWarnings("deprecation")
+    protected Session buildOrObtainSession() {
+        Session session = super.buildOrObtainSession();
+        if (TransactionSynchronizationManager.isCurrentTransactionReadOnly()) {
+            session.setFlushMode(FlushMode.MANUAL);
+        }
+        return session;
+    }
 
 }

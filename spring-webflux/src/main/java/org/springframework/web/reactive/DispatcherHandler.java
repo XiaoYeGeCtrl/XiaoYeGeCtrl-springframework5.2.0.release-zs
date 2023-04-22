@@ -62,129 +62,131 @@ import org.springframework.web.server.adapter.WebHttpHandlerBuilder;
  * @author Rossen Stoyanchev
  * @author Sebastien Deleuze
  * @author Juergen Hoeller
- * @since 5.0
  * @see WebHttpHandlerBuilder#applicationContext(ApplicationContext)
+ * @since 5.0
  */
 public class DispatcherHandler implements WebHandler, ApplicationContextAware {
 
-	@Nullable
-	private List<HandlerMapping> handlerMappings;
+    @Nullable
+    private List<HandlerMapping> handlerMappings;
 
-	@Nullable
-	private List<HandlerAdapter> handlerAdapters;
+    @Nullable
+    private List<HandlerAdapter> handlerAdapters;
 
-	@Nullable
-	private List<HandlerResultHandler> resultHandlers;
-
-
-	/**
-	 * Create a new {@code DispatcherHandler} which needs to be configured with
-	 * an {@link ApplicationContext} through {@link #setApplicationContext}.
-	 */
-	public DispatcherHandler() {
-	}
-
-	/**
-	 * Create a new {@code DispatcherHandler} for the given {@link ApplicationContext}.
-	 * @param applicationContext the application context to find the handler beans in
-	 */
-	public DispatcherHandler(ApplicationContext applicationContext) {
-		initStrategies(applicationContext);
-	}
+    @Nullable
+    private List<HandlerResultHandler> resultHandlers;
 
 
-	/**
-	 * Return all {@link HandlerMapping} beans detected by type in the
-	 * {@link #setApplicationContext injected context} and also
-	 * {@link AnnotationAwareOrderComparator#sort(List) sorted}.
-	 * <p><strong>Note:</strong> This method may return {@code null} if invoked
-	 * prior to {@link #setApplicationContext(ApplicationContext)}.
-	 * @return immutable list with the configured mappings or {@code null}
-	 */
-	@Nullable
-	public final List<HandlerMapping> getHandlerMappings() {
-		return this.handlerMappings;
-	}
+    /**
+     * Create a new {@code DispatcherHandler} which needs to be configured with
+     * an {@link ApplicationContext} through {@link #setApplicationContext}.
+     */
+    public DispatcherHandler() {
+    }
 
-	@Override
-	public void setApplicationContext(ApplicationContext applicationContext) {
-		initStrategies(applicationContext);
-	}
+    /**
+     * Create a new {@code DispatcherHandler} for the given {@link ApplicationContext}.
+     *
+     * @param applicationContext the application context to find the handler beans in
+     */
+    public DispatcherHandler(ApplicationContext applicationContext) {
+        initStrategies(applicationContext);
+    }
 
 
-	protected void initStrategies(ApplicationContext context) {
-		Map<String, HandlerMapping> mappingBeans = BeanFactoryUtils.beansOfTypeIncludingAncestors(
-				context, HandlerMapping.class, true, false);
+    /**
+     * Return all {@link HandlerMapping} beans detected by type in the
+     * {@link #setApplicationContext injected context} and also
+     * {@link AnnotationAwareOrderComparator#sort(List) sorted}.
+     * <p><strong>Note:</strong> This method may return {@code null} if invoked
+     * prior to {@link #setApplicationContext(ApplicationContext)}.
+     *
+     * @return immutable list with the configured mappings or {@code null}
+     */
+    @Nullable
+    public final List<HandlerMapping> getHandlerMappings() {
+        return this.handlerMappings;
+    }
 
-		ArrayList<HandlerMapping> mappings = new ArrayList<>(mappingBeans.values());
-		AnnotationAwareOrderComparator.sort(mappings);
-		this.handlerMappings = Collections.unmodifiableList(mappings);
-
-		Map<String, HandlerAdapter> adapterBeans = BeanFactoryUtils.beansOfTypeIncludingAncestors(
-				context, HandlerAdapter.class, true, false);
-
-		this.handlerAdapters = new ArrayList<>(adapterBeans.values());
-		AnnotationAwareOrderComparator.sort(this.handlerAdapters);
-
-		Map<String, HandlerResultHandler> beans = BeanFactoryUtils.beansOfTypeIncludingAncestors(
-				context, HandlerResultHandler.class, true, false);
-
-		this.resultHandlers = new ArrayList<>(beans.values());
-		AnnotationAwareOrderComparator.sort(this.resultHandlers);
-	}
+    @Override
+    public void setApplicationContext(ApplicationContext applicationContext) {
+        initStrategies(applicationContext);
+    }
 
 
-	@Override
-	public Mono<Void> handle(ServerWebExchange exchange) {
-		if (this.handlerMappings == null) {
-			return createNotFoundError();
-		}
-		return Flux.fromIterable(this.handlerMappings)
-				.concatMap(mapping -> mapping.getHandler(exchange))
-				.next()
-				.switchIfEmpty(createNotFoundError())
-				.flatMap(handler -> invokeHandler(exchange, handler))
-				.flatMap(result -> handleResult(exchange, result));
-	}
+    protected void initStrategies(ApplicationContext context) {
+        Map<String, HandlerMapping> mappingBeans = BeanFactoryUtils.beansOfTypeIncludingAncestors(
+                context, HandlerMapping.class, true, false);
 
-	private <R> Mono<R> createNotFoundError() {
-		return Mono.defer(() -> {
-			Exception ex = new ResponseStatusException(HttpStatus.NOT_FOUND, "No matching handler");
-			return Mono.error(ex);
-		});
-	}
+        ArrayList<HandlerMapping> mappings = new ArrayList<>(mappingBeans.values());
+        AnnotationAwareOrderComparator.sort(mappings);
+        this.handlerMappings = Collections.unmodifiableList(mappings);
 
-	private Mono<HandlerResult> invokeHandler(ServerWebExchange exchange, Object handler) {
-		if (this.handlerAdapters != null) {
-			for (HandlerAdapter handlerAdapter : this.handlerAdapters) {
-				if (handlerAdapter.supports(handler)) {
-					return handlerAdapter.handle(exchange, handler);
-				}
-			}
-		}
-		return Mono.error(new IllegalStateException("No HandlerAdapter: " + handler));
-	}
+        Map<String, HandlerAdapter> adapterBeans = BeanFactoryUtils.beansOfTypeIncludingAncestors(
+                context, HandlerAdapter.class, true, false);
 
-	private Mono<Void> handleResult(ServerWebExchange exchange, HandlerResult result) {
-		return getResultHandler(result).handleResult(exchange, result)
-				.checkpoint("Handler " + result.getHandler() + " [DispatcherHandler]")
-				.onErrorResume(ex ->
-						result.applyExceptionHandler(ex).flatMap(exResult -> {
-							String text = "Exception handler " + exResult.getHandler() +
-									", error=\"" + ex.getMessage() + "\" [DispatcherHandler]";
-							return getResultHandler(exResult).handleResult(exchange, exResult).checkpoint(text);
-						}));
-	}
+        this.handlerAdapters = new ArrayList<>(adapterBeans.values());
+        AnnotationAwareOrderComparator.sort(this.handlerAdapters);
 
-	private HandlerResultHandler getResultHandler(HandlerResult handlerResult) {
-		if (this.resultHandlers != null) {
-			for (HandlerResultHandler resultHandler : this.resultHandlers) {
-				if (resultHandler.supports(handlerResult)) {
-					return resultHandler;
-				}
-			}
-		}
-		throw new IllegalStateException("No HandlerResultHandler for " + handlerResult.getReturnValue());
-	}
+        Map<String, HandlerResultHandler> beans = BeanFactoryUtils.beansOfTypeIncludingAncestors(
+                context, HandlerResultHandler.class, true, false);
+
+        this.resultHandlers = new ArrayList<>(beans.values());
+        AnnotationAwareOrderComparator.sort(this.resultHandlers);
+    }
+
+
+    @Override
+    public Mono<Void> handle(ServerWebExchange exchange) {
+        if (this.handlerMappings == null) {
+            return createNotFoundError();
+        }
+        return Flux.fromIterable(this.handlerMappings)
+                .concatMap(mapping -> mapping.getHandler(exchange))
+                .next()
+                .switchIfEmpty(createNotFoundError())
+                .flatMap(handler -> invokeHandler(exchange, handler))
+                .flatMap(result -> handleResult(exchange, result));
+    }
+
+    private <R> Mono<R> createNotFoundError() {
+        return Mono.defer(() -> {
+            Exception ex = new ResponseStatusException(HttpStatus.NOT_FOUND, "No matching handler");
+            return Mono.error(ex);
+        });
+    }
+
+    private Mono<HandlerResult> invokeHandler(ServerWebExchange exchange, Object handler) {
+        if (this.handlerAdapters != null) {
+            for (HandlerAdapter handlerAdapter : this.handlerAdapters) {
+                if (handlerAdapter.supports(handler)) {
+                    return handlerAdapter.handle(exchange, handler);
+                }
+            }
+        }
+        return Mono.error(new IllegalStateException("No HandlerAdapter: " + handler));
+    }
+
+    private Mono<Void> handleResult(ServerWebExchange exchange, HandlerResult result) {
+        return getResultHandler(result).handleResult(exchange, result)
+                .checkpoint("Handler " + result.getHandler() + " [DispatcherHandler]")
+                .onErrorResume(ex ->
+                        result.applyExceptionHandler(ex).flatMap(exResult -> {
+                            String text = "Exception handler " + exResult.getHandler() +
+                                    ", error=\"" + ex.getMessage() + "\" [DispatcherHandler]";
+                            return getResultHandler(exResult).handleResult(exchange, exResult).checkpoint(text);
+                        }));
+    }
+
+    private HandlerResultHandler getResultHandler(HandlerResult handlerResult) {
+        if (this.resultHandlers != null) {
+            for (HandlerResultHandler resultHandler : this.resultHandlers) {
+                if (resultHandler.supports(handlerResult)) {
+                    return resultHandler;
+                }
+            }
+        }
+        throw new IllegalStateException("No HandlerResultHandler for " + handlerResult.getReturnValue());
+    }
 
 }

@@ -28,24 +28,26 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 public class Spr7283Tests {
 
-	@Test
-	public void testListWithInconsistentElementType() {
-		ClassPathXmlApplicationContext ctx = new ClassPathXmlApplicationContext("spr7283.xml", getClass());
-		List<?> list = ctx.getBean("list", List.class);
-		assertThat(list.size()).isEqualTo(2);
-		boolean condition1 = list.get(0) instanceof A;
-		assertThat(condition1).isTrue();
-		boolean condition = list.get(1) instanceof B;
-		assertThat(condition).isTrue();
-	}
+    @Test
+    public void testListWithInconsistentElementType() {
+        ClassPathXmlApplicationContext ctx = new ClassPathXmlApplicationContext("spr7283.xml", getClass());
+        List<?> list = ctx.getBean("list", List.class);
+        assertThat(list.size()).isEqualTo(2);
+        boolean condition1 = list.get(0) instanceof A;
+        assertThat(condition1).isTrue();
+        boolean condition = list.get(1) instanceof B;
+        assertThat(condition).isTrue();
+    }
 
 
-	public static class A {
-		public A() {}
-	}
+    public static class A {
+        public A() {
+        }
+    }
 
-	public static class B {
-		public B() {}
-	}
+    public static class B {
+        public B() {
+        }
+    }
 
 }

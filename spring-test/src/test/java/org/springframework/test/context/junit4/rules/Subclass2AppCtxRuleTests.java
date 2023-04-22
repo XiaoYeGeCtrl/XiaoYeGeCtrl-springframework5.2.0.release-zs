@@ -34,22 +34,22 @@ import static org.assertj.core.api.Assertions.assertThat;
 @ContextConfiguration
 public class Subclass2AppCtxRuleTests extends BaseAppCtxRuleTests {
 
-	@Autowired
-	private String baz;
+    @Autowired
+    private String baz;
 
 
-	@Test
-	public void baz() {
-		assertThat(baz).isEqualTo("baz");
-	}
+    @Test
+    public void baz() {
+        assertThat(baz).isEqualTo("baz");
+    }
 
 
-	@Configuration
-	static class Config {
+    @Configuration
+    static class Config {
 
-		@Bean
-		public String baz() {
-			return "baz";
-		}
-	}
+        @Bean
+        public String baz() {
+            return "baz";
+        }
+    }
 }

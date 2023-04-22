@@ -35,143 +35,141 @@ import org.springframework.util.Assert;
  * Spring Advisors based on them, for use with auto-proxying.
  *
  * @author Juergen Hoeller
- * @since 2.0.2
  * @see AnnotationAwareAspectJAutoProxyCreator
+ * @since 2.0.2
  */
 public class BeanFactoryAspectJAdvisorsBuilder {
 
-	private final ListableBeanFactory beanFactory;
+    private final ListableBeanFactory beanFactory;
 
-	private final AspectJAdvisorFactory advisorFactory;
-
-	@Nullable
-	private volatile List<String> aspectBeanNames;
-
-	private final Map<String, List<Advisor>> advisorsCache = new ConcurrentHashMap<>();
-
-	private final Map<String, MetadataAwareAspectInstanceFactory> aspectFactoryCache = new ConcurrentHashMap<>();
+    private final AspectJAdvisorFactory advisorFactory;
+    private final Map<String, List<Advisor>> advisorsCache = new ConcurrentHashMap<>();
+    private final Map<String, MetadataAwareAspectInstanceFactory> aspectFactoryCache = new ConcurrentHashMap<>();
+    @Nullable
+    private volatile List<String> aspectBeanNames;
 
 
-	/**
-	 * Create a new BeanFactoryAspectJAdvisorsBuilder for the given BeanFactory.
-	 * @param beanFactory the ListableBeanFactory to scan
-	 */
-	public BeanFactoryAspectJAdvisorsBuilder(ListableBeanFactory beanFactory) {
-		this(beanFactory, new ReflectiveAspectJAdvisorFactory(beanFactory));
-	}
+    /**
+     * Create a new BeanFactoryAspectJAdvisorsBuilder for the given BeanFactory.
+     *
+     * @param beanFactory the ListableBeanFactory to scan
+     */
+    public BeanFactoryAspectJAdvisorsBuilder(ListableBeanFactory beanFactory) {
+        this(beanFactory, new ReflectiveAspectJAdvisorFactory(beanFactory));
+    }
 
-	/**
-	 * Create a new BeanFactoryAspectJAdvisorsBuilder for the given BeanFactory.
-	 * @param beanFactory the ListableBeanFactory to scan
-	 * @param advisorFactory the AspectJAdvisorFactory to build each Advisor with
-	 */
-	public BeanFactoryAspectJAdvisorsBuilder(ListableBeanFactory beanFactory, AspectJAdvisorFactory advisorFactory) {
-		Assert.notNull(beanFactory, "ListableBeanFactory must not be null");
-		Assert.notNull(advisorFactory, "AspectJAdvisorFactory must not be null");
-		this.beanFactory = beanFactory;
-		this.advisorFactory = advisorFactory;
-	}
+    /**
+     * Create a new BeanFactoryAspectJAdvisorsBuilder for the given BeanFactory.
+     *
+     * @param beanFactory    the ListableBeanFactory to scan
+     * @param advisorFactory the AspectJAdvisorFactory to build each Advisor with
+     */
+    public BeanFactoryAspectJAdvisorsBuilder(ListableBeanFactory beanFactory, AspectJAdvisorFactory advisorFactory) {
+        Assert.notNull(beanFactory, "ListableBeanFactory must not be null");
+        Assert.notNull(advisorFactory, "AspectJAdvisorFactory must not be null");
+        this.beanFactory = beanFactory;
+        this.advisorFactory = advisorFactory;
+    }
 
 
-	/**
-	 * Look for AspectJ-annotated aspect beans in the current bean factory,
-	 * and return to a list of Spring AOP Advisors representing them.
-	 * <p>Creates a Spring Advisor for each AspectJ advice method.
-	 * @return the list of {@link org.springframework.aop.Advisor} beans
-	 * @see #isEligibleBean
-	 */
-	public List<Advisor> buildAspectJAdvisors() {
-		List<String> aspectNames = this.aspectBeanNames;
+    /**
+     * Look for AspectJ-annotated aspect beans in the current bean factory,
+     * and return to a list of Spring AOP Advisors representing them.
+     * <p>Creates a Spring Advisor for each AspectJ advice method.
+     *
+     * @return the list of {@link org.springframework.aop.Advisor} beans
+     * @see #isEligibleBean
+     */
+    public List<Advisor> buildAspectJAdvisors() {
+        List<String> aspectNames = this.aspectBeanNames;
 
-		if (aspectNames == null) {
-			synchronized (this) {
-				aspectNames = this.aspectBeanNames;
-				if (aspectNames == null) {
-					List<Advisor> advisors = new ArrayList<>();
-					//用于保存切面的名称的集合
-					aspectNames = new ArrayList<>();
-					//获取所有的beanName
-					// AOP功能中在这里传入的是Object对象，代表去容器中获取到所有的组件的名称，然后再
-					// 进行遍历，这个过程是十分的消耗性能的，所以说Spring会再这里加入了保存切面信息的缓存。
-					String[] beanNames = BeanFactoryUtils.beanNamesForTypeIncludingAncestors(
-							this.beanFactory, Object.class, true, false);
-					//遍历我们从IOC容器中获取处的所有Bean的名称
-					for (String beanName : beanNames) {
-						if (!isEligibleBean(beanName)) {
-							continue;
-						}
-						// We must be careful not to instantiate beans eagerly as in this case they
-						// would be cached by the Spring container but would not have been weaved.
-						//获取对应的bean的类型
-						Class<?> beanType = this.beanFactory.getType(beanName);
-						if (beanType == null) {
-							continue;
-						}
-						//提取@Aspect注解标记的Class
-						if (this.advisorFactory.isAspect(beanType)) {
-							//是切面类
-							//加入到缓存中
-							aspectNames.add(beanName);
-							AspectMetadata amd = new AspectMetadata(beanType, beanName);
-							if (amd.getAjType().getPerClause().getKind() == PerClauseKind.SINGLETON) {
-								MetadataAwareAspectInstanceFactory factory =
-										new BeanFactoryAspectInstanceFactory(this.beanFactory, beanName);
-								//Aspect里面的advice和pointcut被拆分成一个个的advisor，
-								// advisor里的advice和pointcut是1对1的关系
-								List<Advisor> classAdvisors = this.advisorFactory.getAdvisors(factory);
-								if (this.beanFactory.isSingleton(beanName)) {
-									//单例则直接将Advisor类存到缓存
-									this.advisorsCache.put(beanName, classAdvisors);
-								}
-								else {
-									// 否则将其对应的工厂缓存
-									this.aspectFactoryCache.put(beanName, factory);
-								}
-								advisors.addAll(classAdvisors);
-							}
-							else {
-								// Per target or per this.
-								if (this.beanFactory.isSingleton(beanName)) {
-									throw new IllegalArgumentException("Bean with name '" + beanName +
-											"' is a singleton, but aspect instantiation model is not singleton");
-								}
-								MetadataAwareAspectInstanceFactory factory =
-										new PrototypeAspectInstanceFactory(this.beanFactory, beanName);
-								this.aspectFactoryCache.put(beanName, factory);
-								advisors.addAll(this.advisorFactory.getAdvisors(factory));
-							}
-						}
-					}
-					this.aspectBeanNames = aspectNames;
-					return advisors;
-				}
-			}
-		}
+        if (aspectNames == null) {
+            synchronized (this) {
+                aspectNames = this.aspectBeanNames;
+                if (aspectNames == null) {
+                    List<Advisor> advisors = new ArrayList<>();
+                    //用于保存切面的名称的集合
+                    aspectNames = new ArrayList<>();
+                    //获取所有的beanName
+                    // AOP功能中在这里传入的是Object对象，代表去容器中获取到所有的组件的名称，然后再
+                    // 进行遍历，这个过程是十分的消耗性能的，所以说Spring会再这里加入了保存切面信息的缓存。
+                    String[] beanNames = BeanFactoryUtils.beanNamesForTypeIncludingAncestors(
+                            this.beanFactory, Object.class, true, false);
+                    //遍历我们从IOC容器中获取处的所有Bean的名称
+                    for (String beanName : beanNames) {
+                        if (!isEligibleBean(beanName)) {
+                            continue;
+                        }
+                        // We must be careful not to instantiate beans eagerly as in this case they
+                        // would be cached by the Spring container but would not have been weaved.
+                        //获取对应的bean的类型
+                        Class<?> beanType = this.beanFactory.getType(beanName);
+                        if (beanType == null) {
+                            continue;
+                        }
+                        //提取@Aspect注解标记的Class
+                        if (this.advisorFactory.isAspect(beanType)) {
+                            //是切面类
+                            //加入到缓存中
+                            aspectNames.add(beanName);
+                            AspectMetadata amd = new AspectMetadata(beanType, beanName);
+                            if (amd.getAjType().getPerClause().getKind() == PerClauseKind.SINGLETON) {
+                                MetadataAwareAspectInstanceFactory factory =
+                                        new BeanFactoryAspectInstanceFactory(this.beanFactory, beanName);
+                                //Aspect里面的advice和pointcut被拆分成一个个的advisor，
+                                // advisor里的advice和pointcut是1对1的关系
+                                List<Advisor> classAdvisors = this.advisorFactory.getAdvisors(factory);
+                                if (this.beanFactory.isSingleton(beanName)) {
+                                    //单例则直接将Advisor类存到缓存
+                                    this.advisorsCache.put(beanName, classAdvisors);
+                                } else {
+                                    // 否则将其对应的工厂缓存
+                                    this.aspectFactoryCache.put(beanName, factory);
+                                }
+                                advisors.addAll(classAdvisors);
+                            } else {
+                                // Per target or per this.
+                                if (this.beanFactory.isSingleton(beanName)) {
+                                    throw new IllegalArgumentException("Bean with name '" + beanName +
+                                            "' is a singleton, but aspect instantiation model is not singleton");
+                                }
+                                MetadataAwareAspectInstanceFactory factory =
+                                        new PrototypeAspectInstanceFactory(this.beanFactory, beanName);
+                                this.aspectFactoryCache.put(beanName, factory);
+                                advisors.addAll(this.advisorFactory.getAdvisors(factory));
+                            }
+                        }
+                    }
+                    this.aspectBeanNames = aspectNames;
+                    return advisors;
+                }
+            }
+        }
 
-		if (aspectNames.isEmpty()) {
-			return Collections.emptyList();
-		}
-		List<Advisor> advisors = new ArrayList<>();
-		for (String aspectName : aspectNames) {
-			List<Advisor> cachedAdvisors = this.advisorsCache.get(aspectName);
-			if (cachedAdvisors != null) {
-				advisors.addAll(cachedAdvisors);
-			}
-			else {
-				MetadataAwareAspectInstanceFactory factory = this.aspectFactoryCache.get(aspectName);
-				advisors.addAll(this.advisorFactory.getAdvisors(factory));
-			}
-		}
-		return advisors;
-	}
+        if (aspectNames.isEmpty()) {
+            return Collections.emptyList();
+        }
+        List<Advisor> advisors = new ArrayList<>();
+        for (String aspectName : aspectNames) {
+            List<Advisor> cachedAdvisors = this.advisorsCache.get(aspectName);
+            if (cachedAdvisors != null) {
+                advisors.addAll(cachedAdvisors);
+            } else {
+                MetadataAwareAspectInstanceFactory factory = this.aspectFactoryCache.get(aspectName);
+                advisors.addAll(this.advisorFactory.getAdvisors(factory));
+            }
+        }
+        return advisors;
+    }
 
-	/**
-	 * Return whether the aspect bean with the given name is eligible.
-	 * @param beanName the name of the aspect bean
-	 * @return whether the bean is eligible
-	 */
-	protected boolean isEligibleBean(String beanName) {
-		return true;
-	}
+    /**
+     * Return whether the aspect bean with the given name is eligible.
+     *
+     * @param beanName the name of the aspect bean
+     * @return whether the bean is eligible
+     */
+    protected boolean isEligibleBean(String beanName) {
+        return true;
+    }
 
 }

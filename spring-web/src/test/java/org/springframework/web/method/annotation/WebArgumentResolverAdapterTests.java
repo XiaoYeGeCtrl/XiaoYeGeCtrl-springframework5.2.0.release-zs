@@ -42,112 +42,112 @@ import static org.mockito.Mockito.verify;
  */
 public class WebArgumentResolverAdapterTests {
 
-	private TestWebArgumentResolverAdapter adapter;
+    private TestWebArgumentResolverAdapter adapter;
 
-	private WebArgumentResolver adaptee;
+    private WebArgumentResolver adaptee;
 
-	private MethodParameter parameter;
+    private MethodParameter parameter;
 
-	private NativeWebRequest webRequest;
+    private NativeWebRequest webRequest;
 
-	@BeforeEach
-	public void setUp() throws Exception {
-		adaptee = mock(WebArgumentResolver.class);
-		adapter = new TestWebArgumentResolverAdapter(adaptee);
-		parameter = new MethodParameter(getClass().getMethod("handle", Integer.TYPE), 0);
-		webRequest = new ServletWebRequest(new MockHttpServletRequest());
+    @BeforeEach
+    public void setUp() throws Exception {
+        adaptee = mock(WebArgumentResolver.class);
+        adapter = new TestWebArgumentResolverAdapter(adaptee);
+        parameter = new MethodParameter(getClass().getMethod("handle", Integer.TYPE), 0);
+        webRequest = new ServletWebRequest(new MockHttpServletRequest());
 
-		// Expose request to the current thread (for SpEL expressions)
-		RequestContextHolder.setRequestAttributes(webRequest);
-	}
+        // Expose request to the current thread (for SpEL expressions)
+        RequestContextHolder.setRequestAttributes(webRequest);
+    }
 
-	@AfterEach
-	public void resetRequestContextHolder() {
-		RequestContextHolder.resetRequestAttributes();
-	}
+    @AfterEach
+    public void resetRequestContextHolder() {
+        RequestContextHolder.resetRequestAttributes();
+    }
 
-	@Test
-	public void supportsParameter() throws Exception {
-		given(adaptee.resolveArgument(parameter, webRequest)).willReturn(42);
+    @Test
+    public void supportsParameter() throws Exception {
+        given(adaptee.resolveArgument(parameter, webRequest)).willReturn(42);
 
-		assertThat(adapter.supportsParameter(parameter)).as("Parameter not supported").isTrue();
+        assertThat(adapter.supportsParameter(parameter)).as("Parameter not supported").isTrue();
 
-		verify(adaptee).resolveArgument(parameter, webRequest);
-	}
+        verify(adaptee).resolveArgument(parameter, webRequest);
+    }
 
-	@Test
-	public void supportsParameterUnresolved() throws Exception {
-		given(adaptee.resolveArgument(parameter, webRequest)).willReturn(WebArgumentResolver.UNRESOLVED);
+    @Test
+    public void supportsParameterUnresolved() throws Exception {
+        given(adaptee.resolveArgument(parameter, webRequest)).willReturn(WebArgumentResolver.UNRESOLVED);
 
-		assertThat(adapter.supportsParameter(parameter)).as("Parameter supported").isFalse();
+        assertThat(adapter.supportsParameter(parameter)).as("Parameter supported").isFalse();
 
-		verify(adaptee).resolveArgument(parameter, webRequest);
-	}
+        verify(adaptee).resolveArgument(parameter, webRequest);
+    }
 
-	@Test
-	public void supportsParameterWrongType() throws Exception {
-		given(adaptee.resolveArgument(parameter, webRequest)).willReturn("Foo");
+    @Test
+    public void supportsParameterWrongType() throws Exception {
+        given(adaptee.resolveArgument(parameter, webRequest)).willReturn("Foo");
 
-		assertThat(adapter.supportsParameter(parameter)).as("Parameter supported").isFalse();
+        assertThat(adapter.supportsParameter(parameter)).as("Parameter supported").isFalse();
 
-		verify(adaptee).resolveArgument(parameter, webRequest);
-	}
+        verify(adaptee).resolveArgument(parameter, webRequest);
+    }
 
-	@Test
-	public void supportsParameterThrowsException() throws Exception {
-		given(adaptee.resolveArgument(parameter, webRequest)).willThrow(new Exception());
+    @Test
+    public void supportsParameterThrowsException() throws Exception {
+        given(adaptee.resolveArgument(parameter, webRequest)).willThrow(new Exception());
 
-		assertThat(adapter.supportsParameter(parameter)).as("Parameter supported").isFalse();
+        assertThat(adapter.supportsParameter(parameter)).as("Parameter supported").isFalse();
 
-		verify(adaptee).resolveArgument(parameter, webRequest);
-	}
+        verify(adaptee).resolveArgument(parameter, webRequest);
+    }
 
-	@Test
-	public void resolveArgument() throws Exception {
-		int expected = 42;
-		given(adaptee.resolveArgument(parameter, webRequest)).willReturn(expected);
+    @Test
+    public void resolveArgument() throws Exception {
+        int expected = 42;
+        given(adaptee.resolveArgument(parameter, webRequest)).willReturn(expected);
 
-		Object result = adapter.resolveArgument(parameter, null, webRequest, null);
-		assertThat(result).as("Invalid result").isEqualTo(expected);
-	}
+        Object result = adapter.resolveArgument(parameter, null, webRequest, null);
+        assertThat(result).as("Invalid result").isEqualTo(expected);
+    }
 
-	@Test
-	public void resolveArgumentUnresolved() throws Exception {
-		given(adaptee.resolveArgument(parameter, webRequest)).willReturn(WebArgumentResolver.UNRESOLVED);
+    @Test
+    public void resolveArgumentUnresolved() throws Exception {
+        given(adaptee.resolveArgument(parameter, webRequest)).willReturn(WebArgumentResolver.UNRESOLVED);
 
-		assertThatIllegalStateException().isThrownBy(() ->
-				adapter.resolveArgument(parameter, null, webRequest, null));
-	}
+        assertThatIllegalStateException().isThrownBy(() ->
+                adapter.resolveArgument(parameter, null, webRequest, null));
+    }
 
-	@Test
-	public void resolveArgumentWrongType() throws Exception {
-		given(adaptee.resolveArgument(parameter, webRequest)).willReturn("Foo");
+    @Test
+    public void resolveArgumentWrongType() throws Exception {
+        given(adaptee.resolveArgument(parameter, webRequest)).willReturn("Foo");
 
-		assertThatIllegalStateException().isThrownBy(() ->
-				adapter.resolveArgument(parameter, null, webRequest, null));
-	}
+        assertThatIllegalStateException().isThrownBy(() ->
+                adapter.resolveArgument(parameter, null, webRequest, null));
+    }
 
-	@Test
-	public void resolveArgumentThrowsException() throws Exception {
-		given(adaptee.resolveArgument(parameter, webRequest)).willThrow(new Exception());
+    @Test
+    public void resolveArgumentThrowsException() throws Exception {
+        given(adaptee.resolveArgument(parameter, webRequest)).willThrow(new Exception());
 
-		assertThatExceptionOfType(Exception.class).isThrownBy(() ->
-				adapter.resolveArgument(parameter, null, webRequest, null));
-	}
+        assertThatExceptionOfType(Exception.class).isThrownBy(() ->
+                adapter.resolveArgument(parameter, null, webRequest, null));
+    }
 
-	public void handle(int param) {
-	}
+    public void handle(int param) {
+    }
 
-	private class TestWebArgumentResolverAdapter extends AbstractWebArgumentResolverAdapter {
+    private class TestWebArgumentResolverAdapter extends AbstractWebArgumentResolverAdapter {
 
-		public TestWebArgumentResolverAdapter(WebArgumentResolver adaptee) {
-			super(adaptee);
-		}
+        public TestWebArgumentResolverAdapter(WebArgumentResolver adaptee) {
+            super(adaptee);
+        }
 
-		@Override
-		protected NativeWebRequest getWebRequest() {
-			return WebArgumentResolverAdapterTests.this.webRequest;
-		}
-	}
+        @Override
+        protected NativeWebRequest getWebRequest() {
+            return WebArgumentResolverAdapterTests.this.webRequest;
+        }
+    }
 
 }

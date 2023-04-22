@@ -40,74 +40,74 @@ import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException
  */
 public class RelativeRedirectFilterTests {
 
-	private RelativeRedirectFilter filter = new RelativeRedirectFilter();
+    private RelativeRedirectFilter filter = new RelativeRedirectFilter();
 
-	private HttpServletResponse response = Mockito.mock(HttpServletResponse.class);
-
-
-	@Test
-	public void sendRedirectHttpStatusWhenNullThenIllegalArgumentException() {
-		assertThatIllegalArgumentException().isThrownBy(() ->
-				this.filter.setRedirectStatus(null));
-	}
-
-	@Test
-	public void sendRedirectHttpStatusWhenNot3xxThenIllegalArgumentException() {
-		assertThatIllegalArgumentException().isThrownBy(() ->
-				this.filter.setRedirectStatus(HttpStatus.OK));
-	}
-
-	@Test
-	public void doFilterSendRedirectWhenDefaultsThenLocationAnd303() throws Exception {
-		String location = "/foo";
-		sendRedirect(location);
-
-		InOrder inOrder = Mockito.inOrder(this.response);
-		inOrder.verify(this.response).setStatus(HttpStatus.SEE_OTHER.value());
-		inOrder.verify(this.response).setHeader(HttpHeaders.LOCATION, location);
-	}
-
-	@Test
-	public void doFilterSendRedirectWhenCustomSendRedirectHttpStatusThenLocationAnd301() throws Exception {
-		String location = "/foo";
-		HttpStatus status = HttpStatus.MOVED_PERMANENTLY;
-		this.filter.setRedirectStatus(status);
-		sendRedirect(location);
-
-		InOrder inOrder = Mockito.inOrder(this.response);
-		inOrder.verify(this.response).setStatus(status.value());
-		inOrder.verify(this.response).setHeader(HttpHeaders.LOCATION, location);
-	}
-
-	@Test
-	public void wrapOnceOnly() throws Exception {
-		HttpServletResponse original = new MockHttpServletResponse();
-
-		MockFilterChain chain = new MockFilterChain();
-		this.filter.doFilterInternal(new MockHttpServletRequest(), original, chain);
-
-		HttpServletResponse wrapped1 = (HttpServletResponse) chain.getResponse();
-		assertThat(wrapped1).isNotSameAs(original);
-
-		chain.reset();
-		this.filter.doFilterInternal(new MockHttpServletRequest(), wrapped1, chain);
-		HttpServletResponse current = (HttpServletResponse) chain.getResponse();
-		assertThat(current).isSameAs(wrapped1);
-
-		chain.reset();
-		HttpServletResponse wrapped2 = new HttpServletResponseWrapper(wrapped1);
-		this.filter.doFilterInternal(new MockHttpServletRequest(), wrapped2, chain);
-		current = (HttpServletResponse) chain.getResponse();
-		assertThat(current).isSameAs(wrapped2);
-	}
+    private HttpServletResponse response = Mockito.mock(HttpServletResponse.class);
 
 
-	private void sendRedirect(String location) throws Exception {
-		MockFilterChain chain = new MockFilterChain();
-		this.filter.doFilterInternal(new MockHttpServletRequest(), this.response, chain);
+    @Test
+    public void sendRedirectHttpStatusWhenNullThenIllegalArgumentException() {
+        assertThatIllegalArgumentException().isThrownBy(() ->
+                this.filter.setRedirectStatus(null));
+    }
 
-		HttpServletResponse wrappedResponse = (HttpServletResponse) chain.getResponse();
-		wrappedResponse.sendRedirect(location);
-	}
+    @Test
+    public void sendRedirectHttpStatusWhenNot3xxThenIllegalArgumentException() {
+        assertThatIllegalArgumentException().isThrownBy(() ->
+                this.filter.setRedirectStatus(HttpStatus.OK));
+    }
+
+    @Test
+    public void doFilterSendRedirectWhenDefaultsThenLocationAnd303() throws Exception {
+        String location = "/foo";
+        sendRedirect(location);
+
+        InOrder inOrder = Mockito.inOrder(this.response);
+        inOrder.verify(this.response).setStatus(HttpStatus.SEE_OTHER.value());
+        inOrder.verify(this.response).setHeader(HttpHeaders.LOCATION, location);
+    }
+
+    @Test
+    public void doFilterSendRedirectWhenCustomSendRedirectHttpStatusThenLocationAnd301() throws Exception {
+        String location = "/foo";
+        HttpStatus status = HttpStatus.MOVED_PERMANENTLY;
+        this.filter.setRedirectStatus(status);
+        sendRedirect(location);
+
+        InOrder inOrder = Mockito.inOrder(this.response);
+        inOrder.verify(this.response).setStatus(status.value());
+        inOrder.verify(this.response).setHeader(HttpHeaders.LOCATION, location);
+    }
+
+    @Test
+    public void wrapOnceOnly() throws Exception {
+        HttpServletResponse original = new MockHttpServletResponse();
+
+        MockFilterChain chain = new MockFilterChain();
+        this.filter.doFilterInternal(new MockHttpServletRequest(), original, chain);
+
+        HttpServletResponse wrapped1 = (HttpServletResponse) chain.getResponse();
+        assertThat(wrapped1).isNotSameAs(original);
+
+        chain.reset();
+        this.filter.doFilterInternal(new MockHttpServletRequest(), wrapped1, chain);
+        HttpServletResponse current = (HttpServletResponse) chain.getResponse();
+        assertThat(current).isSameAs(wrapped1);
+
+        chain.reset();
+        HttpServletResponse wrapped2 = new HttpServletResponseWrapper(wrapped1);
+        this.filter.doFilterInternal(new MockHttpServletRequest(), wrapped2, chain);
+        current = (HttpServletResponse) chain.getResponse();
+        assertThat(current).isSameAs(wrapped2);
+    }
+
+
+    private void sendRedirect(String location) throws Exception {
+        MockFilterChain chain = new MockFilterChain();
+        this.filter.doFilterInternal(new MockHttpServletRequest(), this.response, chain);
+
+        HttpServletResponse wrappedResponse = (HttpServletResponse) chain.getResponse();
+        wrappedResponse.sendRedirect(location);
+    }
 
 }

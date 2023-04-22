@@ -38,58 +38,58 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 public class ModelMethodProcessorTests {
 
-	private ModelMethodProcessor processor;
+    private ModelMethodProcessor processor;
 
-	private ModelAndViewContainer mavContainer;
+    private ModelAndViewContainer mavContainer;
 
-	private MethodParameter paramModel;
+    private MethodParameter paramModel;
 
-	private MethodParameter returnParamModel;
+    private MethodParameter returnParamModel;
 
-	private NativeWebRequest webRequest;
+    private NativeWebRequest webRequest;
 
-	@BeforeEach
-	public void setUp() throws Exception {
-		processor = new ModelMethodProcessor();
-		mavContainer = new ModelAndViewContainer();
+    @BeforeEach
+    public void setUp() throws Exception {
+        processor = new ModelMethodProcessor();
+        mavContainer = new ModelAndViewContainer();
 
-		Method method = getClass().getDeclaredMethod("model", Model.class);
-		paramModel = new MethodParameter(method, 0);
-		returnParamModel = new MethodParameter(method, -1);
+        Method method = getClass().getDeclaredMethod("model", Model.class);
+        paramModel = new MethodParameter(method, 0);
+        returnParamModel = new MethodParameter(method, -1);
 
-		webRequest = new ServletWebRequest(new MockHttpServletRequest());
-	}
+        webRequest = new ServletWebRequest(new MockHttpServletRequest());
+    }
 
-	@Test
-	public void supportsParameter() {
-		assertThat(processor.supportsParameter(paramModel)).isTrue();
-	}
+    @Test
+    public void supportsParameter() {
+        assertThat(processor.supportsParameter(paramModel)).isTrue();
+    }
 
-	@Test
-	public void supportsReturnType() {
-		assertThat(processor.supportsReturnType(returnParamModel)).isTrue();
-	}
+    @Test
+    public void supportsReturnType() {
+        assertThat(processor.supportsReturnType(returnParamModel)).isTrue();
+    }
 
-	@Test
-	public void resolveArgumentValue() throws Exception {
-		assertThat(processor.resolveArgument(paramModel, mavContainer, webRequest, null)).isSameAs(mavContainer.getModel());
-	}
+    @Test
+    public void resolveArgumentValue() throws Exception {
+        assertThat(processor.resolveArgument(paramModel, mavContainer, webRequest, null)).isSameAs(mavContainer.getModel());
+    }
 
-	@Test
-	public void handleModelReturnValue() throws Exception {
-		mavContainer.addAttribute("attr1", "value1");
-		Model returnValue = new ExtendedModelMap();
-		returnValue.addAttribute("attr2", "value2");
+    @Test
+    public void handleModelReturnValue() throws Exception {
+        mavContainer.addAttribute("attr1", "value1");
+        Model returnValue = new ExtendedModelMap();
+        returnValue.addAttribute("attr2", "value2");
 
-		processor.handleReturnValue(returnValue , returnParamModel, mavContainer, webRequest);
+        processor.handleReturnValue(returnValue, returnParamModel, mavContainer, webRequest);
 
-		assertThat(mavContainer.getModel().get("attr1")).isEqualTo("value1");
-		assertThat(mavContainer.getModel().get("attr2")).isEqualTo("value2");
-	}
+        assertThat(mavContainer.getModel().get("attr1")).isEqualTo("value1");
+        assertThat(mavContainer.getModel().get("attr2")).isEqualTo("value2");
+    }
 
-	@SuppressWarnings("unused")
-	private Model model(Model model) {
-		return null;
-	}
+    @SuppressWarnings("unused")
+    private Model model(Model model) {
+        return null;
+    }
 
 }

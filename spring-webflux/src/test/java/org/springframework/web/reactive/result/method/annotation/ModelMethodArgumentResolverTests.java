@@ -41,46 +41,47 @@ import static org.springframework.mock.http.server.reactive.test.MockServerHttpR
  */
 public class ModelMethodArgumentResolverTests {
 
-	private final ModelMethodArgumentResolver resolver =
-			new ModelMethodArgumentResolver(ReactiveAdapterRegistry.getSharedInstance());
+    private final ModelMethodArgumentResolver resolver =
+            new ModelMethodArgumentResolver(ReactiveAdapterRegistry.getSharedInstance());
 
-	private final ServerWebExchange exchange = MockServerWebExchange.from(get("/"));
+    private final ServerWebExchange exchange = MockServerWebExchange.from(get("/"));
 
-	private final ResolvableMethod resolvable = ResolvableMethod.on(getClass()).named("handle").build();
-
-
-	@Test
-	public void supportsParameter() {
-		assertThat(this.resolver.supportsParameter(this.resolvable.arg(Model.class))).isTrue();
-		assertThat(this.resolver.supportsParameter(this.resolvable.arg(ModelMap.class))).isTrue();
-		assertThat(this.resolver.supportsParameter(
-				this.resolvable.annotNotPresent().arg(Map.class, String.class, Object.class))).isTrue();
-
-		assertThat(this.resolver.supportsParameter(this.resolvable.arg(Object.class))).isFalse();
-		assertThat(this.resolver.supportsParameter(
-				this.resolvable.annotPresent(RequestBody.class).arg(Map.class, String.class, Object.class))).isFalse();
-	}
-
-	@Test
-	public void resolveArgument() {
-		testResolveArgument(this.resolvable.arg(Model.class));
-		testResolveArgument(this.resolvable.annotNotPresent().arg(Map.class, String.class, Object.class));
-		testResolveArgument(this.resolvable.arg(ModelMap.class));
-	}
-
-	private void testResolveArgument(MethodParameter parameter) {
-		BindingContext context = new BindingContext();
-		Object result = this.resolver.resolveArgument(parameter, context, this.exchange).block(Duration.ZERO);
-		assertThat(result).isSameAs(context.getModel());
-	}
+    private final ResolvableMethod resolvable = ResolvableMethod.on(getClass()).named("handle").build();
 
 
-	@SuppressWarnings("unused")
-	void handle(
-			Model model,
-			Map<String, Object> map,
-			@RequestBody Map<String, Object> annotatedMap,
-			ModelMap modelMap,
-			Object object) {}
+    @Test
+    public void supportsParameter() {
+        assertThat(this.resolver.supportsParameter(this.resolvable.arg(Model.class))).isTrue();
+        assertThat(this.resolver.supportsParameter(this.resolvable.arg(ModelMap.class))).isTrue();
+        assertThat(this.resolver.supportsParameter(
+                this.resolvable.annotNotPresent().arg(Map.class, String.class, Object.class))).isTrue();
+
+        assertThat(this.resolver.supportsParameter(this.resolvable.arg(Object.class))).isFalse();
+        assertThat(this.resolver.supportsParameter(
+                this.resolvable.annotPresent(RequestBody.class).arg(Map.class, String.class, Object.class))).isFalse();
+    }
+
+    @Test
+    public void resolveArgument() {
+        testResolveArgument(this.resolvable.arg(Model.class));
+        testResolveArgument(this.resolvable.annotNotPresent().arg(Map.class, String.class, Object.class));
+        testResolveArgument(this.resolvable.arg(ModelMap.class));
+    }
+
+    private void testResolveArgument(MethodParameter parameter) {
+        BindingContext context = new BindingContext();
+        Object result = this.resolver.resolveArgument(parameter, context, this.exchange).block(Duration.ZERO);
+        assertThat(result).isSameAs(context.getModel());
+    }
+
+
+    @SuppressWarnings("unused")
+    void handle(
+            Model model,
+            Map<String, Object> map,
+            @RequestBody Map<String, Object> annotatedMap,
+            ModelMap modelMap,
+            Object object) {
+    }
 
 }

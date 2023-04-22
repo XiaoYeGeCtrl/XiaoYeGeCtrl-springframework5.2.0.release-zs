@@ -29,20 +29,20 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 public class CacheRemoveAllOperationTests extends AbstractCacheOperationTests<CacheRemoveAllOperation> {
 
-	@Override
-	protected CacheRemoveAllOperation createSimpleOperation() {
-		CacheMethodDetails<CacheRemoveAll> methodDetails = create(CacheRemoveAll.class,
-				SampleObject.class, "simpleRemoveAll");
+    @Override
+    protected CacheRemoveAllOperation createSimpleOperation() {
+        CacheMethodDetails<CacheRemoveAll> methodDetails = create(CacheRemoveAll.class,
+                SampleObject.class, "simpleRemoveAll");
 
-		return new CacheRemoveAllOperation(methodDetails, defaultCacheResolver);
-	}
+        return new CacheRemoveAllOperation(methodDetails, defaultCacheResolver);
+    }
 
-	@Test
-	public void simpleRemoveAll() {
-		CacheRemoveAllOperation operation = createSimpleOperation();
+    @Test
+    public void simpleRemoveAll() {
+        CacheRemoveAllOperation operation = createSimpleOperation();
 
-		CacheInvocationParameter[] allParameters = operation.getAllParameters();
-		assertThat(allParameters.length).isEqualTo(0);
-	}
+        CacheInvocationParameter[] allParameters = operation.getAllParameters();
+        assertThat(allParameters.length).isEqualTo(0);
+    }
 
 }

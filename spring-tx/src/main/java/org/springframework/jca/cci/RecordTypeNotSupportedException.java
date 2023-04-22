@@ -30,13 +30,14 @@ import org.springframework.dao.InvalidDataAccessResourceUsageException;
 @SuppressWarnings("serial")
 public class RecordTypeNotSupportedException extends InvalidDataAccessResourceUsageException {
 
-	/**
-	 * Constructor for RecordTypeNotSupportedException.
-	 * @param msg message
-	 * @param ex the root ResourceException cause
-	 */
-	public RecordTypeNotSupportedException(String msg, ResourceException ex) {
-		super(msg, ex);
-	}
+    /**
+     * Constructor for RecordTypeNotSupportedException.
+     *
+     * @param msg message
+     * @param ex  the root ResourceException cause
+     */
+    public RecordTypeNotSupportedException(String msg, ResourceException ex) {
+        super(msg, ex);
+    }
 
 }

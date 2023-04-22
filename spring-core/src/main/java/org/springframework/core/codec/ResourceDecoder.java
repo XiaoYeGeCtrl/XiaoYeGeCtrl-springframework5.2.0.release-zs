@@ -41,61 +41,61 @@ import org.springframework.util.MimeTypeUtils;
  */
 public class ResourceDecoder extends AbstractDataBufferDecoder<Resource> {
 
-	/** Name of hint with a filename for the resource(e.g. from "Content-Disposition" HTTP header). */
-	public static String FILENAME_HINT = ResourceDecoder.class.getName() + ".filename";
+    /**
+     * Name of hint with a filename for the resource(e.g. from "Content-Disposition" HTTP header).
+     */
+    public static String FILENAME_HINT = ResourceDecoder.class.getName() + ".filename";
 
 
-	public ResourceDecoder() {
-		super(MimeTypeUtils.ALL);
-	}
+    public ResourceDecoder() {
+        super(MimeTypeUtils.ALL);
+    }
 
 
-	@Override
-	public boolean canDecode(ResolvableType elementType, @Nullable MimeType mimeType) {
-		return (Resource.class.isAssignableFrom(elementType.toClass()) &&
-				super.canDecode(elementType, mimeType));
-	}
+    @Override
+    public boolean canDecode(ResolvableType elementType, @Nullable MimeType mimeType) {
+        return (Resource.class.isAssignableFrom(elementType.toClass()) &&
+                super.canDecode(elementType, mimeType));
+    }
 
-	@Override
-	public Flux<Resource> decode(Publisher<DataBuffer> inputStream, ResolvableType elementType,
-			@Nullable MimeType mimeType, @Nullable Map<String, Object> hints) {
+    @Override
+    public Flux<Resource> decode(Publisher<DataBuffer> inputStream, ResolvableType elementType,
+                                 @Nullable MimeType mimeType, @Nullable Map<String, Object> hints) {
 
-		return Flux.from(decodeToMono(inputStream, elementType, mimeType, hints));
-	}
+        return Flux.from(decodeToMono(inputStream, elementType, mimeType, hints));
+    }
 
-	@Override
-	public Resource decode(DataBuffer dataBuffer, ResolvableType elementType,
-			@Nullable MimeType mimeType, @Nullable Map<String, Object> hints) {
+    @Override
+    public Resource decode(DataBuffer dataBuffer, ResolvableType elementType,
+                           @Nullable MimeType mimeType, @Nullable Map<String, Object> hints) {
 
-		byte[] bytes = new byte[dataBuffer.readableByteCount()];
-		dataBuffer.read(bytes);
-		DataBufferUtils.release(dataBuffer);
+        byte[] bytes = new byte[dataBuffer.readableByteCount()];
+        dataBuffer.read(bytes);
+        DataBufferUtils.release(dataBuffer);
 
-		if (logger.isDebugEnabled()) {
-			logger.debug(Hints.getLogPrefix(hints) + "Read " + bytes.length + " bytes");
-		}
+        if (logger.isDebugEnabled()) {
+            logger.debug(Hints.getLogPrefix(hints) + "Read " + bytes.length + " bytes");
+        }
 
-		Class<?> clazz = elementType.toClass();
-		String filename = hints != null ? (String) hints.get(FILENAME_HINT) : null;
-		if (clazz == InputStreamResource.class) {
-			return new InputStreamResource(new ByteArrayInputStream(bytes)) {
-				@Override
-				public String getFilename() {
-					return filename;
-				}
-			};
-		}
-		else if (Resource.class.isAssignableFrom(clazz)) {
-			return new ByteArrayResource(bytes) {
-				@Override
-				public String getFilename() {
-					return filename;
-				}
-			};
-		}
-		else {
-			throw new IllegalStateException("Unsupported resource class: " + clazz);
-		}
-	}
+        Class<?> clazz = elementType.toClass();
+        String filename = hints != null ? (String) hints.get(FILENAME_HINT) : null;
+        if (clazz == InputStreamResource.class) {
+            return new InputStreamResource(new ByteArrayInputStream(bytes)) {
+                @Override
+                public String getFilename() {
+                    return filename;
+                }
+            };
+        } else if (Resource.class.isAssignableFrom(clazz)) {
+            return new ByteArrayResource(bytes) {
+                @Override
+                public String getFilename() {
+                    return filename;
+                }
+            };
+        } else {
+            throw new IllegalStateException("Unsupported resource class: " + clazz);
+        }
+    }
 
 }

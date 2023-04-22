@@ -38,57 +38,57 @@ import static org.mockito.Mockito.mock;
  */
 public abstract class AbstractEntityManagerFactoryBeanTests {
 
-	protected static EntityManagerFactory mockEmf;
+    protected static EntityManagerFactory mockEmf;
 
-	@BeforeEach
-	public void setUp() throws Exception {
-		mockEmf = mock(EntityManagerFactory.class);
-	}
+    @BeforeEach
+    public void setUp() throws Exception {
+        mockEmf = mock(EntityManagerFactory.class);
+    }
 
-	@AfterEach
-	public void tearDown() throws Exception {
-		assertThat(TransactionSynchronizationManager.getResourceMap().isEmpty()).isTrue();
-		assertThat(TransactionSynchronizationManager.isSynchronizationActive()).isFalse();
-		assertThat(TransactionSynchronizationManager.isCurrentTransactionReadOnly()).isFalse();
-		assertThat(TransactionSynchronizationManager.isActualTransactionActive()).isFalse();
-	}
+    @AfterEach
+    public void tearDown() throws Exception {
+        assertThat(TransactionSynchronizationManager.getResourceMap().isEmpty()).isTrue();
+        assertThat(TransactionSynchronizationManager.isSynchronizationActive()).isFalse();
+        assertThat(TransactionSynchronizationManager.isCurrentTransactionReadOnly()).isFalse();
+        assertThat(TransactionSynchronizationManager.isActualTransactionActive()).isFalse();
+    }
 
-	protected void checkInvariants(AbstractEntityManagerFactoryBean demf) {
-		assertThat(EntityManagerFactory.class.isAssignableFrom(demf.getObjectType())).isTrue();
-		Object gotObject = demf.getObject();
-		boolean condition = gotObject instanceof EntityManagerFactoryInfo;
-		assertThat(condition).as("Object created by factory implements EntityManagerFactoryInfo").isTrue();
-		EntityManagerFactoryInfo emfi = (EntityManagerFactoryInfo) demf.getObject();
-		assertThat(demf.getObject()).as("Successive invocations of getObject() return same object").isSameAs(emfi);
-		assertThat(demf.getObject()).isSameAs(emfi);
-		assertThat(mockEmf).isSameAs(emfi.getNativeEntityManagerFactory());
-	}
+    protected void checkInvariants(AbstractEntityManagerFactoryBean demf) {
+        assertThat(EntityManagerFactory.class.isAssignableFrom(demf.getObjectType())).isTrue();
+        Object gotObject = demf.getObject();
+        boolean condition = gotObject instanceof EntityManagerFactoryInfo;
+        assertThat(condition).as("Object created by factory implements EntityManagerFactoryInfo").isTrue();
+        EntityManagerFactoryInfo emfi = (EntityManagerFactoryInfo) demf.getObject();
+        assertThat(demf.getObject()).as("Successive invocations of getObject() return same object").isSameAs(emfi);
+        assertThat(demf.getObject()).isSameAs(emfi);
+        assertThat(mockEmf).isSameAs(emfi.getNativeEntityManagerFactory());
+    }
 
 
-	protected static class DummyEntityManagerFactoryBean extends AbstractEntityManagerFactoryBean {
+    protected static class DummyEntityManagerFactoryBean extends AbstractEntityManagerFactoryBean {
 
-		private static final long serialVersionUID = 1L;
+        private static final long serialVersionUID = 1L;
 
-		private final EntityManagerFactory emf;
+        private final EntityManagerFactory emf;
 
-		public DummyEntityManagerFactoryBean(EntityManagerFactory emf) {
-			this.emf = emf;
-		}
+        public DummyEntityManagerFactoryBean(EntityManagerFactory emf) {
+            this.emf = emf;
+        }
 
-		@Override
-		protected EntityManagerFactory createNativeEntityManagerFactory() throws PersistenceException {
-			return emf;
-		}
+        @Override
+        protected EntityManagerFactory createNativeEntityManagerFactory() throws PersistenceException {
+            return emf;
+        }
 
-		@Override
-		public PersistenceUnitInfo getPersistenceUnitInfo() {
-			throw new UnsupportedOperationException();
-		}
+        @Override
+        public PersistenceUnitInfo getPersistenceUnitInfo() {
+            throw new UnsupportedOperationException();
+        }
 
-		@Override
-		public String getPersistenceUnitName() {
-			return "test";
-		}
-	}
+        @Override
+        public String getPersistenceUnitName() {
+            return "test";
+        }
+    }
 
 }

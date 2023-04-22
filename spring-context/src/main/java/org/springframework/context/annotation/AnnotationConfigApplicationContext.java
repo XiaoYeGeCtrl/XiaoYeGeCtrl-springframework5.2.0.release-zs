@@ -44,153 +44,159 @@ import org.springframework.util.Assert;
  *
  * @author Juergen Hoeller
  * @author Chris Beams
- * @since 3.0
  * @see #register
  * @see #scan
  * @see AnnotatedBeanDefinitionReader
  * @see ClassPathBeanDefinitionScanner
  * @see org.springframework.context.support.GenericXmlApplicationContext
+ * @since 3.0
  */
 public class AnnotationConfigApplicationContext extends GenericApplicationContext implements AnnotationConfigRegistry {
-	//保存一个读取注解的Bean 定义读取器，并将其设置到容器中
-	private final AnnotatedBeanDefinitionReader reader;
-	//保存一个扫描指定类路径中注解Bean 定义的扫描器，并将其设置到容器中
-	private final ClassPathBeanDefinitionScanner scanner;
+    //保存一个读取注解的Bean 定义读取器，并将其设置到容器中
+    private final AnnotatedBeanDefinitionReader reader;
+    //保存一个扫描指定类路径中注解Bean 定义的扫描器，并将其设置到容器中
+    private final ClassPathBeanDefinitionScanner scanner;
 
 
-	/**
-	 * 默认构造函数，初始化一个空容器，容器不包含任何Bean 信息，需要在稍后通过调用其register()
-	 * 方法注册配置类，并调用refresh()方法刷新容器，触发容器对注解Bean 的载入、解析和注册过程
-	 * Create a new AnnotationConfigApplicationContext that needs to be populated
-	 * through {@link #register} calls and then manually {@linkplain #refresh refreshed}.
-	 */
-	public AnnotationConfigApplicationContext() {
-		this.reader = new AnnotatedBeanDefinitionReader(this);
-		this.scanner = new ClassPathBeanDefinitionScanner(this);
-	}
+    /**
+     * 默认构造函数，初始化一个空容器，容器不包含任何Bean 信息，需要在稍后通过调用其register()
+     * 方法注册配置类，并调用refresh()方法刷新容器，触发容器对注解Bean 的载入、解析和注册过程
+     * Create a new AnnotationConfigApplicationContext that needs to be populated
+     * through {@link #register} calls and then manually {@linkplain #refresh refreshed}.
+     */
+    public AnnotationConfigApplicationContext() {
+        this.reader = new AnnotatedBeanDefinitionReader(this);
+        this.scanner = new ClassPathBeanDefinitionScanner(this);
+    }
 
-	/**
-	 * Create a new AnnotationConfigApplicationContext with the given DefaultListableBeanFactory.
-	 * @param beanFactory the DefaultListableBeanFactory instance to use for this context
-	 */
-	public AnnotationConfigApplicationContext(DefaultListableBeanFactory beanFactory) {
-		super(beanFactory);
-		this.reader = new AnnotatedBeanDefinitionReader(this);
-		this.scanner = new ClassPathBeanDefinitionScanner(this);
-	}
+    /**
+     * Create a new AnnotationConfigApplicationContext with the given DefaultListableBeanFactory.
+     *
+     * @param beanFactory the DefaultListableBeanFactory instance to use for this context
+     */
+    public AnnotationConfigApplicationContext(DefaultListableBeanFactory beanFactory) {
+        super(beanFactory);
+        this.reader = new AnnotatedBeanDefinitionReader(this);
+        this.scanner = new ClassPathBeanDefinitionScanner(this);
+    }
 
-	/**
-	 * Create a new AnnotationConfigApplicationContext, deriving bean definitions
-	 * from the given component classes and automatically refreshing the context.
-	 * @param componentClasses one or more component classes &mdash; for example,
-	 * {@link Configuration @Configuration} classes
-	 */
-	public AnnotationConfigApplicationContext(Class<?>... componentClasses) {
-		//调用默认无参构造器,主要初始化AnnotatedBeanDefinitionReader
-		// 以及路径扫描器ClassPathBeanDefinitionScanner
-		this();
-		//把传入的Class进行注册,Class既可以有@Configuration注解,也可以没有@Configuration注解
-		//如何注册委托给了 org.springframework.context.annotation.AnnotatedBeanDefinitionReader.register 方法进行注册
-		// 包装传入的Class 生成 BeanDefinition , 注册到BeanDefinitionRegistry
-		register(componentClasses);
-		refresh();
-	}
+    /**
+     * Create a new AnnotationConfigApplicationContext, deriving bean definitions
+     * from the given component classes and automatically refreshing the context.
+     *
+     * @param componentClasses one or more component classes &mdash; for example,
+     *                         {@link Configuration @Configuration} classes
+     */
+    public AnnotationConfigApplicationContext(Class<?>... componentClasses) {
+        //调用默认无参构造器,主要初始化AnnotatedBeanDefinitionReader
+        // 以及路径扫描器ClassPathBeanDefinitionScanner
+        this();
+        //把传入的Class进行注册,Class既可以有@Configuration注解,也可以没有@Configuration注解
+        //如何注册委托给了 org.springframework.context.annotation.AnnotatedBeanDefinitionReader.register 方法进行注册
+        // 包装传入的Class 生成 BeanDefinition , 注册到BeanDefinitionRegistry
+        register(componentClasses);
+        refresh();
+    }
 
-	/**
-	 * Create a new AnnotationConfigApplicationContext, scanning for components
-	 * in the given packages, registering bean definitions for those components,
-	 * and automatically refreshing the context.
-	 * @param basePackages the packages to scan for component classes
-	 */
-	public AnnotationConfigApplicationContext(String... basePackages) {
-		this();
-		scan(basePackages);
-		refresh();
-	}
-
-
-	/**
-	 * Propagate the given custom {@code Environment} to the underlying
-	 * {@link AnnotatedBeanDefinitionReader} and {@link ClassPathBeanDefinitionScanner}.
-	 */
-	@Override
-	public void setEnvironment(ConfigurableEnvironment environment) {
-		super.setEnvironment(environment);
-		this.reader.setEnvironment(environment);
-		this.scanner.setEnvironment(environment);
-	}
-
-	/**
-	 * Provide a custom {@link BeanNameGenerator} for use with {@link AnnotatedBeanDefinitionReader}
-	 * and/or {@link ClassPathBeanDefinitionScanner}, if any.
-	 * <p>Default is {@link org.springframework.context.annotation.AnnotationBeanNameGenerator}.
-	 * <p>Any call to this method must occur prior to calls to {@link #register(Class...)}
-	 * and/or {@link #scan(String...)}.
-	 * @see AnnotatedBeanDefinitionReader#setBeanNameGenerator
-	 * @see ClassPathBeanDefinitionScanner#setBeanNameGenerator
-	 */
-	public void setBeanNameGenerator(BeanNameGenerator beanNameGenerator) {
-		this.reader.setBeanNameGenerator(beanNameGenerator);
-		this.scanner.setBeanNameGenerator(beanNameGenerator);
-		getBeanFactory().registerSingleton(
-				AnnotationConfigUtils.CONFIGURATION_BEAN_NAME_GENERATOR, beanNameGenerator);
-	}
-
-	/**
-	 * Set the {@link ScopeMetadataResolver} to use for registered component classes.
-	 * <p>The default is an {@link AnnotationScopeMetadataResolver}.
-	 * <p>Any call to this method must occur prior to calls to {@link #register(Class...)}
-	 * and/or {@link #scan(String...)}.
-	 */
-	public void setScopeMetadataResolver(ScopeMetadataResolver scopeMetadataResolver) {
-		this.reader.setScopeMetadataResolver(scopeMetadataResolver);
-		this.scanner.setScopeMetadataResolver(scopeMetadataResolver);
-	}
+    /**
+     * Create a new AnnotationConfigApplicationContext, scanning for components
+     * in the given packages, registering bean definitions for those components,
+     * and automatically refreshing the context.
+     *
+     * @param basePackages the packages to scan for component classes
+     */
+    public AnnotationConfigApplicationContext(String... basePackages) {
+        this();
+        scan(basePackages);
+        refresh();
+    }
 
 
-	//---------------------------------------------------------------------
-	// Implementation of AnnotationConfigRegistry
-	//---------------------------------------------------------------------
+    /**
+     * Propagate the given custom {@code Environment} to the underlying
+     * {@link AnnotatedBeanDefinitionReader} and {@link ClassPathBeanDefinitionScanner}.
+     */
+    @Override
+    public void setEnvironment(ConfigurableEnvironment environment) {
+        super.setEnvironment(environment);
+        this.reader.setEnvironment(environment);
+        this.scanner.setEnvironment(environment);
+    }
 
-	/**
-	 * Register one or more component classes to be processed.
-	 * <p>Note that {@link #refresh()} must be called in order for the context
-	 * to fully process the new classes.
-	 * @param componentClasses one or more component classes &mdash; for example,
-	 * {@link Configuration @Configuration} classes
-	 * @see #scan(String...)
-	 * @see #refresh()
-	 */
-	@Override
-	public void register(Class<?>... componentClasses) {
-		Assert.notEmpty(componentClasses, "At least one component class must be specified");
-		this.reader.register(componentClasses);
-	}
+    /**
+     * Provide a custom {@link BeanNameGenerator} for use with {@link AnnotatedBeanDefinitionReader}
+     * and/or {@link ClassPathBeanDefinitionScanner}, if any.
+     * <p>Default is {@link org.springframework.context.annotation.AnnotationBeanNameGenerator}.
+     * <p>Any call to this method must occur prior to calls to {@link #register(Class...)}
+     * and/or {@link #scan(String...)}.
+     *
+     * @see AnnotatedBeanDefinitionReader#setBeanNameGenerator
+     * @see ClassPathBeanDefinitionScanner#setBeanNameGenerator
+     */
+    public void setBeanNameGenerator(BeanNameGenerator beanNameGenerator) {
+        this.reader.setBeanNameGenerator(beanNameGenerator);
+        this.scanner.setBeanNameGenerator(beanNameGenerator);
+        getBeanFactory().registerSingleton(
+                AnnotationConfigUtils.CONFIGURATION_BEAN_NAME_GENERATOR, beanNameGenerator);
+    }
 
-	/**
-	 * Perform a scan within the specified base packages.
-	 * <p>Note that {@link #refresh()} must be called in order for the context
-	 * to fully process the new classes.
-	 * @param basePackages the packages to scan for component classes
-	 * @see #register(Class...)
-	 * @see #refresh()
-	 */
-	@Override
-	public void scan(String... basePackages) {
-		Assert.notEmpty(basePackages, "At least one base package must be specified");
-		this.scanner.scan(basePackages);
-	}
+    /**
+     * Set the {@link ScopeMetadataResolver} to use for registered component classes.
+     * <p>The default is an {@link AnnotationScopeMetadataResolver}.
+     * <p>Any call to this method must occur prior to calls to {@link #register(Class...)}
+     * and/or {@link #scan(String...)}.
+     */
+    public void setScopeMetadataResolver(ScopeMetadataResolver scopeMetadataResolver) {
+        this.reader.setScopeMetadataResolver(scopeMetadataResolver);
+        this.scanner.setScopeMetadataResolver(scopeMetadataResolver);
+    }
 
 
-	//---------------------------------------------------------------------
-	// Adapt superclass registerBean calls to AnnotatedBeanDefinitionReader
-	//---------------------------------------------------------------------
+    //---------------------------------------------------------------------
+    // Implementation of AnnotationConfigRegistry
+    //---------------------------------------------------------------------
 
-	@Override
-	public <T> void registerBean(@Nullable String beanName, Class<T> beanClass,
-								 @Nullable Supplier<T> supplier, BeanDefinitionCustomizer... customizers) {
+    /**
+     * Register one or more component classes to be processed.
+     * <p>Note that {@link #refresh()} must be called in order for the context
+     * to fully process the new classes.
+     *
+     * @param componentClasses one or more component classes &mdash; for example,
+     *                         {@link Configuration @Configuration} classes
+     * @see #scan(String...)
+     * @see #refresh()
+     */
+    @Override
+    public void register(Class<?>... componentClasses) {
+        Assert.notEmpty(componentClasses, "At least one component class must be specified");
+        this.reader.register(componentClasses);
+    }
 
-		this.reader.registerBean(beanClass, beanName, supplier, customizers);
-	}
+    /**
+     * Perform a scan within the specified base packages.
+     * <p>Note that {@link #refresh()} must be called in order for the context
+     * to fully process the new classes.
+     *
+     * @param basePackages the packages to scan for component classes
+     * @see #register(Class...)
+     * @see #refresh()
+     */
+    @Override
+    public void scan(String... basePackages) {
+        Assert.notEmpty(basePackages, "At least one base package must be specified");
+        this.scanner.scan(basePackages);
+    }
+
+
+    //---------------------------------------------------------------------
+    // Adapt superclass registerBean calls to AnnotatedBeanDefinitionReader
+    //---------------------------------------------------------------------
+
+    @Override
+    public <T> void registerBean(@Nullable String beanName, Class<T> beanClass,
+                                 @Nullable Supplier<T> supplier, BeanDefinitionCustomizer... customizers) {
+
+        this.reader.registerBean(beanClass, beanName, supplier, customizers);
+    }
 
 }

@@ -52,256 +52,255 @@ import static org.springframework.core.ResolvableType.forClassWithGenerics;
  */
 public class WebExchangeDataBinderTests {
 
-	private TestBean testBean;
+    private TestBean testBean;
 
-	private WebExchangeDataBinder binder;
-
-
-	@BeforeEach
-	public void setup() throws Exception {
-		this.testBean = new TestBean();
-		this.binder = new WebExchangeDataBinder(this.testBean, "person");
-		this.binder.registerCustomEditor(ITestBean.class, new TestBeanPropertyEditor());
-	}
+    private WebExchangeDataBinder binder;
 
 
-	@Test
-	public void testBindingWithNestedObjectCreation() throws Exception {
-		MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
-		formData.add("spouse", "someValue");
-		formData.add("spouse.name", "test");
-		this.binder.bind(exchange(formData)).block(Duration.ofMillis(5000));
-
-		assertThat(this.testBean.getSpouse()).isNotNull();
-		assertThat(testBean.getSpouse().getName()).isEqualTo("test");
-	}
-
-	@Test
-	public void testFieldPrefixCausesFieldReset() throws Exception {
-		MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
-		formData.add("_postProcessed", "visible");
-		formData.add("postProcessed", "on");
-		this.binder.bind(exchange(formData)).block(Duration.ofMillis(5000));
-		assertThat(this.testBean.isPostProcessed()).isTrue();
-
-		formData.remove("postProcessed");
-		this.binder.bind(exchange(formData)).block(Duration.ofMillis(5000));
-		assertThat(this.testBean.isPostProcessed()).isFalse();
-	}
-
-	@Test
-	public void testFieldPrefixCausesFieldResetWithIgnoreUnknownFields() throws Exception {
-		this.binder.setIgnoreUnknownFields(false);
-
-		MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
-		formData.add("_postProcessed", "visible");
-		formData.add("postProcessed", "on");
-		this.binder.bind(exchange(formData)).block(Duration.ofMillis(5000));
-		assertThat(this.testBean.isPostProcessed()).isTrue();
-
-		formData.remove("postProcessed");
-		this.binder.bind(exchange(formData)).block(Duration.ofMillis(5000));
-		assertThat(this.testBean.isPostProcessed()).isFalse();
-	}
-
-	@Test
-	public void testFieldDefault() throws Exception {
-		MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
-		formData.add("!postProcessed", "off");
-		formData.add("postProcessed", "on");
-		this.binder.bind(exchange(formData)).block(Duration.ofMillis(5000));
-		assertThat(this.testBean.isPostProcessed()).isTrue();
-
-		formData.remove("postProcessed");
-		this.binder.bind(exchange(formData)).block(Duration.ofMillis(5000));
-		assertThat(this.testBean.isPostProcessed()).isFalse();
-	}
-
-	@Test
-	public void testFieldDefaultPreemptsFieldMarker() throws Exception {
-		MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
-		formData.add("!postProcessed", "on");
-		formData.add("_postProcessed", "visible");
-		formData.add("postProcessed", "on");
-		this.binder.bind(exchange(formData)).block(Duration.ofMillis(5000));
-		assertThat(this.testBean.isPostProcessed()).isTrue();
-
-		formData.remove("postProcessed");
-		this.binder.bind(exchange(formData)).block(Duration.ofMillis(5000));
-		assertThat(this.testBean.isPostProcessed()).isTrue();
-
-		formData.remove("!postProcessed");
-		this.binder.bind(exchange(formData)).block(Duration.ofMillis(5000));
-		assertThat(this.testBean.isPostProcessed()).isFalse();
-	}
-
-	@Test
-	public void testFieldDefaultNonBoolean() throws Exception {
-		MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
-		formData.add("!name", "anonymous");
-		formData.add("name", "Scott");
-		this.binder.bind(exchange(formData)).block(Duration.ofMillis(5000));
-		assertThat(this.testBean.getName()).isEqualTo("Scott");
-
-		formData.remove("name");
-		this.binder.bind(exchange(formData)).block(Duration.ofMillis(5000));
-		assertThat(this.testBean.getName()).isEqualTo("anonymous");
-	}
-
-	@Test
-	public void testWithCommaSeparatedStringArray() throws Exception {
-		MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
-		formData.add("stringArray", "bar");
-		formData.add("stringArray", "abc");
-		formData.add("stringArray", "123,def");
-		this.binder.bind(exchange(formData)).block(Duration.ofMillis(5000));
-		assertThat(this.testBean.getStringArray().length).as("Expected all three items to be bound").isEqualTo(3);
-
-		formData.remove("stringArray");
-		formData.add("stringArray", "123,def");
-		this.binder.bind(exchange(formData)).block(Duration.ofMillis(5000));
-		assertThat(this.testBean.getStringArray().length).as("Expected only 1 item to be bound").isEqualTo(1);
-	}
-
-	@Test
-	public void testBindingWithNestedObjectCreationAndWrongOrder() throws Exception {
-		MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
-		formData.add("spouse.name", "test");
-		formData.add("spouse", "someValue");
-		this.binder.bind(exchange(formData)).block(Duration.ofMillis(5000));
-
-		assertThat(this.testBean.getSpouse()).isNotNull();
-		assertThat(this.testBean.getSpouse().getName()).isEqualTo("test");
-	}
-
-	@Test
-	public void testBindingWithQueryParams() throws Exception {
-		String url = "/path?spouse=someValue&spouse.name=test";
-		ServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.post(url));
-		this.binder.bind(exchange).block(Duration.ofSeconds(5));
-
-		assertThat(this.testBean.getSpouse()).isNotNull();
-		assertThat(this.testBean.getSpouse().getName()).isEqualTo("test");
-	}
-
-	@Test
-	public void testMultipart() throws Exception {
-
-		MultipartBean bean = new MultipartBean();
-		WebExchangeDataBinder binder = new WebExchangeDataBinder(bean);
-
-		MultiValueMap<String, Object> data = new LinkedMultiValueMap<>();
-		data.add("name", "bar");
-		data.add("someList", "123");
-		data.add("someList", "abc");
-		data.add("someArray", "dec");
-		data.add("someArray", "456");
-		data.add("part", new ClassPathResource("org/springframework/http/codec/multipart/foo.txt"));
-		data.add("somePartList", new ClassPathResource("org/springframework/http/codec/multipart/foo.txt"));
-		data.add("somePartList", new ClassPathResource("org/springframework/http/server/reactive/spring.png"));
-		binder.bind(exchangeMultipart(data)).block(Duration.ofMillis(5000));
-
-		assertThat(bean.getName()).isEqualTo("bar");
-		assertThat(bean.getSomeList()).isEqualTo(Arrays.asList("123", "abc"));
-		assertThat(bean.getSomeArray()).isEqualTo(new String[] {"dec", "456"});
-		assertThat(bean.getPart().filename()).isEqualTo("foo.txt");
-		assertThat(bean.getSomePartList().size()).isEqualTo(2);
-		assertThat(bean.getSomePartList().get(0).filename()).isEqualTo("foo.txt");
-		assertThat(bean.getSomePartList().get(1).filename()).isEqualTo("spring.png");
-	}
+    @BeforeEach
+    public void setup() throws Exception {
+        this.testBean = new TestBean();
+        this.binder = new WebExchangeDataBinder(this.testBean, "person");
+        this.binder.registerCustomEditor(ITestBean.class, new TestBeanPropertyEditor());
+    }
 
 
+    @Test
+    public void testBindingWithNestedObjectCreation() throws Exception {
+        MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
+        formData.add("spouse", "someValue");
+        formData.add("spouse.name", "test");
+        this.binder.bind(exchange(formData)).block(Duration.ofMillis(5000));
 
-	private ServerWebExchange exchange(MultiValueMap<String, String> formData) {
+        assertThat(this.testBean.getSpouse()).isNotNull();
+        assertThat(testBean.getSpouse().getName()).isEqualTo("test");
+    }
 
-		MockClientHttpRequest request = new MockClientHttpRequest(HttpMethod.POST, "/");
+    @Test
+    public void testFieldPrefixCausesFieldReset() throws Exception {
+        MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
+        formData.add("_postProcessed", "visible");
+        formData.add("postProcessed", "on");
+        this.binder.bind(exchange(formData)).block(Duration.ofMillis(5000));
+        assertThat(this.testBean.isPostProcessed()).isTrue();
 
-		new FormHttpMessageWriter().write(Mono.just(formData),
-				forClassWithGenerics(MultiValueMap.class, String.class, String.class),
-				MediaType.APPLICATION_FORM_URLENCODED, request, Collections.emptyMap()).block();
+        formData.remove("postProcessed");
+        this.binder.bind(exchange(formData)).block(Duration.ofMillis(5000));
+        assertThat(this.testBean.isPostProcessed()).isFalse();
+    }
 
-		return MockServerWebExchange.from(
-				MockServerHttpRequest
-						.post("/")
-						.contentType(MediaType.APPLICATION_FORM_URLENCODED)
-						.body(request.getBody()));
-	}
+    @Test
+    public void testFieldPrefixCausesFieldResetWithIgnoreUnknownFields() throws Exception {
+        this.binder.setIgnoreUnknownFields(false);
 
-	private ServerWebExchange exchangeMultipart(MultiValueMap<String, ?> multipartData) {
+        MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
+        formData.add("_postProcessed", "visible");
+        formData.add("postProcessed", "on");
+        this.binder.bind(exchange(formData)).block(Duration.ofMillis(5000));
+        assertThat(this.testBean.isPostProcessed()).isTrue();
 
-		MockClientHttpRequest request = new MockClientHttpRequest(HttpMethod.POST, "/");
+        formData.remove("postProcessed");
+        this.binder.bind(exchange(formData)).block(Duration.ofMillis(5000));
+        assertThat(this.testBean.isPostProcessed()).isFalse();
+    }
 
-		new MultipartHttpMessageWriter().write(Mono.just(multipartData), forClass(MultiValueMap.class),
-				MediaType.MULTIPART_FORM_DATA, request, Collections.emptyMap()).block();
+    @Test
+    public void testFieldDefault() throws Exception {
+        MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
+        formData.add("!postProcessed", "off");
+        formData.add("postProcessed", "on");
+        this.binder.bind(exchange(formData)).block(Duration.ofMillis(5000));
+        assertThat(this.testBean.isPostProcessed()).isTrue();
 
-		return MockServerWebExchange.from(MockServerHttpRequest
-				.post("/")
-				.contentType(request.getHeaders().getContentType())
-				.body(request.getBody()));
-	}
+        formData.remove("postProcessed");
+        this.binder.bind(exchange(formData)).block(Duration.ofMillis(5000));
+        assertThat(this.testBean.isPostProcessed()).isFalse();
+    }
+
+    @Test
+    public void testFieldDefaultPreemptsFieldMarker() throws Exception {
+        MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
+        formData.add("!postProcessed", "on");
+        formData.add("_postProcessed", "visible");
+        formData.add("postProcessed", "on");
+        this.binder.bind(exchange(formData)).block(Duration.ofMillis(5000));
+        assertThat(this.testBean.isPostProcessed()).isTrue();
+
+        formData.remove("postProcessed");
+        this.binder.bind(exchange(formData)).block(Duration.ofMillis(5000));
+        assertThat(this.testBean.isPostProcessed()).isTrue();
+
+        formData.remove("!postProcessed");
+        this.binder.bind(exchange(formData)).block(Duration.ofMillis(5000));
+        assertThat(this.testBean.isPostProcessed()).isFalse();
+    }
+
+    @Test
+    public void testFieldDefaultNonBoolean() throws Exception {
+        MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
+        formData.add("!name", "anonymous");
+        formData.add("name", "Scott");
+        this.binder.bind(exchange(formData)).block(Duration.ofMillis(5000));
+        assertThat(this.testBean.getName()).isEqualTo("Scott");
+
+        formData.remove("name");
+        this.binder.bind(exchange(formData)).block(Duration.ofMillis(5000));
+        assertThat(this.testBean.getName()).isEqualTo("anonymous");
+    }
+
+    @Test
+    public void testWithCommaSeparatedStringArray() throws Exception {
+        MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
+        formData.add("stringArray", "bar");
+        formData.add("stringArray", "abc");
+        formData.add("stringArray", "123,def");
+        this.binder.bind(exchange(formData)).block(Duration.ofMillis(5000));
+        assertThat(this.testBean.getStringArray().length).as("Expected all three items to be bound").isEqualTo(3);
+
+        formData.remove("stringArray");
+        formData.add("stringArray", "123,def");
+        this.binder.bind(exchange(formData)).block(Duration.ofMillis(5000));
+        assertThat(this.testBean.getStringArray().length).as("Expected only 1 item to be bound").isEqualTo(1);
+    }
+
+    @Test
+    public void testBindingWithNestedObjectCreationAndWrongOrder() throws Exception {
+        MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
+        formData.add("spouse.name", "test");
+        formData.add("spouse", "someValue");
+        this.binder.bind(exchange(formData)).block(Duration.ofMillis(5000));
+
+        assertThat(this.testBean.getSpouse()).isNotNull();
+        assertThat(this.testBean.getSpouse().getName()).isEqualTo("test");
+    }
+
+    @Test
+    public void testBindingWithQueryParams() throws Exception {
+        String url = "/path?spouse=someValue&spouse.name=test";
+        ServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.post(url));
+        this.binder.bind(exchange).block(Duration.ofSeconds(5));
+
+        assertThat(this.testBean.getSpouse()).isNotNull();
+        assertThat(this.testBean.getSpouse().getName()).isEqualTo("test");
+    }
+
+    @Test
+    public void testMultipart() throws Exception {
+
+        MultipartBean bean = new MultipartBean();
+        WebExchangeDataBinder binder = new WebExchangeDataBinder(bean);
+
+        MultiValueMap<String, Object> data = new LinkedMultiValueMap<>();
+        data.add("name", "bar");
+        data.add("someList", "123");
+        data.add("someList", "abc");
+        data.add("someArray", "dec");
+        data.add("someArray", "456");
+        data.add("part", new ClassPathResource("org/springframework/http/codec/multipart/foo.txt"));
+        data.add("somePartList", new ClassPathResource("org/springframework/http/codec/multipart/foo.txt"));
+        data.add("somePartList", new ClassPathResource("org/springframework/http/server/reactive/spring.png"));
+        binder.bind(exchangeMultipart(data)).block(Duration.ofMillis(5000));
+
+        assertThat(bean.getName()).isEqualTo("bar");
+        assertThat(bean.getSomeList()).isEqualTo(Arrays.asList("123", "abc"));
+        assertThat(bean.getSomeArray()).isEqualTo(new String[]{"dec", "456"});
+        assertThat(bean.getPart().filename()).isEqualTo("foo.txt");
+        assertThat(bean.getSomePartList().size()).isEqualTo(2);
+        assertThat(bean.getSomePartList().get(0).filename()).isEqualTo("foo.txt");
+        assertThat(bean.getSomePartList().get(1).filename()).isEqualTo("spring.png");
+    }
 
 
-	private static class TestBeanPropertyEditor extends PropertyEditorSupport {
+    private ServerWebExchange exchange(MultiValueMap<String, String> formData) {
 
-		@Override
-		public void setAsText(String text) {
-			setValue(new TestBean());
-		}
-	}
+        MockClientHttpRequest request = new MockClientHttpRequest(HttpMethod.POST, "/");
 
-	@SuppressWarnings("unused")
-	private static class MultipartBean {
+        new FormHttpMessageWriter().write(Mono.just(formData),
+                forClassWithGenerics(MultiValueMap.class, String.class, String.class),
+                MediaType.APPLICATION_FORM_URLENCODED, request, Collections.emptyMap()).block();
 
-		private String name;
+        return MockServerWebExchange.from(
+                MockServerHttpRequest
+                        .post("/")
+                        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                        .body(request.getBody()));
+    }
 
-		private List<?> someList;
+    private ServerWebExchange exchangeMultipart(MultiValueMap<String, ?> multipartData) {
 
-		private String[] someArray;
+        MockClientHttpRequest request = new MockClientHttpRequest(HttpMethod.POST, "/");
 
-		private FilePart part;
+        new MultipartHttpMessageWriter().write(Mono.just(multipartData), forClass(MultiValueMap.class),
+                MediaType.MULTIPART_FORM_DATA, request, Collections.emptyMap()).block();
 
-		private List<FilePart> somePartList;
+        return MockServerWebExchange.from(MockServerHttpRequest
+                .post("/")
+                .contentType(request.getHeaders().getContentType())
+                .body(request.getBody()));
+    }
 
 
-		public String getName() {
-			return this.name;
-		}
+    private static class TestBeanPropertyEditor extends PropertyEditorSupport {
 
-		public void setName(String name) {
-			this.name = name;
-		}
+        @Override
+        public void setAsText(String text) {
+            setValue(new TestBean());
+        }
+    }
 
-		public List<?> getSomeList() {
-			return this.someList;
-		}
+    @SuppressWarnings("unused")
+    private static class MultipartBean {
 
-		public void setSomeList(List<?> someList) {
-			this.someList = someList;
-		}
+        private String name;
 
-		public String[] getSomeArray() {
-			return this.someArray;
-		}
+        private List<?> someList;
 
-		public void setSomeArray(String[] someArray) {
-			this.someArray = someArray;
-		}
+        private String[] someArray;
 
-		public FilePart getPart() {
-			return this.part;
-		}
+        private FilePart part;
 
-		public void setPart(FilePart part) {
-			this.part = part;
-		}
+        private List<FilePart> somePartList;
 
-		public List<FilePart> getSomePartList() {
-			return this.somePartList;
-		}
 
-		public void setSomePartList(List<FilePart> somePartList) {
-			this.somePartList = somePartList;
-		}
-	}
+        public String getName() {
+            return this.name;
+        }
+
+        public void setName(String name) {
+            this.name = name;
+        }
+
+        public List<?> getSomeList() {
+            return this.someList;
+        }
+
+        public void setSomeList(List<?> someList) {
+            this.someList = someList;
+        }
+
+        public String[] getSomeArray() {
+            return this.someArray;
+        }
+
+        public void setSomeArray(String[] someArray) {
+            this.someArray = someArray;
+        }
+
+        public FilePart getPart() {
+            return this.part;
+        }
+
+        public void setPart(FilePart part) {
+            this.part = part;
+        }
+
+        public List<FilePart> getSomePartList() {
+            return this.somePartList;
+        }
+
+        public void setSomePartList(List<FilePart> somePartList) {
+            this.somePartList = somePartList;
+        }
+    }
 
 }

@@ -43,155 +43,155 @@ import static org.mockito.Mockito.verifyZeroInteractions;
  */
 public class LocalStatelessSessionProxyFactoryBeanTests {
 
-	@Test
-	public void testInvokesMethod() throws Exception {
-		final int value = 11;
-		final String jndiName = "foo";
+    @Test
+    public void testInvokesMethod() throws Exception {
+        final int value = 11;
+        final String jndiName = "foo";
 
-		MyEjb myEjb = mock(MyEjb.class);
-		given(myEjb.getValue()).willReturn(value);
+        MyEjb myEjb = mock(MyEjb.class);
+        given(myEjb.getValue()).willReturn(value);
 
-		final MyHome home = mock(MyHome.class);
-		given(home.create()).willReturn(myEjb);
+        final MyHome home = mock(MyHome.class);
+        given(home.create()).willReturn(myEjb);
 
-		JndiTemplate jt = new JndiTemplate() {
-			@Override
-			public Object lookup(String name) throws NamingException {
-				// parameterize
-				assertThat(name.equals("java:comp/env/" + jndiName)).isTrue();
-				return home;
-			}
-		};
+        JndiTemplate jt = new JndiTemplate() {
+            @Override
+            public Object lookup(String name) throws NamingException {
+                // parameterize
+                assertThat(name.equals("java:comp/env/" + jndiName)).isTrue();
+                return home;
+            }
+        };
 
-		LocalStatelessSessionProxyFactoryBean fb = new LocalStatelessSessionProxyFactoryBean();
-		fb.setJndiName(jndiName);
-		fb.setResourceRef(true);
-		fb.setBusinessInterface(MyBusinessMethods.class);
-		fb.setJndiTemplate(jt);
+        LocalStatelessSessionProxyFactoryBean fb = new LocalStatelessSessionProxyFactoryBean();
+        fb.setJndiName(jndiName);
+        fb.setResourceRef(true);
+        fb.setBusinessInterface(MyBusinessMethods.class);
+        fb.setJndiTemplate(jt);
 
-		// Need lifecycle methods
-		fb.afterPropertiesSet();
+        // Need lifecycle methods
+        fb.afterPropertiesSet();
 
-		MyBusinessMethods mbm = (MyBusinessMethods) fb.getObject();
-		assertThat(Proxy.isProxyClass(mbm.getClass())).isTrue();
-		assertThat(mbm.getValue() == value).isTrue();
-		verify(myEjb).remove();
-	}
+        MyBusinessMethods mbm = (MyBusinessMethods) fb.getObject();
+        assertThat(Proxy.isProxyClass(mbm.getClass())).isTrue();
+        assertThat(mbm.getValue() == value).isTrue();
+        verify(myEjb).remove();
+    }
 
-	@Test
-	public void testInvokesMethodOnEjb3StyleBean() throws Exception {
-		final int value = 11;
-		final String jndiName = "foo";
+    @Test
+    public void testInvokesMethodOnEjb3StyleBean() throws Exception {
+        final int value = 11;
+        final String jndiName = "foo";
 
-		final MyEjb myEjb = mock(MyEjb.class);
-		given(myEjb.getValue()).willReturn(value);
+        final MyEjb myEjb = mock(MyEjb.class);
+        given(myEjb.getValue()).willReturn(value);
 
-		JndiTemplate jt = new JndiTemplate() {
-			@Override
-			public Object lookup(String name) throws NamingException {
-				// parameterize
-				assertThat(name.equals("java:comp/env/" + jndiName)).isTrue();
-				return myEjb;
-			}
-		};
+        JndiTemplate jt = new JndiTemplate() {
+            @Override
+            public Object lookup(String name) throws NamingException {
+                // parameterize
+                assertThat(name.equals("java:comp/env/" + jndiName)).isTrue();
+                return myEjb;
+            }
+        };
 
-		LocalStatelessSessionProxyFactoryBean fb = new LocalStatelessSessionProxyFactoryBean();
-		fb.setJndiName(jndiName);
-		fb.setResourceRef(true);
-		fb.setBusinessInterface(MyBusinessMethods.class);
-		fb.setJndiTemplate(jt);
+        LocalStatelessSessionProxyFactoryBean fb = new LocalStatelessSessionProxyFactoryBean();
+        fb.setJndiName(jndiName);
+        fb.setResourceRef(true);
+        fb.setBusinessInterface(MyBusinessMethods.class);
+        fb.setJndiTemplate(jt);
 
-		// Need lifecycle methods
-		fb.afterPropertiesSet();
+        // Need lifecycle methods
+        fb.afterPropertiesSet();
 
-		MyBusinessMethods mbm = (MyBusinessMethods) fb.getObject();
-		assertThat(Proxy.isProxyClass(mbm.getClass())).isTrue();
-		assertThat(mbm.getValue() == value).isTrue();
-	}
+        MyBusinessMethods mbm = (MyBusinessMethods) fb.getObject();
+        assertThat(Proxy.isProxyClass(mbm.getClass())).isTrue();
+        assertThat(mbm.getValue() == value).isTrue();
+    }
 
-	@Test
-	public void testCreateException() throws Exception {
-		final String jndiName = "foo";
+    @Test
+    public void testCreateException() throws Exception {
+        final String jndiName = "foo";
 
-		final CreateException cex = new CreateException();
-		final MyHome home = mock(MyHome.class);
-		given(home.create()).willThrow(cex);
+        final CreateException cex = new CreateException();
+        final MyHome home = mock(MyHome.class);
+        given(home.create()).willThrow(cex);
 
-		JndiTemplate jt = new JndiTemplate() {
-			@Override
-			public Object lookup(String name) throws NamingException {
-				// parameterize
-				assertThat(name.equals(jndiName)).isTrue();
-				return home;
-			}
-		};
+        JndiTemplate jt = new JndiTemplate() {
+            @Override
+            public Object lookup(String name) throws NamingException {
+                // parameterize
+                assertThat(name.equals(jndiName)).isTrue();
+                return home;
+            }
+        };
 
-		LocalStatelessSessionProxyFactoryBean fb = new LocalStatelessSessionProxyFactoryBean();
-		fb.setJndiName(jndiName);
-		fb.setResourceRef(false);	// no java:comp/env prefix
-		fb.setBusinessInterface(MyBusinessMethods.class);
-		assertThat(MyBusinessMethods.class).isEqualTo(fb.getBusinessInterface());
-		fb.setJndiTemplate(jt);
+        LocalStatelessSessionProxyFactoryBean fb = new LocalStatelessSessionProxyFactoryBean();
+        fb.setJndiName(jndiName);
+        fb.setResourceRef(false);    // no java:comp/env prefix
+        fb.setBusinessInterface(MyBusinessMethods.class);
+        assertThat(MyBusinessMethods.class).isEqualTo(fb.getBusinessInterface());
+        fb.setJndiTemplate(jt);
 
-		// Need lifecycle methods
-		fb.afterPropertiesSet();
+        // Need lifecycle methods
+        fb.afterPropertiesSet();
 
-		MyBusinessMethods mbm = (MyBusinessMethods) fb.getObject();
-		assertThat(Proxy.isProxyClass(mbm.getClass())).isTrue();
+        MyBusinessMethods mbm = (MyBusinessMethods) fb.getObject();
+        assertThat(Proxy.isProxyClass(mbm.getClass())).isTrue();
 
-		assertThatExceptionOfType(EjbAccessException.class).isThrownBy(
-				mbm::getValue)
-			.withCause(cex);
-	}
+        assertThatExceptionOfType(EjbAccessException.class).isThrownBy(
+                mbm::getValue)
+                .withCause(cex);
+    }
 
-	@Test
-	public void testNoBusinessInterfaceSpecified() throws Exception {
-		// Will do JNDI lookup to get home but won't call create
-		// Could actually try to figure out interface from create?
-		final String jndiName = "foo";
+    @Test
+    public void testNoBusinessInterfaceSpecified() throws Exception {
+        // Will do JNDI lookup to get home but won't call create
+        // Could actually try to figure out interface from create?
+        final String jndiName = "foo";
 
-		final MyHome home = mock(MyHome.class);
+        final MyHome home = mock(MyHome.class);
 
-		JndiTemplate jt = new JndiTemplate() {
-			@Override
-			public Object lookup(String name) throws NamingException {
-				// parameterize
-				assertThat(name.equals("java:comp/env/" + jndiName)).isTrue();
-				return home;
-			}
-		};
+        JndiTemplate jt = new JndiTemplate() {
+            @Override
+            public Object lookup(String name) throws NamingException {
+                // parameterize
+                assertThat(name.equals("java:comp/env/" + jndiName)).isTrue();
+                return home;
+            }
+        };
 
-		LocalStatelessSessionProxyFactoryBean fb = new LocalStatelessSessionProxyFactoryBean();
-		fb.setJndiName(jndiName);
-		fb.setResourceRef(true);
-		// Don't set business interface
-		fb.setJndiTemplate(jt);
+        LocalStatelessSessionProxyFactoryBean fb = new LocalStatelessSessionProxyFactoryBean();
+        fb.setJndiName(jndiName);
+        fb.setResourceRef(true);
+        // Don't set business interface
+        fb.setJndiTemplate(jt);
 
-		// Check it's a singleton
-		assertThat(fb.isSingleton()).isTrue();
+        // Check it's a singleton
+        assertThat(fb.isSingleton()).isTrue();
 
-		assertThatIllegalArgumentException().isThrownBy(
-				fb::afterPropertiesSet)
-			.withMessageContaining("businessInterface");
+        assertThatIllegalArgumentException().isThrownBy(
+                fb::afterPropertiesSet)
+                .withMessageContaining("businessInterface");
 
-		// Expect no methods on home
-		verifyZeroInteractions(home);
-	}
-
-
-	public interface MyHome extends EJBLocalHome {
-
-		MyBusinessMethods create() throws CreateException;
-	}
+        // Expect no methods on home
+        verifyZeroInteractions(home);
+    }
 
 
-	public interface MyBusinessMethods  {
+    public interface MyHome extends EJBLocalHome {
 
-		int getValue();
-	}
+        MyBusinessMethods create() throws CreateException;
+    }
 
 
-	public interface MyEjb extends EJBLocalObject, MyBusinessMethods {
-	}
+    public interface MyBusinessMethods {
+
+        int getValue();
+    }
+
+
+    public interface MyEjb extends EJBLocalObject, MyBusinessMethods {
+    }
 
 }

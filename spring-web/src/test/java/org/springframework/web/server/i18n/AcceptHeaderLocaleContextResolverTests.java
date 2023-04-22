@@ -46,115 +46,115 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 public class AcceptHeaderLocaleContextResolverTests {
 
-	private final AcceptHeaderLocaleContextResolver resolver = new AcceptHeaderLocaleContextResolver();
+    private final AcceptHeaderLocaleContextResolver resolver = new AcceptHeaderLocaleContextResolver();
 
 
-	@Test
-	public void resolve() {
-		assertThat(this.resolver.resolveLocaleContext(exchange(CANADA)).getLocale()).isEqualTo(CANADA);
-		assertThat(this.resolver.resolveLocaleContext(exchange(US, CANADA)).getLocale()).isEqualTo(US);
-	}
+    @Test
+    public void resolve() {
+        assertThat(this.resolver.resolveLocaleContext(exchange(CANADA)).getLocale()).isEqualTo(CANADA);
+        assertThat(this.resolver.resolveLocaleContext(exchange(US, CANADA)).getLocale()).isEqualTo(US);
+    }
 
-	@Test
-	public void resolvePreferredSupported() {
-		this.resolver.setSupportedLocales(Collections.singletonList(CANADA));
-		assertThat(this.resolver.resolveLocaleContext(exchange(US, CANADA)).getLocale()).isEqualTo(CANADA);
-	}
+    @Test
+    public void resolvePreferredSupported() {
+        this.resolver.setSupportedLocales(Collections.singletonList(CANADA));
+        assertThat(this.resolver.resolveLocaleContext(exchange(US, CANADA)).getLocale()).isEqualTo(CANADA);
+    }
 
-	@Test
-	public void resolvePreferredNotSupported() {
-		this.resolver.setSupportedLocales(Collections.singletonList(CANADA));
-		assertThat(this.resolver.resolveLocaleContext(exchange(US, UK)).getLocale()).isEqualTo(US);
-	}
+    @Test
+    public void resolvePreferredNotSupported() {
+        this.resolver.setSupportedLocales(Collections.singletonList(CANADA));
+        assertThat(this.resolver.resolveLocaleContext(exchange(US, UK)).getLocale()).isEqualTo(US);
+    }
 
-	@Test
-	public void resolvePreferredNotSupportedWithDefault() {
-		this.resolver.setSupportedLocales(Arrays.asList(US, JAPAN));
-		this.resolver.setDefaultLocale(JAPAN);
-		assertThat(this.resolver.resolveLocaleContext(exchange(KOREA)).getLocale()).isEqualTo(JAPAN);
-	}
+    @Test
+    public void resolvePreferredNotSupportedWithDefault() {
+        this.resolver.setSupportedLocales(Arrays.asList(US, JAPAN));
+        this.resolver.setDefaultLocale(JAPAN);
+        assertThat(this.resolver.resolveLocaleContext(exchange(KOREA)).getLocale()).isEqualTo(JAPAN);
+    }
 
-	@Test
-	public void resolvePreferredAgainstLanguageOnly() {
-		this.resolver.setSupportedLocales(Collections.singletonList(ENGLISH));
-		assertThat(this.resolver.resolveLocaleContext(exchange(GERMANY, US, UK)).getLocale()).isEqualTo(ENGLISH);
-	}
+    @Test
+    public void resolvePreferredAgainstLanguageOnly() {
+        this.resolver.setSupportedLocales(Collections.singletonList(ENGLISH));
+        assertThat(this.resolver.resolveLocaleContext(exchange(GERMANY, US, UK)).getLocale()).isEqualTo(ENGLISH);
+    }
 
-	@Test
-	public void resolvePreferredAgainstCountryIfPossible() {
-		this.resolver.setSupportedLocales(Arrays.asList(ENGLISH, UK));
-		assertThat(this.resolver.resolveLocaleContext(exchange(GERMANY, US, UK)).getLocale()).isEqualTo(UK);
-	}
+    @Test
+    public void resolvePreferredAgainstCountryIfPossible() {
+        this.resolver.setSupportedLocales(Arrays.asList(ENGLISH, UK));
+        assertThat(this.resolver.resolveLocaleContext(exchange(GERMANY, US, UK)).getLocale()).isEqualTo(UK);
+    }
 
-	@Test
-	public void resolvePreferredAgainstLanguageWithMultipleSupportedLocales() {
-		this.resolver.setSupportedLocales(Arrays.asList(GERMAN, US));
-		assertThat(this.resolver.resolveLocaleContext(exchange(GERMANY, US, UK)).getLocale()).isEqualTo(GERMAN);
-	}
+    @Test
+    public void resolvePreferredAgainstLanguageWithMultipleSupportedLocales() {
+        this.resolver.setSupportedLocales(Arrays.asList(GERMAN, US));
+        assertThat(this.resolver.resolveLocaleContext(exchange(GERMANY, US, UK)).getLocale()).isEqualTo(GERMAN);
+    }
 
-	@Test
-	public void resolveMissingAcceptLanguageHeader() {
-		MockServerHttpRequest request = MockServerHttpRequest.get("/").build();
-		MockServerWebExchange exchange = MockServerWebExchange.from(request);
-		assertThat(this.resolver.resolveLocaleContext(exchange).getLocale()).isNull();
-	}
+    @Test
+    public void resolveMissingAcceptLanguageHeader() {
+        MockServerHttpRequest request = MockServerHttpRequest.get("/").build();
+        MockServerWebExchange exchange = MockServerWebExchange.from(request);
+        assertThat(this.resolver.resolveLocaleContext(exchange).getLocale()).isNull();
+    }
 
-	@Test
-	public void resolveMissingAcceptLanguageHeaderWithDefault() {
-		this.resolver.setDefaultLocale(US);
+    @Test
+    public void resolveMissingAcceptLanguageHeaderWithDefault() {
+        this.resolver.setDefaultLocale(US);
 
-		MockServerHttpRequest request = MockServerHttpRequest.get("/").build();
-		MockServerWebExchange exchange = MockServerWebExchange.from(request);
-		assertThat(this.resolver.resolveLocaleContext(exchange).getLocale()).isEqualTo(US);
-	}
+        MockServerHttpRequest request = MockServerHttpRequest.get("/").build();
+        MockServerWebExchange exchange = MockServerWebExchange.from(request);
+        assertThat(this.resolver.resolveLocaleContext(exchange).getLocale()).isEqualTo(US);
+    }
 
-	@Test
-	public void resolveEmptyAcceptLanguageHeader() {
-		MockServerHttpRequest request = MockServerHttpRequest.get("/").header(HttpHeaders.ACCEPT_LANGUAGE, "").build();
-		MockServerWebExchange exchange = MockServerWebExchange.from(request);
-		assertThat(this.resolver.resolveLocaleContext(exchange).getLocale()).isNull();
-	}
+    @Test
+    public void resolveEmptyAcceptLanguageHeader() {
+        MockServerHttpRequest request = MockServerHttpRequest.get("/").header(HttpHeaders.ACCEPT_LANGUAGE, "").build();
+        MockServerWebExchange exchange = MockServerWebExchange.from(request);
+        assertThat(this.resolver.resolveLocaleContext(exchange).getLocale()).isNull();
+    }
 
-	@Test
-	public void resolveEmptyAcceptLanguageHeaderWithDefault() {
-		this.resolver.setDefaultLocale(US);
+    @Test
+    public void resolveEmptyAcceptLanguageHeaderWithDefault() {
+        this.resolver.setDefaultLocale(US);
 
-		MockServerHttpRequest request = MockServerHttpRequest.get("/").header(HttpHeaders.ACCEPT_LANGUAGE, "").build();
-		MockServerWebExchange exchange = MockServerWebExchange.from(request);
-		assertThat(this.resolver.resolveLocaleContext(exchange).getLocale()).isEqualTo(US);
-	}
+        MockServerHttpRequest request = MockServerHttpRequest.get("/").header(HttpHeaders.ACCEPT_LANGUAGE, "").build();
+        MockServerWebExchange exchange = MockServerWebExchange.from(request);
+        assertThat(this.resolver.resolveLocaleContext(exchange).getLocale()).isEqualTo(US);
+    }
 
-	@Test
-	public void resolveInvalidAcceptLanguageHeader() {
-		MockServerHttpRequest request = MockServerHttpRequest.get("/").header(HttpHeaders.ACCEPT_LANGUAGE, "en_US").build();
-		MockServerWebExchange exchange = MockServerWebExchange.from(request);
-		assertThat(this.resolver.resolveLocaleContext(exchange).getLocale()).isNull();
-	}
+    @Test
+    public void resolveInvalidAcceptLanguageHeader() {
+        MockServerHttpRequest request = MockServerHttpRequest.get("/").header(HttpHeaders.ACCEPT_LANGUAGE, "en_US").build();
+        MockServerWebExchange exchange = MockServerWebExchange.from(request);
+        assertThat(this.resolver.resolveLocaleContext(exchange).getLocale()).isNull();
+    }
 
-	@Test
-	public void resolveInvalidAcceptLanguageHeaderWithDefault() {
-		this.resolver.setDefaultLocale(US);
+    @Test
+    public void resolveInvalidAcceptLanguageHeaderWithDefault() {
+        this.resolver.setDefaultLocale(US);
 
-		MockServerHttpRequest request = MockServerHttpRequest.get("/").header(HttpHeaders.ACCEPT_LANGUAGE, "en_US").build();
-		MockServerWebExchange exchange = MockServerWebExchange.from(request);
-		assertThat(this.resolver.resolveLocaleContext(exchange).getLocale()).isEqualTo(US);
-	}
+        MockServerHttpRequest request = MockServerHttpRequest.get("/").header(HttpHeaders.ACCEPT_LANGUAGE, "en_US").build();
+        MockServerWebExchange exchange = MockServerWebExchange.from(request);
+        assertThat(this.resolver.resolveLocaleContext(exchange).getLocale()).isEqualTo(US);
+    }
 
-	@Test
-	public void defaultLocale() {
-		this.resolver.setDefaultLocale(JAPANESE);
-		MockServerHttpRequest request = MockServerHttpRequest.get("/").build();
-		MockServerWebExchange exchange = MockServerWebExchange.from(request);
-		assertThat(this.resolver.resolveLocaleContext(exchange).getLocale()).isEqualTo(JAPANESE);
+    @Test
+    public void defaultLocale() {
+        this.resolver.setDefaultLocale(JAPANESE);
+        MockServerHttpRequest request = MockServerHttpRequest.get("/").build();
+        MockServerWebExchange exchange = MockServerWebExchange.from(request);
+        assertThat(this.resolver.resolveLocaleContext(exchange).getLocale()).isEqualTo(JAPANESE);
 
-		request = MockServerHttpRequest.get("/").acceptLanguageAsLocales(US).build();
-		exchange = MockServerWebExchange.from(request);
-		assertThat(this.resolver.resolveLocaleContext(exchange).getLocale()).isEqualTo(US);
-	}
+        request = MockServerHttpRequest.get("/").acceptLanguageAsLocales(US).build();
+        exchange = MockServerWebExchange.from(request);
+        assertThat(this.resolver.resolveLocaleContext(exchange).getLocale()).isEqualTo(US);
+    }
 
 
-	private ServerWebExchange exchange(Locale... locales) {
-		return MockServerWebExchange.from(MockServerHttpRequest.get("").acceptLanguageAsLocales(locales));
-	}
+    private ServerWebExchange exchange(Locale... locales) {
+        return MockServerWebExchange.from(MockServerHttpRequest.get("").acceptLanguageAsLocales(locales));
+    }
 
 }

@@ -29,18 +29,18 @@ import javax.servlet.http.Part
  */
 class MockMultipartHttpServletRequestDsl(private val builder: MockMultipartHttpServletRequestBuilder) : MockHttpServletRequestDsl(builder) {
 
-	/**
-	 * @see [MockMultipartHttpServletRequestBuilder.file]
-	 */
-	fun file(name: String, content: ByteArray) = builder.file(name, content)
+    /**
+     * @see [MockMultipartHttpServletRequestBuilder.file]
+     */
+    fun file(name: String, content: ByteArray) = builder.file(name, content)
 
-	/**
-	 * @see [MockMultipartHttpServletRequestBuilder.file]
-	 */
-	fun file(file: MockMultipartFile) = builder.file(file)
+    /**
+     * @see [MockMultipartHttpServletRequestBuilder.file]
+     */
+    fun file(file: MockMultipartFile) = builder.file(file)
 
-	/**
-	 * @see [MockMultipartHttpServletRequestBuilder.part]
-	 */
-	fun part(vararg parts: Part) = builder.part(*parts)
+    /**
+     * @see [MockMultipartHttpServletRequestBuilder.part]
+     */
+    fun part(vararg parts: Part) = builder.part(*parts)
 }

@@ -58,87 +58,85 @@ import org.springframework.web.socket.server.RequestUpgradeStrategy;
  */
 public abstract class AbstractStandardUpgradeStrategy implements RequestUpgradeStrategy {
 
-	protected final Log logger = LogFactory.getLog(getClass());
+    protected final Log logger = LogFactory.getLog(getClass());
 
-	@Nullable
-	private volatile List<WebSocketExtension> extensions;
-
-
-	protected ServerContainer getContainer(HttpServletRequest request) {
-		ServletContext servletContext = request.getServletContext();
-		String attrName = "javax.websocket.server.ServerContainer";
-		ServerContainer container = (ServerContainer) servletContext.getAttribute(attrName);
-		Assert.notNull(container, "No 'javax.websocket.server.ServerContainer' ServletContext attribute. " +
-				"Are you running in a Servlet container that supports JSR-356?");
-		return container;
-	}
-
-	protected final HttpServletRequest getHttpServletRequest(ServerHttpRequest request) {
-		Assert.isInstanceOf(ServletServerHttpRequest.class, request, "ServletServerHttpRequest required");
-		return ((ServletServerHttpRequest) request).getServletRequest();
-	}
-
-	protected final HttpServletResponse getHttpServletResponse(ServerHttpResponse response) {
-		Assert.isInstanceOf(ServletServerHttpResponse.class, response, "ServletServerHttpResponse required");
-		return ((ServletServerHttpResponse) response).getServletResponse();
-	}
+    @Nullable
+    private volatile List<WebSocketExtension> extensions;
 
 
-	@Override
-	public List<WebSocketExtension> getSupportedExtensions(ServerHttpRequest request) {
-		List<WebSocketExtension> extensions = this.extensions;
-		if (extensions == null) {
-			HttpServletRequest servletRequest = ((ServletServerHttpRequest) request).getServletRequest();
-			extensions = getInstalledExtensions(getContainer(servletRequest));
-			this.extensions = extensions;
-		}
-		return extensions;
-	}
+    protected ServerContainer getContainer(HttpServletRequest request) {
+        ServletContext servletContext = request.getServletContext();
+        String attrName = "javax.websocket.server.ServerContainer";
+        ServerContainer container = (ServerContainer) servletContext.getAttribute(attrName);
+        Assert.notNull(container, "No 'javax.websocket.server.ServerContainer' ServletContext attribute. " +
+                "Are you running in a Servlet container that supports JSR-356?");
+        return container;
+    }
 
-	protected List<WebSocketExtension> getInstalledExtensions(WebSocketContainer container) {
-		List<WebSocketExtension> result = new ArrayList<>();
-		for (Extension extension : container.getInstalledExtensions()) {
-			result.add(new StandardToWebSocketExtensionAdapter(extension));
-		}
-		return result;
-	}
+    protected final HttpServletRequest getHttpServletRequest(ServerHttpRequest request) {
+        Assert.isInstanceOf(ServletServerHttpRequest.class, request, "ServletServerHttpRequest required");
+        return ((ServletServerHttpRequest) request).getServletRequest();
+    }
+
+    protected final HttpServletResponse getHttpServletResponse(ServerHttpResponse response) {
+        Assert.isInstanceOf(ServletServerHttpResponse.class, response, "ServletServerHttpResponse required");
+        return ((ServletServerHttpResponse) response).getServletResponse();
+    }
 
 
-	@Override
-	public void upgrade(ServerHttpRequest request, ServerHttpResponse response,
-			@Nullable String selectedProtocol, List<WebSocketExtension> selectedExtensions,
-			@Nullable Principal user, WebSocketHandler wsHandler, Map<String, Object> attrs)
-			throws HandshakeFailureException {
+    @Override
+    public List<WebSocketExtension> getSupportedExtensions(ServerHttpRequest request) {
+        List<WebSocketExtension> extensions = this.extensions;
+        if (extensions == null) {
+            HttpServletRequest servletRequest = ((ServletServerHttpRequest) request).getServletRequest();
+            extensions = getInstalledExtensions(getContainer(servletRequest));
+            this.extensions = extensions;
+        }
+        return extensions;
+    }
 
-		HttpHeaders headers = request.getHeaders();
-		InetSocketAddress localAddr = null;
-		try {
-			localAddr = request.getLocalAddress();
-		}
-		catch (Exception ex) {
-			// Ignore
-		}
-		InetSocketAddress remoteAddr = null;
-		try {
-			remoteAddr = request.getRemoteAddress();
-		}
-		catch (Exception ex) {
-			// Ignore
-		}
+    protected List<WebSocketExtension> getInstalledExtensions(WebSocketContainer container) {
+        List<WebSocketExtension> result = new ArrayList<>();
+        for (Extension extension : container.getInstalledExtensions()) {
+            result.add(new StandardToWebSocketExtensionAdapter(extension));
+        }
+        return result;
+    }
 
-		StandardWebSocketSession session = new StandardWebSocketSession(headers, attrs, localAddr, remoteAddr, user);
-		StandardWebSocketHandlerAdapter endpoint = new StandardWebSocketHandlerAdapter(wsHandler, session);
 
-		List<Extension> extensions = new ArrayList<>();
-		for (WebSocketExtension extension : selectedExtensions) {
-			extensions.add(new WebSocketToStandardExtensionAdapter(extension));
-		}
+    @Override
+    public void upgrade(ServerHttpRequest request, ServerHttpResponse response,
+                        @Nullable String selectedProtocol, List<WebSocketExtension> selectedExtensions,
+                        @Nullable Principal user, WebSocketHandler wsHandler, Map<String, Object> attrs)
+            throws HandshakeFailureException {
 
-		upgradeInternal(request, response, selectedProtocol, extensions, endpoint);
-	}
+        HttpHeaders headers = request.getHeaders();
+        InetSocketAddress localAddr = null;
+        try {
+            localAddr = request.getLocalAddress();
+        } catch (Exception ex) {
+            // Ignore
+        }
+        InetSocketAddress remoteAddr = null;
+        try {
+            remoteAddr = request.getRemoteAddress();
+        } catch (Exception ex) {
+            // Ignore
+        }
 
-	protected abstract void upgradeInternal(ServerHttpRequest request, ServerHttpResponse response,
-			@Nullable String selectedProtocol, List<Extension> selectedExtensions, Endpoint endpoint)
-			throws HandshakeFailureException;
+        StandardWebSocketSession session = new StandardWebSocketSession(headers, attrs, localAddr, remoteAddr, user);
+        StandardWebSocketHandlerAdapter endpoint = new StandardWebSocketHandlerAdapter(wsHandler, session);
+
+        List<Extension> extensions = new ArrayList<>();
+        for (WebSocketExtension extension : selectedExtensions) {
+            extensions.add(new WebSocketToStandardExtensionAdapter(extension));
+        }
+
+        upgradeInternal(request, response, selectedProtocol, extensions, endpoint);
+    }
+
+    protected abstract void upgradeInternal(ServerHttpRequest request, ServerHttpResponse response,
+                                            @Nullable String selectedProtocol, List<Extension> selectedExtensions, Endpoint endpoint)
+            throws HandshakeFailureException;
 
 }

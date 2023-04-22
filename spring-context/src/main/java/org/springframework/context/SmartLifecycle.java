@@ -55,75 +55,79 @@ package org.springframework.context;
  *
  * @author Mark Fisher
  * @author Juergen Hoeller
- * @since 3.0
  * @see LifecycleProcessor
  * @see ConfigurableApplicationContext
+ * @since 3.0
  */
 public interface SmartLifecycle extends Lifecycle, Phased {
 
-	/**
-	 * The default phase for {@code SmartLifecycle}: {@code Integer.MAX_VALUE}.
-	 * <p>This is different from the common phase 0 associated with regular
-	 * {@link Lifecycle} implementations, putting the typically auto-started
-	 * {@code SmartLifecycle} beans into a separate later shutdown phase.
-	 * @since 5.1
-	 * @see #getPhase()
-	 * @see org.springframework.context.support.DefaultLifecycleProcessor#getPhase(Lifecycle)
-	 */
-	int DEFAULT_PHASE = Integer.MAX_VALUE;
+    /**
+     * The default phase for {@code SmartLifecycle}: {@code Integer.MAX_VALUE}.
+     * <p>This is different from the common phase 0 associated with regular
+     * {@link Lifecycle} implementations, putting the typically auto-started
+     * {@code SmartLifecycle} beans into a separate later shutdown phase.
+     *
+     * @see #getPhase()
+     * @see org.springframework.context.support.DefaultLifecycleProcessor#getPhase(Lifecycle)
+     * @since 5.1
+     */
+    int DEFAULT_PHASE = Integer.MAX_VALUE;
 
 
-	/**
-	 * Returns {@code true} if this {@code Lifecycle} component should get
-	 * started automatically by the container at the time that the containing
-	 * {@link ApplicationContext} gets refreshed.
-	 * <p>A value of {@code false} indicates that the component is intended to
-	 * be started through an explicit {@link #start()} call instead, analogous
-	 * to a plain {@link Lifecycle} implementation.
-	 * <p>The default implementation returns {@code true}.
-	 * @see #start()
-	 * @see #getPhase()
-	 * @see LifecycleProcessor#onRefresh()
-	 * @see ConfigurableApplicationContext#refresh()
-	 */
-	default boolean isAutoStartup() {
-		return true;
-	}
+    /**
+     * Returns {@code true} if this {@code Lifecycle} component should get
+     * started automatically by the container at the time that the containing
+     * {@link ApplicationContext} gets refreshed.
+     * <p>A value of {@code false} indicates that the component is intended to
+     * be started through an explicit {@link #start()} call instead, analogous
+     * to a plain {@link Lifecycle} implementation.
+     * <p>The default implementation returns {@code true}.
+     *
+     * @see #start()
+     * @see #getPhase()
+     * @see LifecycleProcessor#onRefresh()
+     * @see ConfigurableApplicationContext#refresh()
+     */
+    default boolean isAutoStartup() {
+        return true;
+    }
 
-	/**
-	 * Indicates that a Lifecycle component must stop if it is currently running.
-	 * <p>The provided callback is used by the {@link LifecycleProcessor} to support
-	 * an ordered, and potentially concurrent, shutdown of all components having a
-	 * common shutdown order value. The callback <b>must</b> be executed after
-	 * the {@code SmartLifecycle} component does indeed stop.
-	 * <p>The {@link LifecycleProcessor} will call <i>only</i> this variant of the
-	 * {@code stop} method; i.e. {@link Lifecycle#stop()} will not be called for
-	 * {@code SmartLifecycle} implementations unless explicitly delegated to within
-	 * the implementation of this method.
-	 * <p>The default implementation delegates to {@link #stop()} and immediately
-	 * triggers the given callback in the calling thread. Note that there is no
-	 * synchronization between the two, so custom implementations may at least
-	 * want to put the same steps within their common lifecycle monitor (if any).
-	 * @see #stop()
-	 * @see #getPhase()
-	 */
-	default void stop(Runnable callback) {
-		stop();
-		callback.run();
-	}
+    /**
+     * Indicates that a Lifecycle component must stop if it is currently running.
+     * <p>The provided callback is used by the {@link LifecycleProcessor} to support
+     * an ordered, and potentially concurrent, shutdown of all components having a
+     * common shutdown order value. The callback <b>must</b> be executed after
+     * the {@code SmartLifecycle} component does indeed stop.
+     * <p>The {@link LifecycleProcessor} will call <i>only</i> this variant of the
+     * {@code stop} method; i.e. {@link Lifecycle#stop()} will not be called for
+     * {@code SmartLifecycle} implementations unless explicitly delegated to within
+     * the implementation of this method.
+     * <p>The default implementation delegates to {@link #stop()} and immediately
+     * triggers the given callback in the calling thread. Note that there is no
+     * synchronization between the two, so custom implementations may at least
+     * want to put the same steps within their common lifecycle monitor (if any).
+     *
+     * @see #stop()
+     * @see #getPhase()
+     */
+    default void stop(Runnable callback) {
+        stop();
+        callback.run();
+    }
 
-	/**
-	 * Return the phase that this lifecycle object is supposed to run in.
-	 * <p>The default implementation returns {@link #DEFAULT_PHASE} in order to
-	 * let stop callbacks execute after regular {@code Lifecycle} implementations.
-	 * @see #isAutoStartup()
-	 * @see #start()
-	 * @see #stop(Runnable)
-	 * @see org.springframework.context.support.DefaultLifecycleProcessor#getPhase(Lifecycle)
-	 */
-	@Override
-	default int getPhase() {
-		return DEFAULT_PHASE;
-	}
+    /**
+     * Return the phase that this lifecycle object is supposed to run in.
+     * <p>The default implementation returns {@link #DEFAULT_PHASE} in order to
+     * let stop callbacks execute after regular {@code Lifecycle} implementations.
+     *
+     * @see #isAutoStartup()
+     * @see #start()
+     * @see #stop(Runnable)
+     * @see org.springframework.context.support.DefaultLifecycleProcessor#getPhase(Lifecycle)
+     */
+    @Override
+    default int getPhase() {
+        return DEFAULT_PHASE;
+    }
 
 }

@@ -31,32 +31,34 @@ import org.springframework.web.servlet.support.RequestContextUtils;
  * {@link org.springframework.web.servlet.LocaleResolver}.
  *
  * @author Juergen Hoeller
- * @since 2.0
  * @see #getLocale()
  * @see org.springframework.web.servlet.LocaleResolver
+ * @since 2.0
  */
 public class DispatcherServletWebRequest extends ServletWebRequest {
 
-	/**
-	 * Create a new DispatcherServletWebRequest instance for the given request.
-	 * @param request current HTTP request
-	 */
-	public DispatcherServletWebRequest(HttpServletRequest request) {
-		super(request);
-	}
+    /**
+     * Create a new DispatcherServletWebRequest instance for the given request.
+     *
+     * @param request current HTTP request
+     */
+    public DispatcherServletWebRequest(HttpServletRequest request) {
+        super(request);
+    }
 
-	/**
-	 * Create a new DispatcherServletWebRequest instance for the given request and response.
-	 * @param request current HTTP request
-	 * @param response current HTTP response
-	 */
-	public DispatcherServletWebRequest(HttpServletRequest request, HttpServletResponse response) {
-		super(request, response);
-	}
+    /**
+     * Create a new DispatcherServletWebRequest instance for the given request and response.
+     *
+     * @param request  current HTTP request
+     * @param response current HTTP response
+     */
+    public DispatcherServletWebRequest(HttpServletRequest request, HttpServletResponse response) {
+        super(request, response);
+    }
 
-	@Override
-	public Locale getLocale() {
-		return RequestContextUtils.getLocale(getRequest());
-	}
+    @Override
+    public Locale getLocale() {
+        return RequestContextUtils.getLocale(getRequest());
+    }
 
 }

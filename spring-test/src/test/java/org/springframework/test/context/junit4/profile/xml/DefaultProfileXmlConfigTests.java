@@ -35,22 +35,22 @@ import static org.assertj.core.api.Assertions.assertThat;
 @ContextConfiguration
 public class DefaultProfileXmlConfigTests {
 
-	@Autowired
-	protected Pet pet;
+    @Autowired
+    protected Pet pet;
 
-	@Autowired(required = false)
-	protected Employee employee;
+    @Autowired(required = false)
+    protected Employee employee;
 
 
-	@Test
-	public void pet() {
-		assertThat(pet).isNotNull();
-		assertThat(pet.getName()).isEqualTo("Fido");
-	}
+    @Test
+    public void pet() {
+        assertThat(pet).isNotNull();
+        assertThat(pet.getName()).isEqualTo("Fido");
+    }
 
-	@Test
-	public void employee() {
-		assertThat(employee).as("employee bean should not be created for the default profile").isNull();
-	}
+    @Test
+    public void employee() {
+        assertThat(employee).as("employee bean should not be created for the default profile").isNull();
+    }
 
 }

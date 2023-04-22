@@ -48,95 +48,97 @@ import static org.mockito.Mockito.verify;
  */
 public abstract class AbstractRowMapperTests {
 
-	protected void verifyPerson(Person bean) throws Exception {
-		assertThat(bean.getName()).isEqualTo("Bubba");
-		assertThat(bean.getAge()).isEqualTo(22L);
-		assertThat(bean.getBirth_date()).usingComparator(Date::compareTo).isEqualTo(new java.util.Date(1221222L));
-		assertThat(bean.getBalance()).isEqualTo(new BigDecimal("1234.56"));
-	}
+    protected void verifyPerson(Person bean) throws Exception {
+        assertThat(bean.getName()).isEqualTo("Bubba");
+        assertThat(bean.getAge()).isEqualTo(22L);
+        assertThat(bean.getBirth_date()).usingComparator(Date::compareTo).isEqualTo(new java.util.Date(1221222L));
+        assertThat(bean.getBalance()).isEqualTo(new BigDecimal("1234.56"));
+    }
 
-	protected void verifyPerson(ConcretePerson bean) throws Exception {
-		assertThat(bean.getName()).isEqualTo("Bubba");
-		assertThat(bean.getAge()).isEqualTo(22L);
-		assertThat(bean.getBirth_date()).usingComparator(Date::compareTo).isEqualTo(new java.util.Date(1221222L));
-		assertThat(bean.getBalance()).isEqualTo(new BigDecimal("1234.56"));
-	}
+    protected void verifyPerson(ConcretePerson bean) throws Exception {
+        assertThat(bean.getName()).isEqualTo("Bubba");
+        assertThat(bean.getAge()).isEqualTo(22L);
+        assertThat(bean.getBirth_date()).usingComparator(Date::compareTo).isEqualTo(new java.util.Date(1221222L));
+        assertThat(bean.getBalance()).isEqualTo(new BigDecimal("1234.56"));
+    }
 
-	protected void verifyPerson(SpacePerson bean) {
-		assertThat(bean.getLastName()).isEqualTo("Bubba");
-		assertThat(bean.getAge()).isEqualTo(22L);
-		assertThat(bean.getBirthDate()).isEqualTo(new Timestamp(1221222L).toLocalDateTime());
-		assertThat(bean.getBalance()).isEqualTo(new BigDecimal("1234.56"));
-	}
+    protected void verifyPerson(SpacePerson bean) {
+        assertThat(bean.getLastName()).isEqualTo("Bubba");
+        assertThat(bean.getAge()).isEqualTo(22L);
+        assertThat(bean.getBirthDate()).isEqualTo(new Timestamp(1221222L).toLocalDateTime());
+        assertThat(bean.getBalance()).isEqualTo(new BigDecimal("1234.56"));
+    }
 
-	protected void verifyPerson(DatePerson bean) {
-		assertThat(bean.getLastName()).isEqualTo("Bubba");
-		assertThat(bean.getAge()).isEqualTo(22L);
-		assertThat(bean.getBirthDate()).isEqualTo(new java.sql.Date(1221222L).toLocalDate());
-		assertThat(bean.getBalance()).isEqualTo(new BigDecimal("1234.56"));
-	}
-
-
-	protected enum MockType {ONE, TWO, THREE};
+    protected void verifyPerson(DatePerson bean) {
+        assertThat(bean.getLastName()).isEqualTo("Bubba");
+        assertThat(bean.getAge()).isEqualTo(22L);
+        assertThat(bean.getBirthDate()).isEqualTo(new java.sql.Date(1221222L).toLocalDate());
+        assertThat(bean.getBalance()).isEqualTo(new BigDecimal("1234.56"));
+    }
 
 
-	protected static class Mock {
+    protected enum MockType {ONE, TWO, THREE}
 
-		private Connection connection;
+    ;
 
-		private ResultSetMetaData resultSetMetaData;
 
-		private ResultSet resultSet;
+    protected static class Mock {
 
-		private Statement statement;
+        private Connection connection;
 
-		private JdbcTemplate jdbcTemplate;
+        private ResultSetMetaData resultSetMetaData;
 
-		public Mock() throws Exception {
-			this(MockType.ONE);
-		}
+        private ResultSet resultSet;
 
-		@SuppressWarnings("unchecked")
-		public Mock(MockType type) throws Exception {
-			connection = mock(Connection.class);
-			statement = mock(Statement.class);
-			resultSet = mock(ResultSet.class);
-			resultSetMetaData = mock(ResultSetMetaData.class);
+        private Statement statement;
 
-			given(connection.createStatement()).willReturn(statement);
-			given(statement.executeQuery(anyString())).willReturn(resultSet);
-			given(resultSet.getMetaData()).willReturn(resultSetMetaData);
+        private JdbcTemplate jdbcTemplate;
 
-			given(resultSet.next()).willReturn(true, false);
-			given(resultSet.getString(1)).willReturn("Bubba");
-			given(resultSet.getLong(2)).willReturn(22L);
-			given(resultSet.getTimestamp(3)).willReturn(new Timestamp(1221222L));
-			given(resultSet.getObject(anyInt(), any(Class.class))).willThrow(new SQLFeatureNotSupportedException());
-			given(resultSet.getDate(3)).willReturn(new java.sql.Date(1221222L));
-			given(resultSet.getBigDecimal(4)).willReturn(new BigDecimal("1234.56"));
-			given(resultSet.wasNull()).willReturn(type == MockType.TWO);
+        public Mock() throws Exception {
+            this(MockType.ONE);
+        }
 
-			given(resultSetMetaData.getColumnCount()).willReturn(4);
-			given(resultSetMetaData.getColumnLabel(1)).willReturn(
-					type == MockType.THREE ? "Last Name" : "name");
-			given(resultSetMetaData.getColumnLabel(2)).willReturn("age");
-			given(resultSetMetaData.getColumnLabel(3)).willReturn("birth_date");
-			given(resultSetMetaData.getColumnLabel(4)).willReturn("balance");
+        @SuppressWarnings("unchecked")
+        public Mock(MockType type) throws Exception {
+            connection = mock(Connection.class);
+            statement = mock(Statement.class);
+            resultSet = mock(ResultSet.class);
+            resultSetMetaData = mock(ResultSetMetaData.class);
 
-			jdbcTemplate = new JdbcTemplate();
-			jdbcTemplate.setDataSource(new SingleConnectionDataSource(connection, false));
-			jdbcTemplate.setExceptionTranslator(new SQLStateSQLExceptionTranslator());
-			jdbcTemplate.afterPropertiesSet();
-		}
+            given(connection.createStatement()).willReturn(statement);
+            given(statement.executeQuery(anyString())).willReturn(resultSet);
+            given(resultSet.getMetaData()).willReturn(resultSetMetaData);
 
-		public JdbcTemplate getJdbcTemplate() {
-			return jdbcTemplate;
-		}
+            given(resultSet.next()).willReturn(true, false);
+            given(resultSet.getString(1)).willReturn("Bubba");
+            given(resultSet.getLong(2)).willReturn(22L);
+            given(resultSet.getTimestamp(3)).willReturn(new Timestamp(1221222L));
+            given(resultSet.getObject(anyInt(), any(Class.class))).willThrow(new SQLFeatureNotSupportedException());
+            given(resultSet.getDate(3)).willReturn(new java.sql.Date(1221222L));
+            given(resultSet.getBigDecimal(4)).willReturn(new BigDecimal("1234.56"));
+            given(resultSet.wasNull()).willReturn(type == MockType.TWO);
 
-		public void verifyClosed() throws Exception {
-			verify(resultSet).close();
-			verify(statement).close();
-		}
-	}
+            given(resultSetMetaData.getColumnCount()).willReturn(4);
+            given(resultSetMetaData.getColumnLabel(1)).willReturn(
+                    type == MockType.THREE ? "Last Name" : "name");
+            given(resultSetMetaData.getColumnLabel(2)).willReturn("age");
+            given(resultSetMetaData.getColumnLabel(3)).willReturn("birth_date");
+            given(resultSetMetaData.getColumnLabel(4)).willReturn("balance");
+
+            jdbcTemplate = new JdbcTemplate();
+            jdbcTemplate.setDataSource(new SingleConnectionDataSource(connection, false));
+            jdbcTemplate.setExceptionTranslator(new SQLStateSQLExceptionTranslator());
+            jdbcTemplate.afterPropertiesSet();
+        }
+
+        public JdbcTemplate getJdbcTemplate() {
+            return jdbcTemplate;
+        }
+
+        public void verifyClosed() throws Exception {
+            verify(resultSet).close();
+            verify(statement).close();
+        }
+    }
 
 }

@@ -39,84 +39,81 @@ import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException
  */
 public class MBeanServerConnectionFactoryBeanTests extends AbstractMBeanServerTests {
 
-	private final String serviceUrl = "service:jmx:jmxmp://localhost:" + SocketUtils.findAvailableTcpPort(9800, 9900);
+    private final String serviceUrl = "service:jmx:jmxmp://localhost:" + SocketUtils.findAvailableTcpPort(9800, 9900);
 
 
-	private JMXServiceURL getJMXServiceUrl() throws MalformedURLException {
-		return new JMXServiceURL(serviceUrl);
-	}
+    private JMXServiceURL getJMXServiceUrl() throws MalformedURLException {
+        return new JMXServiceURL(serviceUrl);
+    }
 
-	private JMXConnectorServer getConnectorServer() throws Exception {
-		return JMXConnectorServerFactory.newJMXConnectorServer(getJMXServiceUrl(), null, getServer());
-	}
+    private JMXConnectorServer getConnectorServer() throws Exception {
+        return JMXConnectorServerFactory.newJMXConnectorServer(getJMXServiceUrl(), null, getServer());
+    }
 
-	@Test
-	public void testTestValidConnection() throws Exception {
-		JMXConnectorServer connectorServer = getConnectorServer();
-		connectorServer.start();
+    @Test
+    public void testTestValidConnection() throws Exception {
+        JMXConnectorServer connectorServer = getConnectorServer();
+        connectorServer.start();
 
-		try {
-			MBeanServerConnectionFactoryBean bean = new MBeanServerConnectionFactoryBean();
-			bean.setServiceUrl(serviceUrl);
-			bean.afterPropertiesSet();
+        try {
+            MBeanServerConnectionFactoryBean bean = new MBeanServerConnectionFactoryBean();
+            bean.setServiceUrl(serviceUrl);
+            bean.afterPropertiesSet();
 
-			try {
-				MBeanServerConnection connection = bean.getObject();
-				assertThat(connection).as("Connection should not be null").isNotNull();
+            try {
+                MBeanServerConnection connection = bean.getObject();
+                assertThat(connection).as("Connection should not be null").isNotNull();
 
-				// perform simple MBean count test
-				assertThat(connection.getMBeanCount()).as("MBean count should be the same").isEqualTo(getServer().getMBeanCount());
-			}
-			finally {
-				bean.destroy();
-			}
-		}
-		finally {
-			connectorServer.stop();
-		}
-	}
+                // perform simple MBean count test
+                assertThat(connection.getMBeanCount()).as("MBean count should be the same").isEqualTo(getServer().getMBeanCount());
+            } finally {
+                bean.destroy();
+            }
+        } finally {
+            connectorServer.stop();
+        }
+    }
 
-	@Test
-	public void testWithNoServiceUrl() throws Exception {
-		MBeanServerConnectionFactoryBean bean = new MBeanServerConnectionFactoryBean();
-		assertThatIllegalArgumentException().isThrownBy(
-				bean::afterPropertiesSet);
-	}
+    @Test
+    public void testWithNoServiceUrl() throws Exception {
+        MBeanServerConnectionFactoryBean bean = new MBeanServerConnectionFactoryBean();
+        assertThatIllegalArgumentException().isThrownBy(
+                bean::afterPropertiesSet);
+    }
 
-	@Test
-	public void testTestWithLazyConnection() throws Exception {
-		MBeanServerConnectionFactoryBean bean = new MBeanServerConnectionFactoryBean();
-		bean.setServiceUrl(serviceUrl);
-		bean.setConnectOnStartup(false);
-		bean.afterPropertiesSet();
+    @Test
+    public void testTestWithLazyConnection() throws Exception {
+        MBeanServerConnectionFactoryBean bean = new MBeanServerConnectionFactoryBean();
+        bean.setServiceUrl(serviceUrl);
+        bean.setConnectOnStartup(false);
+        bean.afterPropertiesSet();
 
-		MBeanServerConnection connection = bean.getObject();
-		assertThat(AopUtils.isAopProxy(connection)).isTrue();
+        MBeanServerConnection connection = bean.getObject();
+        assertThat(AopUtils.isAopProxy(connection)).isTrue();
 
-		JMXConnectorServer connector = null;
-		try {
-			connector = getConnectorServer();
-			connector.start();
-			assertThat(connection.getMBeanCount()).as("Incorrect MBean count").isEqualTo(getServer().getMBeanCount());
-		}
-		finally {
-			bean.destroy();
-			if (connector != null) {
-				connector.stop();
-			}
-		}
-	}
+        JMXConnectorServer connector = null;
+        try {
+            connector = getConnectorServer();
+            connector.start();
+            assertThat(connection.getMBeanCount()).as("Incorrect MBean count").isEqualTo(getServer().getMBeanCount());
+        } finally {
+            bean.destroy();
+            if (connector != null) {
+                connector.stop();
+            }
+        }
+    }
 
-	@Test
-	public void testWithLazyConnectionAndNoAccess() throws Exception {
-		MBeanServerConnectionFactoryBean bean = new MBeanServerConnectionFactoryBean();
-		bean.setServiceUrl(serviceUrl);
-		bean.setConnectOnStartup(false);
-		bean.afterPropertiesSet();
+    @Test
+    public void testWithLazyConnectionAndNoAccess() throws Exception {
+        MBeanServerConnectionFactoryBean bean = new MBeanServerConnectionFactoryBean();
+        bean.setServiceUrl(serviceUrl);
+        bean.setConnectOnStartup(false);
+        bean.afterPropertiesSet();
 
-		MBeanServerConnection connection = bean.getObject();
-		assertThat(AopUtils.isAopProxy(connection)).isTrue();
-		bean.destroy();
-	}
+        MBeanServerConnection connection = bean.getObject();
+        assertThat(AopUtils.isAopProxy(connection)).isTrue();
+        bean.destroy();
+    }
 
 }

@@ -24,9 +24,9 @@ import org.springframework.context.annotation.Profile;
 @Configuration
 class ProdConfig {
 
-	@Bean
-	public Object prodBean() {
-		return new Object();
-	}
+    @Bean
+    public Object prodBean() {
+        return new Object();
+    }
 
 }

@@ -32,62 +32,62 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 public class OptionTagEnumTests extends AbstractHtmlElementTagTests {
 
-	private OptionTag tag;
+    private OptionTag tag;
 
-	private SelectTag parentTag;
+    private SelectTag parentTag;
 
-	@Override
-	@SuppressWarnings("serial")
-	protected void onSetUp() {
-		this.tag = new OptionTag() {
-			@Override
-			protected TagWriter createTagWriter() {
-				return new TagWriter(getWriter());
-			}
-		};
-		this.parentTag = new SelectTag() {
-			@Override
-			public String getName() {
-				// Should not be used other than to delegate to
-				// RequestDataValueDataProcessor
-				return "testName";
-			}
-		};
-		this.tag.setParent(this.parentTag);
-		this.tag.setPageContext(getPageContext());
-	}
+    @Override
+    @SuppressWarnings("serial")
+    protected void onSetUp() {
+        this.tag = new OptionTag() {
+            @Override
+            protected TagWriter createTagWriter() {
+                return new TagWriter(getWriter());
+            }
+        };
+        this.parentTag = new SelectTag() {
+            @Override
+            public String getName() {
+                // Should not be used other than to delegate to
+                // RequestDataValueDataProcessor
+                return "testName";
+            }
+        };
+        this.tag.setParent(this.parentTag);
+        this.tag.setPageContext(getPageContext());
+    }
 
-	@Test
-	@SuppressWarnings("rawtypes")
-	public void withJavaEnum() throws Exception {
-		GenericBean testBean = new GenericBean();
-		testBean.setCustomEnum(CustomEnum.VALUE_1);
-		getPageContext().getRequest().setAttribute("testBean", testBean);
-		String selectName = "testBean.customEnum";
-		getPageContext().setAttribute(SelectTag.LIST_VALUE_PAGE_ATTRIBUTE,
-				new BindStatus(getRequestContext(), selectName, false));
+    @Test
+    @SuppressWarnings("rawtypes")
+    public void withJavaEnum() throws Exception {
+        GenericBean testBean = new GenericBean();
+        testBean.setCustomEnum(CustomEnum.VALUE_1);
+        getPageContext().getRequest().setAttribute("testBean", testBean);
+        String selectName = "testBean.customEnum";
+        getPageContext().setAttribute(SelectTag.LIST_VALUE_PAGE_ATTRIBUTE,
+                new BindStatus(getRequestContext(), selectName, false));
 
-		this.tag.setValue("VALUE_1");
+        this.tag.setValue("VALUE_1");
 
-		int result = this.tag.doStartTag();
-		assertThat(result).isEqualTo(BodyTag.EVAL_BODY_BUFFERED);
-		result = this.tag.doEndTag();
-		assertThat(result).isEqualTo(Tag.EVAL_PAGE);
+        int result = this.tag.doStartTag();
+        assertThat(result).isEqualTo(BodyTag.EVAL_BODY_BUFFERED);
+        result = this.tag.doEndTag();
+        assertThat(result).isEqualTo(Tag.EVAL_PAGE);
 
-		String output = getWriter().toString();
+        String output = getWriter().toString();
 
-		assertOptionTagOpened(output);
-		assertOptionTagClosed(output);
-		assertContainsAttribute(output, "value", "VALUE_1");
-		assertContainsAttribute(output, "selected", "selected");
-	}
+        assertOptionTagOpened(output);
+        assertOptionTagClosed(output);
+        assertContainsAttribute(output, "value", "VALUE_1");
+        assertContainsAttribute(output, "selected", "selected");
+    }
 
-	private void assertOptionTagOpened(String output) {
-		assertThat(output.startsWith("<option")).isTrue();
-	}
+    private void assertOptionTagOpened(String output) {
+        assertThat(output.startsWith("<option")).isTrue();
+    }
 
-	private void assertOptionTagClosed(String output) {
-		assertThat(output.endsWith("</option>")).isTrue();
-	}
+    private void assertOptionTagClosed(String output) {
+        assertThat(output.endsWith("</option>")).isTrue();
+    }
 
 }

@@ -33,34 +33,34 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 public class Spr10668Tests {
 
-	@Test
-	public void testSelfInjectHierarchy() throws Exception {
-		AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(ChildConfig.class);
-		assertThat(context.getBean(MyComponent.class)).isNotNull();
-		context.close();
-	}
+    @Test
+    public void testSelfInjectHierarchy() throws Exception {
+        AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(ChildConfig.class);
+        assertThat(context.getBean(MyComponent.class)).isNotNull();
+        context.close();
+    }
 
 
-	@Configuration
-	public static class ParentConfig {
+    public interface MyComponent {
+    }
 
-		@Autowired(required = false)
-		MyComponent component;
-	}
+    @Configuration
+    public static class ParentConfig {
 
+        @Autowired(required = false)
+        MyComponent component;
+    }
 
-	@Configuration
-	public static class ChildConfig extends ParentConfig {
+    @Configuration
+    public static class ChildConfig extends ParentConfig {
 
-		@Bean
-		public MyComponentImpl myComponent() {
-			return new MyComponentImpl();
-		}
-	}
+        @Bean
+        public MyComponentImpl myComponent() {
+            return new MyComponentImpl();
+        }
+    }
 
-
-	public interface MyComponent {}
-
-	public static class MyComponentImpl implements MyComponent {}
+    public static class MyComponentImpl implements MyComponent {
+    }
 
 }

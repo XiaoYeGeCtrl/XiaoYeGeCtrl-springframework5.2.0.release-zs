@@ -24,18 +24,18 @@ import org.springframework.stereotype.Component;
 @Component
 public class ConfigurableComponent {
 
-	private final boolean flag;
+    private final boolean flag;
 
-	public ConfigurableComponent() {
-		this(false);
-	}
+    public ConfigurableComponent() {
+        this(false);
+    }
 
-	public ConfigurableComponent(boolean flag) {
-		this.flag = flag;
-	}
+    public ConfigurableComponent(boolean flag) {
+        this.flag = flag;
+    }
 
-	public boolean isFlag() {
-		return this.flag;
-	}
+    public boolean isFlag() {
+        return this.flag;
+    }
 
 }

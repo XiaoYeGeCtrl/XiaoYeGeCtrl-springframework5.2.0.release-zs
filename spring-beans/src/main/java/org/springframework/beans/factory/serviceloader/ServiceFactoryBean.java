@@ -28,25 +28,25 @@ import org.springframework.lang.Nullable;
  * the JDK 1.6 {@link java.util.ServiceLoader} facility.
  *
  * @author Juergen Hoeller
- * @since 2.5
  * @see java.util.ServiceLoader
+ * @since 2.5
  */
 public class ServiceFactoryBean extends AbstractServiceLoaderBasedFactoryBean implements BeanClassLoaderAware {
 
-	@Override
-	protected Object getObjectToExpose(ServiceLoader<?> serviceLoader) {
-		Iterator<?> it = serviceLoader.iterator();
-		if (!it.hasNext()) {
-			throw new IllegalStateException(
-					"ServiceLoader could not find service for type [" + getServiceType() + "]");
-		}
-		return it.next();
-	}
+    @Override
+    protected Object getObjectToExpose(ServiceLoader<?> serviceLoader) {
+        Iterator<?> it = serviceLoader.iterator();
+        if (!it.hasNext()) {
+            throw new IllegalStateException(
+                    "ServiceLoader could not find service for type [" + getServiceType() + "]");
+        }
+        return it.next();
+    }
 
-	@Override
-	@Nullable
-	public Class<?> getObjectType() {
-		return getServiceType();
-	}
+    @Override
+    @Nullable
+    public Class<?> getObjectType() {
+        return getServiceType();
+    }
 
 }

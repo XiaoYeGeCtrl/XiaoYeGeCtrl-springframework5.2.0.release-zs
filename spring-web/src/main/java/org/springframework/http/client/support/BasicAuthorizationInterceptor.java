@@ -39,32 +39,33 @@ import org.springframework.util.Base64Utils;
 @Deprecated
 public class BasicAuthorizationInterceptor implements ClientHttpRequestInterceptor {
 
-	private final String username;
+    private final String username;
 
-	private final String password;
-
-
-	/**
-	 * Create a new interceptor which adds a BASIC authorization header
-	 * for the given username and password.
-	 * @param username the username to use
-	 * @param password the password to use
-	 */
-	public BasicAuthorizationInterceptor(@Nullable String username, @Nullable String password) {
-		Assert.doesNotContain(username, ":", "Username must not contain a colon");
-		this.username = (username != null ? username : "");
-		this.password = (password != null ? password : "");
-	}
+    private final String password;
 
 
-	@Override
-	public ClientHttpResponse intercept(
-			HttpRequest request, byte[] body, ClientHttpRequestExecution execution) throws IOException {
+    /**
+     * Create a new interceptor which adds a BASIC authorization header
+     * for the given username and password.
+     *
+     * @param username the username to use
+     * @param password the password to use
+     */
+    public BasicAuthorizationInterceptor(@Nullable String username, @Nullable String password) {
+        Assert.doesNotContain(username, ":", "Username must not contain a colon");
+        this.username = (username != null ? username : "");
+        this.password = (password != null ? password : "");
+    }
 
-		String token = Base64Utils.encodeToString(
-				(this.username + ":" + this.password).getBytes(StandardCharsets.UTF_8));
-		request.getHeaders().add("Authorization", "Basic " + token);
-		return execution.execute(request, body);
-	}
+
+    @Override
+    public ClientHttpResponse intercept(
+            HttpRequest request, byte[] body, ClientHttpRequestExecution execution) throws IOException {
+
+        String token = Base64Utils.encodeToString(
+                (this.username + ":" + this.password).getBytes(StandardCharsets.UTF_8));
+        request.getHeaders().add("Authorization", "Basic " + token);
+        return execution.execute(request, body);
+    }
 
 }

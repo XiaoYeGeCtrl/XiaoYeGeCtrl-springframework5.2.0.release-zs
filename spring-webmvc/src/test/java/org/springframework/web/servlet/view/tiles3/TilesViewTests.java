@@ -44,58 +44,58 @@ import static org.mockito.Mockito.verify;
  */
 public class TilesViewTests {
 
-	private static final String VIEW_PATH = "template.test";
+    private static final String VIEW_PATH = "template.test";
 
-	private TilesView view;
+    private TilesView view;
 
-	private Renderer renderer;
+    private Renderer renderer;
 
-	private MockHttpServletRequest request;
+    private MockHttpServletRequest request;
 
-	private MockHttpServletResponse response;
+    private MockHttpServletResponse response;
 
 
-	@BeforeEach
-	public void setUp() throws Exception {
-		MockServletContext servletContext = new MockServletContext();
-		StaticWebApplicationContext wac = new StaticWebApplicationContext();
-		wac.setServletContext(servletContext);
-		wac.refresh();
+    @BeforeEach
+    public void setUp() throws Exception {
+        MockServletContext servletContext = new MockServletContext();
+        StaticWebApplicationContext wac = new StaticWebApplicationContext();
+        wac.setServletContext(servletContext);
+        wac.refresh();
 
-		request = new MockHttpServletRequest();
-		request.setAttribute(DispatcherServlet.WEB_APPLICATION_CONTEXT_ATTRIBUTE, wac);
+        request = new MockHttpServletRequest();
+        request.setAttribute(DispatcherServlet.WEB_APPLICATION_CONTEXT_ATTRIBUTE, wac);
 
-		response = new MockHttpServletResponse();
+        response = new MockHttpServletResponse();
 
-		renderer = mock(Renderer.class);
+        renderer = mock(Renderer.class);
 
-		view = new TilesView();
-		view.setServletContext(servletContext);
-		view.setRenderer(renderer);
-		view.setUrl(VIEW_PATH);
-		view.afterPropertiesSet();
-	}
+        view = new TilesView();
+        view.setServletContext(servletContext);
+        view.setRenderer(renderer);
+        view.setUrl(VIEW_PATH);
+        view.afterPropertiesSet();
+    }
 
-	@Test
-	public void render() throws Exception {
-		Map<String, Object> model = new HashMap<>();
-		model.put("modelAttribute", "modelValue");
-		view.render(model, request, response);
-		assertThat(request.getAttribute("modelAttribute")).isEqualTo("modelValue");
-		verify(renderer).render(eq(VIEW_PATH), isA(Request.class));
-	}
+    @Test
+    public void render() throws Exception {
+        Map<String, Object> model = new HashMap<>();
+        model.put("modelAttribute", "modelValue");
+        view.render(model, request, response);
+        assertThat(request.getAttribute("modelAttribute")).isEqualTo("modelValue");
+        verify(renderer).render(eq(VIEW_PATH), isA(Request.class));
+    }
 
-	@Test
-	public void alwaysIncludeDefaults() throws Exception {
-		view.render(new HashMap<>(), request, response);
-		assertThat(request.getAttribute(AbstractRequest.FORCE_INCLUDE_ATTRIBUTE_NAME)).isNull();
-	}
+    @Test
+    public void alwaysIncludeDefaults() throws Exception {
+        view.render(new HashMap<>(), request, response);
+        assertThat(request.getAttribute(AbstractRequest.FORCE_INCLUDE_ATTRIBUTE_NAME)).isNull();
+    }
 
-	@Test
-	public void alwaysIncludeEnabled() throws Exception {
-		view.setAlwaysInclude(true);
-		view.render(new HashMap<>(), request, response);
-		assertThat((boolean) (Boolean) request.getAttribute(AbstractRequest.FORCE_INCLUDE_ATTRIBUTE_NAME)).isTrue();
-	}
+    @Test
+    public void alwaysIncludeEnabled() throws Exception {
+        view.setAlwaysInclude(true);
+        view.render(new HashMap<>(), request, response);
+        assertThat((boolean) (Boolean) request.getAttribute(AbstractRequest.FORCE_INCLUDE_ATTRIBUTE_NAME)).isTrue();
+    }
 
 }

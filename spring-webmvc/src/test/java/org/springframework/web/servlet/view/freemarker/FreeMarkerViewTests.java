@@ -58,150 +58,149 @@ import static org.mockito.Mockito.mock;
  */
 public class FreeMarkerViewTests {
 
-	@Test
-	public void noFreeMarkerConfig() throws Exception {
-		FreeMarkerView fv = new FreeMarkerView();
+    @Test
+    public void noFreeMarkerConfig() throws Exception {
+        FreeMarkerView fv = new FreeMarkerView();
 
-		WebApplicationContext wac = mock(WebApplicationContext.class);
-		given(wac.getBeansOfType(FreeMarkerConfig.class, true, false)).willReturn(new HashMap<>());
-		given(wac.getServletContext()).willReturn(new MockServletContext());
+        WebApplicationContext wac = mock(WebApplicationContext.class);
+        given(wac.getBeansOfType(FreeMarkerConfig.class, true, false)).willReturn(new HashMap<>());
+        given(wac.getServletContext()).willReturn(new MockServletContext());
 
-		fv.setUrl("anythingButNull");
+        fv.setUrl("anythingButNull");
 
-		assertThatExceptionOfType(ApplicationContextException.class).isThrownBy(() ->
-				fv.setApplicationContext(wac))
-			.withMessageContaining("FreeMarkerConfig");
-	}
+        assertThatExceptionOfType(ApplicationContextException.class).isThrownBy(() ->
+                fv.setApplicationContext(wac))
+                .withMessageContaining("FreeMarkerConfig");
+    }
 
-	@Test
-	public void noTemplateName() throws Exception {
-		FreeMarkerView fv = new FreeMarkerView();
+    @Test
+    public void noTemplateName() throws Exception {
+        FreeMarkerView fv = new FreeMarkerView();
 
-		assertThatIllegalArgumentException().isThrownBy(() ->
-				fv.afterPropertiesSet())
-			.withMessageContaining("url");
-	}
+        assertThatIllegalArgumentException().isThrownBy(() ->
+                fv.afterPropertiesSet())
+                .withMessageContaining("url");
+    }
 
-	@Test
-	public void validTemplateName() throws Exception {
-		FreeMarkerView fv = new FreeMarkerView();
+    @Test
+    public void validTemplateName() throws Exception {
+        FreeMarkerView fv = new FreeMarkerView();
 
-		WebApplicationContext wac = mock(WebApplicationContext.class);
-		MockServletContext sc = new MockServletContext();
+        WebApplicationContext wac = mock(WebApplicationContext.class);
+        MockServletContext sc = new MockServletContext();
 
-		Map<String, FreeMarkerConfig> configs = new HashMap<>();
-		FreeMarkerConfigurer configurer = new FreeMarkerConfigurer();
-		configurer.setConfiguration(new TestConfiguration());
-		configurer.setServletContext(sc);
-		configs.put("configurer", configurer);
-		given(wac.getBeansOfType(FreeMarkerConfig.class, true, false)).willReturn(configs);
-		given(wac.getServletContext()).willReturn(sc);
+        Map<String, FreeMarkerConfig> configs = new HashMap<>();
+        FreeMarkerConfigurer configurer = new FreeMarkerConfigurer();
+        configurer.setConfiguration(new TestConfiguration());
+        configurer.setServletContext(sc);
+        configs.put("configurer", configurer);
+        given(wac.getBeansOfType(FreeMarkerConfig.class, true, false)).willReturn(configs);
+        given(wac.getServletContext()).willReturn(sc);
 
-		fv.setUrl("templateName");
-		fv.setApplicationContext(wac);
+        fv.setUrl("templateName");
+        fv.setApplicationContext(wac);
 
-		MockHttpServletRequest request = new MockHttpServletRequest();
-		request.addPreferredLocale(Locale.US);
-		request.setAttribute(DispatcherServlet.WEB_APPLICATION_CONTEXT_ATTRIBUTE, wac);
-		request.setAttribute(DispatcherServlet.LOCALE_RESOLVER_ATTRIBUTE, new AcceptHeaderLocaleResolver());
-		HttpServletResponse response = new MockHttpServletResponse();
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        request.addPreferredLocale(Locale.US);
+        request.setAttribute(DispatcherServlet.WEB_APPLICATION_CONTEXT_ATTRIBUTE, wac);
+        request.setAttribute(DispatcherServlet.LOCALE_RESOLVER_ATTRIBUTE, new AcceptHeaderLocaleResolver());
+        HttpServletResponse response = new MockHttpServletResponse();
 
-		Map<String, Object> model = new HashMap<>();
-		model.put("myattr", "myvalue");
-		fv.render(model, request, response);
+        Map<String, Object> model = new HashMap<>();
+        model.put("myattr", "myvalue");
+        fv.render(model, request, response);
 
-		assertThat(response.getContentType()).isEqualTo(AbstractView.DEFAULT_CONTENT_TYPE);
-	}
+        assertThat(response.getContentType()).isEqualTo(AbstractView.DEFAULT_CONTENT_TYPE);
+    }
 
-	@Test
-	public void keepExistingContentType() throws Exception {
-		FreeMarkerView fv = new FreeMarkerView();
+    @Test
+    public void keepExistingContentType() throws Exception {
+        FreeMarkerView fv = new FreeMarkerView();
 
-		WebApplicationContext wac = mock(WebApplicationContext.class);
-		MockServletContext sc = new MockServletContext();
+        WebApplicationContext wac = mock(WebApplicationContext.class);
+        MockServletContext sc = new MockServletContext();
 
-		Map<String, FreeMarkerConfig> configs = new HashMap<>();
-		FreeMarkerConfigurer configurer = new FreeMarkerConfigurer();
-		configurer.setConfiguration(new TestConfiguration());
-		configurer.setServletContext(sc);
-		configs.put("configurer", configurer);
-		given(wac.getBeansOfType(FreeMarkerConfig.class, true, false)).willReturn(configs);
-		given(wac.getServletContext()).willReturn(sc);
+        Map<String, FreeMarkerConfig> configs = new HashMap<>();
+        FreeMarkerConfigurer configurer = new FreeMarkerConfigurer();
+        configurer.setConfiguration(new TestConfiguration());
+        configurer.setServletContext(sc);
+        configs.put("configurer", configurer);
+        given(wac.getBeansOfType(FreeMarkerConfig.class, true, false)).willReturn(configs);
+        given(wac.getServletContext()).willReturn(sc);
 
-		fv.setUrl("templateName");
-		fv.setApplicationContext(wac);
+        fv.setUrl("templateName");
+        fv.setApplicationContext(wac);
 
-		MockHttpServletRequest request = new MockHttpServletRequest();
-		request.addPreferredLocale(Locale.US);
-		request.setAttribute(DispatcherServlet.WEB_APPLICATION_CONTEXT_ATTRIBUTE, wac);
-		request.setAttribute(DispatcherServlet.LOCALE_RESOLVER_ATTRIBUTE, new AcceptHeaderLocaleResolver());
-		HttpServletResponse response = new MockHttpServletResponse();
-		response.setContentType("myContentType");
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        request.addPreferredLocale(Locale.US);
+        request.setAttribute(DispatcherServlet.WEB_APPLICATION_CONTEXT_ATTRIBUTE, wac);
+        request.setAttribute(DispatcherServlet.LOCALE_RESOLVER_ATTRIBUTE, new AcceptHeaderLocaleResolver());
+        HttpServletResponse response = new MockHttpServletResponse();
+        response.setContentType("myContentType");
 
-		Map<String, Object> model = new HashMap<>();
-		model.put("myattr", "myvalue");
-		fv.render(model, request, response);
+        Map<String, Object> model = new HashMap<>();
+        model.put("myattr", "myvalue");
+        fv.render(model, request, response);
 
-		assertThat(response.getContentType()).isEqualTo("myContentType");
-	}
+        assertThat(response.getContentType()).isEqualTo("myContentType");
+    }
 
-	@Test
-	public void freeMarkerViewResolver() throws Exception {
-		MockServletContext sc = new MockServletContext();
+    @Test
+    public void freeMarkerViewResolver() throws Exception {
+        MockServletContext sc = new MockServletContext();
 
-		FreeMarkerConfigurer configurer = new FreeMarkerConfigurer();
-		configurer.setConfiguration(new TestConfiguration());
-		configurer.setServletContext(sc);
+        FreeMarkerConfigurer configurer = new FreeMarkerConfigurer();
+        configurer.setConfiguration(new TestConfiguration());
+        configurer.setServletContext(sc);
 
-		StaticWebApplicationContext wac = new StaticWebApplicationContext();
-		wac.setServletContext(sc);
-		wac.getBeanFactory().registerSingleton("configurer", configurer);
-		wac.refresh();
+        StaticWebApplicationContext wac = new StaticWebApplicationContext();
+        wac.setServletContext(sc);
+        wac.getBeanFactory().registerSingleton("configurer", configurer);
+        wac.refresh();
 
-		FreeMarkerViewResolver vr = new FreeMarkerViewResolver("prefix_", "_suffix");
-		vr.setApplicationContext(wac);
+        FreeMarkerViewResolver vr = new FreeMarkerViewResolver("prefix_", "_suffix");
+        vr.setApplicationContext(wac);
 
-		View view = vr.resolveViewName("test", Locale.CANADA);
-		assertThat(view.getClass()).as("Correct view class").isEqualTo(FreeMarkerView.class);
-		assertThat(((FreeMarkerView) view).getUrl()).as("Correct URL").isEqualTo("prefix_test_suffix");
+        View view = vr.resolveViewName("test", Locale.CANADA);
+        assertThat(view.getClass()).as("Correct view class").isEqualTo(FreeMarkerView.class);
+        assertThat(((FreeMarkerView) view).getUrl()).as("Correct URL").isEqualTo("prefix_test_suffix");
 
-		view = vr.resolveViewName("non-existing", Locale.CANADA);
-		assertThat(view).isNull();
+        view = vr.resolveViewName("non-existing", Locale.CANADA);
+        assertThat(view).isNull();
 
-		view = vr.resolveViewName("redirect:myUrl", Locale.getDefault());
-		assertThat(view.getClass()).as("Correct view class").isEqualTo(RedirectView.class);
-		assertThat(((RedirectView) view).getUrl()).as("Correct URL").isEqualTo("myUrl");
+        view = vr.resolveViewName("redirect:myUrl", Locale.getDefault());
+        assertThat(view.getClass()).as("Correct view class").isEqualTo(RedirectView.class);
+        assertThat(((RedirectView) view).getUrl()).as("Correct URL").isEqualTo("myUrl");
 
-		view = vr.resolveViewName("forward:myUrl", Locale.getDefault());
-		assertThat(view.getClass()).as("Correct view class").isEqualTo(InternalResourceView.class);
-		assertThat(((InternalResourceView) view).getUrl()).as("Correct URL").isEqualTo("myUrl");
-	}
+        view = vr.resolveViewName("forward:myUrl", Locale.getDefault());
+        assertThat(view.getClass()).as("Correct view class").isEqualTo(InternalResourceView.class);
+        assertThat(((InternalResourceView) view).getUrl()).as("Correct URL").isEqualTo("myUrl");
+    }
 
 
-	private class TestConfiguration extends Configuration {
+    private class TestConfiguration extends Configuration {
 
-		TestConfiguration() {
-			super(Configuration.DEFAULT_INCOMPATIBLE_IMPROVEMENTS);
-		}
+        TestConfiguration() {
+            super(Configuration.DEFAULT_INCOMPATIBLE_IMPROVEMENTS);
+        }
 
-		@Override
-		public Template getTemplate(String name, final Locale locale) throws IOException {
-			if (name.equals("templateName") || name.equals("prefix_test_suffix")) {
-				return new Template(name, new StringReader("test"), this) {
-					@Override
-					public void process(Object model, Writer writer) throws TemplateException, IOException {
-						assertThat(locale).isEqualTo(Locale.US);
-						boolean condition = model instanceof AllHttpScopesHashModel;
-						assertThat(condition).isTrue();
-						AllHttpScopesHashModel fmModel = (AllHttpScopesHashModel) model;
-						assertThat(fmModel.get("myattr").toString()).isEqualTo("myvalue");
-					}
-				};
-			}
-			else {
-				throw new FileNotFoundException();
-			}
-		}
-	}
+        @Override
+        public Template getTemplate(String name, final Locale locale) throws IOException {
+            if (name.equals("templateName") || name.equals("prefix_test_suffix")) {
+                return new Template(name, new StringReader("test"), this) {
+                    @Override
+                    public void process(Object model, Writer writer) throws TemplateException, IOException {
+                        assertThat(locale).isEqualTo(Locale.US);
+                        boolean condition = model instanceof AllHttpScopesHashModel;
+                        assertThat(condition).isTrue();
+                        AllHttpScopesHashModel fmModel = (AllHttpScopesHashModel) model;
+                        assertThat(fmModel.get("myattr").toString()).isEqualTo("myvalue");
+                    }
+                };
+            } else {
+                throw new FileNotFoundException();
+            }
+        }
+    }
 
 }

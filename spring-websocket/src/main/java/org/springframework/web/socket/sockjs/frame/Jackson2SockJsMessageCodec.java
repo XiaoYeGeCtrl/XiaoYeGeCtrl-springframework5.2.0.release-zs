@@ -45,35 +45,35 @@ import org.springframework.util.Assert;
  */
 public class Jackson2SockJsMessageCodec extends AbstractSockJsMessageCodec {
 
-	private final ObjectMapper objectMapper;
+    private final ObjectMapper objectMapper;
 
 
-	public Jackson2SockJsMessageCodec() {
-		this.objectMapper = Jackson2ObjectMapperBuilder.json().build();
-	}
+    public Jackson2SockJsMessageCodec() {
+        this.objectMapper = Jackson2ObjectMapperBuilder.json().build();
+    }
 
-	public Jackson2SockJsMessageCodec(ObjectMapper objectMapper) {
-		Assert.notNull(objectMapper, "ObjectMapper must not be null");
-		this.objectMapper = objectMapper;
-	}
+    public Jackson2SockJsMessageCodec(ObjectMapper objectMapper) {
+        Assert.notNull(objectMapper, "ObjectMapper must not be null");
+        this.objectMapper = objectMapper;
+    }
 
 
-	@Override
-	@Nullable
-	public String[] decode(String content) throws IOException {
-		return this.objectMapper.readValue(content, String[].class);
-	}
+    @Override
+    @Nullable
+    public String[] decode(String content) throws IOException {
+        return this.objectMapper.readValue(content, String[].class);
+    }
 
-	@Override
-	@Nullable
-	public String[] decodeInputStream(InputStream content) throws IOException {
-		return this.objectMapper.readValue(content, String[].class);
-	}
+    @Override
+    @Nullable
+    public String[] decodeInputStream(InputStream content) throws IOException {
+        return this.objectMapper.readValue(content, String[].class);
+    }
 
-	@Override
-	@SuppressWarnings("deprecation")
-	protected char[] applyJsonQuoting(String content) {
-		return JsonStringEncoder.getInstance().quoteAsString(content);
-	}
+    @Override
+    @SuppressWarnings("deprecation")
+    protected char[] applyJsonQuoting(String content) {
+        return JsonStringEncoder.getInstance().quoteAsString(content);
+    }
 
 }

@@ -41,29 +41,28 @@ import org.springframework.test.context.ContextConfiguration;
 @Target(ElementType.TYPE)
 public @interface ConfigClassesAndProfilesWithCustomDefaultsMetaConfig {
 
-	@Configuration
-	@Profile("dev")
-	static class DevConfig {
+    Class<?>[] classes() default {DevConfig.class, ProductionConfig.class};
 
-		@Bean
-		public String foo() {
-			return "Dev Foo";
-		}
-	}
+    String[] profiles() default "dev";
 
-	@Configuration
-	@Profile("prod")
-	static class ProductionConfig {
+    @Configuration
+    @Profile("dev")
+    static class DevConfig {
 
-		@Bean
-		public String foo() {
-			return "Production Foo";
-		}
-	}
+        @Bean
+        public String foo() {
+            return "Dev Foo";
+        }
+    }
 
+    @Configuration
+    @Profile("prod")
+    static class ProductionConfig {
 
-	Class<?>[] classes() default { DevConfig.class, ProductionConfig.class };
-
-	String[] profiles() default "dev";
+        @Bean
+        public String foo() {
+            return "Production Foo";
+        }
+    }
 
 }

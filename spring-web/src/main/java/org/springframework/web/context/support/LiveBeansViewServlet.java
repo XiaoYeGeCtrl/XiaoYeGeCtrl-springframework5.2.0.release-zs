@@ -34,35 +34,35 @@ import org.springframework.util.Assert;
  * all ApplicationContexts that live within the current web application.
  *
  * @author Juergen Hoeller
- * @since 3.2
  * @see org.springframework.context.support.LiveBeansView#getSnapshotAsJson()
+ * @since 3.2
  */
 @SuppressWarnings("serial")
 public class LiveBeansViewServlet extends HttpServlet {
 
-	@Nullable
-	private LiveBeansView liveBeansView;
+    @Nullable
+    private LiveBeansView liveBeansView;
 
 
-	@Override
-	public void init() throws ServletException {
-		this.liveBeansView = buildLiveBeansView();
-	}
+    @Override
+    public void init() throws ServletException {
+        this.liveBeansView = buildLiveBeansView();
+    }
 
-	protected LiveBeansView buildLiveBeansView() {
-		return new ServletContextLiveBeansView(getServletContext());
-	}
+    protected LiveBeansView buildLiveBeansView() {
+        return new ServletContextLiveBeansView(getServletContext());
+    }
 
 
-	@Override
-	protected void doGet(HttpServletRequest request, HttpServletResponse response)
-			throws ServletException, IOException {
+    @Override
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
 
-		Assert.state(this.liveBeansView != null, "No LiveBeansView available");
-		String content = this.liveBeansView.getSnapshotAsJson();
-		response.setContentType("application/json");
-		response.setContentLength(content.length());
-		response.getWriter().write(content);
-	}
+        Assert.state(this.liveBeansView != null, "No LiveBeansView available");
+        String content = this.liveBeansView.getSnapshotAsJson();
+        response.setContentType("application/json");
+        response.setContentLength(content.length());
+        response.getWriter().write(content);
+    }
 
 }

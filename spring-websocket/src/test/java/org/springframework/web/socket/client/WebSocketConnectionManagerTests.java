@@ -44,90 +44,90 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class WebSocketConnectionManagerTests {
 
 
-	@Test
-	public void openConnection() throws Exception {
-		List<String> subprotocols = Arrays.asList("abc");
+    @Test
+    public void openConnection() throws Exception {
+        List<String> subprotocols = Arrays.asList("abc");
 
-		TestLifecycleWebSocketClient client = new TestLifecycleWebSocketClient(false);
-		WebSocketHandler handler = new TextWebSocketHandler();
+        TestLifecycleWebSocketClient client = new TestLifecycleWebSocketClient(false);
+        WebSocketHandler handler = new TextWebSocketHandler();
 
-		WebSocketConnectionManager manager = new WebSocketConnectionManager(client, handler , "/path/{id}", "123");
-		manager.setSubProtocols(subprotocols);
-		manager.openConnection();
+        WebSocketConnectionManager manager = new WebSocketConnectionManager(client, handler, "/path/{id}", "123");
+        manager.setSubProtocols(subprotocols);
+        manager.openConnection();
 
-		WebSocketHttpHeaders expectedHeaders = new WebSocketHttpHeaders();
-		expectedHeaders.setSecWebSocketProtocol(subprotocols);
+        WebSocketHttpHeaders expectedHeaders = new WebSocketHttpHeaders();
+        expectedHeaders.setSecWebSocketProtocol(subprotocols);
 
-		assertThat(client.headers).isEqualTo(expectedHeaders);
-		assertThat(client.uri).isEqualTo(new URI("/path/123"));
+        assertThat(client.headers).isEqualTo(expectedHeaders);
+        assertThat(client.uri).isEqualTo(new URI("/path/123"));
 
-		WebSocketHandlerDecorator loggingHandler = (WebSocketHandlerDecorator) client.webSocketHandler;
-		assertThat(loggingHandler.getClass()).isEqualTo(LoggingWebSocketHandlerDecorator.class);
+        WebSocketHandlerDecorator loggingHandler = (WebSocketHandlerDecorator) client.webSocketHandler;
+        assertThat(loggingHandler.getClass()).isEqualTo(LoggingWebSocketHandlerDecorator.class);
 
-		assertThat(loggingHandler.getDelegate()).isSameAs(handler);
-	}
+        assertThat(loggingHandler.getDelegate()).isSameAs(handler);
+    }
 
-	@Test
-	public void clientLifecycle() throws Exception {
-		TestLifecycleWebSocketClient client = new TestLifecycleWebSocketClient(false);
-		WebSocketHandler handler = new TextWebSocketHandler();
-		WebSocketConnectionManager manager = new WebSocketConnectionManager(client, handler , "/a");
+    @Test
+    public void clientLifecycle() throws Exception {
+        TestLifecycleWebSocketClient client = new TestLifecycleWebSocketClient(false);
+        WebSocketHandler handler = new TextWebSocketHandler();
+        WebSocketConnectionManager manager = new WebSocketConnectionManager(client, handler, "/a");
 
-		manager.startInternal();
-		assertThat(client.isRunning()).isTrue();
+        manager.startInternal();
+        assertThat(client.isRunning()).isTrue();
 
-		manager.stopInternal();
-		assertThat(client.isRunning()).isFalse();
-	}
-
-
-	private static class TestLifecycleWebSocketClient implements WebSocketClient, Lifecycle {
-
-		private boolean running;
-
-		private WebSocketHandler webSocketHandler;
-
-		private HttpHeaders headers;
-
-		private URI uri;
+        manager.stopInternal();
+        assertThat(client.isRunning()).isFalse();
+    }
 
 
-		public TestLifecycleWebSocketClient(boolean running) {
-			this.running = running;
-		}
+    private static class TestLifecycleWebSocketClient implements WebSocketClient, Lifecycle {
 
-		@Override
-		public void start() {
-			this.running = true;
-		}
+        private boolean running;
 
-		@Override
-		public void stop() {
-			this.running = false;
-		}
+        private WebSocketHandler webSocketHandler;
 
-		@Override
-		public boolean isRunning() {
-			return this.running;
-		}
+        private HttpHeaders headers;
 
-		@Override
-		public ListenableFuture<WebSocketSession> doHandshake(WebSocketHandler handler,
-				String uriTemplate, Object... uriVars) {
+        private URI uri;
 
-			URI uri = UriComponentsBuilder.fromUriString(uriTemplate).buildAndExpand(uriVars).encode().toUri();
-			return doHandshake(handler, null, uri);
-		}
 
-		@Override
-		public ListenableFuture<WebSocketSession> doHandshake(WebSocketHandler handler,
-				WebSocketHttpHeaders headers, URI uri) {
+        public TestLifecycleWebSocketClient(boolean running) {
+            this.running = running;
+        }
 
-			this.webSocketHandler = handler;
-			this.headers = headers;
-			this.uri = uri;
-			return new ListenableFutureTask<>(() -> null);
-		}
-	}
+        @Override
+        public void start() {
+            this.running = true;
+        }
+
+        @Override
+        public void stop() {
+            this.running = false;
+        }
+
+        @Override
+        public boolean isRunning() {
+            return this.running;
+        }
+
+        @Override
+        public ListenableFuture<WebSocketSession> doHandshake(WebSocketHandler handler,
+                                                              String uriTemplate, Object... uriVars) {
+
+            URI uri = UriComponentsBuilder.fromUriString(uriTemplate).buildAndExpand(uriVars).encode().toUri();
+            return doHandshake(handler, null, uri);
+        }
+
+        @Override
+        public ListenableFuture<WebSocketSession> doHandshake(WebSocketHandler handler,
+                                                              WebSocketHttpHeaders headers, URI uri) {
+
+            this.webSocketHandler = handler;
+            this.headers = headers;
+            this.uri = uri;
+            return new ListenableFutureTask<>(() -> null);
+        }
+    }
 
 }

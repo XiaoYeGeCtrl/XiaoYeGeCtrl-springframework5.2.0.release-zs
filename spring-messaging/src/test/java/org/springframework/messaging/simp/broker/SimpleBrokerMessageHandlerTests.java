@@ -61,288 +61,281 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 @SuppressWarnings("unchecked")
 public class SimpleBrokerMessageHandlerTests {
 
-	private SimpleBrokerMessageHandler messageHandler;
+    @Captor
+    ArgumentCaptor<Message<?>> messageCaptor;
+    private SimpleBrokerMessageHandler messageHandler;
+    @Mock
+    private SubscribableChannel clientInChannel;
+    @Mock
+    private MessageChannel clientOutChannel;
+    @Mock
+    private SubscribableChannel brokerChannel;
+    @Mock
+    private TaskScheduler taskScheduler;
+
+    @BeforeEach
+    public void setup() {
+        this.messageHandler = new SimpleBrokerMessageHandler(
+                this.clientInChannel, this.clientOutChannel, this.brokerChannel, Collections.emptyList());
+    }
 
 
-	@Mock
-	private SubscribableChannel clientInChannel;
+    @Test
+    public void subscribePublish() {
+        startSession("sess1");
+        startSession("sess2");
 
-	@Mock
-	private MessageChannel clientOutChannel;
+        this.messageHandler.handleMessage(createSubscriptionMessage("sess1", "sub1", "/foo"));
+        this.messageHandler.handleMessage(createSubscriptionMessage("sess1", "sub2", "/foo"));
+        this.messageHandler.handleMessage(createSubscriptionMessage("sess1", "sub3", "/bar"));
 
-	@Mock
-	private SubscribableChannel brokerChannel;
+        this.messageHandler.handleMessage(createSubscriptionMessage("sess2", "sub1", "/foo"));
+        this.messageHandler.handleMessage(createSubscriptionMessage("sess2", "sub2", "/foo"));
+        this.messageHandler.handleMessage(createSubscriptionMessage("sess2", "sub3", "/bar"));
 
-	@Mock
-	private TaskScheduler taskScheduler;
+        this.messageHandler.handleMessage(createMessage("/foo", "message1"));
+        this.messageHandler.handleMessage(createMessage("/bar", "message2"));
 
-	@Captor
-	ArgumentCaptor<Message<?>> messageCaptor;
+        verify(this.clientOutChannel, times(6)).send(this.messageCaptor.capture());
+        assertThat(messageCaptured("sess1", "sub1", "/foo")).isTrue();
+        assertThat(messageCaptured("sess1", "sub2", "/foo")).isTrue();
+        assertThat(messageCaptured("sess2", "sub1", "/foo")).isTrue();
+        assertThat(messageCaptured("sess2", "sub2", "/foo")).isTrue();
+        assertThat(messageCaptured("sess1", "sub3", "/bar")).isTrue();
+        assertThat(messageCaptured("sess2", "sub3", "/bar")).isTrue();
+    }
 
+    @Test
+    public void subscribeDisconnectPublish() {
+        String sess1 = "sess1";
+        String sess2 = "sess2";
 
-	@BeforeEach
-	public void setup() {
-		this.messageHandler = new SimpleBrokerMessageHandler(
-				this.clientInChannel, this.clientOutChannel, this.brokerChannel, Collections.emptyList());
-	}
+        startSession(sess1);
+        startSession(sess2);
 
+        this.messageHandler.handleMessage(createSubscriptionMessage(sess1, "sub1", "/foo"));
+        this.messageHandler.handleMessage(createSubscriptionMessage(sess1, "sub2", "/foo"));
+        this.messageHandler.handleMessage(createSubscriptionMessage(sess1, "sub3", "/bar"));
 
-	@Test
-	public void subscribePublish() {
-		startSession("sess1");
-		startSession("sess2");
+        this.messageHandler.handleMessage(createSubscriptionMessage(sess2, "sub1", "/foo"));
+        this.messageHandler.handleMessage(createSubscriptionMessage(sess2, "sub2", "/foo"));
+        this.messageHandler.handleMessage(createSubscriptionMessage(sess2, "sub3", "/bar"));
 
-		this.messageHandler.handleMessage(createSubscriptionMessage("sess1", "sub1", "/foo"));
-		this.messageHandler.handleMessage(createSubscriptionMessage("sess1", "sub2", "/foo"));
-		this.messageHandler.handleMessage(createSubscriptionMessage("sess1", "sub3", "/bar"));
+        SimpMessageHeaderAccessor headers = SimpMessageHeaderAccessor.create(SimpMessageType.DISCONNECT);
+        headers.setSessionId(sess1);
+        headers.setUser(new TestPrincipal("joe"));
+        Message<byte[]> message = MessageBuilder.createMessage(new byte[0], headers.getMessageHeaders());
+        this.messageHandler.handleMessage(message);
 
-		this.messageHandler.handleMessage(createSubscriptionMessage("sess2", "sub1", "/foo"));
-		this.messageHandler.handleMessage(createSubscriptionMessage("sess2", "sub2", "/foo"));
-		this.messageHandler.handleMessage(createSubscriptionMessage("sess2", "sub3", "/bar"));
+        this.messageHandler.handleMessage(createMessage("/foo", "message1"));
+        this.messageHandler.handleMessage(createMessage("/bar", "message2"));
 
-		this.messageHandler.handleMessage(createMessage("/foo", "message1"));
-		this.messageHandler.handleMessage(createMessage("/bar", "message2"));
+        verify(this.clientOutChannel, times(4)).send(this.messageCaptor.capture());
 
-		verify(this.clientOutChannel, times(6)).send(this.messageCaptor.capture());
-		assertThat(messageCaptured("sess1", "sub1", "/foo")).isTrue();
-		assertThat(messageCaptured("sess1", "sub2", "/foo")).isTrue();
-		assertThat(messageCaptured("sess2", "sub1", "/foo")).isTrue();
-		assertThat(messageCaptured("sess2", "sub2", "/foo")).isTrue();
-		assertThat(messageCaptured("sess1", "sub3", "/bar")).isTrue();
-		assertThat(messageCaptured("sess2", "sub3", "/bar")).isTrue();
-	}
+        Message<?> captured = this.messageCaptor.getAllValues().get(2);
+        assertThat(SimpMessageHeaderAccessor.getMessageType(captured.getHeaders())).isEqualTo(SimpMessageType.DISCONNECT_ACK);
+        assertThat(captured.getHeaders().get(SimpMessageHeaderAccessor.DISCONNECT_MESSAGE_HEADER)).isSameAs(message);
+        assertThat(SimpMessageHeaderAccessor.getSessionId(captured.getHeaders())).isEqualTo(sess1);
+        assertThat(SimpMessageHeaderAccessor.getUser(captured.getHeaders()).getName()).isEqualTo("joe");
 
-	@Test
-	public void subscribeDisconnectPublish() {
-		String sess1 = "sess1";
-		String sess2 = "sess2";
+        assertThat(messageCaptured(sess2, "sub1", "/foo")).isTrue();
+        assertThat(messageCaptured(sess2, "sub2", "/foo")).isTrue();
+        assertThat(messageCaptured(sess2, "sub3", "/bar")).isTrue();
+    }
 
-		startSession(sess1);
-		startSession(sess2);
+    @Test
+    public void connect() {
+        String id = "sess1";
 
-		this.messageHandler.handleMessage(createSubscriptionMessage(sess1, "sub1", "/foo"));
-		this.messageHandler.handleMessage(createSubscriptionMessage(sess1, "sub2", "/foo"));
-		this.messageHandler.handleMessage(createSubscriptionMessage(sess1, "sub3", "/bar"));
+        Message<String> connectMessage = startSession(id);
+        Message<?> connectAckMessage = this.messageCaptor.getValue();
 
-		this.messageHandler.handleMessage(createSubscriptionMessage(sess2, "sub1", "/foo"));
-		this.messageHandler.handleMessage(createSubscriptionMessage(sess2, "sub2", "/foo"));
-		this.messageHandler.handleMessage(createSubscriptionMessage(sess2, "sub3", "/bar"));
+        SimpMessageHeaderAccessor connectAckHeaders = SimpMessageHeaderAccessor.wrap(connectAckMessage);
+        assertThat(connectAckHeaders.getHeader(SimpMessageHeaderAccessor.CONNECT_MESSAGE_HEADER)).isEqualTo(connectMessage);
+        assertThat(connectAckHeaders.getSessionId()).isEqualTo(id);
+        assertThat(connectAckHeaders.getUser().getName()).isEqualTo("joe");
+        assertThat(SimpMessageHeaderAccessor.getHeartbeat(connectAckHeaders.getMessageHeaders())).isEqualTo(new long[]{10000, 10000});
+    }
 
-		SimpMessageHeaderAccessor headers = SimpMessageHeaderAccessor.create(SimpMessageType.DISCONNECT);
-		headers.setSessionId(sess1);
-		headers.setUser(new TestPrincipal("joe"));
-		Message<byte[]> message = MessageBuilder.createMessage(new byte[0], headers.getMessageHeaders());
-		this.messageHandler.handleMessage(message);
+    @Test
+    public void heartbeatValueWithAndWithoutTaskScheduler() {
+        assertThat(this.messageHandler.getHeartbeatValue()).isNull();
+        this.messageHandler.setTaskScheduler(this.taskScheduler);
 
-		this.messageHandler.handleMessage(createMessage("/foo", "message1"));
-		this.messageHandler.handleMessage(createMessage("/bar", "message2"));
+        assertThat(this.messageHandler.getHeartbeatValue()).isNotNull();
+        assertThat(this.messageHandler.getHeartbeatValue()).isEqualTo(new long[]{10000, 10000});
+    }
 
-		verify(this.clientOutChannel, times(4)).send(this.messageCaptor.capture());
+    @Test
+    public void startWithHeartbeatValueWithoutTaskScheduler() {
+        this.messageHandler.setHeartbeatValue(new long[]{10000, 10000});
+        assertThatIllegalArgumentException().isThrownBy(
+                this.messageHandler::start);
+    }
 
-		Message<?> captured = this.messageCaptor.getAllValues().get(2);
-		assertThat(SimpMessageHeaderAccessor.getMessageType(captured.getHeaders())).isEqualTo(SimpMessageType.DISCONNECT_ACK);
-		assertThat(captured.getHeaders().get(SimpMessageHeaderAccessor.DISCONNECT_MESSAGE_HEADER)).isSameAs(message);
-		assertThat(SimpMessageHeaderAccessor.getSessionId(captured.getHeaders())).isEqualTo(sess1);
-		assertThat(SimpMessageHeaderAccessor.getUser(captured.getHeaders()).getName()).isEqualTo("joe");
+    @SuppressWarnings("unchecked")
+    @Test
+    public void startAndStopWithHeartbeatValue() {
+        ScheduledFuture future = mock(ScheduledFuture.class);
+        given(this.taskScheduler.scheduleWithFixedDelay(any(Runnable.class), eq(15000L))).willReturn(future);
 
-		assertThat(messageCaptured(sess2, "sub1", "/foo")).isTrue();
-		assertThat(messageCaptured(sess2, "sub2", "/foo")).isTrue();
-		assertThat(messageCaptured(sess2, "sub3", "/bar")).isTrue();
-	}
+        this.messageHandler.setTaskScheduler(this.taskScheduler);
+        this.messageHandler.setHeartbeatValue(new long[]{15000, 16000});
+        this.messageHandler.start();
 
-	@Test
-	public void connect() {
-		String id = "sess1";
+        verify(this.taskScheduler).scheduleWithFixedDelay(any(Runnable.class), eq(15000L));
+        verifyNoMoreInteractions(this.taskScheduler, future);
 
-		Message<String> connectMessage = startSession(id);
-		Message<?> connectAckMessage = this.messageCaptor.getValue();
+        this.messageHandler.stop();
 
-		SimpMessageHeaderAccessor connectAckHeaders = SimpMessageHeaderAccessor.wrap(connectAckMessage);
-		assertThat(connectAckHeaders.getHeader(SimpMessageHeaderAccessor.CONNECT_MESSAGE_HEADER)).isEqualTo(connectMessage);
-		assertThat(connectAckHeaders.getSessionId()).isEqualTo(id);
-		assertThat(connectAckHeaders.getUser().getName()).isEqualTo("joe");
-		assertThat(SimpMessageHeaderAccessor.getHeartbeat(connectAckHeaders.getMessageHeaders())).isEqualTo(new long[] {10000, 10000});
-	}
+        verify(future).cancel(true);
+        verifyNoMoreInteractions(future);
+    }
 
-	@Test
-	public void heartbeatValueWithAndWithoutTaskScheduler() {
-		assertThat(this.messageHandler.getHeartbeatValue()).isNull();
-		this.messageHandler.setTaskScheduler(this.taskScheduler);
+    @SuppressWarnings("unchecked")
+    @Test
+    public void startWithOneZeroHeartbeatValue() {
+        this.messageHandler.setTaskScheduler(this.taskScheduler);
+        this.messageHandler.setHeartbeatValue(new long[]{0, 10000});
+        this.messageHandler.start();
 
-		assertThat(this.messageHandler.getHeartbeatValue()).isNotNull();
-		assertThat(this.messageHandler.getHeartbeatValue()).isEqualTo(new long[] {10000, 10000});
-	}
+        verify(this.taskScheduler).scheduleWithFixedDelay(any(Runnable.class), eq(10000L));
+    }
 
-	@Test
-	public void startWithHeartbeatValueWithoutTaskScheduler() {
-		this.messageHandler.setHeartbeatValue(new long[] {10000, 10000});
-		assertThatIllegalArgumentException().isThrownBy(
-				this.messageHandler::start);
-	}
+    @Test
+    public void readInactivity() throws Exception {
+        this.messageHandler.setHeartbeatValue(new long[]{0, 1});
+        this.messageHandler.setTaskScheduler(this.taskScheduler);
+        this.messageHandler.start();
 
-	@SuppressWarnings("unchecked")
-	@Test
-	public void startAndStopWithHeartbeatValue() {
-		ScheduledFuture future = mock(ScheduledFuture.class);
-		given(this.taskScheduler.scheduleWithFixedDelay(any(Runnable.class), eq(15000L))).willReturn(future);
+        ArgumentCaptor<Runnable> taskCaptor = ArgumentCaptor.forClass(Runnable.class);
+        verify(this.taskScheduler).scheduleWithFixedDelay(taskCaptor.capture(), eq(1L));
+        Runnable heartbeatTask = taskCaptor.getValue();
+        assertThat(heartbeatTask).isNotNull();
 
-		this.messageHandler.setTaskScheduler(this.taskScheduler);
-		this.messageHandler.setHeartbeatValue(new long[] {15000, 16000});
-		this.messageHandler.start();
+        String id = "sess1";
+        TestPrincipal user = new TestPrincipal("joe");
+        Message<String> connectMessage = createConnectMessage(id, user, new long[]{1, 0});
+        this.messageHandler.handleMessage(connectMessage);
 
-		verify(this.taskScheduler).scheduleWithFixedDelay(any(Runnable.class), eq(15000L));
-		verifyNoMoreInteractions(this.taskScheduler, future);
+        Thread.sleep(10);
+        heartbeatTask.run();
 
-		this.messageHandler.stop();
+        verify(this.clientOutChannel, atLeast(2)).send(this.messageCaptor.capture());
+        List<Message<?>> messages = this.messageCaptor.getAllValues();
+        assertThat(messages.size()).isEqualTo(2);
 
-		verify(future).cancel(true);
-		verifyNoMoreInteractions(future);
-	}
+        MessageHeaders headers = messages.get(0).getHeaders();
+        assertThat(headers.get(SimpMessageHeaderAccessor.MESSAGE_TYPE_HEADER)).isEqualTo(SimpMessageType.CONNECT_ACK);
+        headers = messages.get(1).getHeaders();
+        assertThat(headers.get(SimpMessageHeaderAccessor.MESSAGE_TYPE_HEADER)).isEqualTo(SimpMessageType.DISCONNECT_ACK);
+        assertThat(headers.get(SimpMessageHeaderAccessor.SESSION_ID_HEADER)).isEqualTo(id);
+        assertThat(headers.get(SimpMessageHeaderAccessor.USER_HEADER)).isEqualTo(user);
+    }
 
-	@SuppressWarnings("unchecked")
-	@Test
-	public void startWithOneZeroHeartbeatValue() {
-		this.messageHandler.setTaskScheduler(this.taskScheduler);
-		this.messageHandler.setHeartbeatValue(new long[] {0, 10000});
-		this.messageHandler.start();
+    @Test
+    public void writeInactivity() throws Exception {
+        this.messageHandler.setHeartbeatValue(new long[]{1, 0});
+        this.messageHandler.setTaskScheduler(this.taskScheduler);
+        this.messageHandler.start();
 
-		verify(this.taskScheduler).scheduleWithFixedDelay(any(Runnable.class), eq(10000L));
-	}
+        ArgumentCaptor<Runnable> taskCaptor = ArgumentCaptor.forClass(Runnable.class);
+        verify(this.taskScheduler).scheduleWithFixedDelay(taskCaptor.capture(), eq(1L));
+        Runnable heartbeatTask = taskCaptor.getValue();
+        assertThat(heartbeatTask).isNotNull();
 
-	@Test
-	public void readInactivity() throws Exception {
-		this.messageHandler.setHeartbeatValue(new long[] {0, 1});
-		this.messageHandler.setTaskScheduler(this.taskScheduler);
-		this.messageHandler.start();
+        String id = "sess1";
+        TestPrincipal user = new TestPrincipal("joe");
+        Message<String> connectMessage = createConnectMessage(id, user, new long[]{0, 1});
+        this.messageHandler.handleMessage(connectMessage);
 
-		ArgumentCaptor<Runnable> taskCaptor = ArgumentCaptor.forClass(Runnable.class);
-		verify(this.taskScheduler).scheduleWithFixedDelay(taskCaptor.capture(), eq(1L));
-		Runnable heartbeatTask = taskCaptor.getValue();
-		assertThat(heartbeatTask).isNotNull();
+        Thread.sleep(10);
+        heartbeatTask.run();
 
-		String id = "sess1";
-		TestPrincipal user = new TestPrincipal("joe");
-		Message<String> connectMessage = createConnectMessage(id, user, new long[] {1, 0});
-		this.messageHandler.handleMessage(connectMessage);
+        verify(this.clientOutChannel, times(2)).send(this.messageCaptor.capture());
+        List<Message<?>> messages = this.messageCaptor.getAllValues();
+        assertThat(messages.size()).isEqualTo(2);
 
-		Thread.sleep(10);
-		heartbeatTask.run();
+        MessageHeaders headers = messages.get(0).getHeaders();
+        assertThat(headers.get(SimpMessageHeaderAccessor.MESSAGE_TYPE_HEADER)).isEqualTo(SimpMessageType.CONNECT_ACK);
+        headers = messages.get(1).getHeaders();
+        assertThat(headers.get(SimpMessageHeaderAccessor.MESSAGE_TYPE_HEADER)).isEqualTo(SimpMessageType.HEARTBEAT);
+        assertThat(headers.get(SimpMessageHeaderAccessor.SESSION_ID_HEADER)).isEqualTo(id);
+        assertThat(headers.get(SimpMessageHeaderAccessor.USER_HEADER)).isEqualTo(user);
+    }
 
-		verify(this.clientOutChannel, atLeast(2)).send(this.messageCaptor.capture());
-		List<Message<?>> messages = this.messageCaptor.getAllValues();
-		assertThat(messages.size()).isEqualTo(2);
+    @Test
+    public void readWriteIntervalCalculation() throws Exception {
+        this.messageHandler.setHeartbeatValue(new long[]{1, 1});
+        this.messageHandler.setTaskScheduler(this.taskScheduler);
+        this.messageHandler.start();
 
-		MessageHeaders headers = messages.get(0).getHeaders();
-		assertThat(headers.get(SimpMessageHeaderAccessor.MESSAGE_TYPE_HEADER)).isEqualTo(SimpMessageType.CONNECT_ACK);
-		headers = messages.get(1).getHeaders();
-		assertThat(headers.get(SimpMessageHeaderAccessor.MESSAGE_TYPE_HEADER)).isEqualTo(SimpMessageType.DISCONNECT_ACK);
-		assertThat(headers.get(SimpMessageHeaderAccessor.SESSION_ID_HEADER)).isEqualTo(id);
-		assertThat(headers.get(SimpMessageHeaderAccessor.USER_HEADER)).isEqualTo(user);
-	}
+        ArgumentCaptor<Runnable> taskCaptor = ArgumentCaptor.forClass(Runnable.class);
+        verify(this.taskScheduler).scheduleWithFixedDelay(taskCaptor.capture(), eq(1L));
+        Runnable heartbeatTask = taskCaptor.getValue();
+        assertThat(heartbeatTask).isNotNull();
 
-	@Test
-	public void writeInactivity() throws Exception {
-		this.messageHandler.setHeartbeatValue(new long[] {1, 0});
-		this.messageHandler.setTaskScheduler(this.taskScheduler);
-		this.messageHandler.start();
+        String id = "sess1";
+        TestPrincipal user = new TestPrincipal("joe");
+        Message<String> connectMessage = createConnectMessage(id, user, new long[]{10000, 10000});
+        this.messageHandler.handleMessage(connectMessage);
 
-		ArgumentCaptor<Runnable> taskCaptor = ArgumentCaptor.forClass(Runnable.class);
-		verify(this.taskScheduler).scheduleWithFixedDelay(taskCaptor.capture(), eq(1L));
-		Runnable heartbeatTask = taskCaptor.getValue();
-		assertThat(heartbeatTask).isNotNull();
+        Thread.sleep(10);
+        heartbeatTask.run();
 
-		String id = "sess1";
-		TestPrincipal user = new TestPrincipal("joe");
-		Message<String> connectMessage = createConnectMessage(id, user, new long[] {0, 1});
-		this.messageHandler.handleMessage(connectMessage);
-
-		Thread.sleep(10);
-		heartbeatTask.run();
-
-		verify(this.clientOutChannel, times(2)).send(this.messageCaptor.capture());
-		List<Message<?>> messages = this.messageCaptor.getAllValues();
-		assertThat(messages.size()).isEqualTo(2);
-
-		MessageHeaders headers = messages.get(0).getHeaders();
-		assertThat(headers.get(SimpMessageHeaderAccessor.MESSAGE_TYPE_HEADER)).isEqualTo(SimpMessageType.CONNECT_ACK);
-		headers = messages.get(1).getHeaders();
-		assertThat(headers.get(SimpMessageHeaderAccessor.MESSAGE_TYPE_HEADER)).isEqualTo(SimpMessageType.HEARTBEAT);
-		assertThat(headers.get(SimpMessageHeaderAccessor.SESSION_ID_HEADER)).isEqualTo(id);
-		assertThat(headers.get(SimpMessageHeaderAccessor.USER_HEADER)).isEqualTo(user);
-	}
-
-	@Test
-	public void readWriteIntervalCalculation() throws Exception {
-		this.messageHandler.setHeartbeatValue(new long[] {1, 1});
-		this.messageHandler.setTaskScheduler(this.taskScheduler);
-		this.messageHandler.start();
-
-		ArgumentCaptor<Runnable> taskCaptor = ArgumentCaptor.forClass(Runnable.class);
-		verify(this.taskScheduler).scheduleWithFixedDelay(taskCaptor.capture(), eq(1L));
-		Runnable heartbeatTask = taskCaptor.getValue();
-		assertThat(heartbeatTask).isNotNull();
-
-		String id = "sess1";
-		TestPrincipal user = new TestPrincipal("joe");
-		Message<String> connectMessage = createConnectMessage(id, user, new long[] {10000, 10000});
-		this.messageHandler.handleMessage(connectMessage);
-
-		Thread.sleep(10);
-		heartbeatTask.run();
-
-		verify(this.clientOutChannel, times(1)).send(this.messageCaptor.capture());
-		List<Message<?>> messages = this.messageCaptor.getAllValues();
-		assertThat(messages.size()).isEqualTo(1);
-		assertThat(messages.get(0).getHeaders().get(SimpMessageHeaderAccessor.MESSAGE_TYPE_HEADER)).isEqualTo(SimpMessageType.CONNECT_ACK);
-	}
+        verify(this.clientOutChannel, times(1)).send(this.messageCaptor.capture());
+        List<Message<?>> messages = this.messageCaptor.getAllValues();
+        assertThat(messages.size()).isEqualTo(1);
+        assertThat(messages.get(0).getHeaders().get(SimpMessageHeaderAccessor.MESSAGE_TYPE_HEADER)).isEqualTo(SimpMessageType.CONNECT_ACK);
+    }
 
 
-	private Message<String> startSession(String id) {
-		this.messageHandler.start();
+    private Message<String> startSession(String id) {
+        this.messageHandler.start();
 
-		Message<String> connectMessage = createConnectMessage(id, new TestPrincipal("joe"), null);
-		this.messageHandler.setTaskScheduler(this.taskScheduler);
-		this.messageHandler.handleMessage(connectMessage);
+        Message<String> connectMessage = createConnectMessage(id, new TestPrincipal("joe"), null);
+        this.messageHandler.setTaskScheduler(this.taskScheduler);
+        this.messageHandler.handleMessage(connectMessage);
 
-		verify(this.clientOutChannel, times(1)).send(this.messageCaptor.capture());
-		reset(this.clientOutChannel);
-		return connectMessage;
-	}
+        verify(this.clientOutChannel, times(1)).send(this.messageCaptor.capture());
+        reset(this.clientOutChannel);
+        return connectMessage;
+    }
 
-	private Message<String> createSubscriptionMessage(String sessionId, String subscriptionId, String destination) {
-		SimpMessageHeaderAccessor headers = SimpMessageHeaderAccessor.create(SimpMessageType.SUBSCRIBE);
-		headers.setSubscriptionId(subscriptionId);
-		headers.setDestination(destination);
-		headers.setSessionId(sessionId);
-		return MessageBuilder.createMessage("", headers.getMessageHeaders());
-	}
+    private Message<String> createSubscriptionMessage(String sessionId, String subscriptionId, String destination) {
+        SimpMessageHeaderAccessor headers = SimpMessageHeaderAccessor.create(SimpMessageType.SUBSCRIBE);
+        headers.setSubscriptionId(subscriptionId);
+        headers.setDestination(destination);
+        headers.setSessionId(sessionId);
+        return MessageBuilder.createMessage("", headers.getMessageHeaders());
+    }
 
-	private Message<String> createConnectMessage(String sessionId, Principal user, long[] heartbeat) {
-		SimpMessageHeaderAccessor accessor = SimpMessageHeaderAccessor.create(SimpMessageType.CONNECT);
-		accessor.setSessionId(sessionId);
-		accessor.setUser(user);
-		accessor.setHeader(SimpMessageHeaderAccessor.HEART_BEAT_HEADER, heartbeat);
-		return MessageBuilder.createMessage("", accessor.getMessageHeaders());
-	}
+    private Message<String> createConnectMessage(String sessionId, Principal user, long[] heartbeat) {
+        SimpMessageHeaderAccessor accessor = SimpMessageHeaderAccessor.create(SimpMessageType.CONNECT);
+        accessor.setSessionId(sessionId);
+        accessor.setUser(user);
+        accessor.setHeader(SimpMessageHeaderAccessor.HEART_BEAT_HEADER, heartbeat);
+        return MessageBuilder.createMessage("", accessor.getMessageHeaders());
+    }
 
-	private Message<String> createMessage(String destination, String payload) {
-		SimpMessageHeaderAccessor headers = SimpMessageHeaderAccessor.create(SimpMessageType.MESSAGE);
-		headers.setDestination(destination);
-		return MessageBuilder.createMessage(payload, headers.getMessageHeaders());
-	}
+    private Message<String> createMessage(String destination, String payload) {
+        SimpMessageHeaderAccessor headers = SimpMessageHeaderAccessor.create(SimpMessageType.MESSAGE);
+        headers.setDestination(destination);
+        return MessageBuilder.createMessage(payload, headers.getMessageHeaders());
+    }
 
-	private boolean messageCaptured(String sessionId, String subscriptionId, String destination) {
-		for (Message<?> message : this.messageCaptor.getAllValues()) {
-			SimpMessageHeaderAccessor headers = SimpMessageHeaderAccessor.wrap(message);
-			if (sessionId.equals(headers.getSessionId())) {
-				if (subscriptionId.equals(headers.getSubscriptionId())) {
-					if (destination.equals(headers.getDestination())) {
-						return true;
-					}
-				}
-			}
-		}
-		return false;
-	}
+    private boolean messageCaptured(String sessionId, String subscriptionId, String destination) {
+        for (Message<?> message : this.messageCaptor.getAllValues()) {
+            SimpMessageHeaderAccessor headers = SimpMessageHeaderAccessor.wrap(message);
+            if (sessionId.equals(headers.getSessionId())) {
+                if (subscriptionId.equals(headers.getSubscriptionId())) {
+                    if (destination.equals(headers.getDestination())) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
 
 }

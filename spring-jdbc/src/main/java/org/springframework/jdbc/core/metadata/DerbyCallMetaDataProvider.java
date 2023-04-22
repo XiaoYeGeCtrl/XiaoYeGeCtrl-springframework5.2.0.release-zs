@@ -31,21 +31,21 @@ import org.springframework.lang.Nullable;
  */
 public class DerbyCallMetaDataProvider extends GenericCallMetaDataProvider {
 
-	public DerbyCallMetaDataProvider(DatabaseMetaData databaseMetaData) throws SQLException {
-		super(databaseMetaData);
-	}
+    public DerbyCallMetaDataProvider(DatabaseMetaData databaseMetaData) throws SQLException {
+        super(databaseMetaData);
+    }
 
 
-	@Override
-	@Nullable
-	public String metaDataSchemaNameToUse(@Nullable String schemaName) {
-		if (schemaName != null) {
-			return super.metaDataSchemaNameToUse(schemaName);
-		}
+    @Override
+    @Nullable
+    public String metaDataSchemaNameToUse(@Nullable String schemaName) {
+        if (schemaName != null) {
+            return super.metaDataSchemaNameToUse(schemaName);
+        }
 
-		// Use current user schema if no schema specified...
-		String userName = getUserName();
-		return (userName != null ? userName.toUpperCase() : null);
-	}
+        // Use current user schema if no schema specified...
+        String userName = getUserName();
+        return (userName != null ? userName.toUpperCase() : null);
+    }
 
 }

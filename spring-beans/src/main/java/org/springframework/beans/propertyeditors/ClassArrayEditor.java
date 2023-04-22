@@ -38,56 +38,55 @@ import org.springframework.util.StringUtils;
  */
 public class ClassArrayEditor extends PropertyEditorSupport {
 
-	@Nullable
-	private final ClassLoader classLoader;
+    @Nullable
+    private final ClassLoader classLoader;
 
 
-	/**
-	 * Create a default {@code ClassEditor}, using the thread
-	 * context {@code ClassLoader}.
-	 */
-	public ClassArrayEditor() {
-		this(null);
-	}
+    /**
+     * Create a default {@code ClassEditor}, using the thread
+     * context {@code ClassLoader}.
+     */
+    public ClassArrayEditor() {
+        this(null);
+    }
 
-	/**
-	 * Create a default {@code ClassArrayEditor}, using the given
-	 * {@code ClassLoader}.
-	 * @param classLoader the {@code ClassLoader} to use
-	 * (or pass {@code null} for the thread context {@code ClassLoader})
-	 */
-	public ClassArrayEditor(@Nullable ClassLoader classLoader) {
-		this.classLoader = (classLoader != null ? classLoader : ClassUtils.getDefaultClassLoader());
-	}
+    /**
+     * Create a default {@code ClassArrayEditor}, using the given
+     * {@code ClassLoader}.
+     *
+     * @param classLoader the {@code ClassLoader} to use
+     *                    (or pass {@code null} for the thread context {@code ClassLoader})
+     */
+    public ClassArrayEditor(@Nullable ClassLoader classLoader) {
+        this.classLoader = (classLoader != null ? classLoader : ClassUtils.getDefaultClassLoader());
+    }
 
+    @Override
+    public String getAsText() {
+        Class<?>[] classes = (Class[]) getValue();
+        if (ObjectUtils.isEmpty(classes)) {
+            return "";
+        }
+        StringJoiner sj = new StringJoiner(",");
+        for (Class<?> klass : classes) {
+            sj.add(ClassUtils.getQualifiedName(klass));
+        }
+        return sj.toString();
+    }
 
-	@Override
-	public void setAsText(String text) throws IllegalArgumentException {
-		if (StringUtils.hasText(text)) {
-			String[] classNames = StringUtils.commaDelimitedListToStringArray(text);
-			Class<?>[] classes = new Class<?>[classNames.length];
-			for (int i = 0; i < classNames.length; i++) {
-				String className = classNames[i].trim();
-				classes[i] = ClassUtils.resolveClassName(className, this.classLoader);
-			}
-			setValue(classes);
-		}
-		else {
-			setValue(null);
-		}
-	}
-
-	@Override
-	public String getAsText() {
-		Class<?>[] classes = (Class[]) getValue();
-		if (ObjectUtils.isEmpty(classes)) {
-			return "";
-		}
-		StringJoiner sj = new StringJoiner(",");
-		for (Class<?> klass : classes) {
-			sj.add(ClassUtils.getQualifiedName(klass));
-		}
-		return sj.toString();
-	}
+    @Override
+    public void setAsText(String text) throws IllegalArgumentException {
+        if (StringUtils.hasText(text)) {
+            String[] classNames = StringUtils.commaDelimitedListToStringArray(text);
+            Class<?>[] classes = new Class<?>[classNames.length];
+            for (int i = 0; i < classNames.length; i++) {
+                String className = classNames[i].trim();
+                classes[i] = ClassUtils.resolveClassName(className, this.classLoader);
+            }
+            setValue(classes);
+        } else {
+            setValue(null);
+        }
+    }
 
 }

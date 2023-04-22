@@ -34,7 +34,7 @@ import java.net.URI
  * @since 5.2
  */
 suspend fun RSocketRequester.Builder.connectAndAwait(transport: ClientTransport): RSocketRequester =
-		connect(transport).awaitSingle()
+        connect(transport).awaitSingle()
 
 /**
  * Coroutines variant of [RSocketRequester.Builder.connectTcp].
@@ -43,7 +43,7 @@ suspend fun RSocketRequester.Builder.connectAndAwait(transport: ClientTransport)
  * @since 5.2
  */
 suspend fun RSocketRequester.Builder.connectTcpAndAwait(host: String, port: Int): RSocketRequester =
-		connectTcp(host, port).awaitSingle()
+        connectTcp(host, port).awaitSingle()
 
 /**
  * Coroutines variant of [RSocketRequester.Builder.connectWebSocket].
@@ -52,7 +52,7 @@ suspend fun RSocketRequester.Builder.connectTcpAndAwait(host: String, port: Int)
  * @since 5.2
  */
 suspend fun RSocketRequester.Builder.connectWebSocketAndAwait(uri: URI): RSocketRequester =
-		connectWebSocket(uri).awaitSingle()
+        connectWebSocket(uri).awaitSingle()
 
 /**
  * Extension for [RSocketRequester.RequestSpec.data] providing a `dataWithType<Foo>(Any)`
@@ -66,7 +66,7 @@ suspend fun RSocketRequester.Builder.connectWebSocketAndAwait(uri: URI): RSocket
  * @since 5.2
  */
 inline fun <reified T : Any> RSocketRequester.RequestSpec.dataWithType(producer: Any): RSocketRequester.RequestSpec =
-		data(producer, object : ParameterizedTypeReference<T>() {})
+        data(producer, object : ParameterizedTypeReference<T>() {})
 
 /**
  * Extension for [RSocketRequester.RequestSpec.data] providing a `dataWithType(Publisher<T>)`
@@ -78,7 +78,7 @@ inline fun <reified T : Any> RSocketRequester.RequestSpec.dataWithType(producer:
  * @since 5.2
  */
 inline fun <reified T : Any> RSocketRequester.RequestSpec.dataWithType(publisher: Publisher<T>): RSocketRequester.RequestSpec =
-		data(publisher, object : ParameterizedTypeReference<T>() {})
+        data(publisher, object : ParameterizedTypeReference<T>() {})
 
 /**
  * Extension for [RSocketRequester.RequestSpec.data] providing a `dataWithType(Flow<T>)`
@@ -90,7 +90,7 @@ inline fun <reified T : Any> RSocketRequester.RequestSpec.dataWithType(publisher
  * @since 5.2
  */
 inline fun <reified T : Any> RSocketRequester.RequestSpec.dataWithType(flow: Flow<T>): RSocketRequester.RequestSpec =
-		data(flow, object : ParameterizedTypeReference<T>() {})
+        data(flow, object : ParameterizedTypeReference<T>() {})
 
 
 /**
@@ -100,7 +100,7 @@ inline fun <reified T : Any> RSocketRequester.RequestSpec.dataWithType(flow: Flo
  * @since 5.2
  */
 suspend fun RSocketRequester.RequestSpec.sendAndAwait() {
-	send().awaitFirstOrNull()
+    send().awaitFirstOrNull()
 }
 
 /**
@@ -110,7 +110,7 @@ suspend fun RSocketRequester.RequestSpec.sendAndAwait() {
  * @since 5.2
  */
 suspend inline fun <reified T : Any> RSocketRequester.RequestSpec.retrieveAndAwait(): T =
-		retrieveMono(object : ParameterizedTypeReference<T>() {}).awaitSingle()
+        retrieveMono(object : ParameterizedTypeReference<T>() {}).awaitSingle()
 
 /**
  * Coroutines variant of [RSocketRequester.RequestSpec.retrieveFlux].
@@ -119,7 +119,7 @@ suspend inline fun <reified T : Any> RSocketRequester.RequestSpec.retrieveAndAwa
  * @since 5.2
  */
 inline fun <reified T : Any> RSocketRequester.RequestSpec.retrieveFlow(): Flow<T> =
-		retrieveFlux(object : ParameterizedTypeReference<T>() {}).asFlow()
+        retrieveFlux(object : ParameterizedTypeReference<T>() {}).asFlow()
 
 /**
  * Extension for [RSocketRequester.RequestSpec.retrieveMono] providing a `retrieveMono<Foo>()`
@@ -130,7 +130,7 @@ inline fun <reified T : Any> RSocketRequester.RequestSpec.retrieveFlow(): Flow<T
  * @since 5.2
  */
 inline fun <reified T : Any> RSocketRequester.RequestSpec.retrieveMono(): Mono<T> =
-		retrieveMono(object : ParameterizedTypeReference<T>() {})
+        retrieveMono(object : ParameterizedTypeReference<T>() {})
 
 
 /**
@@ -142,4 +142,4 @@ inline fun <reified T : Any> RSocketRequester.RequestSpec.retrieveMono(): Mono<T
  * @since 5.2
  */
 inline fun <reified T : Any> RSocketRequester.RequestSpec.retrieveFlux(): Flux<T> =
-		retrieveFlux(object : ParameterizedTypeReference<T>() {})
+        retrieveFlux(object : ParameterizedTypeReference<T>() {})

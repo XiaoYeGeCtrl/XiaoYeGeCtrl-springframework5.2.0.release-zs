@@ -34,47 +34,45 @@ import static org.assertj.core.api.Assertions.assertThat;
  * TestNG-based integration tests for {@link ServletTestExecutionListener}.
  *
  * @author Sam Brannen
- * @since 3.2.9
  * @see org.springframework.test.context.web.ServletTestExecutionListenerJUnitIntegrationTests
+ * @since 3.2.9
  */
 @ContextConfiguration
 @WebAppConfiguration
 public class ServletTestExecutionListenerTestNGIntegrationTests extends AbstractTestNGSpringContextTests {
 
-	@Configuration
-	static class Config {
-		/* no beans required for this test */
-	}
+    @Autowired
+    private MockHttpServletRequest servletRequest;
 
+    /**
+     * Verifies bug fix for <a href="https://jira.spring.io/browse/SPR-11626">SPR-11626</a>.
+     *
+     * @see #ensureMocksAreReinjectedBetweenTests_2
+     */
+    @Test
+    void ensureMocksAreReinjectedBetweenTests_1() {
+        assertInjectedServletRequestEqualsRequestInRequestContextHolder();
+    }
 
-	@Autowired
-	private MockHttpServletRequest servletRequest;
+    /**
+     * Verifies bug fix for <a href="https://jira.spring.io/browse/SPR-11626">SPR-11626</a>.
+     *
+     * @see #ensureMocksAreReinjectedBetweenTests_1
+     */
+    @Test
+    void ensureMocksAreReinjectedBetweenTests_2() {
+        assertInjectedServletRequestEqualsRequestInRequestContextHolder();
+    }
 
+    private void assertInjectedServletRequestEqualsRequestInRequestContextHolder() {
+        assertThat(((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest())
+                .as("Injected ServletRequest must be stored in the RequestContextHolder")
+                .isEqualTo(servletRequest);
+    }
 
-	/**
-	 * Verifies bug fix for <a href="https://jira.spring.io/browse/SPR-11626">SPR-11626</a>.
-	 *
-	 * @see #ensureMocksAreReinjectedBetweenTests_2
-	 */
-	@Test
-	void ensureMocksAreReinjectedBetweenTests_1() {
-		assertInjectedServletRequestEqualsRequestInRequestContextHolder();
-	}
-
-	/**
-	 * Verifies bug fix for <a href="https://jira.spring.io/browse/SPR-11626">SPR-11626</a>.
-	 *
-	 * @see #ensureMocksAreReinjectedBetweenTests_1
-	 */
-	@Test
-	void ensureMocksAreReinjectedBetweenTests_2() {
-		assertInjectedServletRequestEqualsRequestInRequestContextHolder();
-	}
-
-	private void assertInjectedServletRequestEqualsRequestInRequestContextHolder() {
-		assertThat(((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest())
-			.as("Injected ServletRequest must be stored in the RequestContextHolder")
-			.isEqualTo(servletRequest);
-	}
+    @Configuration
+    static class Config {
+        /* no beans required for this test */
+    }
 
 }

@@ -36,12 +36,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 @MetaMetaConfig
 public class MetaMetaConfigDefaultsTests {
 
-	@Autowired
-	private String foo;
+    @Autowired
+    private String foo;
 
 
-	@Test
-	public void foo() {
-		assertThat(foo).isEqualTo("Production Foo");
-	}
+    @Test
+    public void foo() {
+        assertThat(foo).isEqualTo("Production Foo");
+    }
 }

@@ -38,285 +38,283 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
  */
 public class LazyAutowiredAnnotationBeanPostProcessorTests {
 
-	private void doTestLazyResourceInjection(Class<? extends TestBeanHolder> annotatedBeanClass) {
-		AnnotationConfigApplicationContext ac = new AnnotationConfigApplicationContext();
-		RootBeanDefinition abd = new RootBeanDefinition(annotatedBeanClass);
-		abd.setScope(RootBeanDefinition.SCOPE_PROTOTYPE);
-		ac.registerBeanDefinition("annotatedBean", abd);
-		RootBeanDefinition tbd = new RootBeanDefinition(TestBean.class);
-		tbd.setLazyInit(true);
-		ac.registerBeanDefinition("testBean", tbd);
-		ac.refresh();
-
-		TestBeanHolder bean = ac.getBean("annotatedBean", TestBeanHolder.class);
-		assertThat(ac.getBeanFactory().containsSingleton("testBean")).isFalse();
-		assertThat(bean.getTestBean()).isNotNull();
-		assertThat(bean.getTestBean().getName()).isNull();
-		assertThat(ac.getBeanFactory().containsSingleton("testBean")).isTrue();
-		TestBean tb = (TestBean) ac.getBean("testBean");
-		tb.setName("tb");
-		assertThat(bean.getTestBean().getName()).isSameAs("tb");
-	}
-
-	@Test
-	public void testLazyResourceInjectionWithField() {
-		doTestLazyResourceInjection(FieldResourceInjectionBean.class);
-
-		AnnotationConfigApplicationContext ac = new AnnotationConfigApplicationContext();
-		RootBeanDefinition abd = new RootBeanDefinition(FieldResourceInjectionBean.class);
-		abd.setScope(RootBeanDefinition.SCOPE_PROTOTYPE);
-		ac.registerBeanDefinition("annotatedBean", abd);
-		RootBeanDefinition tbd = new RootBeanDefinition(TestBean.class);
-		tbd.setLazyInit(true);
-		ac.registerBeanDefinition("testBean", tbd);
-		ac.refresh();
-
-		FieldResourceInjectionBean bean = ac.getBean("annotatedBean", FieldResourceInjectionBean.class);
-		assertThat(ac.getBeanFactory().containsSingleton("testBean")).isFalse();
-		assertThat(bean.getTestBeans().isEmpty()).isFalse();
-		assertThat(bean.getTestBeans().get(0).getName()).isNull();
-		assertThat(ac.getBeanFactory().containsSingleton("testBean")).isTrue();
-		TestBean tb = (TestBean) ac.getBean("testBean");
-		tb.setName("tb");
-		assertThat(bean.getTestBean().getName()).isSameAs("tb");
-	}
-
-	@Test
-	public void testLazyResourceInjectionWithFieldAndCustomAnnotation() {
-		doTestLazyResourceInjection(FieldResourceInjectionBeanWithCompositeAnnotation.class);
-	}
-
-	@Test
-	public void testLazyResourceInjectionWithMethod() {
-		doTestLazyResourceInjection(MethodResourceInjectionBean.class);
-	}
-
-	@Test
-	public void testLazyResourceInjectionWithMethodLevelLazy() {
-		doTestLazyResourceInjection(MethodResourceInjectionBeanWithMethodLevelLazy.class);
-	}
-
-	@Test
-	public void testLazyResourceInjectionWithMethodAndCustomAnnotation() {
-		doTestLazyResourceInjection(MethodResourceInjectionBeanWithCompositeAnnotation.class);
-	}
-
-	@Test
-	public void testLazyResourceInjectionWithConstructor() {
-		doTestLazyResourceInjection(ConstructorResourceInjectionBean.class);
-	}
-
-	@Test
-	public void testLazyResourceInjectionWithConstructorLevelLazy() {
-		doTestLazyResourceInjection(ConstructorResourceInjectionBeanWithConstructorLevelLazy.class);
-	}
-
-	@Test
-	public void testLazyResourceInjectionWithConstructorAndCustomAnnotation() {
-		doTestLazyResourceInjection(ConstructorResourceInjectionBeanWithCompositeAnnotation.class);
-	}
-
-	@Test
-	public void testLazyResourceInjectionWithNonExistingTarget() {
-		DefaultListableBeanFactory bf = new DefaultListableBeanFactory();
-		bf.setAutowireCandidateResolver(new ContextAnnotationAutowireCandidateResolver());
-		AutowiredAnnotationBeanPostProcessor bpp = new AutowiredAnnotationBeanPostProcessor();
-		bpp.setBeanFactory(bf);
-		bf.addBeanPostProcessor(bpp);
-		RootBeanDefinition bd = new RootBeanDefinition(FieldResourceInjectionBean.class);
-		bd.setScope(RootBeanDefinition.SCOPE_PROTOTYPE);
-		bf.registerBeanDefinition("annotatedBean", bd);
-
-		FieldResourceInjectionBean bean = (FieldResourceInjectionBean) bf.getBean("annotatedBean");
-		assertThat(bean.getTestBean()).isNotNull();
-		assertThatExceptionOfType(NoSuchBeanDefinitionException.class).isThrownBy(() ->
-				bean.getTestBean().getName());
-	}
-
-	@Test
-	public void testLazyOptionalResourceInjectionWithNonExistingTarget() {
-		DefaultListableBeanFactory bf = new DefaultListableBeanFactory();
-		bf.setAutowireCandidateResolver(new ContextAnnotationAutowireCandidateResolver());
-		AutowiredAnnotationBeanPostProcessor bpp = new AutowiredAnnotationBeanPostProcessor();
-		bpp.setBeanFactory(bf);
-		bf.addBeanPostProcessor(bpp);
-		RootBeanDefinition bd = new RootBeanDefinition(OptionalFieldResourceInjectionBean.class);
-		bd.setScope(RootBeanDefinition.SCOPE_PROTOTYPE);
-		bf.registerBeanDefinition("annotatedBean", bd);
+    private void doTestLazyResourceInjection(Class<? extends TestBeanHolder> annotatedBeanClass) {
+        AnnotationConfigApplicationContext ac = new AnnotationConfigApplicationContext();
+        RootBeanDefinition abd = new RootBeanDefinition(annotatedBeanClass);
+        abd.setScope(RootBeanDefinition.SCOPE_PROTOTYPE);
+        ac.registerBeanDefinition("annotatedBean", abd);
+        RootBeanDefinition tbd = new RootBeanDefinition(TestBean.class);
+        tbd.setLazyInit(true);
+        ac.registerBeanDefinition("testBean", tbd);
+        ac.refresh();
+
+        TestBeanHolder bean = ac.getBean("annotatedBean", TestBeanHolder.class);
+        assertThat(ac.getBeanFactory().containsSingleton("testBean")).isFalse();
+        assertThat(bean.getTestBean()).isNotNull();
+        assertThat(bean.getTestBean().getName()).isNull();
+        assertThat(ac.getBeanFactory().containsSingleton("testBean")).isTrue();
+        TestBean tb = (TestBean) ac.getBean("testBean");
+        tb.setName("tb");
+        assertThat(bean.getTestBean().getName()).isSameAs("tb");
+    }
+
+    @Test
+    public void testLazyResourceInjectionWithField() {
+        doTestLazyResourceInjection(FieldResourceInjectionBean.class);
+
+        AnnotationConfigApplicationContext ac = new AnnotationConfigApplicationContext();
+        RootBeanDefinition abd = new RootBeanDefinition(FieldResourceInjectionBean.class);
+        abd.setScope(RootBeanDefinition.SCOPE_PROTOTYPE);
+        ac.registerBeanDefinition("annotatedBean", abd);
+        RootBeanDefinition tbd = new RootBeanDefinition(TestBean.class);
+        tbd.setLazyInit(true);
+        ac.registerBeanDefinition("testBean", tbd);
+        ac.refresh();
+
+        FieldResourceInjectionBean bean = ac.getBean("annotatedBean", FieldResourceInjectionBean.class);
+        assertThat(ac.getBeanFactory().containsSingleton("testBean")).isFalse();
+        assertThat(bean.getTestBeans().isEmpty()).isFalse();
+        assertThat(bean.getTestBeans().get(0).getName()).isNull();
+        assertThat(ac.getBeanFactory().containsSingleton("testBean")).isTrue();
+        TestBean tb = (TestBean) ac.getBean("testBean");
+        tb.setName("tb");
+        assertThat(bean.getTestBean().getName()).isSameAs("tb");
+    }
+
+    @Test
+    public void testLazyResourceInjectionWithFieldAndCustomAnnotation() {
+        doTestLazyResourceInjection(FieldResourceInjectionBeanWithCompositeAnnotation.class);
+    }
+
+    @Test
+    public void testLazyResourceInjectionWithMethod() {
+        doTestLazyResourceInjection(MethodResourceInjectionBean.class);
+    }
+
+    @Test
+    public void testLazyResourceInjectionWithMethodLevelLazy() {
+        doTestLazyResourceInjection(MethodResourceInjectionBeanWithMethodLevelLazy.class);
+    }
+
+    @Test
+    public void testLazyResourceInjectionWithMethodAndCustomAnnotation() {
+        doTestLazyResourceInjection(MethodResourceInjectionBeanWithCompositeAnnotation.class);
+    }
+
+    @Test
+    public void testLazyResourceInjectionWithConstructor() {
+        doTestLazyResourceInjection(ConstructorResourceInjectionBean.class);
+    }
+
+    @Test
+    public void testLazyResourceInjectionWithConstructorLevelLazy() {
+        doTestLazyResourceInjection(ConstructorResourceInjectionBeanWithConstructorLevelLazy.class);
+    }
+
+    @Test
+    public void testLazyResourceInjectionWithConstructorAndCustomAnnotation() {
+        doTestLazyResourceInjection(ConstructorResourceInjectionBeanWithCompositeAnnotation.class);
+    }
+
+    @Test
+    public void testLazyResourceInjectionWithNonExistingTarget() {
+        DefaultListableBeanFactory bf = new DefaultListableBeanFactory();
+        bf.setAutowireCandidateResolver(new ContextAnnotationAutowireCandidateResolver());
+        AutowiredAnnotationBeanPostProcessor bpp = new AutowiredAnnotationBeanPostProcessor();
+        bpp.setBeanFactory(bf);
+        bf.addBeanPostProcessor(bpp);
+        RootBeanDefinition bd = new RootBeanDefinition(FieldResourceInjectionBean.class);
+        bd.setScope(RootBeanDefinition.SCOPE_PROTOTYPE);
+        bf.registerBeanDefinition("annotatedBean", bd);
+
+        FieldResourceInjectionBean bean = (FieldResourceInjectionBean) bf.getBean("annotatedBean");
+        assertThat(bean.getTestBean()).isNotNull();
+        assertThatExceptionOfType(NoSuchBeanDefinitionException.class).isThrownBy(() ->
+                bean.getTestBean().getName());
+    }
+
+    @Test
+    public void testLazyOptionalResourceInjectionWithNonExistingTarget() {
+        DefaultListableBeanFactory bf = new DefaultListableBeanFactory();
+        bf.setAutowireCandidateResolver(new ContextAnnotationAutowireCandidateResolver());
+        AutowiredAnnotationBeanPostProcessor bpp = new AutowiredAnnotationBeanPostProcessor();
+        bpp.setBeanFactory(bf);
+        bf.addBeanPostProcessor(bpp);
+        RootBeanDefinition bd = new RootBeanDefinition(OptionalFieldResourceInjectionBean.class);
+        bd.setScope(RootBeanDefinition.SCOPE_PROTOTYPE);
+        bf.registerBeanDefinition("annotatedBean", bd);
 
-		OptionalFieldResourceInjectionBean bean = (OptionalFieldResourceInjectionBean) bf.getBean("annotatedBean");
-		assertThat(bean.getTestBean()).isNotNull();
-		assertThat(bean.getTestBeans()).isNotNull();
-		assertThat(bean.getTestBeans().isEmpty()).isTrue();
-		assertThatExceptionOfType(NoSuchBeanDefinitionException.class).isThrownBy(() ->
-				bean.getTestBean().getName());
-	}
+        OptionalFieldResourceInjectionBean bean = (OptionalFieldResourceInjectionBean) bf.getBean("annotatedBean");
+        assertThat(bean.getTestBean()).isNotNull();
+        assertThat(bean.getTestBeans()).isNotNull();
+        assertThat(bean.getTestBeans().isEmpty()).isTrue();
+        assertThatExceptionOfType(NoSuchBeanDefinitionException.class).isThrownBy(() ->
+                bean.getTestBean().getName());
+    }
+
+
+    public interface TestBeanHolder {
+
+        TestBean getTestBean();
+    }
 
 
-	public interface TestBeanHolder {
+    @Autowired
+    @Lazy
+    @Retention(RetentionPolicy.RUNTIME)
+    public @interface LazyInject {
+    }
+
+    public static class FieldResourceInjectionBean implements TestBeanHolder {
+
+        @Autowired
+        @Lazy
+        private TestBean testBean;
+
+        @Autowired
+        @Lazy
+        private List<TestBean> testBeans;
+
+        @Override
+        public TestBean getTestBean() {
+            return this.testBean;
+        }
+
+        public List<TestBean> getTestBeans() {
+            return testBeans;
+        }
+    }
+
+    public static class OptionalFieldResourceInjectionBean implements TestBeanHolder {
+
+        @Autowired(required = false)
+        @Lazy
+        private TestBean testBean;
 
-		TestBean getTestBean();
-	}
+        @Autowired(required = false)
+        @Lazy
+        private List<TestBean> testBeans;
+
+        @Override
+        public TestBean getTestBean() {
+            return this.testBean;
+        }
+
+        public List<TestBean> getTestBeans() {
+            return this.testBeans;
+        }
+    }
+
+    public static class FieldResourceInjectionBeanWithCompositeAnnotation implements TestBeanHolder {
 
-
-	public static class FieldResourceInjectionBean implements TestBeanHolder {
-
-		@Autowired @Lazy
-		private TestBean testBean;
-
-		@Autowired @Lazy
-		private List<TestBean> testBeans;
-
-		@Override
-		public TestBean getTestBean() {
-			return this.testBean;
-		}
-
-		public List<TestBean> getTestBeans() {
-			return testBeans;
-		}
-	}
-
-
-	public static class OptionalFieldResourceInjectionBean implements TestBeanHolder {
-
-		@Autowired(required = false) @Lazy
-		private TestBean testBean;
-
-		@Autowired(required = false) @Lazy
-		private List<TestBean> testBeans;
-
-		@Override
-		public TestBean getTestBean() {
-			return this.testBean;
-		}
-
-		public List<TestBean> getTestBeans() {
-			return this.testBeans;
-		}
-	}
-
-
-	public static class FieldResourceInjectionBeanWithCompositeAnnotation implements TestBeanHolder {
-
-		@LazyInject
-		private TestBean testBean;
-
-		@Override
-		public TestBean getTestBean() {
-			return this.testBean;
-		}
-	}
-
-
-	public static class MethodResourceInjectionBean implements TestBeanHolder {
-
-		private TestBean testBean;
-
-		@Autowired
-		public void setTestBean(@Lazy TestBean testBean) {
-			if (this.testBean != null) {
-				throw new IllegalStateException("Already called");
-			}
-			this.testBean = testBean;
-		}
-
-		@Override
-		public TestBean getTestBean() {
-			return this.testBean;
-		}
-	}
-
-
-	public static class MethodResourceInjectionBeanWithMethodLevelLazy implements TestBeanHolder {
-
-		private TestBean testBean;
-
-		@Autowired @Lazy
-		public void setTestBean(TestBean testBean) {
-			if (this.testBean != null) {
-				throw new IllegalStateException("Already called");
-			}
-			this.testBean = testBean;
-		}
-
-		@Override
-		public TestBean getTestBean() {
-			return this.testBean;
-		}
-	}
-
-
-	public static class MethodResourceInjectionBeanWithCompositeAnnotation implements TestBeanHolder {
-
-		private TestBean testBean;
-
-		@LazyInject
-		public void setTestBean(TestBean testBean) {
-			if (this.testBean != null) {
-				throw new IllegalStateException("Already called");
-			}
-			this.testBean = testBean;
-		}
-
-		@Override
-		public TestBean getTestBean() {
-			return this.testBean;
-		}
-	}
-
-
-	public static class ConstructorResourceInjectionBean implements TestBeanHolder {
-
-		private final TestBean testBean;
-
-		@Autowired
-		public ConstructorResourceInjectionBean(@Lazy TestBean testBean) {
-			this.testBean = testBean;
-		}
-
-		@Override
-		public TestBean getTestBean() {
-			return this.testBean;
-		}
-	}
-
-
-	public static class ConstructorResourceInjectionBeanWithConstructorLevelLazy implements TestBeanHolder {
-
-		private final TestBean testBean;
-
-		@Autowired @Lazy
-		public ConstructorResourceInjectionBeanWithConstructorLevelLazy(TestBean testBean) {
-			this.testBean = testBean;
-		}
-
-		@Override
-		public TestBean getTestBean() {
-			return this.testBean;
-		}
-	}
-
-
-	public static class ConstructorResourceInjectionBeanWithCompositeAnnotation implements TestBeanHolder {
-
-		private final TestBean testBean;
-
-		@LazyInject
-		public ConstructorResourceInjectionBeanWithCompositeAnnotation(TestBean testBean) {
-			this.testBean = testBean;
-		}
-
-		@Override
-		public TestBean getTestBean() {
-			return this.testBean;
-		}
-	}
-
-
-	@Autowired @Lazy
-	@Retention(RetentionPolicy.RUNTIME)
-	public @interface LazyInject {
-	}
+        @LazyInject
+        private TestBean testBean;
+
+        @Override
+        public TestBean getTestBean() {
+            return this.testBean;
+        }
+    }
+
+    public static class MethodResourceInjectionBean implements TestBeanHolder {
+
+        private TestBean testBean;
+
+        @Override
+        public TestBean getTestBean() {
+            return this.testBean;
+        }
+
+        @Autowired
+        public void setTestBean(@Lazy TestBean testBean) {
+            if (this.testBean != null) {
+                throw new IllegalStateException("Already called");
+            }
+            this.testBean = testBean;
+        }
+    }
+
+    public static class MethodResourceInjectionBeanWithMethodLevelLazy implements TestBeanHolder {
+
+        private TestBean testBean;
+
+        @Override
+        public TestBean getTestBean() {
+            return this.testBean;
+        }
+
+        @Autowired
+        @Lazy
+        public void setTestBean(TestBean testBean) {
+            if (this.testBean != null) {
+                throw new IllegalStateException("Already called");
+            }
+            this.testBean = testBean;
+        }
+    }
+
+    public static class MethodResourceInjectionBeanWithCompositeAnnotation implements TestBeanHolder {
+
+        private TestBean testBean;
+
+        @Override
+        public TestBean getTestBean() {
+            return this.testBean;
+        }
+
+        @LazyInject
+        public void setTestBean(TestBean testBean) {
+            if (this.testBean != null) {
+                throw new IllegalStateException("Already called");
+            }
+            this.testBean = testBean;
+        }
+    }
+
+    public static class ConstructorResourceInjectionBean implements TestBeanHolder {
+
+        private final TestBean testBean;
+
+        @Autowired
+        public ConstructorResourceInjectionBean(@Lazy TestBean testBean) {
+            this.testBean = testBean;
+        }
+
+        @Override
+        public TestBean getTestBean() {
+            return this.testBean;
+        }
+    }
+
+    public static class ConstructorResourceInjectionBeanWithConstructorLevelLazy implements TestBeanHolder {
+
+        private final TestBean testBean;
+
+        @Autowired
+        @Lazy
+        public ConstructorResourceInjectionBeanWithConstructorLevelLazy(TestBean testBean) {
+            this.testBean = testBean;
+        }
+
+        @Override
+        public TestBean getTestBean() {
+            return this.testBean;
+        }
+    }
+
+    public static class ConstructorResourceInjectionBeanWithCompositeAnnotation implements TestBeanHolder {
+
+        private final TestBean testBean;
+
+        @LazyInject
+        public ConstructorResourceInjectionBeanWithCompositeAnnotation(TestBean testBean) {
+            this.testBean = testBean;
+        }
+
+        @Override
+        public TestBean getTestBean() {
+            return this.testBean;
+        }
+    }
 
 }

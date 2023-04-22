@@ -47,89 +47,91 @@ import org.springframework.util.StringValueResolver;
  */
 public class DefaultFormattingConversionService extends FormattingConversionService {
 
-	private static final boolean jsr354Present;
+    private static final boolean jsr354Present;
 
-	private static final boolean jodaTimePresent;
+    private static final boolean jodaTimePresent;
 
-	static {
-		ClassLoader classLoader = DefaultFormattingConversionService.class.getClassLoader();
-		jsr354Present = ClassUtils.isPresent("javax.money.MonetaryAmount", classLoader);
-		jodaTimePresent = ClassUtils.isPresent("org.joda.time.LocalDate", classLoader);
-	}
-
-
-	/**
-	 * Create a new {@code DefaultFormattingConversionService} with the set of
-	 * {@linkplain DefaultConversionService#addDefaultConverters default converters} and
-	 * {@linkplain #addDefaultFormatters default formatters}.
-	 */
-	public DefaultFormattingConversionService() {
-		this(null, true);
-	}
-
-	/**
-	 * Create a new {@code DefaultFormattingConversionService} with the set of
-	 * {@linkplain DefaultConversionService#addDefaultConverters default converters} and,
-	 * based on the value of {@code registerDefaultFormatters}, the set of
-	 * {@linkplain #addDefaultFormatters default formatters}.
-	 * @param registerDefaultFormatters whether to register default formatters
-	 */
-	public DefaultFormattingConversionService(boolean registerDefaultFormatters) {
-		this(null, registerDefaultFormatters);
-	}
-
-	/**
-	 * Create a new {@code DefaultFormattingConversionService} with the set of
-	 * {@linkplain DefaultConversionService#addDefaultConverters default converters} and,
-	 * based on the value of {@code registerDefaultFormatters}, the set of
-	 * {@linkplain #addDefaultFormatters default formatters}.
-	 * @param embeddedValueResolver delegated to {@link #setEmbeddedValueResolver(StringValueResolver)}
-	 * prior to calling {@link #addDefaultFormatters}.
-	 * @param registerDefaultFormatters whether to register default formatters
-	 */
-	public DefaultFormattingConversionService(
-			@Nullable StringValueResolver embeddedValueResolver, boolean registerDefaultFormatters) {
-
-		if (embeddedValueResolver != null) {
-			setEmbeddedValueResolver(embeddedValueResolver);
-		}
-		DefaultConversionService.addDefaultConverters(this);
-		if (registerDefaultFormatters) {
-			addDefaultFormatters(this);
-		}
-	}
+    static {
+        ClassLoader classLoader = DefaultFormattingConversionService.class.getClassLoader();
+        jsr354Present = ClassUtils.isPresent("javax.money.MonetaryAmount", classLoader);
+        jodaTimePresent = ClassUtils.isPresent("org.joda.time.LocalDate", classLoader);
+    }
 
 
-	/**
-	 * Add formatters appropriate for most environments: including number formatters,
-	 * JSR-354 Money & Currency formatters, JSR-310 Date-Time and/or Joda-Time formatters,
-	 * depending on the presence of the corresponding API on the classpath.
-	 * @param formatterRegistry the service to register default formatters with
-	 */
-	public static void addDefaultFormatters(FormatterRegistry formatterRegistry) {
-		// Default handling of number values
-		formatterRegistry.addFormatterForFieldAnnotation(new NumberFormatAnnotationFormatterFactory());
+    /**
+     * Create a new {@code DefaultFormattingConversionService} with the set of
+     * {@linkplain DefaultConversionService#addDefaultConverters default converters} and
+     * {@linkplain #addDefaultFormatters default formatters}.
+     */
+    public DefaultFormattingConversionService() {
+        this(null, true);
+    }
 
-		// Default handling of monetary values
-		if (jsr354Present) {
-			formatterRegistry.addFormatter(new CurrencyUnitFormatter());
-			formatterRegistry.addFormatter(new MonetaryAmountFormatter());
-			formatterRegistry.addFormatterForFieldAnnotation(new Jsr354NumberFormatAnnotationFormatterFactory());
-		}
+    /**
+     * Create a new {@code DefaultFormattingConversionService} with the set of
+     * {@linkplain DefaultConversionService#addDefaultConverters default converters} and,
+     * based on the value of {@code registerDefaultFormatters}, the set of
+     * {@linkplain #addDefaultFormatters default formatters}.
+     *
+     * @param registerDefaultFormatters whether to register default formatters
+     */
+    public DefaultFormattingConversionService(boolean registerDefaultFormatters) {
+        this(null, registerDefaultFormatters);
+    }
 
-		// Default handling of date-time values
+    /**
+     * Create a new {@code DefaultFormattingConversionService} with the set of
+     * {@linkplain DefaultConversionService#addDefaultConverters default converters} and,
+     * based on the value of {@code registerDefaultFormatters}, the set of
+     * {@linkplain #addDefaultFormatters default formatters}.
+     *
+     * @param embeddedValueResolver     delegated to {@link #setEmbeddedValueResolver(StringValueResolver)}
+     *                                  prior to calling {@link #addDefaultFormatters}.
+     * @param registerDefaultFormatters whether to register default formatters
+     */
+    public DefaultFormattingConversionService(
+            @Nullable StringValueResolver embeddedValueResolver, boolean registerDefaultFormatters) {
 
-		// just handling JSR-310 specific date and time types
-		new DateTimeFormatterRegistrar().registerFormatters(formatterRegistry);
+        if (embeddedValueResolver != null) {
+            setEmbeddedValueResolver(embeddedValueResolver);
+        }
+        DefaultConversionService.addDefaultConverters(this);
+        if (registerDefaultFormatters) {
+            addDefaultFormatters(this);
+        }
+    }
 
-		if (jodaTimePresent) {
-			// handles Joda-specific types as well as Date, Calendar, Long
-			new JodaTimeFormatterRegistrar().registerFormatters(formatterRegistry);
-		}
-		else {
-			// regular DateFormat-based Date, Calendar, Long converters
-			new DateFormatterRegistrar().registerFormatters(formatterRegistry);
-		}
-	}
+
+    /**
+     * Add formatters appropriate for most environments: including number formatters,
+     * JSR-354 Money & Currency formatters, JSR-310 Date-Time and/or Joda-Time formatters,
+     * depending on the presence of the corresponding API on the classpath.
+     *
+     * @param formatterRegistry the service to register default formatters with
+     */
+    public static void addDefaultFormatters(FormatterRegistry formatterRegistry) {
+        // Default handling of number values
+        formatterRegistry.addFormatterForFieldAnnotation(new NumberFormatAnnotationFormatterFactory());
+
+        // Default handling of monetary values
+        if (jsr354Present) {
+            formatterRegistry.addFormatter(new CurrencyUnitFormatter());
+            formatterRegistry.addFormatter(new MonetaryAmountFormatter());
+            formatterRegistry.addFormatterForFieldAnnotation(new Jsr354NumberFormatAnnotationFormatterFactory());
+        }
+
+        // Default handling of date-time values
+
+        // just handling JSR-310 specific date and time types
+        new DateTimeFormatterRegistrar().registerFormatters(formatterRegistry);
+
+        if (jodaTimePresent) {
+            // handles Joda-specific types as well as Date, Calendar, Long
+            new JodaTimeFormatterRegistrar().registerFormatters(formatterRegistry);
+        } else {
+            // regular DateFormat-based Date, Calendar, Long converters
+            new DateFormatterRegistrar().registerFormatters(formatterRegistry);
+        }
+    }
 
 }

@@ -25,53 +25,52 @@ package org.springframework.jmx.export.metadata;
  */
 public class ManagedOperationParameter {
 
-	private int index = 0;
+    private int index = 0;
 
-	private String name = "";
+    private String name = "";
 
-	private String description = "";
+    private String description = "";
 
+    /**
+     * Return the index of this parameter in the operation signature.
+     */
+    public int getIndex() {
+        return this.index;
+    }
 
-	/**
-	 * Set the index of this parameter in the operation signature.
-	 */
-	public void setIndex(int index) {
-		this.index = index;
-	}
+    /**
+     * Set the index of this parameter in the operation signature.
+     */
+    public void setIndex(int index) {
+        this.index = index;
+    }
 
-	/**
-	 * Return the index of this parameter in the operation signature.
-	 */
-	public int getIndex() {
-		return this.index;
-	}
+    /**
+     * Return the name of this parameter in the operation signature.
+     */
+    public String getName() {
+        return this.name;
+    }
 
-	/**
-	 * Set the name of this parameter in the operation signature.
-	 */
-	public void setName(String name) {
-		this.name = name;
-	}
+    /**
+     * Set the name of this parameter in the operation signature.
+     */
+    public void setName(String name) {
+        this.name = name;
+    }
 
-	/**
-	 * Return the name of this parameter in the operation signature.
-	 */
-	public String getName() {
-		return this.name;
-	}
+    /**
+     * Return a description for this parameter.
+     */
+    public String getDescription() {
+        return this.description;
+    }
 
-	/**
-	 * Set a description for this parameter.
-	 */
-	public void setDescription(String description) {
-		this.description = description;
-	}
-
-	/**
-	 * Return a description for this parameter.
-	 */
-	public String getDescription() {
-		return this.description;
-	}
+    /**
+     * Set a description for this parameter.
+     */
+    public void setDescription(String description) {
+        this.description = description;
+    }
 
 }

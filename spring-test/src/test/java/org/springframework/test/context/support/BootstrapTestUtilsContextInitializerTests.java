@@ -38,94 +38,94 @@ import org.springframework.web.context.support.GenericWebApplicationContext;
 @SuppressWarnings("unchecked")
 class BootstrapTestUtilsContextInitializerTests extends AbstractContextConfigurationUtilsTests {
 
-	@Test
-	void buildMergedConfigWithSingleLocalInitializer() {
-		Class<?> testClass = SingleInitializer.class;
-		MergedContextConfiguration mergedConfig = buildMergedContextConfiguration(testClass);
+    @Test
+    void buildMergedConfigWithSingleLocalInitializer() {
+        Class<?> testClass = SingleInitializer.class;
+        MergedContextConfiguration mergedConfig = buildMergedContextConfiguration(testClass);
 
-		assertMergedConfig(mergedConfig, testClass, EMPTY_STRING_ARRAY, EMPTY_CLASS_ARRAY,
-			initializers(FooInitializer.class), DelegatingSmartContextLoader.class);
-	}
+        assertMergedConfig(mergedConfig, testClass, EMPTY_STRING_ARRAY, EMPTY_CLASS_ARRAY,
+                initializers(FooInitializer.class), DelegatingSmartContextLoader.class);
+    }
 
-	@Test
-	void buildMergedConfigWithLocalInitializerAndConfigClass() {
-		Class<?> testClass = InitializersFoo.class;
-		MergedContextConfiguration mergedConfig = buildMergedContextConfiguration(testClass);
+    @Test
+    void buildMergedConfigWithLocalInitializerAndConfigClass() {
+        Class<?> testClass = InitializersFoo.class;
+        MergedContextConfiguration mergedConfig = buildMergedContextConfiguration(testClass);
 
-		assertMergedConfig(mergedConfig, testClass, EMPTY_STRING_ARRAY, classes(FooConfig.class),
-			initializers(FooInitializer.class), DelegatingSmartContextLoader.class);
-	}
+        assertMergedConfig(mergedConfig, testClass, EMPTY_STRING_ARRAY, classes(FooConfig.class),
+                initializers(FooInitializer.class), DelegatingSmartContextLoader.class);
+    }
 
-	@Test
-	void buildMergedConfigWithLocalAndInheritedInitializer() {
-		Class<?> testClass = InitializersBar.class;
-		MergedContextConfiguration mergedConfig = buildMergedContextConfiguration(testClass);
+    @Test
+    void buildMergedConfigWithLocalAndInheritedInitializer() {
+        Class<?> testClass = InitializersBar.class;
+        MergedContextConfiguration mergedConfig = buildMergedContextConfiguration(testClass);
 
-		assertMergedConfig(mergedConfig, testClass, EMPTY_STRING_ARRAY, classes(FooConfig.class, BarConfig.class),
-			initializers(FooInitializer.class, BarInitializer.class), DelegatingSmartContextLoader.class);
-	}
+        assertMergedConfig(mergedConfig, testClass, EMPTY_STRING_ARRAY, classes(FooConfig.class, BarConfig.class),
+                initializers(FooInitializer.class, BarInitializer.class), DelegatingSmartContextLoader.class);
+    }
 
-	@Test
-	void buildMergedConfigWithOverriddenInitializers() {
-		Class<?> testClass = OverriddenInitializersBar.class;
-		MergedContextConfiguration mergedConfig = buildMergedContextConfiguration(testClass);
+    @Test
+    void buildMergedConfigWithOverriddenInitializers() {
+        Class<?> testClass = OverriddenInitializersBar.class;
+        MergedContextConfiguration mergedConfig = buildMergedContextConfiguration(testClass);
 
-		assertMergedConfig(mergedConfig, testClass, EMPTY_STRING_ARRAY, classes(FooConfig.class, BarConfig.class),
-			initializers(BarInitializer.class), DelegatingSmartContextLoader.class);
-	}
+        assertMergedConfig(mergedConfig, testClass, EMPTY_STRING_ARRAY, classes(FooConfig.class, BarConfig.class),
+                initializers(BarInitializer.class), DelegatingSmartContextLoader.class);
+    }
 
-	@Test
-	void buildMergedConfigWithOverriddenInitializersAndClasses() {
-		Class<?> testClass = OverriddenInitializersAndClassesBar.class;
-		MergedContextConfiguration mergedConfig = buildMergedContextConfiguration(testClass);
+    @Test
+    void buildMergedConfigWithOverriddenInitializersAndClasses() {
+        Class<?> testClass = OverriddenInitializersAndClassesBar.class;
+        MergedContextConfiguration mergedConfig = buildMergedContextConfiguration(testClass);
 
-		assertMergedConfig(mergedConfig, testClass, EMPTY_STRING_ARRAY, classes(BarConfig.class),
-			initializers(BarInitializer.class), DelegatingSmartContextLoader.class);
-	}
+        assertMergedConfig(mergedConfig, testClass, EMPTY_STRING_ARRAY, classes(BarConfig.class),
+                initializers(BarInitializer.class), DelegatingSmartContextLoader.class);
+    }
 
-	private Set<Class<? extends ApplicationContextInitializer<?>>> initializers(
-			Class<? extends ApplicationContextInitializer<?>>... classes) {
+    private Set<Class<? extends ApplicationContextInitializer<?>>> initializers(
+            Class<? extends ApplicationContextInitializer<?>>... classes) {
 
-		return new HashSet<>(Arrays.asList(classes));
-	}
+        return new HashSet<>(Arrays.asList(classes));
+    }
 
-	private Class<?>[] classes(Class<?>... classes) {
-		return classes;
-	}
+    private Class<?>[] classes(Class<?>... classes) {
+        return classes;
+    }
 
 
-	private static class FooInitializer implements ApplicationContextInitializer<GenericApplicationContext> {
+    private static class FooInitializer implements ApplicationContextInitializer<GenericApplicationContext> {
 
-		@Override
-		public void initialize(GenericApplicationContext applicationContext) {
-		}
-	}
+        @Override
+        public void initialize(GenericApplicationContext applicationContext) {
+        }
+    }
 
-	private static class BarInitializer implements ApplicationContextInitializer<GenericWebApplicationContext> {
+    private static class BarInitializer implements ApplicationContextInitializer<GenericWebApplicationContext> {
 
-		@Override
-		public void initialize(GenericWebApplicationContext applicationContext) {
-		}
-	}
+        @Override
+        public void initialize(GenericWebApplicationContext applicationContext) {
+        }
+    }
 
-	@ContextConfiguration(initializers = FooInitializer.class)
-	private static class SingleInitializer {
-	}
+    @ContextConfiguration(initializers = FooInitializer.class)
+    private static class SingleInitializer {
+    }
 
-	@ContextConfiguration(classes = FooConfig.class, initializers = FooInitializer.class)
-	private static class InitializersFoo {
-	}
+    @ContextConfiguration(classes = FooConfig.class, initializers = FooInitializer.class)
+    private static class InitializersFoo {
+    }
 
-	@ContextConfiguration(classes = BarConfig.class, initializers = BarInitializer.class)
-	private static class InitializersBar extends InitializersFoo {
-	}
+    @ContextConfiguration(classes = BarConfig.class, initializers = BarInitializer.class)
+    private static class InitializersBar extends InitializersFoo {
+    }
 
-	@ContextConfiguration(classes = BarConfig.class, initializers = BarInitializer.class, inheritInitializers = false)
-	private static class OverriddenInitializersBar extends InitializersFoo {
-	}
+    @ContextConfiguration(classes = BarConfig.class, initializers = BarInitializer.class, inheritInitializers = false)
+    private static class OverriddenInitializersBar extends InitializersFoo {
+    }
 
-	@ContextConfiguration(classes = BarConfig.class, inheritLocations = false, initializers = BarInitializer.class, inheritInitializers = false)
-	private static class OverriddenInitializersAndClassesBar extends InitializersFoo {
-	}
+    @ContextConfiguration(classes = BarConfig.class, inheritLocations = false, initializers = BarInitializer.class, inheritInitializers = false)
+    private static class OverriddenInitializersAndClassesBar extends InitializersFoo {
+    }
 
 }

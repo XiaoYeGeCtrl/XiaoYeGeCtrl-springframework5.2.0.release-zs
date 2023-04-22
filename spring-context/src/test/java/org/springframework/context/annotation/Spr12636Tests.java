@@ -36,82 +36,81 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 public class Spr12636Tests {
 
-	private ConfigurableApplicationContext context;
+    private ConfigurableApplicationContext context;
 
-	@AfterEach
-	public void closeContext() {
-		if (this.context != null) {
-			this.context.close();
-		}
-	}
+    @AfterEach
+    public void closeContext() {
+        if (this.context != null) {
+            this.context.close();
+        }
+    }
 
-	@Test
-	public void orderOnImplementation() {
-		this.context = new AnnotationConfigApplicationContext(
-				UserServiceTwo.class, UserServiceOne.class, UserServiceCollector.class);
-		UserServiceCollector bean = this.context.getBean(UserServiceCollector.class);
-		assertThat(bean.userServices.get(0)).isSameAs(context.getBean("serviceOne", UserService.class));
-		assertThat(bean.userServices.get(1)).isSameAs(context.getBean("serviceTwo", UserService.class));
+    @Test
+    public void orderOnImplementation() {
+        this.context = new AnnotationConfigApplicationContext(
+                UserServiceTwo.class, UserServiceOne.class, UserServiceCollector.class);
+        UserServiceCollector bean = this.context.getBean(UserServiceCollector.class);
+        assertThat(bean.userServices.get(0)).isSameAs(context.getBean("serviceOne", UserService.class));
+        assertThat(bean.userServices.get(1)).isSameAs(context.getBean("serviceTwo", UserService.class));
 
-	}
+    }
 
-	@Test
-	public void orderOnImplementationWithProxy() {
-		this.context = new AnnotationConfigApplicationContext(
-				UserServiceTwo.class, UserServiceOne.class, UserServiceCollector.class, AsyncConfig.class);
+    @Test
+    public void orderOnImplementationWithProxy() {
+        this.context = new AnnotationConfigApplicationContext(
+                UserServiceTwo.class, UserServiceOne.class, UserServiceCollector.class, AsyncConfig.class);
 
-		// Validate those beans are indeed wrapped by a proxy
-		UserService serviceOne = this.context.getBean("serviceOne", UserService.class);
-		UserService serviceTwo = this.context.getBean("serviceTwo", UserService.class);
-		assertThat(AopUtils.isAopProxy(serviceOne)).isTrue();
-		assertThat(AopUtils.isAopProxy(serviceTwo)).isTrue();
+        // Validate those beans are indeed wrapped by a proxy
+        UserService serviceOne = this.context.getBean("serviceOne", UserService.class);
+        UserService serviceTwo = this.context.getBean("serviceTwo", UserService.class);
+        assertThat(AopUtils.isAopProxy(serviceOne)).isTrue();
+        assertThat(AopUtils.isAopProxy(serviceTwo)).isTrue();
 
-		UserServiceCollector bean = this.context.getBean(UserServiceCollector.class);
-		assertThat(bean.userServices.get(0)).isSameAs(serviceOne);
-		assertThat(bean.userServices.get(1)).isSameAs(serviceTwo);
-	}
+        UserServiceCollector bean = this.context.getBean(UserServiceCollector.class);
+        assertThat(bean.userServices.get(0)).isSameAs(serviceOne);
+        assertThat(bean.userServices.get(1)).isSameAs(serviceTwo);
+    }
 
-	@Configuration
-	@EnableAsync
-	static class AsyncConfig {
-	}
+    interface UserService {
 
+        void doIt();
+    }
 
-	@Component
-	static class UserServiceCollector {
+    @Configuration
+    @EnableAsync
+    static class AsyncConfig {
+    }
 
-		public final List<UserService> userServices;
+    @Component
+    static class UserServiceCollector {
 
-		@Autowired
-		UserServiceCollector(List<UserService> userServices) {
-			this.userServices = userServices;
-		}
-	}
+        public final List<UserService> userServices;
 
-	interface UserService {
+        @Autowired
+        UserServiceCollector(List<UserService> userServices) {
+            this.userServices = userServices;
+        }
+    }
 
-		void doIt();
-	}
+    @Component("serviceOne")
+    @Order(1)
+    static class UserServiceOne implements UserService {
 
-	@Component("serviceOne")
-	@Order(1)
-	static class UserServiceOne implements UserService {
+        @Async
+        @Override
+        public void doIt() {
 
-		@Async
-		@Override
-		public void doIt() {
+        }
+    }
 
-		}
-	}
+    @Component("serviceTwo")
+    @Order(2)
+    static class UserServiceTwo implements UserService {
 
-	@Component("serviceTwo")
-	@Order(2)
-	static class UserServiceTwo implements UserService {
+        @Async
+        @Override
+        public void doIt() {
 
-		@Async
-		@Override
-		public void doIt() {
-
-		}
-	}
+        }
+    }
 }

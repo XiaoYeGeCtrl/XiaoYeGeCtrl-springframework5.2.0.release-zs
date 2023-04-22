@@ -51,6 +51,6 @@ import java.lang.annotation.Target;
 @Documented
 public @interface DependsOn {
 
-	String[] value() default {};
+    String[] value() default {};
 
 }

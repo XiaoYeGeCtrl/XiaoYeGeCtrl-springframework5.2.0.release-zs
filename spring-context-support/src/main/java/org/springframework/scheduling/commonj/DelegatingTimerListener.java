@@ -25,34 +25,35 @@ import org.springframework.util.Assert;
  * Simple TimerListener adapter that delegates to a given Runnable.
  *
  * @author Juergen Hoeller
- * @since 2.0
  * @see commonj.timers.TimerListener
  * @see java.lang.Runnable
+ * @since 2.0
  * @deprecated as of 5.1, in favor of EE 7's
  * {@link org.springframework.scheduling.concurrent.DefaultManagedTaskScheduler}
  */
 @Deprecated
 public class DelegatingTimerListener implements TimerListener {
 
-	private final Runnable runnable;
+    private final Runnable runnable;
 
 
-	/**
-	 * Create a new DelegatingTimerListener.
-	 * @param runnable the Runnable implementation to delegate to
-	 */
-	public DelegatingTimerListener(Runnable runnable) {
-		Assert.notNull(runnable, "Runnable is required");
-		this.runnable = runnable;
-	}
+    /**
+     * Create a new DelegatingTimerListener.
+     *
+     * @param runnable the Runnable implementation to delegate to
+     */
+    public DelegatingTimerListener(Runnable runnable) {
+        Assert.notNull(runnable, "Runnable is required");
+        this.runnable = runnable;
+    }
 
 
-	/**
-	 * Delegates execution to the underlying Runnable.
-	 */
-	@Override
-	public void timerExpired(Timer timer) {
-		this.runnable.run();
-	}
+    /**
+     * Delegates execution to the underlying Runnable.
+     */
+    @Override
+    public void timerExpired(Timer timer) {
+        this.runnable.run();
+    }
 
 }

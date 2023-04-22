@@ -40,104 +40,103 @@ import org.springframework.expression.spel.support.BooleanTypedValue;
  */
 public class OperatorMatches extends Operator {
 
-	private static final int PATTERN_ACCESS_THRESHOLD = 1000000;
+    private static final int PATTERN_ACCESS_THRESHOLD = 1000000;
 
-	private final ConcurrentMap<String, Pattern> patternCache = new ConcurrentHashMap<>();
-
-
-	public OperatorMatches(int startPos, int endPos, SpelNodeImpl... operands) {
-		super("matches", startPos, endPos, operands);
-	}
+    private final ConcurrentMap<String, Pattern> patternCache = new ConcurrentHashMap<>();
 
 
-	/**
-	 * Check the first operand matches the regex specified as the second operand.
-	 * @param state the expression state
-	 * @return {@code true} if the first operand matches the regex specified as the
-	 * second operand, otherwise {@code false}
-	 * @throws EvaluationException if there is a problem evaluating the expression
-	 * (e.g. the regex is invalid)
-	 */
-	@Override
-	public BooleanTypedValue getValueInternal(ExpressionState state) throws EvaluationException {
-		SpelNodeImpl leftOp = getLeftOperand();
-		SpelNodeImpl rightOp = getRightOperand();
-		String left = leftOp.getValue(state, String.class);
-		Object right = getRightOperand().getValue(state);
-
-		if (left == null) {
-			throw new SpelEvaluationException(leftOp.getStartPosition(),
-					SpelMessage.INVALID_FIRST_OPERAND_FOR_MATCHES_OPERATOR, (Object) null);
-		}
-		if (!(right instanceof String)) {
-			throw new SpelEvaluationException(rightOp.getStartPosition(),
-					SpelMessage.INVALID_SECOND_OPERAND_FOR_MATCHES_OPERATOR, right);
-		}
-
-		try {
-			String rightString = (String) right;
-			Pattern pattern = this.patternCache.get(rightString);
-			if (pattern == null) {
-				pattern = Pattern.compile(rightString);
-				this.patternCache.putIfAbsent(rightString, pattern);
-			}
-			Matcher matcher = pattern.matcher(new MatcherInput(left, new AccessCount()));
-			return BooleanTypedValue.forValue(matcher.matches());
-		}
-		catch (PatternSyntaxException ex) {
-			throw new SpelEvaluationException(
-					rightOp.getStartPosition(), ex, SpelMessage.INVALID_PATTERN, right);
-		}
-		catch (IllegalStateException ex) {
-			throw new SpelEvaluationException(
-					rightOp.getStartPosition(), ex, SpelMessage.FLAWED_PATTERN, right);
-		}
-	}
+    public OperatorMatches(int startPos, int endPos, SpelNodeImpl... operands) {
+        super("matches", startPos, endPos, operands);
+    }
 
 
-	private static class AccessCount {
+    /**
+     * Check the first operand matches the regex specified as the second operand.
+     *
+     * @param state the expression state
+     * @return {@code true} if the first operand matches the regex specified as the
+     * second operand, otherwise {@code false}
+     * @throws EvaluationException if there is a problem evaluating the expression
+     *                             (e.g. the regex is invalid)
+     */
+    @Override
+    public BooleanTypedValue getValueInternal(ExpressionState state) throws EvaluationException {
+        SpelNodeImpl leftOp = getLeftOperand();
+        SpelNodeImpl rightOp = getRightOperand();
+        String left = leftOp.getValue(state, String.class);
+        Object right = getRightOperand().getValue(state);
 
-		private int count;
+        if (left == null) {
+            throw new SpelEvaluationException(leftOp.getStartPosition(),
+                    SpelMessage.INVALID_FIRST_OPERAND_FOR_MATCHES_OPERATOR, (Object) null);
+        }
+        if (!(right instanceof String)) {
+            throw new SpelEvaluationException(rightOp.getStartPosition(),
+                    SpelMessage.INVALID_SECOND_OPERAND_FOR_MATCHES_OPERATOR, right);
+        }
 
-		public void check() throws IllegalStateException {
-			if (this.count++ > PATTERN_ACCESS_THRESHOLD) {
-				throw new IllegalStateException("Pattern access threshold exceeded");
-			}
-		}
-	}
+        try {
+            String rightString = (String) right;
+            Pattern pattern = this.patternCache.get(rightString);
+            if (pattern == null) {
+                pattern = Pattern.compile(rightString);
+                this.patternCache.putIfAbsent(rightString, pattern);
+            }
+            Matcher matcher = pattern.matcher(new MatcherInput(left, new AccessCount()));
+            return BooleanTypedValue.forValue(matcher.matches());
+        } catch (PatternSyntaxException ex) {
+            throw new SpelEvaluationException(
+                    rightOp.getStartPosition(), ex, SpelMessage.INVALID_PATTERN, right);
+        } catch (IllegalStateException ex) {
+            throw new SpelEvaluationException(
+                    rightOp.getStartPosition(), ex, SpelMessage.FLAWED_PATTERN, right);
+        }
+    }
 
 
-	private static class MatcherInput implements CharSequence {
+    private static class AccessCount {
 
-		private final CharSequence value;
+        private int count;
 
-		private AccessCount access;
+        public void check() throws IllegalStateException {
+            if (this.count++ > PATTERN_ACCESS_THRESHOLD) {
+                throw new IllegalStateException("Pattern access threshold exceeded");
+            }
+        }
+    }
 
-		public MatcherInput(CharSequence value, AccessCount access) {
-			this.value = value;
-			this.access = access;
-		}
 
-		@Override
-		public char charAt(int index) {
-			this.access.check();
-			return this.value.charAt(index);
-		}
+    private static class MatcherInput implements CharSequence {
 
-		@Override
-		public CharSequence subSequence(int start, int end) {
-			return new MatcherInput(this.value.subSequence(start, end), this.access);
-		}
+        private final CharSequence value;
 
-		@Override
-		public int length() {
-			return this.value.length();
-		}
+        private AccessCount access;
 
-		@Override
-		public String toString() {
-			return this.value.toString();
-		}
-	}
+        public MatcherInput(CharSequence value, AccessCount access) {
+            this.value = value;
+            this.access = access;
+        }
+
+        @Override
+        public char charAt(int index) {
+            this.access.check();
+            return this.value.charAt(index);
+        }
+
+        @Override
+        public CharSequence subSequence(int start, int end) {
+            return new MatcherInput(this.value.subSequence(start, end), this.access);
+        }
+
+        @Override
+        public int length() {
+            return this.value.length();
+        }
+
+        @Override
+        public String toString() {
+            return this.value.toString();
+        }
+    }
 
 }

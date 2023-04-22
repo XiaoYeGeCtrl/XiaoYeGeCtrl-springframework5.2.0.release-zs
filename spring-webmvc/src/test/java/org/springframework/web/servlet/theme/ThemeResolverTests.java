@@ -32,53 +32,52 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 public class ThemeResolverTests {
 
-	private static final String TEST_THEME_NAME = "test.theme";
-	private static final String DEFAULT_TEST_THEME_NAME = "default.theme";
+    private static final String TEST_THEME_NAME = "test.theme";
+    private static final String DEFAULT_TEST_THEME_NAME = "default.theme";
 
-	private void internalTest(ThemeResolver themeResolver, boolean shouldSet, String defaultName) {
-		// create mocks
-		MockServletContext context = new MockServletContext();
-		MockHttpServletRequest request = new MockHttpServletRequest(context);
-		MockHttpServletResponse response = new MockHttpServletResponse();
-		// check original theme
-		String themeName = themeResolver.resolveThemeName(request);
-		assertThat(defaultName).isEqualTo(themeName);
-		// set new theme name
-		try {
-			themeResolver.setThemeName(request, response, TEST_THEME_NAME);
-			assertThat(shouldSet).as("able to set theme name").isTrue();
-			// check new theme namelocale
-			themeName = themeResolver.resolveThemeName(request);
-			assertThat(themeName).isEqualTo(TEST_THEME_NAME);
-			themeResolver.setThemeName(request, response, null);
-			themeName = themeResolver.resolveThemeName(request);
-			assertThat(defaultName).isEqualTo(themeName);
-		}
-		catch (UnsupportedOperationException ex) {
-			assertThat(shouldSet).as("able to set theme name").isFalse();
-		}
-	}
+    private void internalTest(ThemeResolver themeResolver, boolean shouldSet, String defaultName) {
+        // create mocks
+        MockServletContext context = new MockServletContext();
+        MockHttpServletRequest request = new MockHttpServletRequest(context);
+        MockHttpServletResponse response = new MockHttpServletResponse();
+        // check original theme
+        String themeName = themeResolver.resolveThemeName(request);
+        assertThat(defaultName).isEqualTo(themeName);
+        // set new theme name
+        try {
+            themeResolver.setThemeName(request, response, TEST_THEME_NAME);
+            assertThat(shouldSet).as("able to set theme name").isTrue();
+            // check new theme namelocale
+            themeName = themeResolver.resolveThemeName(request);
+            assertThat(themeName).isEqualTo(TEST_THEME_NAME);
+            themeResolver.setThemeName(request, response, null);
+            themeName = themeResolver.resolveThemeName(request);
+            assertThat(defaultName).isEqualTo(themeName);
+        } catch (UnsupportedOperationException ex) {
+            assertThat(shouldSet).as("able to set theme name").isFalse();
+        }
+    }
 
-	@Test
-	public void fixedThemeResolver() {
-		internalTest(new FixedThemeResolver(), false, AbstractThemeResolver.ORIGINAL_DEFAULT_THEME_NAME);
-	}
+    @Test
+    public void fixedThemeResolver() {
+        internalTest(new FixedThemeResolver(), false, AbstractThemeResolver.ORIGINAL_DEFAULT_THEME_NAME);
+    }
 
-	@Test
-	public void cookieThemeResolver() {
-		internalTest(new CookieThemeResolver(), true, AbstractThemeResolver.ORIGINAL_DEFAULT_THEME_NAME);
-	}
+    @Test
+    public void cookieThemeResolver() {
+        internalTest(new CookieThemeResolver(), true, AbstractThemeResolver.ORIGINAL_DEFAULT_THEME_NAME);
+    }
 
-	@Test
-	public void sessionThemeResolver() {
-		internalTest(new SessionThemeResolver(), true,AbstractThemeResolver.ORIGINAL_DEFAULT_THEME_NAME);
-	}
+    @Test
+    public void sessionThemeResolver() {
+        internalTest(new SessionThemeResolver(), true, AbstractThemeResolver.ORIGINAL_DEFAULT_THEME_NAME);
+    }
 
-	@Test
-	public void sessionThemeResolverWithDefault() {
-		SessionThemeResolver tr = new SessionThemeResolver();
-		tr.setDefaultThemeName(DEFAULT_TEST_THEME_NAME);
-		internalTest(tr, true, DEFAULT_TEST_THEME_NAME);
-	}
+    @Test
+    public void sessionThemeResolverWithDefault() {
+        SessionThemeResolver tr = new SessionThemeResolver();
+        tr.setDefaultThemeName(DEFAULT_TEST_THEME_NAME);
+        internalTest(tr, true, DEFAULT_TEST_THEME_NAME);
+    }
 
 }

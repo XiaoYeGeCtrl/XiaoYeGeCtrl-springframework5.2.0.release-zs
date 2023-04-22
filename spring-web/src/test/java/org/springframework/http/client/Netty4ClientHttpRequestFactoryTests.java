@@ -29,30 +29,30 @@ import org.springframework.http.HttpMethod;
  */
 public class Netty4ClientHttpRequestFactoryTests extends AbstractHttpRequestFactoryTests {
 
-	private static EventLoopGroup eventLoopGroup;
+    private static EventLoopGroup eventLoopGroup;
 
 
-	@BeforeAll
-	public static void createEventLoopGroup() {
-		eventLoopGroup = new NioEventLoopGroup();
-	}
+    @BeforeAll
+    public static void createEventLoopGroup() {
+        eventLoopGroup = new NioEventLoopGroup();
+    }
 
-	@AfterAll
-	public static void shutdownEventLoopGroup() throws InterruptedException {
-		eventLoopGroup.shutdownGracefully().sync();
-	}
+    @AfterAll
+    public static void shutdownEventLoopGroup() throws InterruptedException {
+        eventLoopGroup.shutdownGracefully().sync();
+    }
 
-	@Override
-	@SuppressWarnings("deprecation")
-	protected ClientHttpRequestFactory createRequestFactory() {
-		return new Netty4ClientHttpRequestFactory(eventLoopGroup);
-	}
+    @Override
+    @SuppressWarnings("deprecation")
+    protected ClientHttpRequestFactory createRequestFactory() {
+        return new Netty4ClientHttpRequestFactory(eventLoopGroup);
+    }
 
-	@Override
-	@Test
-	public void httpMethods() throws Exception {
-		super.httpMethods();
-		assertHttpMethod("patch", HttpMethod.PATCH);
-	}
+    @Override
+    @Test
+    public void httpMethods() throws Exception {
+        super.httpMethods();
+        assertHttpMethod("patch", HttpMethod.PATCH);
+    }
 
 }

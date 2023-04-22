@@ -42,21 +42,21 @@ import org.springframework.test.context.env.repeatable.LocalPropertiesFileAndMet
 @MetaFileTestProperty
 class LocalPropertiesFileAndMetaPropertiesFileTests extends AbstractRepeatableTestPropertySourceTests {
 
-	@Test
-	void test() {
-		assertEnvironmentValue("key1", "local file");
-		assertEnvironmentValue("key2", "meta file");
-	}
+    @Test
+    void test() {
+        assertEnvironmentValue("key1", "local file");
+        assertEnvironmentValue("key2", "meta file");
+    }
 
 
-	/**
-	 * Composed annotation that declares a properties file via
-	 * {@link TestPropertySource @TestPropertySource}.
-	 */
-	@Target(ElementType.TYPE)
-	@Retention(RetentionPolicy.RUNTIME)
-	@TestPropertySource("meta.properties")
-	@interface MetaFileTestProperty {
-	}
+    /**
+     * Composed annotation that declares a properties file via
+     * {@link TestPropertySource @TestPropertySource}.
+     */
+    @Target(ElementType.TYPE)
+    @Retention(RetentionPolicy.RUNTIME)
+    @TestPropertySource("meta.properties")
+    @interface MetaFileTestProperty {
+    }
 
 }

@@ -37,27 +37,27 @@ import static org.assertj.core.api.Assertions.assertThat;
 @ExtendWith(SpringExtension.class)
 class SqlConfigInterfaceTests implements SqlConfigTestInterface {
 
-	JdbcTemplate jdbcTemplate;
+    JdbcTemplate jdbcTemplate;
 
-	@Autowired
-	void setDataSource(DataSource dataSource) {
-		this.jdbcTemplate = new JdbcTemplate(dataSource);
-	}
+    @Autowired
+    void setDataSource(DataSource dataSource) {
+        this.jdbcTemplate = new JdbcTemplate(dataSource);
+    }
 
-	@Test
-	@Sql(scripts = "/org/springframework/test/context/jdbc/schema.sql", //
-			config = @SqlConfig(separator = ";"))
-	@Sql("/org/springframework/test/context/jdbc/data-add-users-with-custom-script-syntax.sql")
-	void methodLevelScripts() {
-		assertNumUsers(3);
-	}
+    @Test
+    @Sql(scripts = "/org/springframework/test/context/jdbc/schema.sql", //
+            config = @SqlConfig(separator = ";"))
+    @Sql("/org/springframework/test/context/jdbc/data-add-users-with-custom-script-syntax.sql")
+    void methodLevelScripts() {
+        assertNumUsers(3);
+    }
 
-	void assertNumUsers(int expected) {
-		assertThat(countRowsInTable("user")).as("Number of rows in the 'user' table.").isEqualTo(expected);
-	}
+    void assertNumUsers(int expected) {
+        assertThat(countRowsInTable("user")).as("Number of rows in the 'user' table.").isEqualTo(expected);
+    }
 
-	int countRowsInTable(String tableName) {
-		return JdbcTestUtils.countRowsInTable(this.jdbcTemplate, tableName);
-	}
+    int countRowsInTable(String tableName) {
+        return JdbcTestUtils.countRowsInTable(this.jdbcTemplate, tableName);
+    }
 
 }

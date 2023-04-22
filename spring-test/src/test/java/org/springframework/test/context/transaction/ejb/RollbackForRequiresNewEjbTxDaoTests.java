@@ -37,6 +37,6 @@ import org.springframework.test.context.transaction.TransactionalTestExecutionLi
 @Rollback
 class RollbackForRequiresNewEjbTxDaoTests extends CommitForRequiresNewEjbTxDaoTests {
 
-	/* test methods in superclass */
+    /* test methods in superclass */
 
 }

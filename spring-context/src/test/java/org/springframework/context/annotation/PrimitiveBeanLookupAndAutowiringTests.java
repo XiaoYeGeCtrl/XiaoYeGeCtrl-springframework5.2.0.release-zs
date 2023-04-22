@@ -32,7 +32,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * Prior to these changes, an attempt to lookup or inject a bean of type boolean would
  * fail because all spring beans are Objects, regardless of initial type due to the way
  * that ObjectFactory works.
- *
+ * <p>
  * Now these attempts to lookup or inject primitive types work, thanks to simple changes
  * in AbstractBeanFactory using ClassUtils#isAssignable methods instead of the built-in
  * Class#isAssignableFrom. The former takes into account primitives and their object
@@ -43,63 +43,67 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 public class PrimitiveBeanLookupAndAutowiringTests {
 
-	@Test
-	public void primitiveLookupByName() {
-		ApplicationContext ctx = new AnnotationConfigApplicationContext(Config.class);
-		boolean b = ctx.getBean("b", boolean.class);
-		assertThat(b).isEqualTo(true);
-		int i = ctx.getBean("i", int.class);
-		assertThat(i).isEqualTo(42);
-	}
+    @Test
+    public void primitiveLookupByName() {
+        ApplicationContext ctx = new AnnotationConfigApplicationContext(Config.class);
+        boolean b = ctx.getBean("b", boolean.class);
+        assertThat(b).isEqualTo(true);
+        int i = ctx.getBean("i", int.class);
+        assertThat(i).isEqualTo(42);
+    }
 
-	@Test
-	public void primitiveLookupByType() {
-		ApplicationContext ctx = new AnnotationConfigApplicationContext(Config.class);
-		boolean b = ctx.getBean(boolean.class);
-		assertThat(b).isEqualTo(true);
-		int i = ctx.getBean(int.class);
-		assertThat(i).isEqualTo(42);
-	}
+    @Test
+    public void primitiveLookupByType() {
+        ApplicationContext ctx = new AnnotationConfigApplicationContext(Config.class);
+        boolean b = ctx.getBean(boolean.class);
+        assertThat(b).isEqualTo(true);
+        int i = ctx.getBean(int.class);
+        assertThat(i).isEqualTo(42);
+    }
 
-	@Test
-	public void primitiveAutowiredInjection() {
-		ApplicationContext ctx =
-				new AnnotationConfigApplicationContext(Config.class, AutowiredComponent.class);
-		assertThat(ctx.getBean(AutowiredComponent.class).b).isEqualTo(true);
-		assertThat(ctx.getBean(AutowiredComponent.class).i).isEqualTo(42);
-	}
+    @Test
+    public void primitiveAutowiredInjection() {
+        ApplicationContext ctx =
+                new AnnotationConfigApplicationContext(Config.class, AutowiredComponent.class);
+        assertThat(ctx.getBean(AutowiredComponent.class).b).isEqualTo(true);
+        assertThat(ctx.getBean(AutowiredComponent.class).i).isEqualTo(42);
+    }
 
-	@Test
-	public void primitiveResourceInjection() {
-		ApplicationContext ctx =
-				new AnnotationConfigApplicationContext(Config.class, ResourceComponent.class);
-		assertThat(ctx.getBean(ResourceComponent.class).b).isEqualTo(true);
-		assertThat(ctx.getBean(ResourceComponent.class).i).isEqualTo(42);
-	}
-
-
-	@Configuration
-	static class Config {
-		@Bean
-		public boolean b() {
-			return true;
-		}
-
-		@Bean
-		public int i() {
-			return 42;
-		}
-	}
+    @Test
+    public void primitiveResourceInjection() {
+        ApplicationContext ctx =
+                new AnnotationConfigApplicationContext(Config.class, ResourceComponent.class);
+        assertThat(ctx.getBean(ResourceComponent.class).b).isEqualTo(true);
+        assertThat(ctx.getBean(ResourceComponent.class).i).isEqualTo(42);
+    }
 
 
-	static class AutowiredComponent {
-		@Autowired boolean b;
-		@Autowired int i;
-	}
+    @Configuration
+    static class Config {
+        @Bean
+        public boolean b() {
+            return true;
+        }
+
+        @Bean
+        public int i() {
+            return 42;
+        }
+    }
 
 
-	static class ResourceComponent {
-		@Resource boolean b;
-		@Autowired int i;
-	}
+    static class AutowiredComponent {
+        @Autowired
+        boolean b;
+        @Autowired
+        int i;
+    }
+
+
+    static class ResourceComponent {
+        @Resource
+        boolean b;
+        @Autowired
+        int i;
+    }
 }

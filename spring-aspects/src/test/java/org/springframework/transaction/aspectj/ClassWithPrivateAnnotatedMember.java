@@ -23,10 +23,11 @@ import org.springframework.transaction.annotation.Transactional;
  */
 public class ClassWithPrivateAnnotatedMember {
 
-	public void doSomething() {
-		doInTransaction();
-	}
+    public void doSomething() {
+        doInTransaction();
+    }
 
-	@Transactional
-	private void doInTransaction() {}
+    @Transactional
+    private void doInTransaction() {
+    }
 }

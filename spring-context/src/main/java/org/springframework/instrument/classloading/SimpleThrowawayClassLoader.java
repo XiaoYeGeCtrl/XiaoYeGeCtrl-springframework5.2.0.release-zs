@@ -29,17 +29,18 @@ import org.springframework.lang.Nullable;
  */
 public class SimpleThrowawayClassLoader extends OverridingClassLoader {
 
-	static {
-		ClassLoader.registerAsParallelCapable();
-	}
+    static {
+        ClassLoader.registerAsParallelCapable();
+    }
 
 
-	/**
-	 * Create a new SimpleThrowawayClassLoader for the given ClassLoader.
-	 * @param parent the ClassLoader to build a throwaway ClassLoader for
-	 */
-	public SimpleThrowawayClassLoader(@Nullable ClassLoader parent) {
-		super(parent);
-	}
+    /**
+     * Create a new SimpleThrowawayClassLoader for the given ClassLoader.
+     *
+     * @param parent the ClassLoader to build a throwaway ClassLoader for
+     */
+    public SimpleThrowawayClassLoader(@Nullable ClassLoader parent) {
+        super(parent);
+    }
 
 }

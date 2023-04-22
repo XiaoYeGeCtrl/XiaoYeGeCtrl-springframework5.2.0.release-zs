@@ -38,55 +38,56 @@ import org.springframework.web.server.ServerWebInputException;
  */
 public class CookieValueMethodArgumentResolver extends AbstractNamedValueSyncArgumentResolver {
 
-	/**
-	 * Create a new {@link CookieValueMethodArgumentResolver} instance.
-	 * @param factory a bean factory to use for resolving {@code ${...}}
-	 * placeholder and {@code #{...}} SpEL expressions in default values;
-	 * or {@code null} if default values are not expected to contain expressions
-	 * @param registry for checking reactive type wrappers
-	 */
-	public CookieValueMethodArgumentResolver(@Nullable ConfigurableBeanFactory factory,
-			ReactiveAdapterRegistry registry) {
+    /**
+     * Create a new {@link CookieValueMethodArgumentResolver} instance.
+     *
+     * @param factory  a bean factory to use for resolving {@code ${...}}
+     *                 placeholder and {@code #{...}} SpEL expressions in default values;
+     *                 or {@code null} if default values are not expected to contain expressions
+     * @param registry for checking reactive type wrappers
+     */
+    public CookieValueMethodArgumentResolver(@Nullable ConfigurableBeanFactory factory,
+                                             ReactiveAdapterRegistry registry) {
 
-		super(factory, registry);
-	}
-
-
-	@Override
-	public boolean supportsParameter(MethodParameter param) {
-		return checkAnnotatedParamNoReactiveWrapper(param, CookieValue.class, (annot, type) -> true);
-	}
-
-	@Override
-	protected NamedValueInfo createNamedValueInfo(MethodParameter parameter) {
-		CookieValue ann = parameter.getParameterAnnotation(CookieValue.class);
-		Assert.state(ann != null, "No CookieValue annotation");
-		return new CookieValueNamedValueInfo(ann);
-	}
-
-	@Override
-	protected Object resolveNamedValue(String name, MethodParameter parameter, ServerWebExchange exchange) {
-		HttpCookie cookie = exchange.getRequest().getCookies().getFirst(name);
-		Class<?> paramType = parameter.getNestedParameterType();
-		if (HttpCookie.class.isAssignableFrom(paramType)) {
-			return cookie;
-		}
-		return (cookie != null ? cookie.getValue() : null);
-	}
-
-	@Override
-	protected void handleMissingValue(String name, MethodParameter parameter) {
-		String type = parameter.getNestedParameterType().getSimpleName();
-		String reason = "Missing cookie '" + name + "' for method parameter of type " + type;
-		throw new ServerWebInputException(reason, parameter);
-	}
+        super(factory, registry);
+    }
 
 
-	private static final class CookieValueNamedValueInfo extends NamedValueInfo {
+    @Override
+    public boolean supportsParameter(MethodParameter param) {
+        return checkAnnotatedParamNoReactiveWrapper(param, CookieValue.class, (annot, type) -> true);
+    }
 
-		private CookieValueNamedValueInfo(CookieValue annotation) {
-			super(annotation.name(), annotation.required(), annotation.defaultValue());
-		}
-	}
+    @Override
+    protected NamedValueInfo createNamedValueInfo(MethodParameter parameter) {
+        CookieValue ann = parameter.getParameterAnnotation(CookieValue.class);
+        Assert.state(ann != null, "No CookieValue annotation");
+        return new CookieValueNamedValueInfo(ann);
+    }
+
+    @Override
+    protected Object resolveNamedValue(String name, MethodParameter parameter, ServerWebExchange exchange) {
+        HttpCookie cookie = exchange.getRequest().getCookies().getFirst(name);
+        Class<?> paramType = parameter.getNestedParameterType();
+        if (HttpCookie.class.isAssignableFrom(paramType)) {
+            return cookie;
+        }
+        return (cookie != null ? cookie.getValue() : null);
+    }
+
+    @Override
+    protected void handleMissingValue(String name, MethodParameter parameter) {
+        String type = parameter.getNestedParameterType().getSimpleName();
+        String reason = "Missing cookie '" + name + "' for method parameter of type " + type;
+        throw new ServerWebInputException(reason, parameter);
+    }
+
+
+    private static final class CookieValueNamedValueInfo extends NamedValueInfo {
+
+        private CookieValueNamedValueInfo(CookieValue annotation) {
+            super(annotation.name(), annotation.required(), annotation.defaultValue());
+        }
+    }
 
 }

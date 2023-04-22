@@ -31,34 +31,34 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 public class ResourceTests {
 
-	@Test
-	public void testServletContextResource() throws IOException {
-		MockServletContext sc = new MockServletContext();
-		Resource resource = new ServletContextResource(sc, "org/springframework/core/io/Resource.class");
-		doTestResource(resource);
-		assertThat(new ServletContextResource(sc, "org/springframework/core/../core/io/./Resource.class")).isEqualTo(resource);
-	}
+    @Test
+    public void testServletContextResource() throws IOException {
+        MockServletContext sc = new MockServletContext();
+        Resource resource = new ServletContextResource(sc, "org/springframework/core/io/Resource.class");
+        doTestResource(resource);
+        assertThat(new ServletContextResource(sc, "org/springframework/core/../core/io/./Resource.class")).isEqualTo(resource);
+    }
 
-	@Test
-	public void testServletContextResourceWithRelativePath() throws IOException {
-		MockServletContext sc = new MockServletContext();
-		Resource resource = new ServletContextResource(sc, "dir/");
-		Resource relative = resource.createRelative("subdir");
-		assertThat(relative).isEqualTo(new ServletContextResource(sc, "dir/subdir"));
-	}
+    @Test
+    public void testServletContextResourceWithRelativePath() throws IOException {
+        MockServletContext sc = new MockServletContext();
+        Resource resource = new ServletContextResource(sc, "dir/");
+        Resource relative = resource.createRelative("subdir");
+        assertThat(relative).isEqualTo(new ServletContextResource(sc, "dir/subdir"));
+    }
 
-	private void doTestResource(Resource resource) throws IOException {
-		assertThat(resource.getFilename()).isEqualTo("Resource.class");
-		assertThat(resource.getURL().getFile().endsWith("Resource.class")).isTrue();
+    private void doTestResource(Resource resource) throws IOException {
+        assertThat(resource.getFilename()).isEqualTo("Resource.class");
+        assertThat(resource.getURL().getFile().endsWith("Resource.class")).isTrue();
 
-		Resource relative1 = resource.createRelative("ClassPathResource.class");
-		assertThat(relative1.getFilename()).isEqualTo("ClassPathResource.class");
-		assertThat(relative1.getURL().getFile().endsWith("ClassPathResource.class")).isTrue();
-		assertThat(relative1.exists()).isTrue();
+        Resource relative1 = resource.createRelative("ClassPathResource.class");
+        assertThat(relative1.getFilename()).isEqualTo("ClassPathResource.class");
+        assertThat(relative1.getURL().getFile().endsWith("ClassPathResource.class")).isTrue();
+        assertThat(relative1.exists()).isTrue();
 
-		Resource relative2 = resource.createRelative("support/ResourcePatternResolver.class");
-		assertThat(relative2.getFilename()).isEqualTo("ResourcePatternResolver.class");
-		assertThat(relative2.getURL().getFile().endsWith("ResourcePatternResolver.class")).isTrue();
-		assertThat(relative2.exists()).isTrue();
-	}
+        Resource relative2 = resource.createRelative("support/ResourcePatternResolver.class");
+        assertThat(relative2.getFilename()).isEqualTo("ResourcePatternResolver.class");
+        assertThat(relative2.getURL().getFile().endsWith("ResourcePatternResolver.class")).isTrue();
+        assertThat(relative2.exists()).isTrue();
+    }
 }

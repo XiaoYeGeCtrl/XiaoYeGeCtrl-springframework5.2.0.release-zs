@@ -36,72 +36,72 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
  */
 public class ComponentScanParserScopedProxyTests {
 
-	@Test
-	public void testDefaultScopedProxy() {
-		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
-				"org/springframework/context/annotation/scopedProxyDefaultTests.xml");
-		context.getBeanFactory().registerScope("myScope", new SimpleMapScope());
+    @Test
+    public void testDefaultScopedProxy() {
+        ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+                "org/springframework/context/annotation/scopedProxyDefaultTests.xml");
+        context.getBeanFactory().registerScope("myScope", new SimpleMapScope());
 
-		ScopedProxyTestBean bean = (ScopedProxyTestBean) context.getBean("scopedProxyTestBean");
-		// should not be a proxy
-		assertThat(AopUtils.isAopProxy(bean)).isFalse();
-		context.close();
-	}
+        ScopedProxyTestBean bean = (ScopedProxyTestBean) context.getBean("scopedProxyTestBean");
+        // should not be a proxy
+        assertThat(AopUtils.isAopProxy(bean)).isFalse();
+        context.close();
+    }
 
-	@Test
-	public void testNoScopedProxy() {
-		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
-				"org/springframework/context/annotation/scopedProxyNoTests.xml");
-		context.getBeanFactory().registerScope("myScope", new SimpleMapScope());
+    @Test
+    public void testNoScopedProxy() {
+        ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+                "org/springframework/context/annotation/scopedProxyNoTests.xml");
+        context.getBeanFactory().registerScope("myScope", new SimpleMapScope());
 
-		ScopedProxyTestBean bean = (ScopedProxyTestBean) context.getBean("scopedProxyTestBean");
-		// should not be a proxy
-		assertThat(AopUtils.isAopProxy(bean)).isFalse();
-		context.close();
-	}
+        ScopedProxyTestBean bean = (ScopedProxyTestBean) context.getBean("scopedProxyTestBean");
+        // should not be a proxy
+        assertThat(AopUtils.isAopProxy(bean)).isFalse();
+        context.close();
+    }
 
-	@Test
-	public void testInterfacesScopedProxy() throws Exception {
-		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
-				"org/springframework/context/annotation/scopedProxyInterfacesTests.xml");
-		context.getBeanFactory().registerScope("myScope", new SimpleMapScope());
+    @Test
+    public void testInterfacesScopedProxy() throws Exception {
+        ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+                "org/springframework/context/annotation/scopedProxyInterfacesTests.xml");
+        context.getBeanFactory().registerScope("myScope", new SimpleMapScope());
 
-		// should cast to the interface
-		FooService bean = (FooService) context.getBean("scopedProxyTestBean");
-		// should be dynamic proxy
-		assertThat(AopUtils.isJdkDynamicProxy(bean)).isTrue();
-		// test serializability
-		assertThat(bean.foo(1)).isEqualTo("bar");
-		FooService deserialized = (FooService) SerializationTestUtils.serializeAndDeserialize(bean);
-		assertThat(deserialized).isNotNull();
-		assertThat(deserialized.foo(1)).isEqualTo("bar");
-		context.close();
-	}
+        // should cast to the interface
+        FooService bean = (FooService) context.getBean("scopedProxyTestBean");
+        // should be dynamic proxy
+        assertThat(AopUtils.isJdkDynamicProxy(bean)).isTrue();
+        // test serializability
+        assertThat(bean.foo(1)).isEqualTo("bar");
+        FooService deserialized = (FooService) SerializationTestUtils.serializeAndDeserialize(bean);
+        assertThat(deserialized).isNotNull();
+        assertThat(deserialized.foo(1)).isEqualTo("bar");
+        context.close();
+    }
 
-	@Test
-	public void testTargetClassScopedProxy() throws Exception {
-		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
-				"org/springframework/context/annotation/scopedProxyTargetClassTests.xml");
-		context.getBeanFactory().registerScope("myScope", new SimpleMapScope());
+    @Test
+    public void testTargetClassScopedProxy() throws Exception {
+        ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+                "org/springframework/context/annotation/scopedProxyTargetClassTests.xml");
+        context.getBeanFactory().registerScope("myScope", new SimpleMapScope());
 
-		ScopedProxyTestBean bean = (ScopedProxyTestBean) context.getBean("scopedProxyTestBean");
-		// should be a class-based proxy
-		assertThat(AopUtils.isCglibProxy(bean)).isTrue();
-		// test serializability
-		assertThat(bean.foo(1)).isEqualTo("bar");
-		ScopedProxyTestBean deserialized = (ScopedProxyTestBean) SerializationTestUtils.serializeAndDeserialize(bean);
-		assertThat(deserialized).isNotNull();
-		assertThat(deserialized.foo(1)).isEqualTo("bar");
-		context.close();
-	}
+        ScopedProxyTestBean bean = (ScopedProxyTestBean) context.getBean("scopedProxyTestBean");
+        // should be a class-based proxy
+        assertThat(AopUtils.isCglibProxy(bean)).isTrue();
+        // test serializability
+        assertThat(bean.foo(1)).isEqualTo("bar");
+        ScopedProxyTestBean deserialized = (ScopedProxyTestBean) SerializationTestUtils.serializeAndDeserialize(bean);
+        assertThat(deserialized).isNotNull();
+        assertThat(deserialized.foo(1)).isEqualTo("bar");
+        context.close();
+    }
 
-	@Test
-	@SuppressWarnings("resource")
-	public void testInvalidConfigScopedProxy() throws Exception {
-		assertThatExceptionOfType(BeanDefinitionParsingException.class).isThrownBy(() ->
-				new ClassPathXmlApplicationContext("org/springframework/context/annotation/scopedProxyInvalidConfigTests.xml"))
-			.withMessageContaining("Cannot define both 'scope-resolver' and 'scoped-proxy' on <component-scan> tag")
-			.withMessageContaining("Offending resource: class path resource [org/springframework/context/annotation/scopedProxyInvalidConfigTests.xml]");
-	}
+    @Test
+    @SuppressWarnings("resource")
+    public void testInvalidConfigScopedProxy() throws Exception {
+        assertThatExceptionOfType(BeanDefinitionParsingException.class).isThrownBy(() ->
+                new ClassPathXmlApplicationContext("org/springframework/context/annotation/scopedProxyInvalidConfigTests.xml"))
+                .withMessageContaining("Cannot define both 'scope-resolver' and 'scoped-proxy' on <component-scan> tag")
+                .withMessageContaining("Offending resource: class path resource [org/springframework/context/annotation/scopedProxyInvalidConfigTests.xml]");
+    }
 
 }

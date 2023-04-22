@@ -29,36 +29,33 @@ import org.springframework.ui.context.ThemeSource;
  * define its own ThemeSource. Not intended for direct use in applications.
  *
  * @author Juergen Hoeller
- * @since 1.2.4
  * @see UiApplicationContextUtils
+ * @since 1.2.4
  */
 public class DelegatingThemeSource implements HierarchicalThemeSource {
 
-	@Nullable
-	private ThemeSource parentThemeSource;
+    @Nullable
+    private ThemeSource parentThemeSource;
 
+    @Override
+    @Nullable
+    public ThemeSource getParentThemeSource() {
+        return this.parentThemeSource;
+    }
 
-	@Override
-	public void setParentThemeSource(@Nullable ThemeSource parentThemeSource) {
-		this.parentThemeSource = parentThemeSource;
-	}
+    @Override
+    public void setParentThemeSource(@Nullable ThemeSource parentThemeSource) {
+        this.parentThemeSource = parentThemeSource;
+    }
 
-	@Override
-	@Nullable
-	public ThemeSource getParentThemeSource() {
-		return this.parentThemeSource;
-	}
-
-
-	@Override
-	@Nullable
-	public Theme getTheme(String themeName) {
-		if (this.parentThemeSource != null) {
-			return this.parentThemeSource.getTheme(themeName);
-		}
-		else {
-			return null;
-		}
-	}
+    @Override
+    @Nullable
+    public Theme getTheme(String themeName) {
+        if (this.parentThemeSource != null) {
+            return this.parentThemeSource.getTheme(themeName);
+        } else {
+            return null;
+        }
+    }
 
 }

@@ -40,36 +40,36 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 public class FixedLocaleContextResolverTests {
 
-	@BeforeEach
-	public void setup() {
-		Locale.setDefault(US);
-	}
+    @BeforeEach
+    public void setup() {
+        Locale.setDefault(US);
+    }
 
-	@Test
-	public void resolveDefaultLocale() {
-		FixedLocaleContextResolver resolver = new FixedLocaleContextResolver();
-		assertThat(resolver.resolveLocaleContext(exchange()).getLocale()).isEqualTo(US);
-		assertThat(resolver.resolveLocaleContext(exchange(CANADA)).getLocale()).isEqualTo(US);
-	}
+    @Test
+    public void resolveDefaultLocale() {
+        FixedLocaleContextResolver resolver = new FixedLocaleContextResolver();
+        assertThat(resolver.resolveLocaleContext(exchange()).getLocale()).isEqualTo(US);
+        assertThat(resolver.resolveLocaleContext(exchange(CANADA)).getLocale()).isEqualTo(US);
+    }
 
-	@Test
-	public void resolveCustomizedLocale() {
-		FixedLocaleContextResolver resolver = new FixedLocaleContextResolver(FRANCE);
-		assertThat(resolver.resolveLocaleContext(exchange()).getLocale()).isEqualTo(FRANCE);
-		assertThat(resolver.resolveLocaleContext(exchange(CANADA)).getLocale()).isEqualTo(FRANCE);
-	}
+    @Test
+    public void resolveCustomizedLocale() {
+        FixedLocaleContextResolver resolver = new FixedLocaleContextResolver(FRANCE);
+        assertThat(resolver.resolveLocaleContext(exchange()).getLocale()).isEqualTo(FRANCE);
+        assertThat(resolver.resolveLocaleContext(exchange(CANADA)).getLocale()).isEqualTo(FRANCE);
+    }
 
-	@Test
-	public void resolveCustomizedAndTimeZoneLocale() {
-		TimeZone timeZone = TimeZone.getTimeZone(ZoneId.of("UTC"));
-		FixedLocaleContextResolver resolver = new FixedLocaleContextResolver(FRANCE, timeZone);
-		TimeZoneAwareLocaleContext context = (TimeZoneAwareLocaleContext) resolver.resolveLocaleContext(exchange());
-		assertThat(context.getLocale()).isEqualTo(FRANCE);
-		assertThat(context.getTimeZone()).isEqualTo(timeZone);
-	}
+    @Test
+    public void resolveCustomizedAndTimeZoneLocale() {
+        TimeZone timeZone = TimeZone.getTimeZone(ZoneId.of("UTC"));
+        FixedLocaleContextResolver resolver = new FixedLocaleContextResolver(FRANCE, timeZone);
+        TimeZoneAwareLocaleContext context = (TimeZoneAwareLocaleContext) resolver.resolveLocaleContext(exchange());
+        assertThat(context.getLocale()).isEqualTo(FRANCE);
+        assertThat(context.getTimeZone()).isEqualTo(timeZone);
+    }
 
-	private ServerWebExchange exchange(Locale... locales) {
-		return MockServerWebExchange.from(MockServerHttpRequest.get("").acceptLanguageAsLocales(locales));
-	}
+    private ServerWebExchange exchange(Locale... locales) {
+        return MockServerWebExchange.from(MockServerHttpRequest.get("").acceptLanguageAsLocales(locales));
+    }
 
 }

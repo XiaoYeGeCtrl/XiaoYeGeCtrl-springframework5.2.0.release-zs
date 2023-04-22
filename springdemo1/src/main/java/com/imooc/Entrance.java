@@ -15,10 +15,10 @@ public class Entrance {
     public static void main(String[] args) {
 
         // 通过FileSystemXmlApplicationContext获取bean容器实例
-		String xmlPath = "/d/workspace-idea/imooc/springframework/ZhuShi/springframework5.2.0.release-zhushi/springframework5.2.0.release/springdemo1/src/main/java/com/imooc/service";
-		ApplicationContext applicationContext = new FileSystemXmlApplicationContext(xmlPath);
-		WelcomeService welcomeService = (WelcomeService) applicationContext.getBean("welcomeService");
-		welcomeService.sayHello("强大的spring框架");
+        String xmlPath = "/d/workspace-idea/imooc/springframework/ZhuShi/springframework5.2.0.release-zhushi/springframework5.2.0.release/springdemo1/src/main/java/com/imooc/service";
+        ApplicationContext applicationContext = new FileSystemXmlApplicationContext(xmlPath);
+        WelcomeService welcomeService = (WelcomeService) applicationContext.getBean("welcomeService");
+        welcomeService.sayHello("强大的spring框架");
 
 
         /**

@@ -35,37 +35,37 @@ import org.springframework.util.Assert;
 @SuppressWarnings("serial")
 public class MethodNotAllowedException extends ResponseStatusException {
 
-	private final String method;
+    private final String method;
 
-	private final Set<HttpMethod> supportedMethods;
-
-
-	public MethodNotAllowedException(HttpMethod method, Collection<HttpMethod> supportedMethods) {
-		this(method.name(), supportedMethods);
-	}
-
-	public MethodNotAllowedException(String method, @Nullable Collection<HttpMethod> supportedMethods) {
-		super(HttpStatus.METHOD_NOT_ALLOWED, "Request method '" + method + "' not supported");
-		Assert.notNull(method, "'method' is required");
-		if (supportedMethods == null) {
-			supportedMethods = Collections.emptySet();
-		}
-		this.method = method;
-		this.supportedMethods = Collections.unmodifiableSet(new HashSet<>(supportedMethods));
-	}
+    private final Set<HttpMethod> supportedMethods;
 
 
-	/**
-	 * Return the HTTP method for the failed request.
-	 */
-	public String getHttpMethod() {
-		return this.method;
-	}
+    public MethodNotAllowedException(HttpMethod method, Collection<HttpMethod> supportedMethods) {
+        this(method.name(), supportedMethods);
+    }
 
-	/**
-	 * Return the list of supported HTTP methods.
-	 */
-	public Set<HttpMethod> getSupportedMethods() {
-		return this.supportedMethods;
-	}
+    public MethodNotAllowedException(String method, @Nullable Collection<HttpMethod> supportedMethods) {
+        super(HttpStatus.METHOD_NOT_ALLOWED, "Request method '" + method + "' not supported");
+        Assert.notNull(method, "'method' is required");
+        if (supportedMethods == null) {
+            supportedMethods = Collections.emptySet();
+        }
+        this.method = method;
+        this.supportedMethods = Collections.unmodifiableSet(new HashSet<>(supportedMethods));
+    }
+
+
+    /**
+     * Return the HTTP method for the failed request.
+     */
+    public String getHttpMethod() {
+        return this.method;
+    }
+
+    /**
+     * Return the list of supported HTTP methods.
+     */
+    public Set<HttpMethod> getSupportedMethods() {
+        return this.supportedMethods;
+    }
 }

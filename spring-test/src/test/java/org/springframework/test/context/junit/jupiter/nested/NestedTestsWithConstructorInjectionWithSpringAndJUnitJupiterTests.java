@@ -42,114 +42,114 @@ import static org.assertj.core.api.Assertions.assertThat;
  * Platform, simply run {@link SpringJUnitJupiterTestSuite} as a JUnit 4 test.
  *
  * @author Sam Brannen
- * @since 5.0.5
  * @see NestedTestsWithSpringAndJUnitJupiterTests
  * @see org.springframework.test.context.junit4.nested.NestedTestsWithSpringRulesTests
+ * @since 5.0.5
  */
 @SpringJUnitConfig(TopLevelConfig.class)
 class NestedTestsWithConstructorInjectionWithSpringAndJUnitJupiterTests {
 
-	final String foo;
+    final String foo;
 
-	NestedTestsWithConstructorInjectionWithSpringAndJUnitJupiterTests(TestInfo testInfo, @Autowired String foo) {
-		this.foo = foo;
-	}
+    NestedTestsWithConstructorInjectionWithSpringAndJUnitJupiterTests(TestInfo testInfo, @Autowired String foo) {
+        this.foo = foo;
+    }
 
-	@Test
-	void topLevelTest() {
-		assertThat(foo).isEqualTo("foo");
-	}
+    @Test
+    void topLevelTest() {
+        assertThat(foo).isEqualTo("foo");
+    }
 
-	@Nested
-	@SpringJUnitConfig(NestedConfig.class)
-	class AutowiredConstructorTests {
+    @Configuration
+    static class TopLevelConfig {
 
-		final String bar;
+        @Bean
+        String foo() {
+            return "foo";
+        }
+    }
 
-		@Autowired
-		AutowiredConstructorTests(String bar) {
-			this.bar = bar;
-		}
+    @Configuration
+    static class NestedConfig {
 
-		@Test
-		void nestedTest() throws Exception {
-			assertThat(foo).isEqualTo("foo");
-			assertThat(bar).isEqualTo("bar");
-		}
-	}
+        @Bean
+        String bar() {
+            return "bar";
+        }
+    }
 
-	@Nested
-	@SpringJUnitConfig(NestedConfig.class)
-	class AutowiredConstructorParameterTests {
+    @Nested
+    @SpringJUnitConfig(NestedConfig.class)
+    class AutowiredConstructorTests {
 
-		final String bar;
+        final String bar;
 
-		AutowiredConstructorParameterTests(@Autowired String bar) {
-			this.bar = bar;
-		}
+        @Autowired
+        AutowiredConstructorTests(String bar) {
+            this.bar = bar;
+        }
 
-		@Test
-		void nestedTest() throws Exception {
-			assertThat(foo).isEqualTo("foo");
-			assertThat(bar).isEqualTo("bar");
-		}
-	}
+        @Test
+        void nestedTest() throws Exception {
+            assertThat(foo).isEqualTo("foo");
+            assertThat(bar).isEqualTo("bar");
+        }
+    }
 
-	@Nested
-	@SpringJUnitConfig(NestedConfig.class)
-	class QualifiedConstructorParameterTests {
+    @Nested
+    @SpringJUnitConfig(NestedConfig.class)
+    class AutowiredConstructorParameterTests {
 
-		final String bar;
+        final String bar;
 
-		QualifiedConstructorParameterTests(TestInfo testInfo, @Qualifier("bar") String s) {
-			this.bar = s;
-		}
+        AutowiredConstructorParameterTests(@Autowired String bar) {
+            this.bar = bar;
+        }
 
-		@Test
-		void nestedTest() throws Exception {
-			assertThat(foo).isEqualTo("foo");
-			assertThat(bar).isEqualTo("bar");
-		}
-	}
+        @Test
+        void nestedTest() throws Exception {
+            assertThat(foo).isEqualTo("foo");
+            assertThat(bar).isEqualTo("bar");
+        }
+    }
 
-	@Nested
-	@SpringJUnitConfig(NestedConfig.class)
-	class SpelConstructorParameterTests {
+    // -------------------------------------------------------------------------
 
-		final String bar;
-		final int answer;
+    @Nested
+    @SpringJUnitConfig(NestedConfig.class)
+    class QualifiedConstructorParameterTests {
 
-		SpelConstructorParameterTests(@Autowired String bar, TestInfo testInfo, @Value("#{ 6 * 7 }") int answer) {
-			this.bar = bar;
-			this.answer = answer;
-		}
+        final String bar;
 
-		@Test
-		void nestedTest() throws Exception {
-			assertThat(foo).isEqualTo("foo");
-			assertThat(bar).isEqualTo("bar");
-			assertThat(answer).isEqualTo(42);
-		}
-	}
+        QualifiedConstructorParameterTests(TestInfo testInfo, @Qualifier("bar") String s) {
+            this.bar = s;
+        }
 
-	// -------------------------------------------------------------------------
+        @Test
+        void nestedTest() throws Exception {
+            assertThat(foo).isEqualTo("foo");
+            assertThat(bar).isEqualTo("bar");
+        }
+    }
 
-	@Configuration
-	static class TopLevelConfig {
+    @Nested
+    @SpringJUnitConfig(NestedConfig.class)
+    class SpelConstructorParameterTests {
 
-		@Bean
-		String foo() {
-			return "foo";
-		}
-	}
+        final String bar;
+        final int answer;
 
-	@Configuration
-	static class NestedConfig {
+        SpelConstructorParameterTests(@Autowired String bar, TestInfo testInfo, @Value("#{ 6 * 7 }") int answer) {
+            this.bar = bar;
+            this.answer = answer;
+        }
 
-		@Bean
-		String bar() {
-			return "bar";
-		}
-	}
+        @Test
+        void nestedTest() throws Exception {
+            assertThat(foo).isEqualTo("foo");
+            assertThat(bar).isEqualTo("bar");
+            assertThat(answer).isEqualTo(42);
+        }
+    }
 
 }

@@ -44,35 +44,36 @@ import org.springframework.util.Assert;
  */
 public class MappingJackson2CborHttpMessageConverter extends AbstractJackson2HttpMessageConverter {
 
-	/**
-	 * Construct a new {@code MappingJackson2CborHttpMessageConverter} using the
-	 * default configuration provided by {@code Jackson2ObjectMapperBuilder}.
-	 */
-	public MappingJackson2CborHttpMessageConverter() {
-		this(Jackson2ObjectMapperBuilder.cbor().build());
-	}
+    /**
+     * Construct a new {@code MappingJackson2CborHttpMessageConverter} using the
+     * default configuration provided by {@code Jackson2ObjectMapperBuilder}.
+     */
+    public MappingJackson2CborHttpMessageConverter() {
+        this(Jackson2ObjectMapperBuilder.cbor().build());
+    }
 
-	/**
-	 * Construct a new {@code MappingJackson2CborHttpMessageConverter} with a
-	 * custom {@link ObjectMapper} (must be configured with a {@code CBORFactory}
-	 * instance).
-	 * <p>You can use {@link Jackson2ObjectMapperBuilder} to build it easily.
-	 * @see Jackson2ObjectMapperBuilder#cbor()
-	 */
-	public MappingJackson2CborHttpMessageConverter(ObjectMapper objectMapper) {
-		super(objectMapper, MediaType.APPLICATION_CBOR);
-		Assert.isInstanceOf(CBORFactory.class, objectMapper.getFactory(), "CBORFactory required");
-	}
+    /**
+     * Construct a new {@code MappingJackson2CborHttpMessageConverter} with a
+     * custom {@link ObjectMapper} (must be configured with a {@code CBORFactory}
+     * instance).
+     * <p>You can use {@link Jackson2ObjectMapperBuilder} to build it easily.
+     *
+     * @see Jackson2ObjectMapperBuilder#cbor()
+     */
+    public MappingJackson2CborHttpMessageConverter(ObjectMapper objectMapper) {
+        super(objectMapper, MediaType.APPLICATION_CBOR);
+        Assert.isInstanceOf(CBORFactory.class, objectMapper.getFactory(), "CBORFactory required");
+    }
 
 
-	/**
-	 * {@inheritDoc}
-	 * The {@code ObjectMapper} must be configured with a {@code CBORFactory} instance.
-	 */
-	@Override
-	public void setObjectMapper(ObjectMapper objectMapper) {
-		Assert.isInstanceOf(CBORFactory.class, objectMapper.getFactory(), "CBORFactory required");
-		super.setObjectMapper(objectMapper);
-	}
+    /**
+     * {@inheritDoc}
+     * The {@code ObjectMapper} must be configured with a {@code CBORFactory} instance.
+     */
+    @Override
+    public void setObjectMapper(ObjectMapper objectMapper) {
+        Assert.isInstanceOf(CBORFactory.class, objectMapper.getFactory(), "CBORFactory required");
+        super.setObjectMapper(objectMapper);
+    }
 
 }

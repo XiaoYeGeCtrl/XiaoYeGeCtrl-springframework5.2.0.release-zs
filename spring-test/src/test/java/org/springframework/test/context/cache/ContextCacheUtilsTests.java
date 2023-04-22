@@ -35,56 +35,56 @@ import static org.springframework.test.context.cache.ContextCacheUtils.retrieveM
  */
 class ContextCacheUtilsTests {
 
-	@BeforeEach
-	@AfterEach
-	void clearProperties() {
-		System.clearProperty(MAX_CONTEXT_CACHE_SIZE_PROPERTY_NAME);
-		SpringProperties.setProperty(MAX_CONTEXT_CACHE_SIZE_PROPERTY_NAME, null);
-	}
+    private static void assertDefaultValue() {
+        assertThat(retrieveMaxCacheSize()).isEqualTo(DEFAULT_MAX_CONTEXT_CACHE_SIZE);
+    }
 
-	@Test
-	void retrieveMaxCacheSizeFromDefault() {
-		assertDefaultValue();
-	}
+    @BeforeEach
+    @AfterEach
+    void clearProperties() {
+        System.clearProperty(MAX_CONTEXT_CACHE_SIZE_PROPERTY_NAME);
+        SpringProperties.setProperty(MAX_CONTEXT_CACHE_SIZE_PROPERTY_NAME, null);
+    }
 
-	@Test
-	void retrieveMaxCacheSizeFromBogusSystemProperty() {
-		System.setProperty(MAX_CONTEXT_CACHE_SIZE_PROPERTY_NAME, "bogus");
-		assertDefaultValue();
-	}
+    @Test
+    void retrieveMaxCacheSizeFromDefault() {
+        assertDefaultValue();
+    }
 
-	@Test
-	void retrieveMaxCacheSizeFromBogusSpringProperty() {
-		SpringProperties.setProperty(MAX_CONTEXT_CACHE_SIZE_PROPERTY_NAME, "bogus");
-		assertDefaultValue();
-	}
+    @Test
+    void retrieveMaxCacheSizeFromBogusSystemProperty() {
+        System.setProperty(MAX_CONTEXT_CACHE_SIZE_PROPERTY_NAME, "bogus");
+        assertDefaultValue();
+    }
 
-	@Test
-	void retrieveMaxCacheSizeFromDecimalSpringProperty() {
-		SpringProperties.setProperty(MAX_CONTEXT_CACHE_SIZE_PROPERTY_NAME, "3.14");
-		assertDefaultValue();
-	}
+    @Test
+    void retrieveMaxCacheSizeFromBogusSpringProperty() {
+        SpringProperties.setProperty(MAX_CONTEXT_CACHE_SIZE_PROPERTY_NAME, "bogus");
+        assertDefaultValue();
+    }
 
-	@Test
-	void retrieveMaxCacheSizeFromSystemProperty() {
-		System.setProperty(MAX_CONTEXT_CACHE_SIZE_PROPERTY_NAME, "42");
-		assertThat(retrieveMaxCacheSize()).isEqualTo(42);
-	}
+    @Test
+    void retrieveMaxCacheSizeFromDecimalSpringProperty() {
+        SpringProperties.setProperty(MAX_CONTEXT_CACHE_SIZE_PROPERTY_NAME, "3.14");
+        assertDefaultValue();
+    }
 
-	@Test
-	void retrieveMaxCacheSizeFromSystemPropertyContainingWhitespace() {
-		System.setProperty(MAX_CONTEXT_CACHE_SIZE_PROPERTY_NAME, "42\t");
-		assertThat(retrieveMaxCacheSize()).isEqualTo(42);
-	}
+    @Test
+    void retrieveMaxCacheSizeFromSystemProperty() {
+        System.setProperty(MAX_CONTEXT_CACHE_SIZE_PROPERTY_NAME, "42");
+        assertThat(retrieveMaxCacheSize()).isEqualTo(42);
+    }
 
-	@Test
-	void retrieveMaxCacheSizeFromSpringProperty() {
-		SpringProperties.setProperty(MAX_CONTEXT_CACHE_SIZE_PROPERTY_NAME, "99");
-		assertThat(retrieveMaxCacheSize()).isEqualTo(99);
-	}
+    @Test
+    void retrieveMaxCacheSizeFromSystemPropertyContainingWhitespace() {
+        System.setProperty(MAX_CONTEXT_CACHE_SIZE_PROPERTY_NAME, "42\t");
+        assertThat(retrieveMaxCacheSize()).isEqualTo(42);
+    }
 
-	private static void assertDefaultValue() {
-		assertThat(retrieveMaxCacheSize()).isEqualTo(DEFAULT_MAX_CONTEXT_CACHE_SIZE);
-	}
+    @Test
+    void retrieveMaxCacheSizeFromSpringProperty() {
+        SpringProperties.setProperty(MAX_CONTEXT_CACHE_SIZE_PROPERTY_NAME, "99");
+        assertThat(retrieveMaxCacheSize()).isEqualTo(99);
+    }
 
 }

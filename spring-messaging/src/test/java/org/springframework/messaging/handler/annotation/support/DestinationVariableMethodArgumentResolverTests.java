@@ -40,50 +40,50 @@ import static org.springframework.messaging.handler.annotation.MessagingPredicat
  */
 public class DestinationVariableMethodArgumentResolverTests {
 
-	private final DestinationVariableMethodArgumentResolver resolver =
-			new DestinationVariableMethodArgumentResolver(new DefaultConversionService());
+    private final DestinationVariableMethodArgumentResolver resolver =
+            new DestinationVariableMethodArgumentResolver(new DefaultConversionService());
 
-	private final ResolvableMethod resolvable =
-			ResolvableMethod.on(getClass()).named("handleMessage").build();
+    private final ResolvableMethod resolvable =
+            ResolvableMethod.on(getClass()).named("handleMessage").build();
 
 
-	@Test
-	public void supportsParameter() {
-		assertThat(resolver.supportsParameter(this.resolvable.annot(destinationVar().noValue()).arg())).isTrue();
-		assertThat(resolver.supportsParameter(this.resolvable.annotNotPresent(DestinationVariable.class).arg())).isFalse();
-	}
+    @Test
+    public void supportsParameter() {
+        assertThat(resolver.supportsParameter(this.resolvable.annot(destinationVar().noValue()).arg())).isTrue();
+        assertThat(resolver.supportsParameter(this.resolvable.annotNotPresent(DestinationVariable.class).arg())).isFalse();
+    }
 
-	@Test
-	public void resolveArgument() throws Exception {
+    @Test
+    public void resolveArgument() throws Exception {
 
-		Map<String, Object> vars = new HashMap<>();
-		vars.put("foo", "bar");
-		vars.put("name", "value");
+        Map<String, Object> vars = new HashMap<>();
+        vars.put("foo", "bar");
+        vars.put("name", "value");
 
-		Message<byte[]> message = MessageBuilder.withPayload(new byte[0]).setHeader(
-			DestinationVariableMethodArgumentResolver.DESTINATION_TEMPLATE_VARIABLES_HEADER, vars).build();
+        Message<byte[]> message = MessageBuilder.withPayload(new byte[0]).setHeader(
+                DestinationVariableMethodArgumentResolver.DESTINATION_TEMPLATE_VARIABLES_HEADER, vars).build();
 
-		MethodParameter param = this.resolvable.annot(destinationVar().noValue()).arg();
-		Object result = this.resolver.resolveArgument(param, message);
-		assertThat(result).isEqualTo("bar");
+        MethodParameter param = this.resolvable.annot(destinationVar().noValue()).arg();
+        Object result = this.resolver.resolveArgument(param, message);
+        assertThat(result).isEqualTo("bar");
 
-		param = this.resolvable.annot(destinationVar("name")).arg();
-		result = this.resolver.resolveArgument(param, message);
-		assertThat(result).isEqualTo("value");
-	}
+        param = this.resolvable.annot(destinationVar("name")).arg();
+        result = this.resolver.resolveArgument(param, message);
+        assertThat(result).isEqualTo("value");
+    }
 
-	@Test
-	public void resolveArgumentNotFound() throws Exception {
-		Message<byte[]> message = MessageBuilder.withPayload(new byte[0]).build();
-		assertThatExceptionOfType(MessageHandlingException.class).isThrownBy(() ->
-				this.resolver.resolveArgument(this.resolvable.annot(destinationVar().noValue()).arg(), message));
-	}
+    @Test
+    public void resolveArgumentNotFound() throws Exception {
+        Message<byte[]> message = MessageBuilder.withPayload(new byte[0]).build();
+        assertThatExceptionOfType(MessageHandlingException.class).isThrownBy(() ->
+                this.resolver.resolveArgument(this.resolvable.annot(destinationVar().noValue()).arg(), message));
+    }
 
-	@SuppressWarnings("unused")
-	private void handleMessage(
-			@DestinationVariable String foo,
-			@DestinationVariable(value = "name") String param1,
-			String param3) {
-	}
+    @SuppressWarnings("unused")
+    private void handleMessage(
+            @DestinationVariable String foo,
+            @DestinationVariable(value = "name") String param1,
+            String param3) {
+    }
 
 }

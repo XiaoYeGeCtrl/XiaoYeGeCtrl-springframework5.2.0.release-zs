@@ -34,31 +34,31 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 public class SQLExceptionCustomTranslatorTests {
 
-	private static SQLErrorCodes ERROR_CODES = new SQLErrorCodes();
+    private static SQLErrorCodes ERROR_CODES = new SQLErrorCodes();
 
-	static {
-		ERROR_CODES.setBadSqlGrammarCodes(new String[] { "1" });
-		ERROR_CODES.setDataAccessResourceFailureCodes(new String[] { "2" });
-		ERROR_CODES.setCustomSqlExceptionTranslatorClass(CustomSqlExceptionTranslator.class);
-	}
+    static {
+        ERROR_CODES.setBadSqlGrammarCodes(new String[]{"1"});
+        ERROR_CODES.setDataAccessResourceFailureCodes(new String[]{"2"});
+        ERROR_CODES.setCustomSqlExceptionTranslatorClass(CustomSqlExceptionTranslator.class);
+    }
 
-	private final SQLExceptionTranslator sext = new SQLErrorCodeSQLExceptionTranslator(ERROR_CODES);
+    private final SQLExceptionTranslator sext = new SQLErrorCodeSQLExceptionTranslator(ERROR_CODES);
 
 
-	@Test
-	public void badSqlGrammarException() {
-		SQLException badSqlGrammarExceptionEx = SQLExceptionSubclassFactory.newSQLDataException("", "", 1);
-		DataAccessException dae = sext.translate("task", "SQL", badSqlGrammarExceptionEx);
-		assertThat(dae.getCause()).isEqualTo(badSqlGrammarExceptionEx);
-		assertThat(dae).isInstanceOf(BadSqlGrammarException.class);
-	}
+    @Test
+    public void badSqlGrammarException() {
+        SQLException badSqlGrammarExceptionEx = SQLExceptionSubclassFactory.newSQLDataException("", "", 1);
+        DataAccessException dae = sext.translate("task", "SQL", badSqlGrammarExceptionEx);
+        assertThat(dae.getCause()).isEqualTo(badSqlGrammarExceptionEx);
+        assertThat(dae).isInstanceOf(BadSqlGrammarException.class);
+    }
 
-	@Test
-	public void dataAccessResourceException() {
-		SQLException dataAccessResourceEx = SQLExceptionSubclassFactory.newSQLDataException("", "", 2);
-		DataAccessException dae = sext.translate("task", "SQL", dataAccessResourceEx);
-		assertThat(dae.getCause()).isEqualTo(dataAccessResourceEx);
-		assertThat(dae).isInstanceOf(TransientDataAccessResourceException.class);
-	}
+    @Test
+    public void dataAccessResourceException() {
+        SQLException dataAccessResourceEx = SQLExceptionSubclassFactory.newSQLDataException("", "", 2);
+        DataAccessException dae = sext.translate("task", "SQL", dataAccessResourceEx);
+        assertThat(dae.getCause()).isEqualTo(dataAccessResourceEx);
+        assertThat(dae).isInstanceOf(TransientDataAccessResourceException.class);
+    }
 
 }

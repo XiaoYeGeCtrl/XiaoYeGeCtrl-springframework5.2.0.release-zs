@@ -56,308 +56,308 @@ import static org.mockito.Mockito.verify;
 @SuppressWarnings("rawtypes")
 public class LocalContainerEntityManagerFactoryBeanTests extends AbstractEntityManagerFactoryBeanTests {
 
-	// Static fields set by inner class DummyPersistenceProvider
+    // Static fields set by inner class DummyPersistenceProvider
 
-	private static Map actualProps;
+    private static Map actualProps;
 
-	private static PersistenceUnitInfo actualPui;
+    private static PersistenceUnitInfo actualPui;
 
 
-	@Test
-	public void testValidPersistenceUnit() throws Exception {
-		parseValidPersistenceUnit();
-	}
+    @Test
+    public void testValidPersistenceUnit() throws Exception {
+        parseValidPersistenceUnit();
+    }
 
-	@Test
-	public void testExceptionTranslationWithNoDialect() throws Exception {
-		LocalContainerEntityManagerFactoryBean cefb = parseValidPersistenceUnit();
-		cefb.getObject();
-		assertThat(cefb.getJpaDialect()).as("No dialect set").isNull();
+    @Test
+    public void testExceptionTranslationWithNoDialect() throws Exception {
+        LocalContainerEntityManagerFactoryBean cefb = parseValidPersistenceUnit();
+        cefb.getObject();
+        assertThat(cefb.getJpaDialect()).as("No dialect set").isNull();
 
-		RuntimeException in1 = new RuntimeException("in1");
-		PersistenceException in2 = new PersistenceException();
-		assertThat(cefb.translateExceptionIfPossible(in1)).as("No translation here").isNull();
-		DataAccessException dex = cefb.translateExceptionIfPossible(in2);
-		assertThat(dex).isNotNull();
-		assertThat(dex.getCause()).isSameAs(in2);
-	}
+        RuntimeException in1 = new RuntimeException("in1");
+        PersistenceException in2 = new PersistenceException();
+        assertThat(cefb.translateExceptionIfPossible(in1)).as("No translation here").isNull();
+        DataAccessException dex = cefb.translateExceptionIfPossible(in2);
+        assertThat(dex).isNotNull();
+        assertThat(dex.getCause()).isSameAs(in2);
+    }
 
-	@Test
-	public void testEntityManagerFactoryIsProxied() throws Exception {
-		LocalContainerEntityManagerFactoryBean cefb = parseValidPersistenceUnit();
-		EntityManagerFactory emf = cefb.getObject();
-		assertThat(cefb.getObject()).as("EntityManagerFactory reference must be cached after init").isSameAs(emf);
+    @Test
+    public void testEntityManagerFactoryIsProxied() throws Exception {
+        LocalContainerEntityManagerFactoryBean cefb = parseValidPersistenceUnit();
+        EntityManagerFactory emf = cefb.getObject();
+        assertThat(cefb.getObject()).as("EntityManagerFactory reference must be cached after init").isSameAs(emf);
 
-		assertThat(emf).as("EMF must be proxied").isNotSameAs(mockEmf);
-		assertThat(emf.equals(emf)).isTrue();
+        assertThat(emf).as("EMF must be proxied").isNotSameAs(mockEmf);
+        assertThat(emf.equals(emf)).isTrue();
 
-		DefaultListableBeanFactory bf = new DefaultListableBeanFactory();
-		bf.setSerializationId("emf-bf");
-		bf.registerSingleton("emf", cefb);
-		cefb.setBeanFactory(bf);
-		cefb.setBeanName("emf");
-		assertThat(SerializationTestUtils.serializeAndDeserialize(emf)).isNotNull();
-	}
+        DefaultListableBeanFactory bf = new DefaultListableBeanFactory();
+        bf.setSerializationId("emf-bf");
+        bf.registerSingleton("emf", cefb);
+        cefb.setBeanFactory(bf);
+        cefb.setBeanName("emf");
+        assertThat(SerializationTestUtils.serializeAndDeserialize(emf)).isNotNull();
+    }
 
-	@Test
-	public void testApplicationManagedEntityManagerWithoutTransaction() throws Exception {
-		Object testEntity = new Object();
-		EntityManager mockEm = mock(EntityManager.class);
+    @Test
+    public void testApplicationManagedEntityManagerWithoutTransaction() throws Exception {
+        Object testEntity = new Object();
+        EntityManager mockEm = mock(EntityManager.class);
 
-		given(mockEmf.createEntityManager()).willReturn(mockEm);
+        given(mockEmf.createEntityManager()).willReturn(mockEm);
 
-		LocalContainerEntityManagerFactoryBean cefb = parseValidPersistenceUnit();
-		EntityManagerFactory emf = cefb.getObject();
-		assertThat(cefb.getObject()).as("EntityManagerFactory reference must be cached after init").isSameAs(emf);
+        LocalContainerEntityManagerFactoryBean cefb = parseValidPersistenceUnit();
+        EntityManagerFactory emf = cefb.getObject();
+        assertThat(cefb.getObject()).as("EntityManagerFactory reference must be cached after init").isSameAs(emf);
 
-		assertThat(emf).as("EMF must be proxied").isNotSameAs(mockEmf);
-		EntityManager em = emf.createEntityManager();
-		assertThat(em.contains(testEntity)).isFalse();
+        assertThat(emf).as("EMF must be proxied").isNotSameAs(mockEmf);
+        EntityManager em = emf.createEntityManager();
+        assertThat(em.contains(testEntity)).isFalse();
 
-		cefb.destroy();
+        cefb.destroy();
 
-		verify(mockEmf).close();
-	}
+        verify(mockEmf).close();
+    }
 
-	@Test
-	public void testApplicationManagedEntityManagerWithTransaction() throws Exception {
-		Object testEntity = new Object();
+    @Test
+    public void testApplicationManagedEntityManagerWithTransaction() throws Exception {
+        Object testEntity = new Object();
 
-		EntityTransaction mockTx = mock(EntityTransaction.class);
+        EntityTransaction mockTx = mock(EntityTransaction.class);
 
-		// This one's for the tx (shared)
-		EntityManager sharedEm = mock(EntityManager.class);
-		given(sharedEm.getTransaction()).willReturn(new NoOpEntityTransaction());
+        // This one's for the tx (shared)
+        EntityManager sharedEm = mock(EntityManager.class);
+        given(sharedEm.getTransaction()).willReturn(new NoOpEntityTransaction());
 
-		// This is the application-specific one
-		EntityManager mockEm = mock(EntityManager.class);
-		given(mockEm.getTransaction()).willReturn(mockTx);
+        // This is the application-specific one
+        EntityManager mockEm = mock(EntityManager.class);
+        given(mockEm.getTransaction()).willReturn(mockTx);
 
-		given(mockEmf.createEntityManager()).willReturn(sharedEm, mockEm);
+        given(mockEmf.createEntityManager()).willReturn(sharedEm, mockEm);
 
-		LocalContainerEntityManagerFactoryBean cefb = parseValidPersistenceUnit();
+        LocalContainerEntityManagerFactoryBean cefb = parseValidPersistenceUnit();
 
-		JpaTransactionManager jpatm = new JpaTransactionManager();
-		jpatm.setEntityManagerFactory(cefb.getObject());
+        JpaTransactionManager jpatm = new JpaTransactionManager();
+        jpatm.setEntityManagerFactory(cefb.getObject());
 
-		TransactionStatus txStatus = jpatm.getTransaction(new DefaultTransactionAttribute());
+        TransactionStatus txStatus = jpatm.getTransaction(new DefaultTransactionAttribute());
 
-		EntityManagerFactory emf = cefb.getObject();
-		assertThat(cefb.getObject()).as("EntityManagerFactory reference must be cached after init").isSameAs(emf);
+        EntityManagerFactory emf = cefb.getObject();
+        assertThat(cefb.getObject()).as("EntityManagerFactory reference must be cached after init").isSameAs(emf);
 
-		assertThat(emf).as("EMF must be proxied").isNotSameAs(mockEmf);
-		EntityManager em = emf.createEntityManager();
-		em.joinTransaction();
-		assertThat(em.contains(testEntity)).isFalse();
+        assertThat(emf).as("EMF must be proxied").isNotSameAs(mockEmf);
+        EntityManager em = emf.createEntityManager();
+        em.joinTransaction();
+        assertThat(em.contains(testEntity)).isFalse();
 
-		jpatm.commit(txStatus);
+        jpatm.commit(txStatus);
 
-		cefb.destroy();
+        cefb.destroy();
 
-		verify(mockTx).begin();
-		verify(mockTx).commit();
-		verify(mockEm).contains(testEntity);
-		verify(mockEmf).close();
-	}
+        verify(mockTx).begin();
+        verify(mockTx).commit();
+        verify(mockEm).contains(testEntity);
+        verify(mockEmf).close();
+    }
 
-	@Test
-	public void testApplicationManagedEntityManagerWithTransactionAndCommitException() throws Exception {
-		Object testEntity = new Object();
+    @Test
+    public void testApplicationManagedEntityManagerWithTransactionAndCommitException() throws Exception {
+        Object testEntity = new Object();
 
-		EntityTransaction mockTx = mock(EntityTransaction.class);
-		willThrow(new OptimisticLockException()).given(mockTx).commit();
+        EntityTransaction mockTx = mock(EntityTransaction.class);
+        willThrow(new OptimisticLockException()).given(mockTx).commit();
 
-		// This one's for the tx (shared)
-		EntityManager sharedEm = mock(EntityManager.class);
-		given(sharedEm.getTransaction()).willReturn(new NoOpEntityTransaction());
+        // This one's for the tx (shared)
+        EntityManager sharedEm = mock(EntityManager.class);
+        given(sharedEm.getTransaction()).willReturn(new NoOpEntityTransaction());
 
-		// This is the application-specific one
-		EntityManager mockEm = mock(EntityManager.class);
-		given(mockEm.getTransaction()).willReturn(mockTx);
+        // This is the application-specific one
+        EntityManager mockEm = mock(EntityManager.class);
+        given(mockEm.getTransaction()).willReturn(mockTx);
 
-		given(mockEmf.createEntityManager()).willReturn(sharedEm, mockEm);
+        given(mockEmf.createEntityManager()).willReturn(sharedEm, mockEm);
 
-		LocalContainerEntityManagerFactoryBean cefb = parseValidPersistenceUnit();
+        LocalContainerEntityManagerFactoryBean cefb = parseValidPersistenceUnit();
 
-		JpaTransactionManager jpatm = new JpaTransactionManager();
-		jpatm.setEntityManagerFactory(cefb.getObject());
+        JpaTransactionManager jpatm = new JpaTransactionManager();
+        jpatm.setEntityManagerFactory(cefb.getObject());
 
-		TransactionStatus txStatus = jpatm.getTransaction(new DefaultTransactionAttribute());
+        TransactionStatus txStatus = jpatm.getTransaction(new DefaultTransactionAttribute());
 
-		EntityManagerFactory emf = cefb.getObject();
-		assertThat(cefb.getObject()).as("EntityManagerFactory reference must be cached after init").isSameAs(emf);
+        EntityManagerFactory emf = cefb.getObject();
+        assertThat(cefb.getObject()).as("EntityManagerFactory reference must be cached after init").isSameAs(emf);
 
-		assertThat(emf).as("EMF must be proxied").isNotSameAs(mockEmf);
-		EntityManager em = emf.createEntityManager();
-		em.joinTransaction();
-		assertThat(em.contains(testEntity)).isFalse();
+        assertThat(emf).as("EMF must be proxied").isNotSameAs(mockEmf);
+        EntityManager em = emf.createEntityManager();
+        em.joinTransaction();
+        assertThat(em.contains(testEntity)).isFalse();
 
-		assertThatExceptionOfType(OptimisticLockingFailureException.class).isThrownBy(() ->
-				jpatm.commit(txStatus));
+        assertThatExceptionOfType(OptimisticLockingFailureException.class).isThrownBy(() ->
+                jpatm.commit(txStatus));
 
-		cefb.destroy();
+        cefb.destroy();
 
-		verify(mockTx).begin();
-		verify(mockEm).contains(testEntity);
-		verify(mockEmf).close();
-	}
+        verify(mockTx).begin();
+        verify(mockEm).contains(testEntity);
+        verify(mockEmf).close();
+    }
 
-	@Test
-	public void testApplicationManagedEntityManagerWithJtaTransaction() throws Exception {
-		Object testEntity = new Object();
+    @Test
+    public void testApplicationManagedEntityManagerWithJtaTransaction() throws Exception {
+        Object testEntity = new Object();
 
-		// This one's for the tx (shared)
-		EntityManager sharedEm = mock(EntityManager.class);
-		given(sharedEm.getTransaction()).willReturn(new NoOpEntityTransaction());
+        // This one's for the tx (shared)
+        EntityManager sharedEm = mock(EntityManager.class);
+        given(sharedEm.getTransaction()).willReturn(new NoOpEntityTransaction());
 
-		// This is the application-specific one
-		EntityManager mockEm = mock(EntityManager.class);
+        // This is the application-specific one
+        EntityManager mockEm = mock(EntityManager.class);
 
-		given(mockEmf.createEntityManager()).willReturn(sharedEm, mockEm);
+        given(mockEmf.createEntityManager()).willReturn(sharedEm, mockEm);
 
-		LocalContainerEntityManagerFactoryBean cefb = parseValidPersistenceUnit();
-		MutablePersistenceUnitInfo pui = ((MutablePersistenceUnitInfo) cefb.getPersistenceUnitInfo());
-		pui.setTransactionType(PersistenceUnitTransactionType.JTA);
+        LocalContainerEntityManagerFactoryBean cefb = parseValidPersistenceUnit();
+        MutablePersistenceUnitInfo pui = ((MutablePersistenceUnitInfo) cefb.getPersistenceUnitInfo());
+        pui.setTransactionType(PersistenceUnitTransactionType.JTA);
 
-		JpaTransactionManager jpatm = new JpaTransactionManager();
-		jpatm.setEntityManagerFactory(cefb.getObject());
+        JpaTransactionManager jpatm = new JpaTransactionManager();
+        jpatm.setEntityManagerFactory(cefb.getObject());
 
-		TransactionStatus txStatus = jpatm.getTransaction(new DefaultTransactionAttribute());
+        TransactionStatus txStatus = jpatm.getTransaction(new DefaultTransactionAttribute());
 
-		EntityManagerFactory emf = cefb.getObject();
-		assertThat(cefb.getObject()).as("EntityManagerFactory reference must be cached after init").isSameAs(emf);
+        EntityManagerFactory emf = cefb.getObject();
+        assertThat(cefb.getObject()).as("EntityManagerFactory reference must be cached after init").isSameAs(emf);
 
-		assertThat(emf).as("EMF must be proxied").isNotSameAs(mockEmf);
-		EntityManager em = emf.createEntityManager();
-		em.joinTransaction();
-		assertThat(em.contains(testEntity)).isFalse();
+        assertThat(emf).as("EMF must be proxied").isNotSameAs(mockEmf);
+        EntityManager em = emf.createEntityManager();
+        em.joinTransaction();
+        assertThat(em.contains(testEntity)).isFalse();
 
-		jpatm.commit(txStatus);
+        jpatm.commit(txStatus);
 
-		cefb.destroy();
+        cefb.destroy();
 
-		verify(mockEm).joinTransaction();
-		verify(mockEm).contains(testEntity);
-		verify(mockEmf).close();
-	}
+        verify(mockEm).joinTransaction();
+        verify(mockEm).contains(testEntity);
+        verify(mockEmf).close();
+    }
 
-	public LocalContainerEntityManagerFactoryBean parseValidPersistenceUnit() throws Exception {
-		LocalContainerEntityManagerFactoryBean emfb = createEntityManagerFactoryBean(
-				"org/springframework/orm/jpa/domain/persistence.xml", null,
-				"Person");
-		return emfb;
-	}
+    public LocalContainerEntityManagerFactoryBean parseValidPersistenceUnit() throws Exception {
+        LocalContainerEntityManagerFactoryBean emfb = createEntityManagerFactoryBean(
+                "org/springframework/orm/jpa/domain/persistence.xml", null,
+                "Person");
+        return emfb;
+    }
 
-	@Test
-	public void testInvalidPersistenceUnitName() throws Exception {
-		assertThatIllegalArgumentException().isThrownBy(() ->
-				createEntityManagerFactoryBean("org/springframework/orm/jpa/domain/persistence.xml", null, "call me Bob"));
-	}
+    @Test
+    public void testInvalidPersistenceUnitName() throws Exception {
+        assertThatIllegalArgumentException().isThrownBy(() ->
+                createEntityManagerFactoryBean("org/springframework/orm/jpa/domain/persistence.xml", null, "call me Bob"));
+    }
 
-	protected LocalContainerEntityManagerFactoryBean createEntityManagerFactoryBean(
-			String persistenceXml, Properties props, String entityManagerName) throws Exception {
+    protected LocalContainerEntityManagerFactoryBean createEntityManagerFactoryBean(
+            String persistenceXml, Properties props, String entityManagerName) throws Exception {
 
-		// This will be set by DummyPersistenceProvider
-		actualPui = null;
-		actualProps = null;
+        // This will be set by DummyPersistenceProvider
+        actualPui = null;
+        actualProps = null;
 
-		LocalContainerEntityManagerFactoryBean containerEmfb = new LocalContainerEntityManagerFactoryBean();
+        LocalContainerEntityManagerFactoryBean containerEmfb = new LocalContainerEntityManagerFactoryBean();
 
-		containerEmfb.setPersistenceUnitName(entityManagerName);
-		containerEmfb.setPersistenceProviderClass(DummyContainerPersistenceProvider.class);
-		if (props != null) {
-			containerEmfb.setJpaProperties(props);
-		}
-		containerEmfb.setLoadTimeWeaver(new InstrumentationLoadTimeWeaver());
-		containerEmfb.setPersistenceXmlLocation(persistenceXml);
-		containerEmfb.afterPropertiesSet();
+        containerEmfb.setPersistenceUnitName(entityManagerName);
+        containerEmfb.setPersistenceProviderClass(DummyContainerPersistenceProvider.class);
+        if (props != null) {
+            containerEmfb.setJpaProperties(props);
+        }
+        containerEmfb.setLoadTimeWeaver(new InstrumentationLoadTimeWeaver());
+        containerEmfb.setPersistenceXmlLocation(persistenceXml);
+        containerEmfb.afterPropertiesSet();
 
-		assertThat(actualPui.getPersistenceUnitName()).isEqualTo(entityManagerName);
-		if (props != null) {
-			assertThat((Object) actualProps).isEqualTo(props);
-		}
-		//checkInvariants(containerEmfb);
+        assertThat(actualPui.getPersistenceUnitName()).isEqualTo(entityManagerName);
+        if (props != null) {
+            assertThat((Object) actualProps).isEqualTo(props);
+        }
+        //checkInvariants(containerEmfb);
 
-		return containerEmfb;
+        return containerEmfb;
 
-		//containerEmfb.destroy();
-		//emfMc.verify();
-	}
+        //containerEmfb.destroy();
+        //emfMc.verify();
+    }
 
-	@Test
-	public void testRejectsMissingPersistenceUnitInfo() throws Exception {
-		LocalContainerEntityManagerFactoryBean containerEmfb = new LocalContainerEntityManagerFactoryBean();
-		String entityManagerName = "call me Bob";
+    @Test
+    public void testRejectsMissingPersistenceUnitInfo() throws Exception {
+        LocalContainerEntityManagerFactoryBean containerEmfb = new LocalContainerEntityManagerFactoryBean();
+        String entityManagerName = "call me Bob";
 
-		containerEmfb.setPersistenceUnitName(entityManagerName);
-		containerEmfb.setPersistenceProviderClass(DummyContainerPersistenceProvider.class);
+        containerEmfb.setPersistenceUnitName(entityManagerName);
+        containerEmfb.setPersistenceProviderClass(DummyContainerPersistenceProvider.class);
 
-		assertThatIllegalArgumentException().isThrownBy(
-				containerEmfb::afterPropertiesSet);
-	}
+        assertThatIllegalArgumentException().isThrownBy(
+                containerEmfb::afterPropertiesSet);
+    }
 
 
-	private static class DummyContainerPersistenceProvider implements PersistenceProvider {
+    private static class DummyContainerPersistenceProvider implements PersistenceProvider {
 
-		@Override
-		public EntityManagerFactory createContainerEntityManagerFactory(PersistenceUnitInfo pui, Map map) {
-			actualPui = pui;
-			actualProps = map;
-			return mockEmf;
-		}
+        @Override
+        public EntityManagerFactory createContainerEntityManagerFactory(PersistenceUnitInfo pui, Map map) {
+            actualPui = pui;
+            actualProps = map;
+            return mockEmf;
+        }
 
-		@Override
-		public EntityManagerFactory createEntityManagerFactory(String emfName, Map properties) {
-			throw new UnsupportedOperationException();
-		}
+        @Override
+        public EntityManagerFactory createEntityManagerFactory(String emfName, Map properties) {
+            throw new UnsupportedOperationException();
+        }
 
-		@Override
-		public ProviderUtil getProviderUtil() {
-			throw new UnsupportedOperationException();
-		}
+        @Override
+        public ProviderUtil getProviderUtil() {
+            throw new UnsupportedOperationException();
+        }
 
-		// JPA 2.1 method
-		@Override
-		public void generateSchema(PersistenceUnitInfo persistenceUnitInfo, Map map) {
-			throw new UnsupportedOperationException();
-		}
+        // JPA 2.1 method
+        @Override
+        public void generateSchema(PersistenceUnitInfo persistenceUnitInfo, Map map) {
+            throw new UnsupportedOperationException();
+        }
 
-		// JPA 2.1 method
-		@Override
-		public boolean generateSchema(String persistenceUnitName, Map map) {
-			throw new UnsupportedOperationException();
-		}
-	}
+        // JPA 2.1 method
+        @Override
+        public boolean generateSchema(String persistenceUnitName, Map map) {
+            throw new UnsupportedOperationException();
+        }
+    }
 
 
-	private static class NoOpEntityTransaction implements EntityTransaction {
+    private static class NoOpEntityTransaction implements EntityTransaction {
 
-		@Override
-		public void begin() {
-		}
+        @Override
+        public void begin() {
+        }
 
-		@Override
-		public void commit() {
-		}
+        @Override
+        public void commit() {
+        }
 
-		@Override
-		public void rollback() {
-		}
+        @Override
+        public void rollback() {
+        }
 
-		@Override
-		public void setRollbackOnly() {
-			throw new UnsupportedOperationException();
-		}
+        @Override
+        public void setRollbackOnly() {
+            throw new UnsupportedOperationException();
+        }
 
-		@Override
-		public boolean getRollbackOnly() {
-			return false;
-		}
+        @Override
+        public boolean getRollbackOnly() {
+            return false;
+        }
 
-		@Override
-		public boolean isActive() {
-			return false;
-		}
-	}
+        @Override
+        public boolean isActive() {
+            return false;
+        }
+    }
 
 }

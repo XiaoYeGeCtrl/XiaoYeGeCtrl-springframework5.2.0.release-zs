@@ -30,11 +30,11 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
  */
 public class CacheAdviceParserTests {
 
-	@Test
-	public void keyAndKeyGeneratorCannotBeSetTogether() {
-		assertThatExceptionOfType(BeanDefinitionStoreException.class).isThrownBy(() ->
-				new GenericXmlApplicationContext("/org/springframework/cache/config/cache-advice-invalid.xml"));
-		// TODO better exception handling
-	}
+    @Test
+    public void keyAndKeyGeneratorCannotBeSetTogether() {
+        assertThatExceptionOfType(BeanDefinitionStoreException.class).isThrownBy(() ->
+                new GenericXmlApplicationContext("/org/springframework/cache/config/cache-advice-invalid.xml"));
+        // TODO better exception handling
+    }
 
 }

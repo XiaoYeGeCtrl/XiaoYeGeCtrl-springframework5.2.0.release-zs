@@ -46,75 +46,78 @@ import org.springframework.lang.Nullable;
  * a prototype!
  *
  * @author Juergen Hoeller
- * @since 1.1.3
  * @see java.rmi.server.RMIClassLoader
  * @see RemoteInvocationSerializingExporter#createObjectInputStream
  * @see org.springframework.remoting.httpinvoker.HttpInvokerClientInterceptor#setCodebaseUrl
+ * @since 1.1.3
  */
 public class CodebaseAwareObjectInputStream extends ConfigurableObjectInputStream {
 
-	private final String codebaseUrl;
+    private final String codebaseUrl;
 
 
-	/**
-	 * Create a new CodebaseAwareObjectInputStream for the given InputStream and codebase.
-	 * @param in the InputStream to read from
-	 * @param codebaseUrl the codebase URL to load classes from if not found locally
-	 * (can consist of multiple URLs, separated by spaces)
-	 * @see java.io.ObjectInputStream#ObjectInputStream(java.io.InputStream)
-	 */
-	public CodebaseAwareObjectInputStream(InputStream in, String codebaseUrl) throws IOException {
-		this(in, null, codebaseUrl);
-	}
+    /**
+     * Create a new CodebaseAwareObjectInputStream for the given InputStream and codebase.
+     *
+     * @param in          the InputStream to read from
+     * @param codebaseUrl the codebase URL to load classes from if not found locally
+     *                    (can consist of multiple URLs, separated by spaces)
+     * @see java.io.ObjectInputStream#ObjectInputStream(java.io.InputStream)
+     */
+    public CodebaseAwareObjectInputStream(InputStream in, String codebaseUrl) throws IOException {
+        this(in, null, codebaseUrl);
+    }
 
-	/**
-	 * Create a new CodebaseAwareObjectInputStream for the given InputStream and codebase.
-	 * @param in the InputStream to read from
-	 * @param classLoader the ClassLoader to use for loading local classes
-	 * (may be {@code null} to indicate RMI's default ClassLoader)
-	 * @param codebaseUrl the codebase URL to load classes from if not found locally
-	 * (can consist of multiple URLs, separated by spaces)
-	 * @see java.io.ObjectInputStream#ObjectInputStream(java.io.InputStream)
-	 */
-	public CodebaseAwareObjectInputStream(
-			InputStream in, @Nullable ClassLoader classLoader, String codebaseUrl) throws IOException {
+    /**
+     * Create a new CodebaseAwareObjectInputStream for the given InputStream and codebase.
+     *
+     * @param in          the InputStream to read from
+     * @param classLoader the ClassLoader to use for loading local classes
+     *                    (may be {@code null} to indicate RMI's default ClassLoader)
+     * @param codebaseUrl the codebase URL to load classes from if not found locally
+     *                    (can consist of multiple URLs, separated by spaces)
+     * @see java.io.ObjectInputStream#ObjectInputStream(java.io.InputStream)
+     */
+    public CodebaseAwareObjectInputStream(
+            InputStream in, @Nullable ClassLoader classLoader, String codebaseUrl) throws IOException {
 
-		super(in, classLoader);
-		this.codebaseUrl = codebaseUrl;
-	}
+        super(in, classLoader);
+        this.codebaseUrl = codebaseUrl;
+    }
 
-	/**
-	 * Create a new CodebaseAwareObjectInputStream for the given InputStream and codebase.
-	 * @param in the InputStream to read from
-	 * @param classLoader the ClassLoader to use for loading local classes
-	 * (may be {@code null} to indicate RMI's default ClassLoader)
-	 * @param acceptProxyClasses whether to accept deserialization of proxy classes
-	 * (may be deactivated as a security measure)
-	 * @see java.io.ObjectInputStream#ObjectInputStream(java.io.InputStream)
-	 */
-	public CodebaseAwareObjectInputStream(
-			InputStream in, @Nullable ClassLoader classLoader, boolean acceptProxyClasses) throws IOException {
+    /**
+     * Create a new CodebaseAwareObjectInputStream for the given InputStream and codebase.
+     *
+     * @param in                 the InputStream to read from
+     * @param classLoader        the ClassLoader to use for loading local classes
+     *                           (may be {@code null} to indicate RMI's default ClassLoader)
+     * @param acceptProxyClasses whether to accept deserialization of proxy classes
+     *                           (may be deactivated as a security measure)
+     * @see java.io.ObjectInputStream#ObjectInputStream(java.io.InputStream)
+     */
+    public CodebaseAwareObjectInputStream(
+            InputStream in, @Nullable ClassLoader classLoader, boolean acceptProxyClasses) throws IOException {
 
-		super(in, classLoader, acceptProxyClasses);
-		this.codebaseUrl = null;
-	}
+        super(in, classLoader, acceptProxyClasses);
+        this.codebaseUrl = null;
+    }
 
 
-	@Override
-	protected Class<?> resolveFallbackIfPossible(String className, ClassNotFoundException ex)
-			throws IOException, ClassNotFoundException {
+    @Override
+    protected Class<?> resolveFallbackIfPossible(String className, ClassNotFoundException ex)
+            throws IOException, ClassNotFoundException {
 
-		// If codebaseUrl is set, try to load the class with the RMIClassLoader.
-		// Else, propagate the ClassNotFoundException.
-		if (this.codebaseUrl == null) {
-			throw ex;
-		}
-		return RMIClassLoader.loadClass(this.codebaseUrl, className);
-	}
+        // If codebaseUrl is set, try to load the class with the RMIClassLoader.
+        // Else, propagate the ClassNotFoundException.
+        if (this.codebaseUrl == null) {
+            throw ex;
+        }
+        return RMIClassLoader.loadClass(this.codebaseUrl, className);
+    }
 
-	@Override
-	protected ClassLoader getFallbackClassLoader() throws IOException {
-		return RMIClassLoader.getClassLoader(this.codebaseUrl);
-	}
+    @Override
+    protected ClassLoader getFallbackClassLoader() throws IOException {
+        return RMIClassLoader.getClassLoader(this.codebaseUrl);
+    }
 
 }

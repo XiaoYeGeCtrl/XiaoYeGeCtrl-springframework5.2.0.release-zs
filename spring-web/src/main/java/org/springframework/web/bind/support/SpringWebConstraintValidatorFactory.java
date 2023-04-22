@@ -33,38 +33,39 @@ import org.springframework.web.context.WebApplicationContext;
  * e.g. in combination with JAX-RS or JAX-WS.
  *
  * @author Juergen Hoeller
- * @since 4.2.1
  * @see ContextLoader#getCurrentWebApplicationContext()
  * @see org.springframework.validation.beanvalidation.SpringConstraintValidatorFactory
+ * @since 4.2.1
  */
 public class SpringWebConstraintValidatorFactory implements ConstraintValidatorFactory {
 
-	@Override
-	public <T extends ConstraintValidator<?, ?>> T getInstance(Class<T> key) {
-		return getWebApplicationContext().getAutowireCapableBeanFactory().createBean(key);
-	}
+    @Override
+    public <T extends ConstraintValidator<?, ?>> T getInstance(Class<T> key) {
+        return getWebApplicationContext().getAutowireCapableBeanFactory().createBean(key);
+    }
 
-	// Bean Validation 1.1 releaseInstance method
-	@Override
-	public void releaseInstance(ConstraintValidator<?, ?> instance) {
-		getWebApplicationContext().getAutowireCapableBeanFactory().destroyBean(instance);
-	}
+    // Bean Validation 1.1 releaseInstance method
+    @Override
+    public void releaseInstance(ConstraintValidator<?, ?> instance) {
+        getWebApplicationContext().getAutowireCapableBeanFactory().destroyBean(instance);
+    }
 
 
-	/**
-	 * Retrieve the Spring {@link WebApplicationContext} to use.
-	 * The default implementation returns the current {@link WebApplicationContext}
-	 * as registered for the thread context class loader.
-	 * @return the current WebApplicationContext (never {@code null})
-	 * @see ContextLoader#getCurrentWebApplicationContext()
-	 */
-	protected WebApplicationContext getWebApplicationContext() {
-		WebApplicationContext wac = ContextLoader.getCurrentWebApplicationContext();
-		if (wac == null) {
-			throw new IllegalStateException("No WebApplicationContext registered for current thread - " +
-					"consider overriding SpringWebConstraintValidatorFactory.getWebApplicationContext()");
-		}
-		return wac;
-	}
+    /**
+     * Retrieve the Spring {@link WebApplicationContext} to use.
+     * The default implementation returns the current {@link WebApplicationContext}
+     * as registered for the thread context class loader.
+     *
+     * @return the current WebApplicationContext (never {@code null})
+     * @see ContextLoader#getCurrentWebApplicationContext()
+     */
+    protected WebApplicationContext getWebApplicationContext() {
+        WebApplicationContext wac = ContextLoader.getCurrentWebApplicationContext();
+        if (wac == null) {
+            throw new IllegalStateException("No WebApplicationContext registered for current thread - " +
+                    "consider overriding SpringWebConstraintValidatorFactory.getWebApplicationContext()");
+        }
+        return wac;
+    }
 
 }

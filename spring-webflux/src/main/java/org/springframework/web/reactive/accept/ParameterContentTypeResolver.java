@@ -39,52 +39,52 @@ import org.springframework.web.server.ServerWebExchange;
  */
 public class ParameterContentTypeResolver implements RequestedContentTypeResolver {
 
-	/** Primary lookup for media types by key (e.g. "json" -> "application/json") */
-	private final Map<String, MediaType> mediaTypes = new ConcurrentHashMap<>(64);
+    /**
+     * Primary lookup for media types by key (e.g. "json" -> "application/json")
+     */
+    private final Map<String, MediaType> mediaTypes = new ConcurrentHashMap<>(64);
 
-	private String parameterName = "format";
-
-
-	public ParameterContentTypeResolver(Map<String, MediaType> mediaTypes) {
-		mediaTypes.forEach((key, value) -> this.mediaTypes.put(formatKey(key), value));
-	}
-
-	private static String formatKey(String key) {
-		return key.toLowerCase(Locale.ENGLISH);
-	}
+    private String parameterName = "format";
 
 
-	/**
-	 * Set the name of the parameter to use to determine requested media types.
-	 * <p>By default this is set to {@literal "format"}.
-	 */
-	public void setParameterName(String parameterName) {
-		Assert.notNull(parameterName, "'parameterName' is required");
-		this.parameterName = parameterName;
-	}
+    public ParameterContentTypeResolver(Map<String, MediaType> mediaTypes) {
+        mediaTypes.forEach((key, value) -> this.mediaTypes.put(formatKey(key), value));
+    }
 
-	public String getParameterName() {
-		return this.parameterName;
-	}
+    private static String formatKey(String key) {
+        return key.toLowerCase(Locale.ENGLISH);
+    }
 
+    public String getParameterName() {
+        return this.parameterName;
+    }
 
-	@Override
-	public List<MediaType> resolveMediaTypes(ServerWebExchange exchange) throws NotAcceptableStatusException {
-		String key = exchange.getRequest().getQueryParams().getFirst(getParameterName());
-		if (!StringUtils.hasText(key)) {
-			return MEDIA_TYPE_ALL_LIST;
-		}
-		key = formatKey(key);
-		MediaType match = this.mediaTypes.get(key);
-		if (match == null) {
-			match = MediaTypeFactory.getMediaType("filename." + key)
-					.orElseThrow(() -> {
-						List<MediaType> supported = new ArrayList<>(this.mediaTypes.values());
-						return new NotAcceptableStatusException(supported);
-					});
-		}
-		this.mediaTypes.putIfAbsent(key, match);
-		return Collections.singletonList(match);
-	}
+    /**
+     * Set the name of the parameter to use to determine requested media types.
+     * <p>By default this is set to {@literal "format"}.
+     */
+    public void setParameterName(String parameterName) {
+        Assert.notNull(parameterName, "'parameterName' is required");
+        this.parameterName = parameterName;
+    }
+
+    @Override
+    public List<MediaType> resolveMediaTypes(ServerWebExchange exchange) throws NotAcceptableStatusException {
+        String key = exchange.getRequest().getQueryParams().getFirst(getParameterName());
+        if (!StringUtils.hasText(key)) {
+            return MEDIA_TYPE_ALL_LIST;
+        }
+        key = formatKey(key);
+        MediaType match = this.mediaTypes.get(key);
+        if (match == null) {
+            match = MediaTypeFactory.getMediaType("filename." + key)
+                    .orElseThrow(() -> {
+                        List<MediaType> supported = new ArrayList<>(this.mediaTypes.values());
+                        return new NotAcceptableStatusException(supported);
+                    });
+        }
+        this.mediaTypes.putIfAbsent(key, match);
+        return Collections.singletonList(match);
+    }
 
 }

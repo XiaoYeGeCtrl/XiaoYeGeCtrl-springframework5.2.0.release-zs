@@ -41,111 +41,111 @@ import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppC
  */
 public class DefaultMockMvcBuilderTests {
 
-	private final MockServletContext servletContext = new MockServletContext();
+    private final MockServletContext servletContext = new MockServletContext();
 
-	@Test
-	public void webAppContextSetupWithNullWac() {
-		assertThatIllegalArgumentException().isThrownBy(() ->
-				webAppContextSetup(null))
-			.withMessage("WebApplicationContext is required");
-	}
+    @Test
+    public void webAppContextSetupWithNullWac() {
+        assertThatIllegalArgumentException().isThrownBy(() ->
+                webAppContextSetup(null))
+                .withMessage("WebApplicationContext is required");
+    }
 
-	@Test
-	public void webAppContextSetupWithNullServletContext() {
-		assertThatIllegalArgumentException().isThrownBy(() ->
-				webAppContextSetup(new StubWebApplicationContext(null)))
-			.withMessage("WebApplicationContext must have a ServletContext");
-	}
+    @Test
+    public void webAppContextSetupWithNullServletContext() {
+        assertThatIllegalArgumentException().isThrownBy(() ->
+                webAppContextSetup(new StubWebApplicationContext(null)))
+                .withMessage("WebApplicationContext must have a ServletContext");
+    }
 
-	/**
-	 * See SPR-12553 and SPR-13075.
-	 */
-	@Test
-	public void rootWacServletContainerAttributePreviouslySet() {
-		StubWebApplicationContext child = new StubWebApplicationContext(this.servletContext);
-		this.servletContext.setAttribute(WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE, child);
+    /**
+     * See SPR-12553 and SPR-13075.
+     */
+    @Test
+    public void rootWacServletContainerAttributePreviouslySet() {
+        StubWebApplicationContext child = new StubWebApplicationContext(this.servletContext);
+        this.servletContext.setAttribute(WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE, child);
 
-		DefaultMockMvcBuilder builder = webAppContextSetup(child);
-		assertThat(WebApplicationContextUtils.getRequiredWebApplicationContext(this.servletContext)).isSameAs(builder.initWebAppContext());
-	}
+        DefaultMockMvcBuilder builder = webAppContextSetup(child);
+        assertThat(WebApplicationContextUtils.getRequiredWebApplicationContext(this.servletContext)).isSameAs(builder.initWebAppContext());
+    }
 
-	/**
-	 * See SPR-12553 and SPR-13075.
-	 */
-	@Test
-	public void rootWacServletContainerAttributePreviouslySetWithContextHierarchy() {
-		StubWebApplicationContext root = new StubWebApplicationContext(this.servletContext);
+    /**
+     * See SPR-12553 and SPR-13075.
+     */
+    @Test
+    public void rootWacServletContainerAttributePreviouslySetWithContextHierarchy() {
+        StubWebApplicationContext root = new StubWebApplicationContext(this.servletContext);
 
-		this.servletContext.setAttribute(WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE, root);
+        this.servletContext.setAttribute(WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE, root);
 
-		StaticWebApplicationContext child = new StaticWebApplicationContext();
-		child.setParent(root);
-		child.setServletContext(this.servletContext);
+        StaticWebApplicationContext child = new StaticWebApplicationContext();
+        child.setParent(root);
+        child.setServletContext(this.servletContext);
 
-		DefaultMockMvcBuilder builder = webAppContextSetup(child);
-		assertThat(WebApplicationContextUtils.getRequiredWebApplicationContext(this.servletContext)).isSameAs(builder.initWebAppContext().getParent());
-	}
+        DefaultMockMvcBuilder builder = webAppContextSetup(child);
+        assertThat(WebApplicationContextUtils.getRequiredWebApplicationContext(this.servletContext)).isSameAs(builder.initWebAppContext().getParent());
+    }
 
-	/**
-	 * See SPR-12553 and SPR-13075.
-	 */
-	@Test
-	public void rootWacServletContainerAttributeNotPreviouslySet() {
-		StubWebApplicationContext root = new StubWebApplicationContext(this.servletContext);
-		DefaultMockMvcBuilder builder = webAppContextSetup(root);
-		WebApplicationContext wac = builder.initWebAppContext();
-		assertThat(wac).isSameAs(root);
-		assertThat(WebApplicationContextUtils.getRequiredWebApplicationContext(this.servletContext)).isSameAs(root);
-	}
+    /**
+     * See SPR-12553 and SPR-13075.
+     */
+    @Test
+    public void rootWacServletContainerAttributeNotPreviouslySet() {
+        StubWebApplicationContext root = new StubWebApplicationContext(this.servletContext);
+        DefaultMockMvcBuilder builder = webAppContextSetup(root);
+        WebApplicationContext wac = builder.initWebAppContext();
+        assertThat(wac).isSameAs(root);
+        assertThat(WebApplicationContextUtils.getRequiredWebApplicationContext(this.servletContext)).isSameAs(root);
+    }
 
-	/**
-	 * See SPR-12553 and SPR-13075.
-	 */
-	@Test
-	public void rootWacServletContainerAttributeNotPreviouslySetWithContextHierarchy() {
-		StaticApplicationContext ear = new StaticApplicationContext();
-		StaticWebApplicationContext root = new StaticWebApplicationContext();
-		root.setParent(ear);
-		root.setServletContext(this.servletContext);
-		StaticWebApplicationContext dispatcher = new StaticWebApplicationContext();
-		dispatcher.setParent(root);
-		dispatcher.setServletContext(this.servletContext);
+    /**
+     * See SPR-12553 and SPR-13075.
+     */
+    @Test
+    public void rootWacServletContainerAttributeNotPreviouslySetWithContextHierarchy() {
+        StaticApplicationContext ear = new StaticApplicationContext();
+        StaticWebApplicationContext root = new StaticWebApplicationContext();
+        root.setParent(ear);
+        root.setServletContext(this.servletContext);
+        StaticWebApplicationContext dispatcher = new StaticWebApplicationContext();
+        dispatcher.setParent(root);
+        dispatcher.setServletContext(this.servletContext);
 
-		DefaultMockMvcBuilder builder = webAppContextSetup(dispatcher);
-		WebApplicationContext wac = builder.initWebAppContext();
+        DefaultMockMvcBuilder builder = webAppContextSetup(dispatcher);
+        WebApplicationContext wac = builder.initWebAppContext();
 
-		assertThat(wac).isSameAs(dispatcher);
-		assertThat(wac.getParent()).isSameAs(root);
-		assertThat(wac.getParent().getParent()).isSameAs(ear);
-		assertThat(WebApplicationContextUtils.getRequiredWebApplicationContext(this.servletContext)).isSameAs(root);
-	}
+        assertThat(wac).isSameAs(dispatcher);
+        assertThat(wac.getParent()).isSameAs(root);
+        assertThat(wac.getParent().getParent()).isSameAs(ear);
+        assertThat(WebApplicationContextUtils.getRequiredWebApplicationContext(this.servletContext)).isSameAs(root);
+    }
 
-	/**
-	 * See /SPR-14277
-	 */
-	@Test
-	public void dispatcherServletCustomizer() {
-		StubWebApplicationContext root = new StubWebApplicationContext(this.servletContext);
-		DefaultMockMvcBuilder builder = webAppContextSetup(root);
-		builder.addDispatcherServletCustomizer(ds -> ds.setContextId("test-id"));
-		builder.dispatchOptions(true);
-		MockMvc mvc = builder.build();
-		DispatcherServlet ds = (DispatcherServlet) new DirectFieldAccessor(mvc)
-				.getPropertyValue("servlet");
-		assertThat(ds.getContextId()).isEqualTo("test-id");
-	}
+    /**
+     * See /SPR-14277
+     */
+    @Test
+    public void dispatcherServletCustomizer() {
+        StubWebApplicationContext root = new StubWebApplicationContext(this.servletContext);
+        DefaultMockMvcBuilder builder = webAppContextSetup(root);
+        builder.addDispatcherServletCustomizer(ds -> ds.setContextId("test-id"));
+        builder.dispatchOptions(true);
+        MockMvc mvc = builder.build();
+        DispatcherServlet ds = (DispatcherServlet) new DirectFieldAccessor(mvc)
+                .getPropertyValue("servlet");
+        assertThat(ds.getContextId()).isEqualTo("test-id");
+    }
 
-	@Test
-	public void dispatcherServletCustomizerProcessedInOrder() {
-		StubWebApplicationContext root = new StubWebApplicationContext(this.servletContext);
-		DefaultMockMvcBuilder builder = webAppContextSetup(root);
-		builder.addDispatcherServletCustomizer(ds -> ds.setContextId("test-id"));
-		builder.addDispatcherServletCustomizer(ds -> ds.setContextId("override-id"));
-		builder.dispatchOptions(true);
-		MockMvc mvc = builder.build();
-		DispatcherServlet ds = (DispatcherServlet) new DirectFieldAccessor(mvc)
-				.getPropertyValue("servlet");
-		assertThat(ds.getContextId()).isEqualTo("override-id");
-	}
+    @Test
+    public void dispatcherServletCustomizerProcessedInOrder() {
+        StubWebApplicationContext root = new StubWebApplicationContext(this.servletContext);
+        DefaultMockMvcBuilder builder = webAppContextSetup(root);
+        builder.addDispatcherServletCustomizer(ds -> ds.setContextId("test-id"));
+        builder.addDispatcherServletCustomizer(ds -> ds.setContextId("override-id"));
+        builder.dispatchOptions(true);
+        MockMvc mvc = builder.build();
+        DispatcherServlet ds = (DispatcherServlet) new DirectFieldAccessor(mvc)
+                .getPropertyValue("servlet");
+        assertThat(ds.getContextId()).isEqualTo("override-id");
+    }
 
 }

@@ -27,19 +27,19 @@ import org.springframework.web.method.support.HandlerMethodArgumentResolver;
  */
 public class SessionAttributeMethodArgumentResolverTests extends AbstractRequestAttributesArgumentResolverTests {
 
-	@Override
-	protected HandlerMethodArgumentResolver createResolver() {
-		return new SessionAttributeMethodArgumentResolver();
-	}
+    @Override
+    protected HandlerMethodArgumentResolver createResolver() {
+        return new SessionAttributeMethodArgumentResolver();
+    }
 
-	@Override
-	protected String getHandleMethodName() {
-		return "handleWithSessionAttribute";
-	}
+    @Override
+    protected String getHandleMethodName() {
+        return "handleWithSessionAttribute";
+    }
 
-	@Override
-	protected int getScope() {
-		return RequestAttributes.SCOPE_SESSION;
-	}
+    @Override
+    protected int getScope() {
+        return RequestAttributes.SCOPE_SESSION;
+    }
 
 }

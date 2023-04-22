@@ -38,17 +38,17 @@ import static org.assertj.core.api.Assertions.assertThat;
 @ContextConfiguration
 abstract class AbstractRepeatableTestPropertySourceTests {
 
-	@Autowired
-	Environment env;
+    @Autowired
+    Environment env;
 
 
-	protected void assertEnvironmentValue(String key, String expected) {
-		assertThat(env.getProperty(key)).as("Value of key [" + key + "].").isEqualTo(expected);
-	}
+    protected void assertEnvironmentValue(String key, String expected) {
+        assertThat(env.getProperty(key)).as("Value of key [" + key + "].").isEqualTo(expected);
+    }
 
 
-	@Configuration
-	static class Config {
-	}
+    @Configuration
+    static class Config {
+    }
 
 }

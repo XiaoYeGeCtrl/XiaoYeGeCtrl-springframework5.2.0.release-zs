@@ -42,118 +42,117 @@ import static org.mockito.Mockito.verify;
  */
 class MockFilterChainTests {
 
-	private ServletRequest request;
+    private ServletRequest request;
 
-	private ServletResponse response;
+    private ServletResponse response;
 
-	@BeforeEach
-	void setup() {
-		this.request = new MockHttpServletRequest();
-		this.response = new MockHttpServletResponse();
-	}
+    @BeforeEach
+    void setup() {
+        this.request = new MockHttpServletRequest();
+        this.response = new MockHttpServletResponse();
+    }
 
-	@Test
-	void constructorNullServlet() {
-		assertThatIllegalArgumentException().isThrownBy(() ->
-				new MockFilterChain((Servlet) null));
-	}
+    @Test
+    void constructorNullServlet() {
+        assertThatIllegalArgumentException().isThrownBy(() ->
+                new MockFilterChain((Servlet) null));
+    }
 
-	@Test
-	void constructorNullFilter() {
-		assertThatIllegalArgumentException().isThrownBy(() ->
-				new MockFilterChain(mock(Servlet.class), (Filter) null));
-	}
+    @Test
+    void constructorNullFilter() {
+        assertThatIllegalArgumentException().isThrownBy(() ->
+                new MockFilterChain(mock(Servlet.class), (Filter) null));
+    }
 
-	@Test
-	void doFilterNullRequest() throws Exception {
-		MockFilterChain chain = new MockFilterChain();
-		assertThatIllegalArgumentException().isThrownBy(() ->
-				chain.doFilter(null, this.response));
-	}
+    @Test
+    void doFilterNullRequest() throws Exception {
+        MockFilterChain chain = new MockFilterChain();
+        assertThatIllegalArgumentException().isThrownBy(() ->
+                chain.doFilter(null, this.response));
+    }
 
-	@Test
-	void doFilterNullResponse() throws Exception {
-		MockFilterChain chain = new MockFilterChain();
-		assertThatIllegalArgumentException().isThrownBy(() ->
-				chain.doFilter(this.request, null));
-	}
+    @Test
+    void doFilterNullResponse() throws Exception {
+        MockFilterChain chain = new MockFilterChain();
+        assertThatIllegalArgumentException().isThrownBy(() ->
+                chain.doFilter(this.request, null));
+    }
 
-	@Test
-	void doFilterEmptyChain() throws Exception {
-		MockFilterChain chain = new MockFilterChain();
-		chain.doFilter(this.request, this.response);
+    @Test
+    void doFilterEmptyChain() throws Exception {
+        MockFilterChain chain = new MockFilterChain();
+        chain.doFilter(this.request, this.response);
 
-		assertThat(chain.getRequest()).isEqualTo(request);
-		assertThat(chain.getResponse()).isEqualTo(response);
+        assertThat(chain.getRequest()).isEqualTo(request);
+        assertThat(chain.getResponse()).isEqualTo(response);
 
-		assertThatIllegalStateException().isThrownBy(() ->
-				chain.doFilter(this.request, this.response))
-			.withMessage("This FilterChain has already been called!");
-	}
+        assertThatIllegalStateException().isThrownBy(() ->
+                chain.doFilter(this.request, this.response))
+                .withMessage("This FilterChain has already been called!");
+    }
 
-	@Test
-	void doFilterWithServlet() throws Exception {
-		Servlet servlet = mock(Servlet.class);
-		MockFilterChain chain = new MockFilterChain(servlet);
-		chain.doFilter(this.request, this.response);
-		verify(servlet).service(this.request, this.response);
-		assertThatIllegalStateException().isThrownBy(() ->
-				chain.doFilter(this.request, this.response))
-			.withMessage("This FilterChain has already been called!");
-	}
+    @Test
+    void doFilterWithServlet() throws Exception {
+        Servlet servlet = mock(Servlet.class);
+        MockFilterChain chain = new MockFilterChain(servlet);
+        chain.doFilter(this.request, this.response);
+        verify(servlet).service(this.request, this.response);
+        assertThatIllegalStateException().isThrownBy(() ->
+                chain.doFilter(this.request, this.response))
+                .withMessage("This FilterChain has already been called!");
+    }
 
-	@Test
-	void doFilterWithServletAndFilters() throws Exception {
-		Servlet servlet = mock(Servlet.class);
+    @Test
+    void doFilterWithServletAndFilters() throws Exception {
+        Servlet servlet = mock(Servlet.class);
 
-		MockFilter filter2 = new MockFilter(servlet);
-		MockFilter filter1 = new MockFilter(null);
-		MockFilterChain chain = new MockFilterChain(servlet, filter1, filter2);
+        MockFilter filter2 = new MockFilter(servlet);
+        MockFilter filter1 = new MockFilter(null);
+        MockFilterChain chain = new MockFilterChain(servlet, filter1, filter2);
 
-		chain.doFilter(this.request, this.response);
+        chain.doFilter(this.request, this.response);
 
-		assertThat(filter1.invoked).isTrue();
-		assertThat(filter2.invoked).isTrue();
+        assertThat(filter1.invoked).isTrue();
+        assertThat(filter2.invoked).isTrue();
 
-		verify(servlet).service(this.request, this.response);
+        verify(servlet).service(this.request, this.response);
 
-		assertThatIllegalStateException().isThrownBy(() ->
-				chain.doFilter(this.request, this.response))
-			.withMessage("This FilterChain has already been called!");
-	}
+        assertThatIllegalStateException().isThrownBy(() ->
+                chain.doFilter(this.request, this.response))
+                .withMessage("This FilterChain has already been called!");
+    }
 
 
-	private static class MockFilter implements Filter {
+    private static class MockFilter implements Filter {
 
-		private final Servlet servlet;
+        private final Servlet servlet;
 
-		private boolean invoked;
+        private boolean invoked;
 
-		public MockFilter(Servlet servlet) {
-			this.servlet = servlet;
-		}
+        public MockFilter(Servlet servlet) {
+            this.servlet = servlet;
+        }
 
-		@Override
-		public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
-				throws IOException, ServletException {
+        @Override
+        public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
+                throws IOException, ServletException {
 
-			this.invoked = true;
+            this.invoked = true;
 
-			if (this.servlet != null) {
-				this.servlet.service(request, response);
-			}
-			else {
-				chain.doFilter(request, response);
-			}
-		}
+            if (this.servlet != null) {
+                this.servlet.service(request, response);
+            } else {
+                chain.doFilter(request, response);
+            }
+        }
 
-		@Override
-		public void init(FilterConfig filterConfig) throws ServletException {
-		}
+        @Override
+        public void init(FilterConfig filterConfig) throws ServletException {
+        }
 
-		@Override
-		public void destroy() {
-		}
-	}
+        @Override
+        public void destroy() {
+        }
+    }
 
 }

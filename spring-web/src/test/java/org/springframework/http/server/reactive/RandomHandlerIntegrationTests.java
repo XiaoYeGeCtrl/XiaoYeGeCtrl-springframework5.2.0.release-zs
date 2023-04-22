@@ -38,77 +38,77 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 class RandomHandlerIntegrationTests extends AbstractHttpHandlerIntegrationTests {
 
-	private static final int REQUEST_SIZE = 4096 * 3;
+    private static final int REQUEST_SIZE = 4096 * 3;
 
-	private static final int RESPONSE_SIZE = 1024 * 4;
+    private static final int RESPONSE_SIZE = 1024 * 4;
 
-	private final Random rnd = new Random();
+    private final Random rnd = new Random();
 
-	private final RandomHandler handler = new RandomHandler();
+    private final RandomHandler handler = new RandomHandler();
 
-	private final DataBufferFactory dataBufferFactory = new DefaultDataBufferFactory();
-
-
-	@Override
-	protected RandomHandler createHttpHandler() {
-		return handler;
-	}
+    private final DataBufferFactory dataBufferFactory = new DefaultDataBufferFactory();
 
 
-	@ParameterizedHttpServerTest
-	void random(HttpServer httpServer) throws Exception {
-		startServer(httpServer);
-
-		// TODO: fix Reactor support
-
-		RestTemplate restTemplate = new RestTemplate();
-
-		byte[] body = randomBytes();
-		RequestEntity<byte[]> request = RequestEntity.post(new URI("http://localhost:" + port)).body(body);
-		ResponseEntity<byte[]> response = restTemplate.exchange(request, byte[].class);
-
-		assertThat(response.getBody()).isNotNull();
-		assertThat(response.getHeaders().getContentLength()).isEqualTo(RESPONSE_SIZE);
-		assertThat(response.getBody().length).isEqualTo(RESPONSE_SIZE);
-	}
+    @Override
+    protected RandomHandler createHttpHandler() {
+        return handler;
+    }
 
 
-	private byte[] randomBytes() {
-		byte[] buffer = new byte[REQUEST_SIZE];
-		rnd.nextBytes(buffer);
-		return buffer;
-	}
+    @ParameterizedHttpServerTest
+    void random(HttpServer httpServer) throws Exception {
+        startServer(httpServer);
 
-	private class RandomHandler implements HttpHandler {
+        // TODO: fix Reactor support
 
-		static final int CHUNKS = 16;
+        RestTemplate restTemplate = new RestTemplate();
 
-		@Override
-		public Mono<Void> handle(ServerHttpRequest request, ServerHttpResponse response) {
-			Mono<Integer> requestSizeMono = request.getBody().
-					reduce(0, (integer, dataBuffer) -> integer +
-							dataBuffer.readableByteCount()).
-					doOnNext(size -> assertThat(size).isEqualTo(REQUEST_SIZE)).
-					doOnError(throwable -> assertThat(throwable).isNull());
+        byte[] body = randomBytes();
+        RequestEntity<byte[]> request = RequestEntity.post(new URI("http://localhost:" + port)).body(body);
+        ResponseEntity<byte[]> response = restTemplate.exchange(request, byte[].class);
 
-			response.getHeaders().setContentLength(RESPONSE_SIZE);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getHeaders().getContentLength()).isEqualTo(RESPONSE_SIZE);
+        assertThat(response.getBody().length).isEqualTo(RESPONSE_SIZE);
+    }
 
-			return requestSizeMono.then(response.writeWith(multipleChunks()));
-		}
 
-		private Publisher<DataBuffer> multipleChunks() {
-			int chunkSize = RESPONSE_SIZE / CHUNKS;
-			return Flux.range(1, CHUNKS).map(integer -> randomBuffer(chunkSize));
-		}
+    private byte[] randomBytes() {
+        byte[] buffer = new byte[REQUEST_SIZE];
+        rnd.nextBytes(buffer);
+        return buffer;
+    }
 
-		private DataBuffer randomBuffer(int size) {
-			byte[] bytes = new byte[size];
-			rnd.nextBytes(bytes);
-			DataBuffer buffer = dataBufferFactory.allocateBuffer(size);
-			buffer.write(bytes);
-			return buffer;
-		}
+    private class RandomHandler implements HttpHandler {
 
-	}
+        static final int CHUNKS = 16;
+
+        @Override
+        public Mono<Void> handle(ServerHttpRequest request, ServerHttpResponse response) {
+            Mono<Integer> requestSizeMono = request.getBody().
+                    reduce(0, (integer, dataBuffer) -> integer +
+                            dataBuffer.readableByteCount()).
+                    doOnNext(size -> assertThat(size).isEqualTo(REQUEST_SIZE)).
+                    doOnError(throwable -> assertThat(throwable).isNull());
+
+            response.getHeaders().setContentLength(RESPONSE_SIZE);
+
+            return requestSizeMono.then(response.writeWith(multipleChunks()));
+        }
+
+        private Publisher<DataBuffer> multipleChunks() {
+            int chunkSize = RESPONSE_SIZE / CHUNKS;
+            return Flux.range(1, CHUNKS).map(integer -> randomBuffer(chunkSize));
+        }
+
+        private DataBuffer randomBuffer(int size) {
+            byte[] bytes = new byte[size];
+            rnd.nextBytes(bytes);
+            DataBuffer buffer = dataBufferFactory.allocateBuffer(size);
+            buffer.write(bytes);
+            return buffer;
+        }
+
+    }
 
 }

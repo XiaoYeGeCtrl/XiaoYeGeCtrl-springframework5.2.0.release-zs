@@ -64,230 +64,224 @@ import static org.mockito.Mockito.mock;
  */
 public class ModelInitializerTests {
 
-	private ModelInitializer modelInitializer;
+    private static final ReflectionUtils.MethodFilter BINDER_METHODS = method ->
+            AnnotationUtils.findAnnotation(method, InitBinder.class) != null;
+    private final ServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/path"));
+    private ModelInitializer modelInitializer;
 
-	private final ServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/path"));
+    @BeforeEach
+    public void setup() {
+        ReactiveAdapterRegistry adapterRegistry = ReactiveAdapterRegistry.getSharedInstance();
 
+        ArgumentResolverConfigurer resolverConfigurer = new ArgumentResolverConfigurer();
+        resolverConfigurer.addCustomResolver(new ModelMethodArgumentResolver(adapterRegistry));
 
-	@BeforeEach
-	public void setup() {
-		ReactiveAdapterRegistry adapterRegistry = ReactiveAdapterRegistry.getSharedInstance();
+        ControllerMethodResolver methodResolver = new ControllerMethodResolver(
+                resolverConfigurer, adapterRegistry, new StaticApplicationContext(), Collections.emptyList());
 
-		ArgumentResolverConfigurer resolverConfigurer = new ArgumentResolverConfigurer();
-		resolverConfigurer.addCustomResolver(new ModelMethodArgumentResolver(adapterRegistry));
+        this.modelInitializer = new ModelInitializer(methodResolver, adapterRegistry);
+    }
 
-		ControllerMethodResolver methodResolver = new ControllerMethodResolver(
-				resolverConfigurer, adapterRegistry, new StaticApplicationContext(), Collections.emptyList());
+    @Test
+    public void initBinderMethod() {
+        Validator validator = mock(Validator.class);
 
-		this.modelInitializer = new ModelInitializer(methodResolver, adapterRegistry);
-	}
+        TestController controller = new TestController();
+        controller.setValidator(validator);
+        InitBinderBindingContext context = getBindingContext(controller);
 
+        Method method = ResolvableMethod.on(TestController.class).annotPresent(GetMapping.class).resolveMethod();
+        HandlerMethod handlerMethod = new HandlerMethod(controller, method);
+        this.modelInitializer.initModel(handlerMethod, context, this.exchange).block(Duration.ofMillis(5000));
 
-	@Test
-	public void initBinderMethod() {
-		Validator validator = mock(Validator.class);
+        WebExchangeDataBinder binder = context.createDataBinder(this.exchange, "name");
+        assertThat(binder.getValidators()).isEqualTo(Collections.singletonList(validator));
+    }
 
-		TestController controller = new TestController();
-		controller.setValidator(validator);
-		InitBinderBindingContext context = getBindingContext(controller);
+    @SuppressWarnings("unchecked")
+    @Test
+    public void modelAttributeMethods() {
+        TestController controller = new TestController();
+        InitBinderBindingContext context = getBindingContext(controller);
 
-		Method method = ResolvableMethod.on(TestController.class).annotPresent(GetMapping.class).resolveMethod();
-		HandlerMethod handlerMethod = new HandlerMethod(controller, method);
-		this.modelInitializer.initModel(handlerMethod, context, this.exchange).block(Duration.ofMillis(5000));
+        Method method = ResolvableMethod.on(TestController.class).annotPresent(GetMapping.class).resolveMethod();
+        HandlerMethod handlerMethod = new HandlerMethod(controller, method);
+        this.modelInitializer.initModel(handlerMethod, context, this.exchange).block(Duration.ofMillis(5000));
 
-		WebExchangeDataBinder binder = context.createDataBinder(this.exchange, "name");
-		assertThat(binder.getValidators()).isEqualTo(Collections.singletonList(validator));
-	}
+        Map<String, Object> model = context.getModel().asMap();
+        assertThat(model.size()).isEqualTo(5);
 
-	@SuppressWarnings("unchecked")
-	@Test
-	public void modelAttributeMethods() {
-		TestController controller = new TestController();
-		InitBinderBindingContext context = getBindingContext(controller);
+        Object value = model.get("bean");
+        assertThat(((TestBean) value).getName()).isEqualTo("Bean");
 
-		Method method = ResolvableMethod.on(TestController.class).annotPresent(GetMapping.class).resolveMethod();
-		HandlerMethod handlerMethod = new HandlerMethod(controller, method);
-		this.modelInitializer.initModel(handlerMethod, context, this.exchange).block(Duration.ofMillis(5000));
+        value = model.get("monoBean");
+        assertThat(((Mono<TestBean>) value).block(Duration.ofMillis(5000)).getName()).isEqualTo("Mono Bean");
 
-		Map<String, Object> model = context.getModel().asMap();
-		assertThat(model.size()).isEqualTo(5);
+        value = model.get("singleBean");
+        assertThat(((Single<TestBean>) value).toBlocking().value().getName()).isEqualTo("Single Bean");
 
-		Object value = model.get("bean");
-		assertThat(((TestBean) value).getName()).isEqualTo("Bean");
+        value = model.get("voidMethodBean");
+        assertThat(((TestBean) value).getName()).isEqualTo("Void Method Bean");
 
-		value = model.get("monoBean");
-		assertThat(((Mono<TestBean>) value).block(Duration.ofMillis(5000)).getName()).isEqualTo("Mono Bean");
+        value = model.get("voidMonoMethodBean");
+        assertThat(((TestBean) value).getName()).isEqualTo("Void Mono Method Bean");
+    }
 
-		value = model.get("singleBean");
-		assertThat(((Single<TestBean>) value).toBlocking().value().getName()).isEqualTo("Single Bean");
+    @Test
+    public void saveModelAttributeToSession() {
+        TestController controller = new TestController();
+        InitBinderBindingContext context = getBindingContext(controller);
 
-		value = model.get("voidMethodBean");
-		assertThat(((TestBean) value).getName()).isEqualTo("Void Method Bean");
+        Method method = ResolvableMethod.on(TestController.class).annotPresent(GetMapping.class).resolveMethod();
+        HandlerMethod handlerMethod = new HandlerMethod(controller, method);
+        this.modelInitializer.initModel(handlerMethod, context, this.exchange).block(Duration.ofMillis(5000));
 
-		value = model.get("voidMonoMethodBean");
-		assertThat(((TestBean) value).getName()).isEqualTo("Void Mono Method Bean");
-	}
+        WebSession session = this.exchange.getSession().block(Duration.ZERO);
+        assertThat(session).isNotNull();
+        assertThat(session.getAttributes().size()).isEqualTo(0);
 
-	@Test
-	public void saveModelAttributeToSession() {
-		TestController controller = new TestController();
-		InitBinderBindingContext context = getBindingContext(controller);
+        context.saveModel();
+        assertThat(session.getAttributes().size()).isEqualTo(1);
+        assertThat(((TestBean) session.getRequiredAttribute("bean")).getName()).isEqualTo("Bean");
+    }
 
-		Method method = ResolvableMethod.on(TestController.class).annotPresent(GetMapping.class).resolveMethod();
-		HandlerMethod handlerMethod = new HandlerMethod(controller, method);
-		this.modelInitializer.initModel(handlerMethod, context, this.exchange).block(Duration.ofMillis(5000));
+    @Test
+    public void retrieveModelAttributeFromSession() {
+        WebSession session = this.exchange.getSession().block(Duration.ZERO);
+        assertThat(session).isNotNull();
 
-		WebSession session = this.exchange.getSession().block(Duration.ZERO);
-		assertThat(session).isNotNull();
-		assertThat(session.getAttributes().size()).isEqualTo(0);
+        TestBean testBean = new TestBean("Session Bean");
+        session.getAttributes().put("bean", testBean);
 
-		context.saveModel();
-		assertThat(session.getAttributes().size()).isEqualTo(1);
-		assertThat(((TestBean) session.getRequiredAttribute("bean")).getName()).isEqualTo("Bean");
-	}
+        TestController controller = new TestController();
+        InitBinderBindingContext context = getBindingContext(controller);
 
-	@Test
-	public void retrieveModelAttributeFromSession() {
-		WebSession session = this.exchange.getSession().block(Duration.ZERO);
-		assertThat(session).isNotNull();
+        Method method = ResolvableMethod.on(TestController.class).annotPresent(GetMapping.class).resolveMethod();
+        HandlerMethod handlerMethod = new HandlerMethod(controller, method);
+        this.modelInitializer.initModel(handlerMethod, context, this.exchange).block(Duration.ofMillis(5000));
 
-		TestBean testBean = new TestBean("Session Bean");
-		session.getAttributes().put("bean", testBean);
+        context.saveModel();
+        assertThat(session.getAttributes().size()).isEqualTo(1);
+        assertThat(((TestBean) session.getRequiredAttribute("bean")).getName()).isEqualTo("Session Bean");
+    }
 
-		TestController controller = new TestController();
-		InitBinderBindingContext context = getBindingContext(controller);
+    @Test
+    public void requiredSessionAttributeMissing() {
+        TestController controller = new TestController();
+        InitBinderBindingContext context = getBindingContext(controller);
 
-		Method method = ResolvableMethod.on(TestController.class).annotPresent(GetMapping.class).resolveMethod();
-		HandlerMethod handlerMethod = new HandlerMethod(controller, method);
-		this.modelInitializer.initModel(handlerMethod, context, this.exchange).block(Duration.ofMillis(5000));
+        Method method = ResolvableMethod.on(TestController.class).annotPresent(PostMapping.class).resolveMethod();
+        HandlerMethod handlerMethod = new HandlerMethod(controller, method);
+        assertThatIllegalArgumentException().isThrownBy(() ->
+                this.modelInitializer.initModel(handlerMethod, context, this.exchange).block(Duration.ofMillis(5000)))
+                .withMessage("Required attribute 'missing-bean' is missing.");
+    }
 
-		context.saveModel();
-		assertThat(session.getAttributes().size()).isEqualTo(1);
-		assertThat(((TestBean) session.getRequiredAttribute("bean")).getName()).isEqualTo("Session Bean");
-	}
+    @Test
+    public void clearModelAttributeFromSession() {
+        WebSession session = this.exchange.getSession().block(Duration.ZERO);
+        assertThat(session).isNotNull();
 
-	@Test
-	public void requiredSessionAttributeMissing() {
-		TestController controller = new TestController();
-		InitBinderBindingContext context = getBindingContext(controller);
+        TestBean testBean = new TestBean("Session Bean");
+        session.getAttributes().put("bean", testBean);
 
-		Method method = ResolvableMethod.on(TestController.class).annotPresent(PostMapping.class).resolveMethod();
-		HandlerMethod handlerMethod = new HandlerMethod(controller, method);
-		assertThatIllegalArgumentException().isThrownBy(() ->
-				this.modelInitializer.initModel(handlerMethod, context, this.exchange).block(Duration.ofMillis(5000)))
-			.withMessage("Required attribute 'missing-bean' is missing.");
-	}
+        TestController controller = new TestController();
+        InitBinderBindingContext context = getBindingContext(controller);
 
-	@Test
-	public void clearModelAttributeFromSession() {
-		WebSession session = this.exchange.getSession().block(Duration.ZERO);
-		assertThat(session).isNotNull();
+        Method method = ResolvableMethod.on(TestController.class).annotPresent(GetMapping.class).resolveMethod();
+        HandlerMethod handlerMethod = new HandlerMethod(controller, method);
+        this.modelInitializer.initModel(handlerMethod, context, this.exchange).block(Duration.ofMillis(5000));
 
-		TestBean testBean = new TestBean("Session Bean");
-		session.getAttributes().put("bean", testBean);
+        context.getSessionStatus().setComplete();
+        context.saveModel();
 
-		TestController controller = new TestController();
-		InitBinderBindingContext context = getBindingContext(controller);
+        assertThat(session.getAttributes().size()).isEqualTo(0);
+    }
 
-		Method method = ResolvableMethod.on(TestController.class).annotPresent(GetMapping.class).resolveMethod();
-		HandlerMethod handlerMethod = new HandlerMethod(controller, method);
-		this.modelInitializer.initModel(handlerMethod, context, this.exchange).block(Duration.ofMillis(5000));
+    private InitBinderBindingContext getBindingContext(Object controller) {
+        List<SyncInvocableHandlerMethod> binderMethods =
+                MethodIntrospector.selectMethods(controller.getClass(), BINDER_METHODS)
+                        .stream()
+                        .map(method -> new SyncInvocableHandlerMethod(controller, method))
+                        .collect(Collectors.toList());
 
-		context.getSessionStatus().setComplete();
-		context.saveModel();
+        WebBindingInitializer bindingInitializer = new ConfigurableWebBindingInitializer();
+        return new InitBinderBindingContext(bindingInitializer, binderMethods);
+    }
 
-		assertThat(session.getAttributes().size()).isEqualTo(0);
-	}
+    @SuppressWarnings("unused")
+    @SessionAttributes({"bean", "missing-bean"})
+    private static class TestController {
 
-
-	private InitBinderBindingContext getBindingContext(Object controller) {
-		List<SyncInvocableHandlerMethod> binderMethods =
-				MethodIntrospector.selectMethods(controller.getClass(), BINDER_METHODS)
-						.stream()
-						.map(method -> new SyncInvocableHandlerMethod(controller, method))
-						.collect(Collectors.toList());
-
-		WebBindingInitializer bindingInitializer = new ConfigurableWebBindingInitializer();
-		return new InitBinderBindingContext(bindingInitializer, binderMethods);
-	}
-
-
-	@SuppressWarnings("unused")
-	@SessionAttributes({"bean", "missing-bean"})
-	private static class TestController {
-
-		@Nullable
-		private Validator validator;
+        @Nullable
+        private Validator validator;
 
 
-		void setValidator(Validator validator) {
-			this.validator = validator;
-		}
+        void setValidator(Validator validator) {
+            this.validator = validator;
+        }
 
 
-		@InitBinder
-		public void initDataBinder(WebDataBinder dataBinder) {
-			if (this.validator != null) {
-				dataBinder.addValidators(this.validator);
-			}
-		}
+        @InitBinder
+        public void initDataBinder(WebDataBinder dataBinder) {
+            if (this.validator != null) {
+                dataBinder.addValidators(this.validator);
+            }
+        }
 
-		@ModelAttribute("bean")
-		public TestBean returnValue() {
-			return new TestBean("Bean");
-		}
+        @ModelAttribute("bean")
+        public TestBean returnValue() {
+            return new TestBean("Bean");
+        }
 
-		@ModelAttribute("monoBean")
-		public Mono<TestBean> returnValueMono() {
-			return Mono.just(new TestBean("Mono Bean"));
-		}
+        @ModelAttribute("monoBean")
+        public Mono<TestBean> returnValueMono() {
+            return Mono.just(new TestBean("Mono Bean"));
+        }
 
-		@ModelAttribute("singleBean")
-		public Single<TestBean> returnValueSingle() {
-			return Single.just(new TestBean("Single Bean"));
-		}
+        @ModelAttribute("singleBean")
+        public Single<TestBean> returnValueSingle() {
+            return Single.just(new TestBean("Single Bean"));
+        }
 
-		@ModelAttribute
-		public void voidMethodBean(Model model) {
-			model.addAttribute("voidMethodBean", new TestBean("Void Method Bean"));
-		}
+        @ModelAttribute
+        public void voidMethodBean(Model model) {
+            model.addAttribute("voidMethodBean", new TestBean("Void Method Bean"));
+        }
 
-		@ModelAttribute
-		public Mono<Void> voidMonoMethodBean(Model model) {
-			return Mono.just("Void Mono Method Bean")
-					.doOnNext(name -> model.addAttribute("voidMonoMethodBean", new TestBean(name)))
-					.then();
-		}
+        @ModelAttribute
+        public Mono<Void> voidMonoMethodBean(Model model) {
+            return Mono.just("Void Mono Method Bean")
+                    .doOnNext(name -> model.addAttribute("voidMonoMethodBean", new TestBean(name)))
+                    .then();
+        }
 
-		@GetMapping
-		public void handleGet() {}
+        @GetMapping
+        public void handleGet() {
+        }
 
-		@PostMapping
-		public void handlePost(@ModelAttribute("missing-bean") TestBean testBean) {}
+        @PostMapping
+        public void handlePost(@ModelAttribute("missing-bean") TestBean testBean) {
+        }
 
-	}
+    }
 
+    private static class TestBean {
 
-	private static class TestBean {
+        private final String name;
 
-		private final String name;
+        TestBean(String name) {
+            this.name = name;
+        }
 
-		TestBean(String name) {
-			this.name = name;
-		}
+        public String getName() {
+            return this.name;
+        }
 
-		public String getName() {
-			return this.name;
-		}
-
-		@Override
-		public String toString() {
-			return "TestBean[name=" + this.name + "]";
-		}
-	}
-
-
-	private static final ReflectionUtils.MethodFilter BINDER_METHODS = method ->
-			AnnotationUtils.findAnnotation(method, InitBinder.class) != null;
+        @Override
+        public String toString() {
+            return "TestBean[name=" + this.name + "]";
+        }
+    }
 
 }

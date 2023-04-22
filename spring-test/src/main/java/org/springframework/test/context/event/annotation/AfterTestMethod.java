@@ -52,19 +52,19 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
  *
  * @author Frank Scheffler
  * @author Sam Brannen
- * @since 5.2
  * @see AfterTestMethodEvent
+ * @since 5.2
  */
 @Retention(RUNTIME)
-@Target({ METHOD, ANNOTATION_TYPE })
+@Target({METHOD, ANNOTATION_TYPE})
 @Documented
 @EventListener(AfterTestMethodEvent.class)
 public @interface AfterTestMethod {
 
-	/**
-	 * Alias for {@link EventListener#condition}.
-	 */
-	@AliasFor(annotation = EventListener.class, attribute = "condition")
-	String value() default "";
+    /**
+     * Alias for {@link EventListener#condition}.
+     */
+    @AliasFor(annotation = EventListener.class, attribute = "condition")
+    String value() default "";
 
 }

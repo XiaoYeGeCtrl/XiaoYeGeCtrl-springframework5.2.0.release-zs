@@ -27,19 +27,19 @@ import org.springframework.format.Formatter;
  * resolving a given String against the Month enum values (ignoring case).
  *
  * @author Juergen Hoeller
- * @since 5.0.4
  * @see Month#valueOf
+ * @since 5.0.4
  */
 class MonthFormatter implements Formatter<Month> {
 
-	@Override
-	public Month parse(String text, Locale locale) throws ParseException {
-		return Month.valueOf(text.toUpperCase());
-	}
+    @Override
+    public Month parse(String text, Locale locale) throws ParseException {
+        return Month.valueOf(text.toUpperCase());
+    }
 
-	@Override
-	public String print(Month object, Locale locale) {
-		return object.toString();
-	}
+    @Override
+    public String print(Month object, Locale locale) {
+        return object.toString();
+    }
 
 }

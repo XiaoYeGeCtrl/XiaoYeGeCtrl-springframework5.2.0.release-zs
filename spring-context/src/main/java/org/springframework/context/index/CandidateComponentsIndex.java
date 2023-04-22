@@ -48,65 +48,64 @@ import org.springframework.util.MultiValueMap;
  */
 public class CandidateComponentsIndex {
 
-	private static final AntPathMatcher pathMatcher = new AntPathMatcher(".");
+    private static final AntPathMatcher pathMatcher = new AntPathMatcher(".");
 
-	private final MultiValueMap<String, Entry> index;
-
-
-	CandidateComponentsIndex(List<Properties> content) {
-		this.index = parseIndex(content);
-	}
+    private final MultiValueMap<String, Entry> index;
 
 
-	/**
-	 * Return the candidate types that are associated with the specified stereotype.
-	 * @param basePackage the package to check for candidates
-	 * @param stereotype the stereotype to use
-	 * @return the candidate types associated with the specified {@code stereotype}
-	 * or an empty set if none has been found for the specified {@code basePackage}
-	 */
-	public Set<String> getCandidateTypes(String basePackage, String stereotype) {
-		List<Entry> candidates = this.index.get(stereotype);
-		if (candidates != null) {
-			return candidates.parallelStream()
-					.filter(t -> t.match(basePackage))
-					.map(t -> t.type)
-					.collect(Collectors.toSet());
-		}
-		return Collections.emptySet();
-	}
+    CandidateComponentsIndex(List<Properties> content) {
+        this.index = parseIndex(content);
+    }
 
-	private static MultiValueMap<String, Entry> parseIndex(List<Properties> content) {
-		MultiValueMap<String, Entry> index = new LinkedMultiValueMap<>();
-		for (Properties entry : content) {
-			entry.forEach((type, values) -> {
-				String[] stereotypes = ((String) values).split(",");
-				for (String stereotype : stereotypes) {
-					index.add(stereotype, new Entry((String) type));
-				}
-			});
-		}
-		return index;
-	}
+    private static MultiValueMap<String, Entry> parseIndex(List<Properties> content) {
+        MultiValueMap<String, Entry> index = new LinkedMultiValueMap<>();
+        for (Properties entry : content) {
+            entry.forEach((type, values) -> {
+                String[] stereotypes = ((String) values).split(",");
+                for (String stereotype : stereotypes) {
+                    index.add(stereotype, new Entry((String) type));
+                }
+            });
+        }
+        return index;
+    }
 
-	private static class Entry {
-		private final String type;
-		private final String packageName;
+    /**
+     * Return the candidate types that are associated with the specified stereotype.
+     *
+     * @param basePackage the package to check for candidates
+     * @param stereotype  the stereotype to use
+     * @return the candidate types associated with the specified {@code stereotype}
+     * or an empty set if none has been found for the specified {@code basePackage}
+     */
+    public Set<String> getCandidateTypes(String basePackage, String stereotype) {
+        List<Entry> candidates = this.index.get(stereotype);
+        if (candidates != null) {
+            return candidates.parallelStream()
+                    .filter(t -> t.match(basePackage))
+                    .map(t -> t.type)
+                    .collect(Collectors.toSet());
+        }
+        return Collections.emptySet();
+    }
 
-		Entry(String type) {
-			this.type = type;
-			this.packageName = ClassUtils.getPackageName(type);
-		}
+    private static class Entry {
+        private final String type;
+        private final String packageName;
 
-		public boolean match(String basePackage) {
-			if (pathMatcher.isPattern(basePackage)) {
-				return pathMatcher.match(basePackage, this.packageName);
-			}
-			else {
-				return this.type.startsWith(basePackage);
-			}
-		}
+        Entry(String type) {
+            this.type = type;
+            this.packageName = ClassUtils.getPackageName(type);
+        }
 
-	}
+        public boolean match(String basePackage) {
+            if (pathMatcher.isPattern(basePackage)) {
+                return pathMatcher.match(basePackage, this.packageName);
+            } else {
+                return this.type.startsWith(basePackage);
+            }
+        }
+
+    }
 
 }

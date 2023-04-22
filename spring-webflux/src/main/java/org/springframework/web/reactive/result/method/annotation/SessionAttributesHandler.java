@@ -37,97 +37,101 @@ import org.springframework.web.server.WebSession;
  */
 class SessionAttributesHandler {
 
-	private final Set<String> attributeNames = new HashSet<>();
+    private final Set<String> attributeNames = new HashSet<>();
 
-	private final Set<Class<?>> attributeTypes = new HashSet<>();
+    private final Set<Class<?>> attributeTypes = new HashSet<>();
 
-	private final Set<String> knownAttributeNames = Collections.newSetFromMap(new ConcurrentHashMap<>(4));
-
-
-	/**
-	 * Create a new session attributes handler. Session attribute names and types
-	 * are extracted from the {@code @SessionAttributes} annotation, if present,
-	 * on the given type.
-	 * @param handlerType the controller type
-	 */
-	public SessionAttributesHandler(Class<?> handlerType) {
-		SessionAttributes ann = AnnotatedElementUtils.findMergedAnnotation(handlerType, SessionAttributes.class);
-		if (ann != null) {
-			Collections.addAll(this.attributeNames, ann.names());
-			Collections.addAll(this.attributeTypes, ann.types());
-		}
-		this.knownAttributeNames.addAll(this.attributeNames);
-	}
+    private final Set<String> knownAttributeNames = Collections.newSetFromMap(new ConcurrentHashMap<>(4));
 
 
-	/**
-	 * Whether the controller represented by this instance has declared any
-	 * session attributes through an {@link SessionAttributes} annotation.
-	 */
-	public boolean hasSessionAttributes() {
-		return (!this.attributeNames.isEmpty() || !this.attributeTypes.isEmpty());
-	}
+    /**
+     * Create a new session attributes handler. Session attribute names and types
+     * are extracted from the {@code @SessionAttributes} annotation, if present,
+     * on the given type.
+     *
+     * @param handlerType the controller type
+     */
+    public SessionAttributesHandler(Class<?> handlerType) {
+        SessionAttributes ann = AnnotatedElementUtils.findMergedAnnotation(handlerType, SessionAttributes.class);
+        if (ann != null) {
+            Collections.addAll(this.attributeNames, ann.names());
+            Collections.addAll(this.attributeTypes, ann.types());
+        }
+        this.knownAttributeNames.addAll(this.attributeNames);
+    }
 
-	/**
-	 * Whether the attribute name or type match the names and types specified
-	 * via {@code @SessionAttributes} on the underlying controller.
-	 * <p>Attributes successfully resolved through this method are "remembered"
-	 * and subsequently used in {@link #retrieveAttributes(WebSession)}
-	 * and also {@link #cleanupAttributes(WebSession)}.
-	 * @param attributeName the attribute name to check
-	 * @param attributeType the type for the attribute
-	 */
-	public boolean isHandlerSessionAttribute(String attributeName, Class<?> attributeType) {
-		Assert.notNull(attributeName, "Attribute name must not be null");
-		if (this.attributeNames.contains(attributeName) || this.attributeTypes.contains(attributeType)) {
-			this.knownAttributeNames.add(attributeName);
-			return true;
-		}
-		else {
-			return false;
-		}
-	}
 
-	/**
-	 * Retrieve "known" attributes from the session, i.e. attributes listed
-	 * by name in {@code @SessionAttributes} or attributes previously stored
-	 * in the model that matched by type.
-	 * @param session the current session
-	 * @return a map with handler session attributes, possibly empty
-	 */
-	public Map<String, Object> retrieveAttributes(WebSession session) {
-		Map<String, Object> attributes = new HashMap<>();
-		this.knownAttributeNames.forEach(name -> {
-			Object value = session.getAttribute(name);
-			if (value != null) {
-				attributes.put(name, value);
-			}
-		});
-		return attributes;
-	}
+    /**
+     * Whether the controller represented by this instance has declared any
+     * session attributes through an {@link SessionAttributes} annotation.
+     */
+    public boolean hasSessionAttributes() {
+        return (!this.attributeNames.isEmpty() || !this.attributeTypes.isEmpty());
+    }
 
-	/**
-	 * Store a subset of the given attributes in the session. Attributes not
-	 * declared as session attributes via {@code @SessionAttributes} are ignored.
-	 * @param session the current session
-	 * @param attributes candidate attributes for session storage
-	 */
-	public void storeAttributes(WebSession session, Map<String, ?> attributes) {
-		attributes.forEach((name, value) -> {
-			if (value != null && isHandlerSessionAttribute(name, value.getClass())) {
-				session.getAttributes().put(name, value);
-			}
-		});
-	}
+    /**
+     * Whether the attribute name or type match the names and types specified
+     * via {@code @SessionAttributes} on the underlying controller.
+     * <p>Attributes successfully resolved through this method are "remembered"
+     * and subsequently used in {@link #retrieveAttributes(WebSession)}
+     * and also {@link #cleanupAttributes(WebSession)}.
+     *
+     * @param attributeName the attribute name to check
+     * @param attributeType the type for the attribute
+     */
+    public boolean isHandlerSessionAttribute(String attributeName, Class<?> attributeType) {
+        Assert.notNull(attributeName, "Attribute name must not be null");
+        if (this.attributeNames.contains(attributeName) || this.attributeTypes.contains(attributeType)) {
+            this.knownAttributeNames.add(attributeName);
+            return true;
+        } else {
+            return false;
+        }
+    }
 
-	/**
-	 * Remove "known" attributes from the session, i.e. attributes listed
-	 * by name in {@code @SessionAttributes} or attributes previously stored
-	 * in the model that matched by type.
-	 * @param session the current session
-	 */
-	public void cleanupAttributes(WebSession session) {
-		this.knownAttributeNames.forEach(name -> session.getAttributes().remove(name));
-	}
+    /**
+     * Retrieve "known" attributes from the session, i.e. attributes listed
+     * by name in {@code @SessionAttributes} or attributes previously stored
+     * in the model that matched by type.
+     *
+     * @param session the current session
+     * @return a map with handler session attributes, possibly empty
+     */
+    public Map<String, Object> retrieveAttributes(WebSession session) {
+        Map<String, Object> attributes = new HashMap<>();
+        this.knownAttributeNames.forEach(name -> {
+            Object value = session.getAttribute(name);
+            if (value != null) {
+                attributes.put(name, value);
+            }
+        });
+        return attributes;
+    }
+
+    /**
+     * Store a subset of the given attributes in the session. Attributes not
+     * declared as session attributes via {@code @SessionAttributes} are ignored.
+     *
+     * @param session    the current session
+     * @param attributes candidate attributes for session storage
+     */
+    public void storeAttributes(WebSession session, Map<String, ?> attributes) {
+        attributes.forEach((name, value) -> {
+            if (value != null && isHandlerSessionAttribute(name, value.getClass())) {
+                session.getAttributes().put(name, value);
+            }
+        });
+    }
+
+    /**
+     * Remove "known" attributes from the session, i.e. attributes listed
+     * by name in {@code @SessionAttributes} or attributes previously stored
+     * in the model that matched by type.
+     *
+     * @param session the current session
+     */
+    public void cleanupAttributes(WebSession session) {
+        this.knownAttributeNames.forEach(name -> session.getAttributes().remove(name));
+    }
 
 }

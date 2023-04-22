@@ -31,87 +31,87 @@ import org.springframework.lang.Nullable;
  */
 public class RestClientResponseException extends RestClientException {
 
-	private static final long serialVersionUID = -8803556342728481792L;
+    private static final long serialVersionUID = -8803556342728481792L;
 
-	private static final Charset DEFAULT_CHARSET = StandardCharsets.ISO_8859_1;
-
-
-	private final int rawStatusCode;
-
-	private final String statusText;
-
-	private final byte[] responseBody;
-
-	@Nullable
-	private final HttpHeaders responseHeaders;
-
-	@Nullable
-	private final String responseCharset;
+    private static final Charset DEFAULT_CHARSET = StandardCharsets.ISO_8859_1;
 
 
-	/**
-	 * Construct a new instance of with the given response data.
-	 * @param statusCode the raw status code value
-	 * @param statusText the status text
-	 * @param responseHeaders the response headers (may be {@code null})
-	 * @param responseBody the response body content (may be {@code null})
-	 * @param responseCharset the response body charset (may be {@code null})
-	 */
-	public RestClientResponseException(String message, int statusCode, String statusText,
-			@Nullable HttpHeaders responseHeaders, @Nullable byte[] responseBody, @Nullable Charset responseCharset) {
+    private final int rawStatusCode;
 
-		super(message);
-		this.rawStatusCode = statusCode;
-		this.statusText = statusText;
-		this.responseHeaders = responseHeaders;
-		this.responseBody = (responseBody != null ? responseBody : new byte[0]);
-		this.responseCharset = (responseCharset != null ? responseCharset.name() : null);
-	}
+    private final String statusText;
+
+    private final byte[] responseBody;
+
+    @Nullable
+    private final HttpHeaders responseHeaders;
+
+    @Nullable
+    private final String responseCharset;
 
 
-	/**
-	 * Return the raw HTTP status code value.
-	 */
-	public int getRawStatusCode() {
-		return this.rawStatusCode;
-	}
+    /**
+     * Construct a new instance of with the given response data.
+     *
+     * @param statusCode      the raw status code value
+     * @param statusText      the status text
+     * @param responseHeaders the response headers (may be {@code null})
+     * @param responseBody    the response body content (may be {@code null})
+     * @param responseCharset the response body charset (may be {@code null})
+     */
+    public RestClientResponseException(String message, int statusCode, String statusText,
+                                       @Nullable HttpHeaders responseHeaders, @Nullable byte[] responseBody, @Nullable Charset responseCharset) {
 
-	/**
-	 * Return the HTTP status text.
-	 */
-	public String getStatusText() {
-		return this.statusText;
-	}
+        super(message);
+        this.rawStatusCode = statusCode;
+        this.statusText = statusText;
+        this.responseHeaders = responseHeaders;
+        this.responseBody = (responseBody != null ? responseBody : new byte[0]);
+        this.responseCharset = (responseCharset != null ? responseCharset.name() : null);
+    }
 
-	/**
-	 * Return the HTTP response headers.
-	 */
-	@Nullable
-	public HttpHeaders getResponseHeaders() {
-		return this.responseHeaders;
-	}
 
-	/**
-	 * Return the response body as a byte array.
-	 */
-	public byte[] getResponseBodyAsByteArray() {
-		return this.responseBody;
-	}
+    /**
+     * Return the raw HTTP status code value.
+     */
+    public int getRawStatusCode() {
+        return this.rawStatusCode;
+    }
 
-	/**
-	 * Return the response body as a string.
-	 */
-	public String getResponseBodyAsString() {
-		if (this.responseCharset == null) {
-			return new String(this.responseBody, DEFAULT_CHARSET);
-		}
-		try {
-			return new String(this.responseBody, this.responseCharset);
-		}
-		catch (UnsupportedEncodingException ex) {
-			// should not occur
-			throw new IllegalStateException(ex);
-		}
-	}
+    /**
+     * Return the HTTP status text.
+     */
+    public String getStatusText() {
+        return this.statusText;
+    }
+
+    /**
+     * Return the HTTP response headers.
+     */
+    @Nullable
+    public HttpHeaders getResponseHeaders() {
+        return this.responseHeaders;
+    }
+
+    /**
+     * Return the response body as a byte array.
+     */
+    public byte[] getResponseBodyAsByteArray() {
+        return this.responseBody;
+    }
+
+    /**
+     * Return the response body as a string.
+     */
+    public String getResponseBodyAsString() {
+        if (this.responseCharset == null) {
+            return new String(this.responseBody, DEFAULT_CHARSET);
+        }
+        try {
+            return new String(this.responseBody, this.responseCharset);
+        } catch (UnsupportedEncodingException ex) {
+            // should not occur
+            throw new IllegalStateException(ex);
+        }
+    }
 
 }

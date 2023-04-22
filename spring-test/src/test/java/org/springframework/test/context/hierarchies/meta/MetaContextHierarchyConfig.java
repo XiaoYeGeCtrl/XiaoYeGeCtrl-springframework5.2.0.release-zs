@@ -34,31 +34,11 @@ import org.springframework.test.context.ContextHierarchy;
  * @author Sam Brannen
  * @since 4.0.3
  */
-@ContextHierarchy(@ContextConfiguration(classes = { DevConfig.class, ProductionConfig.class }))
+@ContextHierarchy(@ContextConfiguration(classes = {DevConfig.class, ProductionConfig.class}))
 @ActiveProfiles("dev")
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
 public @interface MetaContextHierarchyConfig {
-}
-
-@Configuration
-@DevProfile
-class DevConfig {
-
-	@Bean
-	public String foo() {
-		return "Dev Foo";
-	}
-}
-
-@Configuration
-@ProdProfile
-class ProductionConfig {
-
-	@Bean
-	public String foo() {
-		return "Production Foo";
-	}
 }
 
 @Profile("dev")
@@ -69,4 +49,24 @@ class ProductionConfig {
 @Profile("prod")
 @Retention(RetentionPolicy.RUNTIME)
 @interface ProdProfile {
+}
+
+@Configuration
+@DevProfile
+class DevConfig {
+
+    @Bean
+    public String foo() {
+        return "Dev Foo";
+    }
+}
+
+@Configuration
+@ProdProfile
+class ProductionConfig {
+
+    @Bean
+    public String foo() {
+        return "Production Foo";
+    }
 }

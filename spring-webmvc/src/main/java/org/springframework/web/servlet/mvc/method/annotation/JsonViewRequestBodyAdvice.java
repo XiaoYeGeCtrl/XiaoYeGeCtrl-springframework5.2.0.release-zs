@@ -42,34 +42,34 @@ import org.springframework.util.Assert;
  * exactly one class argument. Consider the use of a composite interface.
  *
  * @author Sebastien Deleuze
- * @since 4.2
  * @see com.fasterxml.jackson.annotation.JsonView
  * @see com.fasterxml.jackson.databind.ObjectMapper#readerWithView(Class)
+ * @since 4.2
  */
 public class JsonViewRequestBodyAdvice extends RequestBodyAdviceAdapter {
 
-	@Override
-	public boolean supports(MethodParameter methodParameter, Type targetType,
-			Class<? extends HttpMessageConverter<?>> converterType) {
+    @Override
+    public boolean supports(MethodParameter methodParameter, Type targetType,
+                            Class<? extends HttpMessageConverter<?>> converterType) {
 
-		return (AbstractJackson2HttpMessageConverter.class.isAssignableFrom(converterType) &&
-				methodParameter.getParameterAnnotation(JsonView.class) != null);
-	}
+        return (AbstractJackson2HttpMessageConverter.class.isAssignableFrom(converterType) &&
+                methodParameter.getParameterAnnotation(JsonView.class) != null);
+    }
 
-	@Override
-	public HttpInputMessage beforeBodyRead(HttpInputMessage inputMessage, MethodParameter methodParameter,
-			Type targetType, Class<? extends HttpMessageConverter<?>> selectedConverterType) throws IOException {
+    @Override
+    public HttpInputMessage beforeBodyRead(HttpInputMessage inputMessage, MethodParameter methodParameter,
+                                           Type targetType, Class<? extends HttpMessageConverter<?>> selectedConverterType) throws IOException {
 
-		JsonView ann = methodParameter.getParameterAnnotation(JsonView.class);
-		Assert.state(ann != null, "No JsonView annotation");
+        JsonView ann = methodParameter.getParameterAnnotation(JsonView.class);
+        Assert.state(ann != null, "No JsonView annotation");
 
-		Class<?>[] classes = ann.value();
-		if (classes.length != 1) {
-			throw new IllegalArgumentException(
-					"@JsonView only supported for request body advice with exactly 1 class argument: " + methodParameter);
-		}
+        Class<?>[] classes = ann.value();
+        if (classes.length != 1) {
+            throw new IllegalArgumentException(
+                    "@JsonView only supported for request body advice with exactly 1 class argument: " + methodParameter);
+        }
 
-		return new MappingJacksonInputMessage(inputMessage.getBody(), inputMessage.getHeaders(), classes[0]);
-	}
+        return new MappingJacksonInputMessage(inputMessage.getBody(), inputMessage.getHeaders(), classes[0]);
+    }
 
 }

@@ -27,17 +27,17 @@ import org.springframework.util.MimeType;
  *
  * @author Sebastien Deleuze
  * @author Rossen Stoyanchev
- * @since 5.0
  * @see Jackson2JsonEncoder
+ * @since 5.0
  */
 public class Jackson2JsonDecoder extends AbstractJackson2Decoder {
 
-	public Jackson2JsonDecoder() {
-		super(Jackson2ObjectMapperBuilder.json().build());
-	}
+    public Jackson2JsonDecoder() {
+        super(Jackson2ObjectMapperBuilder.json().build());
+    }
 
-	public Jackson2JsonDecoder(ObjectMapper mapper, MimeType... mimeTypes) {
-		super(mapper, mimeTypes);
-	}
+    public Jackson2JsonDecoder(ObjectMapper mapper, MimeType... mimeTypes) {
+        super(mapper, mimeTypes);
+    }
 
 }

@@ -41,80 +41,78 @@ import org.springframework.web.server.ServerWebExchange;
  *
  * @author Rossen Stoyanchev
  * @author Brian Clozel
- * @since 5.0
  * @see <a href="https://www.webjars.org">webjars.org</a>
+ * @since 5.0
  */
 public class WebJarsResourceResolver extends AbstractResourceResolver {
 
-	private static final String WEBJARS_LOCATION = "META-INF/resources/webjars/";
+    private static final String WEBJARS_LOCATION = "META-INF/resources/webjars/";
 
-	private static final int WEBJARS_LOCATION_LENGTH = WEBJARS_LOCATION.length();
-
-
-	private final WebJarAssetLocator webJarAssetLocator;
+    private static final int WEBJARS_LOCATION_LENGTH = WEBJARS_LOCATION.length();
 
 
-	/**
-	 * Create a {@code WebJarsResourceResolver} with a default {@code WebJarAssetLocator} instance.
-	 */
-	public WebJarsResourceResolver() {
-		this(new WebJarAssetLocator());
-	}
-
-	/**
-	 * Create a {@code WebJarsResourceResolver} with a custom {@code WebJarAssetLocator} instance,
-	 * e.g. with a custom index.
-	 */
-	public WebJarsResourceResolver(WebJarAssetLocator webJarAssetLocator) {
-		this.webJarAssetLocator = webJarAssetLocator;
-	}
+    private final WebJarAssetLocator webJarAssetLocator;
 
 
-	@Override
-	protected Mono<Resource> resolveResourceInternal(@Nullable ServerWebExchange exchange,
-			String requestPath, List<? extends Resource> locations, ResourceResolverChain chain) {
+    /**
+     * Create a {@code WebJarsResourceResolver} with a default {@code WebJarAssetLocator} instance.
+     */
+    public WebJarsResourceResolver() {
+        this(new WebJarAssetLocator());
+    }
 
-		return chain.resolveResource(exchange, requestPath, locations)
-				.switchIfEmpty(Mono.defer(() -> {
-					String webJarsResourcePath = findWebJarResourcePath(requestPath);
-					if (webJarsResourcePath != null) {
-						return chain.resolveResource(exchange, webJarsResourcePath, locations);
-					}
-					else {
-						return Mono.empty();
-					}
-				}));
-	}
+    /**
+     * Create a {@code WebJarsResourceResolver} with a custom {@code WebJarAssetLocator} instance,
+     * e.g. with a custom index.
+     */
+    public WebJarsResourceResolver(WebJarAssetLocator webJarAssetLocator) {
+        this.webJarAssetLocator = webJarAssetLocator;
+    }
 
-	@Override
-	protected Mono<String> resolveUrlPathInternal(String resourceUrlPath,
-			List<? extends Resource> locations, ResourceResolverChain chain) {
 
-		return chain.resolveUrlPath(resourceUrlPath, locations)
-				.switchIfEmpty(Mono.defer(() -> {
-					String webJarResourcePath = findWebJarResourcePath(resourceUrlPath);
-					if (webJarResourcePath != null) {
-						return chain.resolveUrlPath(webJarResourcePath, locations);
-					}
-					else {
-						return Mono.empty();
-					}
-				}));
-	}
+    @Override
+    protected Mono<Resource> resolveResourceInternal(@Nullable ServerWebExchange exchange,
+                                                     String requestPath, List<? extends Resource> locations, ResourceResolverChain chain) {
 
-	@Nullable
-	protected String findWebJarResourcePath(String path) {
-		int startOffset = (path.startsWith("/") ? 1 : 0);
-		int endOffset = path.indexOf('/', 1);
-		if (endOffset != -1) {
-			String webjar = path.substring(startOffset, endOffset);
-			String partialPath = path.substring(endOffset + 1);
-			String webJarPath = this.webJarAssetLocator.getFullPathExact(webjar, partialPath);
-			if (webJarPath != null) {
-				return webJarPath.substring(WEBJARS_LOCATION_LENGTH);
-			}
-		}
-		return null;
-	}
+        return chain.resolveResource(exchange, requestPath, locations)
+                .switchIfEmpty(Mono.defer(() -> {
+                    String webJarsResourcePath = findWebJarResourcePath(requestPath);
+                    if (webJarsResourcePath != null) {
+                        return chain.resolveResource(exchange, webJarsResourcePath, locations);
+                    } else {
+                        return Mono.empty();
+                    }
+                }));
+    }
+
+    @Override
+    protected Mono<String> resolveUrlPathInternal(String resourceUrlPath,
+                                                  List<? extends Resource> locations, ResourceResolverChain chain) {
+
+        return chain.resolveUrlPath(resourceUrlPath, locations)
+                .switchIfEmpty(Mono.defer(() -> {
+                    String webJarResourcePath = findWebJarResourcePath(resourceUrlPath);
+                    if (webJarResourcePath != null) {
+                        return chain.resolveUrlPath(webJarResourcePath, locations);
+                    } else {
+                        return Mono.empty();
+                    }
+                }));
+    }
+
+    @Nullable
+    protected String findWebJarResourcePath(String path) {
+        int startOffset = (path.startsWith("/") ? 1 : 0);
+        int endOffset = path.indexOf('/', 1);
+        if (endOffset != -1) {
+            String webjar = path.substring(startOffset, endOffset);
+            String partialPath = path.substring(endOffset + 1);
+            String webJarPath = this.webJarAssetLocator.getFullPathExact(webjar, partialPath);
+            if (webJarPath != null) {
+                return webJarPath.substring(WEBJARS_LOCATION_LENGTH);
+            }
+        }
+        return null;
+    }
 
 }

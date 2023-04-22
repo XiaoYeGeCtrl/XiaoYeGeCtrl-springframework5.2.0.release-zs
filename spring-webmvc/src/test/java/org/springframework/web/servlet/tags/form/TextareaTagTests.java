@@ -33,116 +33,116 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 public class TextareaTagTests extends AbstractFormTagTests {
 
-	private TextareaTag tag;
+    private TextareaTag tag;
 
-	private TestBean rob;
+    private TestBean rob;
 
-	@Override
-	@SuppressWarnings("serial")
-	protected void onSetUp() {
-		this.tag = new TextareaTag() {
-			@Override
-			protected TagWriter createTagWriter() {
-				return new TagWriter(getWriter());
-			}
-		};
-		this.tag.setPageContext(getPageContext());
-	}
+    @Override
+    @SuppressWarnings("serial")
+    protected void onSetUp() {
+        this.tag = new TextareaTag() {
+            @Override
+            protected TagWriter createTagWriter() {
+                return new TagWriter(getWriter());
+            }
+        };
+        this.tag.setPageContext(getPageContext());
+    }
 
-	@Test
-	public void simpleBind() throws Exception {
-		this.tag.setPath("name");
-		this.tag.setReadonly(true);
+    @Test
+    public void simpleBind() throws Exception {
+        this.tag.setPath("name");
+        this.tag.setReadonly(true);
 
-		assertThat(this.tag.doStartTag()).isEqualTo(Tag.SKIP_BODY);
-		String output = getOutput();
-		assertContainsAttribute(output, "name", "name");
-		assertContainsAttribute(output, "readonly", "readonly");
-		assertBlockTagContains(output, "Rob");
-	}
+        assertThat(this.tag.doStartTag()).isEqualTo(Tag.SKIP_BODY);
+        String output = getOutput();
+        assertContainsAttribute(output, "name", "name");
+        assertContainsAttribute(output, "readonly", "readonly");
+        assertBlockTagContains(output, "Rob");
+    }
 
-	@Test
-	public void simpleBindWithDynamicAttributes() throws Exception {
-		String dynamicAttribute1 = "attr1";
-		String dynamicAttribute2 = "attr2";
+    @Test
+    public void simpleBindWithDynamicAttributes() throws Exception {
+        String dynamicAttribute1 = "attr1";
+        String dynamicAttribute2 = "attr2";
 
-		this.tag.setPath("name");
-		this.tag.setReadonly(true);
-		this.tag.setDynamicAttribute(null, dynamicAttribute1, dynamicAttribute1);
-		this.tag.setDynamicAttribute(null, dynamicAttribute2, dynamicAttribute2);
+        this.tag.setPath("name");
+        this.tag.setReadonly(true);
+        this.tag.setDynamicAttribute(null, dynamicAttribute1, dynamicAttribute1);
+        this.tag.setDynamicAttribute(null, dynamicAttribute2, dynamicAttribute2);
 
-		assertThat(this.tag.doStartTag()).isEqualTo(Tag.SKIP_BODY);
-		String output = getOutput();
-		assertContainsAttribute(output, "name", "name");
-		assertContainsAttribute(output, "readonly", "readonly");
-		assertContainsAttribute(output, dynamicAttribute1, dynamicAttribute1);
-		assertContainsAttribute(output, dynamicAttribute2, dynamicAttribute2);
-		assertBlockTagContains(output, "Rob");
-	}
+        assertThat(this.tag.doStartTag()).isEqualTo(Tag.SKIP_BODY);
+        String output = getOutput();
+        assertContainsAttribute(output, "name", "name");
+        assertContainsAttribute(output, "readonly", "readonly");
+        assertContainsAttribute(output, dynamicAttribute1, dynamicAttribute1);
+        assertContainsAttribute(output, dynamicAttribute2, dynamicAttribute2);
+        assertBlockTagContains(output, "Rob");
+    }
 
-	@Test
-	public void complexBind() throws Exception {
-		String onselect = "doSelect()";
+    @Test
+    public void complexBind() throws Exception {
+        String onselect = "doSelect()";
 
-		this.tag.setPath("spouse.name");
-		this.tag.setOnselect(onselect);
+        this.tag.setPath("spouse.name");
+        this.tag.setOnselect(onselect);
 
-		assertThat(this.tag.doStartTag()).isEqualTo(Tag.SKIP_BODY);
-		String output = getOutput();
-		assertContainsAttribute(output, "name", "spouse.name");
-		assertContainsAttribute(output, "onselect", onselect);
-		assertAttributeNotPresent(output, "readonly");
-	}
+        assertThat(this.tag.doStartTag()).isEqualTo(Tag.SKIP_BODY);
+        String output = getOutput();
+        assertContainsAttribute(output, "name", "spouse.name");
+        assertContainsAttribute(output, "onselect", onselect);
+        assertAttributeNotPresent(output, "readonly");
+    }
 
-	@Test
-	public void simpleBindWithHtmlEscaping() throws Exception {
-		final String NAME = "Rob \"I Love Mangos\" Harrop";
-		final String HTML_ESCAPED_NAME = "Rob &quot;I Love Mangos&quot; Harrop";
+    @Test
+    public void simpleBindWithHtmlEscaping() throws Exception {
+        final String NAME = "Rob \"I Love Mangos\" Harrop";
+        final String HTML_ESCAPED_NAME = "Rob &quot;I Love Mangos&quot; Harrop";
 
-		this.tag.setPath("name");
-		this.rob.setName(NAME);
+        this.tag.setPath("name");
+        this.rob.setName(NAME);
 
-		assertThat(this.tag.doStartTag()).isEqualTo(Tag.SKIP_BODY);
-		String output = getOutput();
-		System.out.println(output);
-		assertContainsAttribute(output, "name", "name");
-		assertBlockTagContains(output, HTML_ESCAPED_NAME);
-	}
+        assertThat(this.tag.doStartTag()).isEqualTo(Tag.SKIP_BODY);
+        String output = getOutput();
+        System.out.println(output);
+        assertContainsAttribute(output, "name", "name");
+        assertBlockTagContains(output, HTML_ESCAPED_NAME);
+    }
 
-	@Test
-	public void customBind() throws Exception {
-		BeanPropertyBindingResult result = new BeanPropertyBindingResult(createTestBean(), "testBean");
-		result.getPropertyAccessor().registerCustomEditor(Float.class, new SimpleFloatEditor());
-		exposeBindingResult(result);
-		this.tag.setPath("myFloat");
-		assertThat(this.tag.doStartTag()).isEqualTo(Tag.SKIP_BODY);
-		String output = getOutput();
-		assertContainsAttribute(output, "name", "myFloat");
-		assertBlockTagContains(output, "12.34f");
-	}
+    @Test
+    public void customBind() throws Exception {
+        BeanPropertyBindingResult result = new BeanPropertyBindingResult(createTestBean(), "testBean");
+        result.getPropertyAccessor().registerCustomEditor(Float.class, new SimpleFloatEditor());
+        exposeBindingResult(result);
+        this.tag.setPath("myFloat");
+        assertThat(this.tag.doStartTag()).isEqualTo(Tag.SKIP_BODY);
+        String output = getOutput();
+        assertContainsAttribute(output, "name", "myFloat");
+        assertBlockTagContains(output, "12.34f");
+    }
 
-	@Test
-	public void firstNewLine() throws Exception {
-		this.tag.setPath("name");
-		this.tag.setReadonly(true);
+    @Test
+    public void firstNewLine() throws Exception {
+        this.tag.setPath("name");
+        this.tag.setReadonly(true);
 
-		assertThat(this.tag.doStartTag()).isEqualTo(Tag.SKIP_BODY);
-		String output = getOutput();
-		assertBlockTagContains(output, "\r\nRob");
-	}
+        assertThat(this.tag.doStartTag()).isEqualTo(Tag.SKIP_BODY);
+        String output = getOutput();
+        assertBlockTagContains(output, "\r\nRob");
+    }
 
-	@Override
-	protected TestBean createTestBean() {
-		// set up test data
-		this.rob = new TestBean();
-		rob.setName("Rob");
-		rob.setMyFloat(new Float(12.34));
+    @Override
+    protected TestBean createTestBean() {
+        // set up test data
+        this.rob = new TestBean();
+        rob.setName("Rob");
+        rob.setMyFloat(new Float(12.34));
 
-		TestBean sally = new TestBean();
-		sally.setName("Sally");
-		rob.setSpouse(sally);
+        TestBean sally = new TestBean();
+        sally.setName("Sally");
+        rob.setSpouse(sally);
 
-		return rob;
-	}
+        return rob;
+    }
 
 }

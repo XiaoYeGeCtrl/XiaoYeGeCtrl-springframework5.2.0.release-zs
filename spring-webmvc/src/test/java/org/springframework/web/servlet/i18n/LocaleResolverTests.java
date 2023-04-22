@@ -40,108 +40,104 @@ import static org.assertj.core.api.Assertions.fail;
  */
 public class LocaleResolverTests {
 
-	@Test
-	public void testAcceptHeaderLocaleResolver() {
-		doTest(new AcceptHeaderLocaleResolver(), false);
-	}
+    @Test
+    public void testAcceptHeaderLocaleResolver() {
+        doTest(new AcceptHeaderLocaleResolver(), false);
+    }
 
-	@Test
-	public void testFixedLocaleResolver() {
-		doTest(new FixedLocaleResolver(Locale.UK), false);
-	}
+    @Test
+    public void testFixedLocaleResolver() {
+        doTest(new FixedLocaleResolver(Locale.UK), false);
+    }
 
-	@Test
-	public void testCookieLocaleResolver() {
-		doTest(new CookieLocaleResolver(), true);
-	}
+    @Test
+    public void testCookieLocaleResolver() {
+        doTest(new CookieLocaleResolver(), true);
+    }
 
-	@Test
-	public void testSessionLocaleResolver() {
-		doTest(new SessionLocaleResolver(), true);
-	}
+    @Test
+    public void testSessionLocaleResolver() {
+        doTest(new SessionLocaleResolver(), true);
+    }
 
-	private void doTest(LocaleResolver localeResolver, boolean shouldSet) {
-		// create mocks
-		MockServletContext context = new MockServletContext();
-		MockHttpServletRequest request = new MockHttpServletRequest(context);
-		request.addPreferredLocale(Locale.UK);
-		MockHttpServletResponse response = new MockHttpServletResponse();
+    private void doTest(LocaleResolver localeResolver, boolean shouldSet) {
+        // create mocks
+        MockServletContext context = new MockServletContext();
+        MockHttpServletRequest request = new MockHttpServletRequest(context);
+        request.addPreferredLocale(Locale.UK);
+        MockHttpServletResponse response = new MockHttpServletResponse();
 
-		// check original locale
-		Locale locale = localeResolver.resolveLocale(request);
-		assertThat(locale).isEqualTo(Locale.UK);
-		// set new locale
-		try {
-			localeResolver.setLocale(request, response, Locale.GERMANY);
-			assertThat(shouldSet).as("should not be able to set Locale").isTrue();
-			// check new locale
-			locale = localeResolver.resolveLocale(request);
-			assertThat(locale).isEqualTo(Locale.GERMANY);
-		}
-		catch (UnsupportedOperationException ex) {
-			assertThat(shouldSet).as("should be able to set Locale").isFalse();
-		}
+        // check original locale
+        Locale locale = localeResolver.resolveLocale(request);
+        assertThat(locale).isEqualTo(Locale.UK);
+        // set new locale
+        try {
+            localeResolver.setLocale(request, response, Locale.GERMANY);
+            assertThat(shouldSet).as("should not be able to set Locale").isTrue();
+            // check new locale
+            locale = localeResolver.resolveLocale(request);
+            assertThat(locale).isEqualTo(Locale.GERMANY);
+        } catch (UnsupportedOperationException ex) {
+            assertThat(shouldSet).as("should be able to set Locale").isFalse();
+        }
 
-		// check LocaleContext
-		if (localeResolver instanceof LocaleContextResolver) {
-			LocaleContextResolver localeContextResolver = (LocaleContextResolver) localeResolver;
-			LocaleContext localeContext = localeContextResolver.resolveLocaleContext(request);
-			if (shouldSet) {
-				assertThat(localeContext.getLocale()).isEqualTo(Locale.GERMANY);
-			}
-			else {
-				assertThat(localeContext.getLocale()).isEqualTo(Locale.UK);
-			}
-			boolean condition2 = localeContext instanceof TimeZoneAwareLocaleContext;
-			assertThat(condition2).isTrue();
-			assertThat(((TimeZoneAwareLocaleContext) localeContext).getTimeZone()).isNull();
+        // check LocaleContext
+        if (localeResolver instanceof LocaleContextResolver) {
+            LocaleContextResolver localeContextResolver = (LocaleContextResolver) localeResolver;
+            LocaleContext localeContext = localeContextResolver.resolveLocaleContext(request);
+            if (shouldSet) {
+                assertThat(localeContext.getLocale()).isEqualTo(Locale.GERMANY);
+            } else {
+                assertThat(localeContext.getLocale()).isEqualTo(Locale.UK);
+            }
+            boolean condition2 = localeContext instanceof TimeZoneAwareLocaleContext;
+            assertThat(condition2).isTrue();
+            assertThat(((TimeZoneAwareLocaleContext) localeContext).getTimeZone()).isNull();
 
-			if (localeContextResolver instanceof AbstractLocaleContextResolver) {
-				((AbstractLocaleContextResolver) localeContextResolver).setDefaultTimeZone(TimeZone.getTimeZone("GMT+1"));
-				assertThat(TimeZone.getTimeZone("GMT+1")).isEqualTo(((TimeZoneAwareLocaleContext) localeContext).getTimeZone());
-			}
+            if (localeContextResolver instanceof AbstractLocaleContextResolver) {
+                ((AbstractLocaleContextResolver) localeContextResolver).setDefaultTimeZone(TimeZone.getTimeZone("GMT+1"));
+                assertThat(TimeZone.getTimeZone("GMT+1")).isEqualTo(((TimeZoneAwareLocaleContext) localeContext).getTimeZone());
+            }
 
-			try {
-				localeContextResolver.setLocaleContext(request, response, new SimpleLocaleContext(Locale.US));
-				if (!shouldSet) {
-					fail("should not be able to set Locale");
-				}
-				localeContext = localeContextResolver.resolveLocaleContext(request);
-				assertThat(localeContext.getLocale()).isEqualTo(Locale.US);
-				if (localeContextResolver instanceof AbstractLocaleContextResolver) {
-					assertThat(TimeZone.getTimeZone("GMT+1")).isEqualTo(((TimeZoneAwareLocaleContext) localeContext).getTimeZone());
-				}
-				else {
-					assertThat(((TimeZoneAwareLocaleContext) localeContext).getTimeZone()).isNull();
-				}
+            try {
+                localeContextResolver.setLocaleContext(request, response, new SimpleLocaleContext(Locale.US));
+                if (!shouldSet) {
+                    fail("should not be able to set Locale");
+                }
+                localeContext = localeContextResolver.resolveLocaleContext(request);
+                assertThat(localeContext.getLocale()).isEqualTo(Locale.US);
+                if (localeContextResolver instanceof AbstractLocaleContextResolver) {
+                    assertThat(TimeZone.getTimeZone("GMT+1")).isEqualTo(((TimeZoneAwareLocaleContext) localeContext).getTimeZone());
+                } else {
+                    assertThat(((TimeZoneAwareLocaleContext) localeContext).getTimeZone()).isNull();
+                }
 
-				localeContextResolver.setLocaleContext(request, response,
-						new SimpleTimeZoneAwareLocaleContext(Locale.GERMANY, TimeZone.getTimeZone("GMT+2")));
-				localeContext = localeContextResolver.resolveLocaleContext(request);
-				assertThat(localeContext.getLocale()).isEqualTo(Locale.GERMANY);
-				boolean condition1 = localeContext instanceof TimeZoneAwareLocaleContext;
-				assertThat(condition1).isTrue();
-				assertThat(TimeZone.getTimeZone("GMT+2")).isEqualTo(((TimeZoneAwareLocaleContext) localeContext).getTimeZone());
+                localeContextResolver.setLocaleContext(request, response,
+                        new SimpleTimeZoneAwareLocaleContext(Locale.GERMANY, TimeZone.getTimeZone("GMT+2")));
+                localeContext = localeContextResolver.resolveLocaleContext(request);
+                assertThat(localeContext.getLocale()).isEqualTo(Locale.GERMANY);
+                boolean condition1 = localeContext instanceof TimeZoneAwareLocaleContext;
+                assertThat(condition1).isTrue();
+                assertThat(TimeZone.getTimeZone("GMT+2")).isEqualTo(((TimeZoneAwareLocaleContext) localeContext).getTimeZone());
 
-				localeContextResolver.setLocaleContext(request, response,
-						new SimpleTimeZoneAwareLocaleContext(null, TimeZone.getTimeZone("GMT+3")));
-				localeContext = localeContextResolver.resolveLocaleContext(request);
-				assertThat(localeContext.getLocale()).isEqualTo(Locale.UK);
-				boolean condition = localeContext instanceof TimeZoneAwareLocaleContext;
-				assertThat(condition).isTrue();
-				assertThat(TimeZone.getTimeZone("GMT+3")).isEqualTo(((TimeZoneAwareLocaleContext) localeContext).getTimeZone());
+                localeContextResolver.setLocaleContext(request, response,
+                        new SimpleTimeZoneAwareLocaleContext(null, TimeZone.getTimeZone("GMT+3")));
+                localeContext = localeContextResolver.resolveLocaleContext(request);
+                assertThat(localeContext.getLocale()).isEqualTo(Locale.UK);
+                boolean condition = localeContext instanceof TimeZoneAwareLocaleContext;
+                assertThat(condition).isTrue();
+                assertThat(TimeZone.getTimeZone("GMT+3")).isEqualTo(((TimeZoneAwareLocaleContext) localeContext).getTimeZone());
 
-				if (localeContextResolver instanceof AbstractLocaleContextResolver) {
-					((AbstractLocaleContextResolver) localeContextResolver).setDefaultLocale(Locale.GERMANY);
-					assertThat(localeContext.getLocale()).isEqualTo(Locale.GERMANY);
-				}
-			}
-			catch (UnsupportedOperationException ex) {
-				if (shouldSet) {
-					fail("should be able to set Locale");
-				}
-			}
-		}
-	}
+                if (localeContextResolver instanceof AbstractLocaleContextResolver) {
+                    ((AbstractLocaleContextResolver) localeContextResolver).setDefaultLocale(Locale.GERMANY);
+                    assertThat(localeContext.getLocale()).isEqualTo(Locale.GERMANY);
+                }
+            } catch (UnsupportedOperationException ex) {
+                if (shouldSet) {
+                    fail("should be able to set Locale");
+                }
+            }
+        }
+    }
 
 }

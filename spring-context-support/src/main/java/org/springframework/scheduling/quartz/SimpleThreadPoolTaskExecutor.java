@@ -42,77 +42,78 @@ import org.springframework.util.concurrent.ListenableFutureTask;
  * a Quartz Scheduler (as plain TaskExecutor backend).
  *
  * @author Juergen Hoeller
- * @since 2.0
  * @see org.quartz.simpl.SimpleThreadPool
  * @see org.springframework.core.task.TaskExecutor
  * @see SchedulerFactoryBean#setTaskExecutor
+ * @since 2.0
  */
 public class SimpleThreadPoolTaskExecutor extends SimpleThreadPool
-		implements AsyncListenableTaskExecutor, SchedulingTaskExecutor, InitializingBean, DisposableBean {
+        implements AsyncListenableTaskExecutor, SchedulingTaskExecutor, InitializingBean, DisposableBean {
 
-	private boolean waitForJobsToCompleteOnShutdown = false;
-
-
-	/**
-	 * Set whether to wait for running jobs to complete on shutdown.
-	 * Default is "false".
-	 * @see org.quartz.simpl.SimpleThreadPool#shutdown(boolean)
-	 */
-	public void setWaitForJobsToCompleteOnShutdown(boolean waitForJobsToCompleteOnShutdown) {
-		this.waitForJobsToCompleteOnShutdown = waitForJobsToCompleteOnShutdown;
-	}
-
-	@Override
-	public void afterPropertiesSet() throws SchedulerConfigException {
-		initialize();
-	}
+    private boolean waitForJobsToCompleteOnShutdown = false;
 
 
-	@Override
-	public void execute(Runnable task) {
-		Assert.notNull(task, "Runnable must not be null");
-		if (!runInThread(task)) {
-			throw new SchedulingException("Quartz SimpleThreadPool already shut down");
-		}
-	}
+    /**
+     * Set whether to wait for running jobs to complete on shutdown.
+     * Default is "false".
+     *
+     * @see org.quartz.simpl.SimpleThreadPool#shutdown(boolean)
+     */
+    public void setWaitForJobsToCompleteOnShutdown(boolean waitForJobsToCompleteOnShutdown) {
+        this.waitForJobsToCompleteOnShutdown = waitForJobsToCompleteOnShutdown;
+    }
 
-	@Override
-	public void execute(Runnable task, long startTimeout) {
-		execute(task);
-	}
-
-	@Override
-	public Future<?> submit(Runnable task) {
-		FutureTask<Object> future = new FutureTask<>(task, null);
-		execute(future);
-		return future;
-	}
-
-	@Override
-	public <T> Future<T> submit(Callable<T> task) {
-		FutureTask<T> future = new FutureTask<>(task);
-		execute(future);
-		return future;
-	}
-
-	@Override
-	public ListenableFuture<?> submitListenable(Runnable task) {
-		ListenableFutureTask<Object> future = new ListenableFutureTask<>(task, null);
-		execute(future);
-		return future;
-	}
-
-	@Override
-	public <T> ListenableFuture<T> submitListenable(Callable<T> task) {
-		ListenableFutureTask<T> future = new ListenableFutureTask<>(task);
-		execute(future);
-		return future;
-	}
+    @Override
+    public void afterPropertiesSet() throws SchedulerConfigException {
+        initialize();
+    }
 
 
-	@Override
-	public void destroy() {
-		shutdown(this.waitForJobsToCompleteOnShutdown);
-	}
+    @Override
+    public void execute(Runnable task) {
+        Assert.notNull(task, "Runnable must not be null");
+        if (!runInThread(task)) {
+            throw new SchedulingException("Quartz SimpleThreadPool already shut down");
+        }
+    }
+
+    @Override
+    public void execute(Runnable task, long startTimeout) {
+        execute(task);
+    }
+
+    @Override
+    public Future<?> submit(Runnable task) {
+        FutureTask<Object> future = new FutureTask<>(task, null);
+        execute(future);
+        return future;
+    }
+
+    @Override
+    public <T> Future<T> submit(Callable<T> task) {
+        FutureTask<T> future = new FutureTask<>(task);
+        execute(future);
+        return future;
+    }
+
+    @Override
+    public ListenableFuture<?> submitListenable(Runnable task) {
+        ListenableFutureTask<Object> future = new ListenableFutureTask<>(task, null);
+        execute(future);
+        return future;
+    }
+
+    @Override
+    public <T> ListenableFuture<T> submitListenable(Callable<T> task) {
+        ListenableFutureTask<T> future = new ListenableFutureTask<>(task);
+        execute(future);
+        return future;
+    }
+
+
+    @Override
+    public void destroy() {
+        shutdown(this.waitForJobsToCompleteOnShutdown);
+    }
 
 }

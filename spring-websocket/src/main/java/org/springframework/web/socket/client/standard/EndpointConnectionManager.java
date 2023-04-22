@@ -45,133 +45,130 @@ import org.springframework.web.socket.handler.BeanCreatingHandlerProvider;
  * when the Spring ApplicationContext is refreshed.
  *
  * @author Rossen Stoyanchev
- * @since 4.0
  * @see AnnotatedEndpointConnectionManager
+ * @since 4.0
  */
 public class EndpointConnectionManager extends ConnectionManagerSupport implements BeanFactoryAware {
 
-	@Nullable
-	private final Endpoint endpoint;
+    @Nullable
+    private final Endpoint endpoint;
 
-	@Nullable
-	private final BeanCreatingHandlerProvider<Endpoint> endpointProvider;
+    @Nullable
+    private final BeanCreatingHandlerProvider<Endpoint> endpointProvider;
 
-	private final ClientEndpointConfig.Builder configBuilder = ClientEndpointConfig.Builder.create();
+    private final ClientEndpointConfig.Builder configBuilder = ClientEndpointConfig.Builder.create();
 
-	private WebSocketContainer webSocketContainer = ContainerProvider.getWebSocketContainer();
+    private WebSocketContainer webSocketContainer = ContainerProvider.getWebSocketContainer();
 
-	private TaskExecutor taskExecutor = new SimpleAsyncTaskExecutor("EndpointConnectionManager-");
+    private TaskExecutor taskExecutor = new SimpleAsyncTaskExecutor("EndpointConnectionManager-");
 
-	@Nullable
-	private volatile Session session;
-
-
-	public EndpointConnectionManager(Endpoint endpoint, String uriTemplate, Object... uriVariables) {
-		super(uriTemplate, uriVariables);
-		Assert.notNull(endpoint, "endpoint must not be null");
-		this.endpoint = endpoint;
-		this.endpointProvider = null;
-	}
-
-	public EndpointConnectionManager(Class<? extends Endpoint> endpointClass, String uriTemplate, Object... uriVars) {
-		super(uriTemplate, uriVars);
-		Assert.notNull(endpointClass, "endpointClass must not be null");
-		this.endpoint = null;
-		this.endpointProvider = new BeanCreatingHandlerProvider<>(endpointClass);
-	}
+    @Nullable
+    private volatile Session session;
 
 
-	public void setSupportedProtocols(String... protocols) {
-		this.configBuilder.preferredSubprotocols(Arrays.asList(protocols));
-	}
+    public EndpointConnectionManager(Endpoint endpoint, String uriTemplate, Object... uriVariables) {
+        super(uriTemplate, uriVariables);
+        Assert.notNull(endpoint, "endpoint must not be null");
+        this.endpoint = endpoint;
+        this.endpointProvider = null;
+    }
 
-	public void setExtensions(Extension... extensions) {
-		this.configBuilder.extensions(Arrays.asList(extensions));
-	}
-
-	public void setEncoders(List<Class<? extends Encoder>> encoders) {
-		this.configBuilder.encoders(encoders);
-	}
-
-	public void setDecoders(List<Class<? extends Decoder>> decoders) {
-		this.configBuilder.decoders(decoders);
-	}
-
-	public void setConfigurator(Configurator configurator) {
-		this.configBuilder.configurator(configurator);
-	}
-
-	public void setWebSocketContainer(WebSocketContainer webSocketContainer) {
-		this.webSocketContainer = webSocketContainer;
-	}
-
-	public WebSocketContainer getWebSocketContainer() {
-		return this.webSocketContainer;
-	}
-
-	@Override
-	public void setBeanFactory(BeanFactory beanFactory) {
-		if (this.endpointProvider != null) {
-			this.endpointProvider.setBeanFactory(beanFactory);
-		}
-	}
-
-	/**
-	 * Set a {@link TaskExecutor} to use to open connections.
-	 * By default {@link SimpleAsyncTaskExecutor} is used.
-	 */
-	public void setTaskExecutor(TaskExecutor taskExecutor) {
-		Assert.notNull(taskExecutor, "TaskExecutor must not be null");
-		this.taskExecutor = taskExecutor;
-	}
-
-	/**
-	 * Return the configured {@link TaskExecutor}.
-	 */
-	public TaskExecutor getTaskExecutor() {
-		return this.taskExecutor;
-	}
+    public EndpointConnectionManager(Class<? extends Endpoint> endpointClass, String uriTemplate, Object... uriVars) {
+        super(uriTemplate, uriVars);
+        Assert.notNull(endpointClass, "endpointClass must not be null");
+        this.endpoint = null;
+        this.endpointProvider = new BeanCreatingHandlerProvider<>(endpointClass);
+    }
 
 
-	@Override
-	protected void openConnection() {
-		this.taskExecutor.execute(() -> {
-			try {
-				if (logger.isInfoEnabled()) {
-					logger.info("Connecting to WebSocket at " + getUri());
-				}
-				Endpoint endpointToUse = this.endpoint;
-				if (endpointToUse == null) {
-					Assert.state(this.endpointProvider != null, "No endpoint set");
-					endpointToUse = this.endpointProvider.getHandler();
-				}
-				ClientEndpointConfig endpointConfig = this.configBuilder.build();
-				this.session = getWebSocketContainer().connectToServer(endpointToUse, endpointConfig, getUri());
-				logger.info("Successfully connected to WebSocket");
-			}
-			catch (Throwable ex) {
-				logger.error("Failed to connect to WebSocket", ex);
-			}
-		});
-	}
+    public void setSupportedProtocols(String... protocols) {
+        this.configBuilder.preferredSubprotocols(Arrays.asList(protocols));
+    }
 
-	@Override
-	protected void closeConnection() throws Exception {
-		try {
-			Session session = this.session;
-			if (session != null && session.isOpen()) {
-				session.close();
-			}
-		}
-		finally {
-			this.session = null;
-		}
-	}
+    public void setExtensions(Extension... extensions) {
+        this.configBuilder.extensions(Arrays.asList(extensions));
+    }
 
-	@Override
-	protected boolean isConnected() {
-		Session session = this.session;
-		return (session != null && session.isOpen());
-	}
+    public void setEncoders(List<Class<? extends Encoder>> encoders) {
+        this.configBuilder.encoders(encoders);
+    }
+
+    public void setDecoders(List<Class<? extends Decoder>> decoders) {
+        this.configBuilder.decoders(decoders);
+    }
+
+    public void setConfigurator(Configurator configurator) {
+        this.configBuilder.configurator(configurator);
+    }
+
+    public WebSocketContainer getWebSocketContainer() {
+        return this.webSocketContainer;
+    }
+
+    public void setWebSocketContainer(WebSocketContainer webSocketContainer) {
+        this.webSocketContainer = webSocketContainer;
+    }
+
+    @Override
+    public void setBeanFactory(BeanFactory beanFactory) {
+        if (this.endpointProvider != null) {
+            this.endpointProvider.setBeanFactory(beanFactory);
+        }
+    }
+
+    /**
+     * Return the configured {@link TaskExecutor}.
+     */
+    public TaskExecutor getTaskExecutor() {
+        return this.taskExecutor;
+    }
+
+    /**
+     * Set a {@link TaskExecutor} to use to open connections.
+     * By default {@link SimpleAsyncTaskExecutor} is used.
+     */
+    public void setTaskExecutor(TaskExecutor taskExecutor) {
+        Assert.notNull(taskExecutor, "TaskExecutor must not be null");
+        this.taskExecutor = taskExecutor;
+    }
+
+    @Override
+    protected void openConnection() {
+        this.taskExecutor.execute(() -> {
+            try {
+                if (logger.isInfoEnabled()) {
+                    logger.info("Connecting to WebSocket at " + getUri());
+                }
+                Endpoint endpointToUse = this.endpoint;
+                if (endpointToUse == null) {
+                    Assert.state(this.endpointProvider != null, "No endpoint set");
+                    endpointToUse = this.endpointProvider.getHandler();
+                }
+                ClientEndpointConfig endpointConfig = this.configBuilder.build();
+                this.session = getWebSocketContainer().connectToServer(endpointToUse, endpointConfig, getUri());
+                logger.info("Successfully connected to WebSocket");
+            } catch (Throwable ex) {
+                logger.error("Failed to connect to WebSocket", ex);
+            }
+        });
+    }
+
+    @Override
+    protected void closeConnection() throws Exception {
+        try {
+            Session session = this.session;
+            if (session != null && session.isOpen()) {
+                session.close();
+            }
+        } finally {
+            this.session = null;
+        }
+    }
+
+    @Override
+    protected boolean isConnected() {
+        Session session = this.session;
+        return (session != null && session.isOpen());
+    }
 
 }

@@ -32,14 +32,14 @@ import org.springframework.format.Formatter;
  */
 public class CurrencyUnitFormatter implements Formatter<CurrencyUnit> {
 
-	@Override
-	public String print(CurrencyUnit object, Locale locale) {
-		return object.getCurrencyCode();
-	}
+    @Override
+    public String print(CurrencyUnit object, Locale locale) {
+        return object.getCurrencyCode();
+    }
 
-	@Override
-	public CurrencyUnit parse(String text, Locale locale) {
-		return Monetary.getCurrency(text);
-	}
+    @Override
+    public CurrencyUnit parse(String text, Locale locale) {
+        return Monetary.getCurrency(text);
+    }
 
 }

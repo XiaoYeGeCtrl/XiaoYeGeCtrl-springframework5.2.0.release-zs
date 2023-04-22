@@ -41,101 +41,102 @@ import org.springframework.util.Assert;
  */
 public class RSocketFrameTypeMessageCondition extends AbstractMessageCondition<RSocketFrameTypeMessageCondition> {
 
-	/** The name of the header that contains the RSocket frame type being processed. */
-	public static final String FRAME_TYPE_HEADER = "rsocketFrameType";
+    /**
+     * The name of the header that contains the RSocket frame type being processed.
+     */
+    public static final String FRAME_TYPE_HEADER = "rsocketFrameType";
+    /**
+     * Condition to match the initial SETUP frame and subsequent metadata pushes.
+     */
+    public static final RSocketFrameTypeMessageCondition CONNECT_CONDITION =
+            new RSocketFrameTypeMessageCondition(
+                    FrameType.SETUP,
+                    FrameType.METADATA_PUSH);
+    /**
+     * Condition to match one of the 4 stream request types.
+     */
+    public static final RSocketFrameTypeMessageCondition REQUEST_CONDITION =
+            new RSocketFrameTypeMessageCondition(
+                    FrameType.REQUEST_FNF,
+                    FrameType.REQUEST_RESPONSE,
+                    FrameType.REQUEST_STREAM,
+                    FrameType.REQUEST_CHANNEL);
+    /**
+     * Per FrameType cache to return ready instances from getMatchingCondition.
+     */
+    private static final Map<String, RSocketFrameTypeMessageCondition> frameTypeConditionCache;
+
+    static {
+        frameTypeConditionCache = new HashMap<>(FrameType.values().length);
+        for (FrameType type : FrameType.values()) {
+            frameTypeConditionCache.put(type.name(), new RSocketFrameTypeMessageCondition(type));
+        }
+    }
+
+    private final Set<FrameType> frameTypes;
 
 
-	/** Per FrameType cache to return ready instances from getMatchingCondition. */
-	private static final Map<String, RSocketFrameTypeMessageCondition> frameTypeConditionCache;
+    public RSocketFrameTypeMessageCondition(FrameType... frameType) {
+        this(Arrays.asList(frameType));
+    }
 
-	static {
-		frameTypeConditionCache = new HashMap<>(FrameType.values().length);
-		for (FrameType type : FrameType.values()) {
-			frameTypeConditionCache.put(type.name(), new RSocketFrameTypeMessageCondition(type));
-		}
-	}
+    public RSocketFrameTypeMessageCondition(Collection<FrameType> frameTypes) {
+        Assert.notEmpty(frameTypes, "`frameTypes` are required");
+        this.frameTypes = Collections.unmodifiableSet(new LinkedHashSet<>(frameTypes));
+    }
 
+    /**
+     * Find the RSocket frame type in the message headers.
+     *
+     * @param message the current message
+     * @return the frame type or {@code null} if not found
+     */
+    @SuppressWarnings("ConstantConditions")
+    @Nullable
+    public static FrameType getFrameType(Message<?> message) {
+        return (FrameType) message.getHeaders().get(RSocketFrameTypeMessageCondition.FRAME_TYPE_HEADER);
+    }
 
-	private final Set<FrameType> frameTypes;
+    public Set<FrameType> getFrameTypes() {
+        return this.frameTypes;
+    }
 
+    @Override
+    protected Collection<?> getContent() {
+        return this.frameTypes;
+    }
 
-	public RSocketFrameTypeMessageCondition(FrameType... frameType) {
-		this(Arrays.asList(frameType));
-	}
+    @Override
+    protected String getToStringInfix() {
+        return " || ";
+    }
 
-	public RSocketFrameTypeMessageCondition(Collection<FrameType> frameTypes) {
-		Assert.notEmpty(frameTypes, "`frameTypes` are required");
-		this.frameTypes = Collections.unmodifiableSet(new LinkedHashSet<>(frameTypes));
-	}
+    @Override
+    public RSocketFrameTypeMessageCondition combine(RSocketFrameTypeMessageCondition other) {
+        if (this.frameTypes.equals(other.frameTypes)) {
+            return other;
+        }
+        Set<FrameType> set = new LinkedHashSet<>(this.frameTypes);
+        set.addAll(other.frameTypes);
+        return new RSocketFrameTypeMessageCondition(set);
+    }
 
+    @Override
+    public RSocketFrameTypeMessageCondition getMatchingCondition(Message<?> message) {
+        FrameType actual = message.getHeaders().get(FRAME_TYPE_HEADER, FrameType.class);
+        if (actual != null) {
+            for (FrameType type : this.frameTypes) {
+                if (actual == type) {
+                    return frameTypeConditionCache.get(type.name());
+                }
+            }
+        }
+        return null;
+    }
 
-	public Set<FrameType> getFrameTypes() {
-		return this.frameTypes;
-	}
-
-	@Override
-	protected Collection<?> getContent() {
-		return this.frameTypes;
-	}
-
-	@Override
-	protected String getToStringInfix() {
-		return " || ";
-	}
-
-	/**
-	 * Find the RSocket frame type in the message headers.
-	 * @param message the current message
-	 * @return the frame type or {@code null} if not found
-	 */
-	@SuppressWarnings("ConstantConditions")
-	@Nullable
-	public static FrameType getFrameType(Message<?> message) {
-		return (FrameType) message.getHeaders().get(RSocketFrameTypeMessageCondition.FRAME_TYPE_HEADER);
-	}
-
-
-	@Override
-	public RSocketFrameTypeMessageCondition combine(RSocketFrameTypeMessageCondition other) {
-		if (this.frameTypes.equals(other.frameTypes)) {
-			return other;
-		}
-		Set<FrameType> set = new LinkedHashSet<>(this.frameTypes);
-		set.addAll(other.frameTypes);
-		return new RSocketFrameTypeMessageCondition(set);
-	}
-
-	@Override
-	public RSocketFrameTypeMessageCondition getMatchingCondition(Message<?> message) {
-		FrameType actual = message.getHeaders().get(FRAME_TYPE_HEADER, FrameType.class);
-		if (actual != null) {
-			for (FrameType type : this.frameTypes) {
-				if (actual == type) {
-					return frameTypeConditionCache.get(type.name());
-				}
-			}
-		}
-		return  null;
-	}
-
-	@Override
-	public int compareTo(RSocketFrameTypeMessageCondition other, Message<?> message) {
-		return other.frameTypes.size() - this.frameTypes.size();
-	}
-
-
-	/** Condition to match the initial SETUP frame and subsequent metadata pushes. */
-	public static final RSocketFrameTypeMessageCondition CONNECT_CONDITION =
-			new RSocketFrameTypeMessageCondition(
-					FrameType.SETUP,
-					FrameType.METADATA_PUSH);
-
-	/** Condition to match one of the 4 stream request types. */
-	public static final RSocketFrameTypeMessageCondition REQUEST_CONDITION =
-			new RSocketFrameTypeMessageCondition(
-					FrameType.REQUEST_FNF,
-					FrameType.REQUEST_RESPONSE,
-					FrameType.REQUEST_STREAM,
-					FrameType.REQUEST_CHANNEL);
+    @Override
+    public int compareTo(RSocketFrameTypeMessageCondition other, Message<?> message) {
+        return other.frameTypes.size() - this.frameTypes.size();
+    }
 
 }

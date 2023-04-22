@@ -34,83 +34,86 @@ import org.springframework.lang.Nullable;
  */
 public interface ValueRef {
 
-	/**
-	 * Returns the value this ValueRef points to, it should not require expression
-	 * component re-evaluation.
-	 * @return the value
-	 */
-	TypedValue getValue();
+    /**
+     * Returns the value this ValueRef points to, it should not require expression
+     * component re-evaluation.
+     *
+     * @return the value
+     */
+    TypedValue getValue();
 
-	/**
-	 * Sets the value this ValueRef points to, it should not require expression component
-	 * re-evaluation.
-	 * @param newValue the new value
-	 */
-	void setValue(@Nullable Object newValue);
+    /**
+     * Sets the value this ValueRef points to, it should not require expression component
+     * re-evaluation.
+     *
+     * @param newValue the new value
+     */
+    void setValue(@Nullable Object newValue);
 
-	/**
-	 * Indicates whether calling setValue(Object) is supported.
-	 * @return true if setValue() is supported for this value reference.
-	 */
-	boolean isWritable();
-
-
-	/**
-	 * A ValueRef for the null value.
-	 */
-	class NullValueRef implements ValueRef {
-
-		static final NullValueRef INSTANCE = new NullValueRef();
-
-		@Override
-		public TypedValue getValue() {
-			return TypedValue.NULL;
-		}
-
-		@Override
-		public void setValue(@Nullable Object newValue) {
-			// The exception position '0' isn't right but the overhead of creating
-			// instances of this per node (where the node is solely for error reporting)
-			// would be unfortunate.
-			throw new SpelEvaluationException(0, SpelMessage.NOT_ASSIGNABLE, "null");
-		}
-
-		@Override
-		public boolean isWritable() {
-			return false;
-		}
-	}
+    /**
+     * Indicates whether calling setValue(Object) is supported.
+     *
+     * @return true if setValue() is supported for this value reference.
+     */
+    boolean isWritable();
 
 
-	/**
-	 * A ValueRef holder for a single value, which cannot be set.
-	 */
-	class TypedValueHolderValueRef implements ValueRef {
+    /**
+     * A ValueRef for the null value.
+     */
+    class NullValueRef implements ValueRef {
 
-		private final TypedValue typedValue;
+        static final NullValueRef INSTANCE = new NullValueRef();
 
-		private final SpelNodeImpl node;  // used only for error reporting
+        @Override
+        public TypedValue getValue() {
+            return TypedValue.NULL;
+        }
 
-		public TypedValueHolderValueRef(TypedValue typedValue, SpelNodeImpl node) {
-			this.typedValue = typedValue;
-			this.node = node;
-		}
+        @Override
+        public void setValue(@Nullable Object newValue) {
+            // The exception position '0' isn't right but the overhead of creating
+            // instances of this per node (where the node is solely for error reporting)
+            // would be unfortunate.
+            throw new SpelEvaluationException(0, SpelMessage.NOT_ASSIGNABLE, "null");
+        }
 
-		@Override
-		public TypedValue getValue() {
-			return this.typedValue;
-		}
+        @Override
+        public boolean isWritable() {
+            return false;
+        }
+    }
 
-		@Override
-		public void setValue(@Nullable Object newValue) {
-			throw new SpelEvaluationException(
-					this.node.getStartPosition(), SpelMessage.NOT_ASSIGNABLE, this.node.toStringAST());
-		}
 
-		@Override
-		public boolean isWritable() {
-			return false;
-		}
-	}
+    /**
+     * A ValueRef holder for a single value, which cannot be set.
+     */
+    class TypedValueHolderValueRef implements ValueRef {
+
+        private final TypedValue typedValue;
+
+        private final SpelNodeImpl node;  // used only for error reporting
+
+        public TypedValueHolderValueRef(TypedValue typedValue, SpelNodeImpl node) {
+            this.typedValue = typedValue;
+            this.node = node;
+        }
+
+        @Override
+        public TypedValue getValue() {
+            return this.typedValue;
+        }
+
+        @Override
+        public void setValue(@Nullable Object newValue) {
+            throw new SpelEvaluationException(
+                    this.node.getStartPosition(), SpelMessage.NOT_ASSIGNABLE, this.node.toStringAST());
+        }
+
+        @Override
+        public boolean isWritable() {
+            return false;
+        }
+    }
 
 }

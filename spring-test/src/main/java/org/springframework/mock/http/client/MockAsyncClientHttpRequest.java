@@ -37,19 +37,19 @@ import org.springframework.util.concurrent.SettableListenableFuture;
 @Deprecated
 public class MockAsyncClientHttpRequest extends MockClientHttpRequest implements org.springframework.http.client.AsyncClientHttpRequest {
 
-	public MockAsyncClientHttpRequest() {
-	}
+    public MockAsyncClientHttpRequest() {
+    }
 
-	public MockAsyncClientHttpRequest(HttpMethod httpMethod, URI uri) {
-		super(httpMethod, uri);
-	}
+    public MockAsyncClientHttpRequest(HttpMethod httpMethod, URI uri) {
+        super(httpMethod, uri);
+    }
 
 
-	@Override
-	public ListenableFuture<ClientHttpResponse> executeAsync() throws IOException {
-		SettableListenableFuture<ClientHttpResponse> future = new SettableListenableFuture<>();
-		future.set(execute());
-		return future;
-	}
+    @Override
+    public ListenableFuture<ClientHttpResponse> executeAsync() throws IOException {
+        SettableListenableFuture<ClientHttpResponse> future = new SettableListenableFuture<>();
+        future.set(execute());
+        return future;
+    }
 
 }

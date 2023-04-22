@@ -36,10 +36,10 @@ import org.springframework.test.context.env.repeatable.MetaComposedTestProperty.
 @MetaMetaInlinedTestProperty
 @interface MetaComposedTestProperty {
 
-	@Target(ElementType.TYPE)
-	@Retention(RetentionPolicy.RUNTIME)
-	@TestPropertySource(properties = "enigma = meta meta")
-	@interface MetaMetaInlinedTestProperty {
-	}
+    @Target(ElementType.TYPE)
+    @Retention(RetentionPolicy.RUNTIME)
+    @TestPropertySource(properties = "enigma = meta meta")
+    @interface MetaMetaInlinedTestProperty {
+    }
 
 }

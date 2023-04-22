@@ -40,64 +40,64 @@ import org.springframework.web.reactive.result.method.annotation.ArgumentResolve
 @Configuration(proxyBeanMethods = false)
 public class DelegatingWebFluxConfiguration extends WebFluxConfigurationSupport {
 
-	private final WebFluxConfigurerComposite configurers = new WebFluxConfigurerComposite();
+    private final WebFluxConfigurerComposite configurers = new WebFluxConfigurerComposite();
 
-	@Autowired(required = false)
-	public void setConfigurers(List<WebFluxConfigurer> configurers) {
-		if (!CollectionUtils.isEmpty(configurers)) {
-			this.configurers.addWebFluxConfigurers(configurers);
-		}
-	}
+    @Autowired(required = false)
+    public void setConfigurers(List<WebFluxConfigurer> configurers) {
+        if (!CollectionUtils.isEmpty(configurers)) {
+            this.configurers.addWebFluxConfigurers(configurers);
+        }
+    }
 
-	@Override
-	protected void configureContentTypeResolver(RequestedContentTypeResolverBuilder builder) {
-		this.configurers.configureContentTypeResolver(builder);
-	}
+    @Override
+    protected void configureContentTypeResolver(RequestedContentTypeResolverBuilder builder) {
+        this.configurers.configureContentTypeResolver(builder);
+    }
 
-	@Override
-	protected void addCorsMappings(CorsRegistry registry) {
-		this.configurers.addCorsMappings(registry);
-	}
+    @Override
+    protected void addCorsMappings(CorsRegistry registry) {
+        this.configurers.addCorsMappings(registry);
+    }
 
-	@Override
-	public void configurePathMatching(PathMatchConfigurer configurer) {
-		this.configurers.configurePathMatching(configurer);
-	}
+    @Override
+    public void configurePathMatching(PathMatchConfigurer configurer) {
+        this.configurers.configurePathMatching(configurer);
+    }
 
-	@Override
-	protected void addResourceHandlers(ResourceHandlerRegistry registry) {
-		this.configurers.addResourceHandlers(registry);
-	}
+    @Override
+    protected void addResourceHandlers(ResourceHandlerRegistry registry) {
+        this.configurers.addResourceHandlers(registry);
+    }
 
-	@Override
-	protected void configureArgumentResolvers(ArgumentResolverConfigurer configurer) {
-		this.configurers.configureArgumentResolvers(configurer);
-	}
+    @Override
+    protected void configureArgumentResolvers(ArgumentResolverConfigurer configurer) {
+        this.configurers.configureArgumentResolvers(configurer);
+    }
 
-	@Override
-	protected void configureHttpMessageCodecs(ServerCodecConfigurer configurer) {
-		this.configurers.configureHttpMessageCodecs(configurer);
-	}
+    @Override
+    protected void configureHttpMessageCodecs(ServerCodecConfigurer configurer) {
+        this.configurers.configureHttpMessageCodecs(configurer);
+    }
 
-	@Override
-	protected void addFormatters(FormatterRegistry registry) {
-		this.configurers.addFormatters(registry);
-	}
+    @Override
+    protected void addFormatters(FormatterRegistry registry) {
+        this.configurers.addFormatters(registry);
+    }
 
-	@Override
-	protected Validator getValidator() {
-		Validator validator = this.configurers.getValidator();
-		return (validator != null ? validator : super.getValidator());
-	}
+    @Override
+    protected Validator getValidator() {
+        Validator validator = this.configurers.getValidator();
+        return (validator != null ? validator : super.getValidator());
+    }
 
-	@Override
-	protected MessageCodesResolver getMessageCodesResolver() {
-		MessageCodesResolver messageCodesResolver = this.configurers.getMessageCodesResolver();
-		return (messageCodesResolver != null ? messageCodesResolver : super.getMessageCodesResolver());
-	}
+    @Override
+    protected MessageCodesResolver getMessageCodesResolver() {
+        MessageCodesResolver messageCodesResolver = this.configurers.getMessageCodesResolver();
+        return (messageCodesResolver != null ? messageCodesResolver : super.getMessageCodesResolver());
+    }
 
-	@Override
-	protected void configureViewResolvers(ViewResolverRegistry registry) {
-		this.configurers.configureViewResolvers(registry);
-	}
+    @Override
+    protected void configureViewResolvers(ViewResolverRegistry registry) {
+        this.configurers.configureViewResolvers(registry);
+    }
 }

@@ -36,33 +36,33 @@ import org.springframework.messaging.simp.config.MessageBrokerRegistry;
 @Deprecated
 public abstract class AbstractWebSocketMessageBrokerConfigurer implements WebSocketMessageBrokerConfigurer {
 
-	@Override
-	public void configureWebSocketTransport(WebSocketTransportRegistration registration) {
-	}
+    @Override
+    public void configureWebSocketTransport(WebSocketTransportRegistration registration) {
+    }
 
-	@Override
-	public void configureClientInboundChannel(ChannelRegistration registration) {
-	}
+    @Override
+    public void configureClientInboundChannel(ChannelRegistration registration) {
+    }
 
-	@Override
-	public void configureClientOutboundChannel(ChannelRegistration registration) {
-	}
+    @Override
+    public void configureClientOutboundChannel(ChannelRegistration registration) {
+    }
 
-	@Override
-	public boolean configureMessageConverters(List<MessageConverter> messageConverters) {
-		return true;
-	}
+    @Override
+    public boolean configureMessageConverters(List<MessageConverter> messageConverters) {
+        return true;
+    }
 
-	@Override
-	public void addArgumentResolvers(List<HandlerMethodArgumentResolver> argumentResolvers) {
-	}
+    @Override
+    public void addArgumentResolvers(List<HandlerMethodArgumentResolver> argumentResolvers) {
+    }
 
-	@Override
-	public void addReturnValueHandlers(List<HandlerMethodReturnValueHandler> returnValueHandlers) {
-	}
+    @Override
+    public void addReturnValueHandlers(List<HandlerMethodReturnValueHandler> returnValueHandlers) {
+    }
 
-	@Override
-	public void configureMessageBroker(MessageBrokerRegistry registry) {
-	}
+    @Override
+    public void configureMessageBroker(MessageBrokerRegistry registry) {
+    }
 
 }

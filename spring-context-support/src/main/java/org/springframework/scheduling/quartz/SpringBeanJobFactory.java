@@ -40,91 +40,91 @@ import org.springframework.lang.Nullable;
  * <p>Compatible with Quartz 2.1.4 and higher, as of Spring 4.1.
  *
  * @author Juergen Hoeller
- * @since 2.0
  * @see SchedulerFactoryBean#setJobFactory
  * @see QuartzJobBean
+ * @since 2.0
  */
 public class SpringBeanJobFactory extends AdaptableJobFactory
-		implements ApplicationContextAware, SchedulerContextAware {
+        implements ApplicationContextAware, SchedulerContextAware {
 
-	@Nullable
-	private String[] ignoredUnknownProperties;
+    @Nullable
+    private String[] ignoredUnknownProperties;
 
-	@Nullable
-	private ApplicationContext applicationContext;
+    @Nullable
+    private ApplicationContext applicationContext;
 
-	@Nullable
-	private SchedulerContext schedulerContext;
-
-
-	/**
-	 * Specify the unknown properties (not found in the bean) that should be ignored.
-	 * <p>Default is {@code null}, indicating that all unknown properties
-	 * should be ignored. Specify an empty array to throw an exception in case
-	 * of any unknown properties, or a list of property names that should be
-	 * ignored if there is no corresponding property found on the particular
-	 * job class (all other unknown properties will still trigger an exception).
-	 */
-	public void setIgnoredUnknownProperties(String... ignoredUnknownProperties) {
-		this.ignoredUnknownProperties = ignoredUnknownProperties;
-	}
-
-	@Override
-	public void setApplicationContext(ApplicationContext applicationContext) {
-		this.applicationContext = applicationContext;
-	}
-
-	@Override
-	public void setSchedulerContext(SchedulerContext schedulerContext) {
-		this.schedulerContext = schedulerContext;
-	}
+    @Nullable
+    private SchedulerContext schedulerContext;
 
 
-	/**
-	 * Create the job instance, populating it with property values taken
-	 * from the scheduler context, job data map and trigger data map.
-	 */
-	@Override
-	protected Object createJobInstance(TriggerFiredBundle bundle) throws Exception {
-		Object job = (this.applicationContext != null ?
-				this.applicationContext.getAutowireCapableBeanFactory().createBean(
-						bundle.getJobDetail().getJobClass(), AutowireCapableBeanFactory.AUTOWIRE_CONSTRUCTOR, false) :
-				super.createJobInstance(bundle));
+    /**
+     * Specify the unknown properties (not found in the bean) that should be ignored.
+     * <p>Default is {@code null}, indicating that all unknown properties
+     * should be ignored. Specify an empty array to throw an exception in case
+     * of any unknown properties, or a list of property names that should be
+     * ignored if there is no corresponding property found on the particular
+     * job class (all other unknown properties will still trigger an exception).
+     */
+    public void setIgnoredUnknownProperties(String... ignoredUnknownProperties) {
+        this.ignoredUnknownProperties = ignoredUnknownProperties;
+    }
 
-		if (isEligibleForPropertyPopulation(job)) {
-			BeanWrapper bw = PropertyAccessorFactory.forBeanPropertyAccess(job);
-			MutablePropertyValues pvs = new MutablePropertyValues();
-			if (this.schedulerContext != null) {
-				pvs.addPropertyValues(this.schedulerContext);
-			}
-			pvs.addPropertyValues(bundle.getJobDetail().getJobDataMap());
-			pvs.addPropertyValues(bundle.getTrigger().getJobDataMap());
-			if (this.ignoredUnknownProperties != null) {
-				for (String propName : this.ignoredUnknownProperties) {
-					if (pvs.contains(propName) && !bw.isWritableProperty(propName)) {
-						pvs.removePropertyValue(propName);
-					}
-				}
-				bw.setPropertyValues(pvs);
-			}
-			else {
-				bw.setPropertyValues(pvs, true);
-			}
-		}
+    @Override
+    public void setApplicationContext(ApplicationContext applicationContext) {
+        this.applicationContext = applicationContext;
+    }
 
-		return job;
-	}
+    @Override
+    public void setSchedulerContext(SchedulerContext schedulerContext) {
+        this.schedulerContext = schedulerContext;
+    }
 
-	/**
-	 * Return whether the given job object is eligible for having
-	 * its bean properties populated.
-	 * <p>The default implementation ignores {@link QuartzJobBean} instances,
-	 * which will inject bean properties themselves.
-	 * @param jobObject the job object to introspect
-	 * @see QuartzJobBean
-	 */
-	protected boolean isEligibleForPropertyPopulation(Object jobObject) {
-		return (!(jobObject instanceof QuartzJobBean));
-	}
+
+    /**
+     * Create the job instance, populating it with property values taken
+     * from the scheduler context, job data map and trigger data map.
+     */
+    @Override
+    protected Object createJobInstance(TriggerFiredBundle bundle) throws Exception {
+        Object job = (this.applicationContext != null ?
+                this.applicationContext.getAutowireCapableBeanFactory().createBean(
+                        bundle.getJobDetail().getJobClass(), AutowireCapableBeanFactory.AUTOWIRE_CONSTRUCTOR, false) :
+                super.createJobInstance(bundle));
+
+        if (isEligibleForPropertyPopulation(job)) {
+            BeanWrapper bw = PropertyAccessorFactory.forBeanPropertyAccess(job);
+            MutablePropertyValues pvs = new MutablePropertyValues();
+            if (this.schedulerContext != null) {
+                pvs.addPropertyValues(this.schedulerContext);
+            }
+            pvs.addPropertyValues(bundle.getJobDetail().getJobDataMap());
+            pvs.addPropertyValues(bundle.getTrigger().getJobDataMap());
+            if (this.ignoredUnknownProperties != null) {
+                for (String propName : this.ignoredUnknownProperties) {
+                    if (pvs.contains(propName) && !bw.isWritableProperty(propName)) {
+                        pvs.removePropertyValue(propName);
+                    }
+                }
+                bw.setPropertyValues(pvs);
+            } else {
+                bw.setPropertyValues(pvs, true);
+            }
+        }
+
+        return job;
+    }
+
+    /**
+     * Return whether the given job object is eligible for having
+     * its bean properties populated.
+     * <p>The default implementation ignores {@link QuartzJobBean} instances,
+     * which will inject bean properties themselves.
+     *
+     * @param jobObject the job object to introspect
+     * @see QuartzJobBean
+     */
+    protected boolean isEligibleForPropertyPopulation(Object jobObject) {
+        return (!(jobObject instanceof QuartzJobBean));
+    }
 
 }

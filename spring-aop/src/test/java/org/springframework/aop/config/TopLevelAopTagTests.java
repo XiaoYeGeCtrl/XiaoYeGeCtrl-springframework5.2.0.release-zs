@@ -32,13 +32,13 @@ import static org.springframework.tests.TestResourceUtils.qualifiedResource;
  */
 public class TopLevelAopTagTests {
 
-	@Test
-	public void testParse() {
-		DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
-		new XmlBeanDefinitionReader(beanFactory).loadBeanDefinitions(
-				qualifiedResource(TopLevelAopTagTests.class, "context.xml"));
+    @Test
+    public void testParse() {
+        DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
+        new XmlBeanDefinitionReader(beanFactory).loadBeanDefinitions(
+                qualifiedResource(TopLevelAopTagTests.class, "context.xml"));
 
-		assertThat(beanFactory.containsBeanDefinition("testPointcut")).isTrue();
-	}
+        assertThat(beanFactory.containsBeanDefinition("testPointcut")).isTrue();
+    }
 
 }

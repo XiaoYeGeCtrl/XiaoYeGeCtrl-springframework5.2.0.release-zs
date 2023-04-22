@@ -48,82 +48,82 @@ import org.springframework.web.server.ServerWebInputException;
  * to provide access to all request parameters in the form of a map.
  *
  * @author Rossen Stoyanchev
- * @since 5.0
  * @see RequestParamMapMethodArgumentResolver
+ * @since 5.0
  */
 public class RequestParamMethodArgumentResolver extends AbstractNamedValueSyncArgumentResolver {
 
-	private final boolean useDefaultResolution;
+    private final boolean useDefaultResolution;
 
 
-	/**
-	 * Class constructor with a default resolution mode flag.
-	 * @param factory a bean factory used for resolving  ${...} placeholder
-	 * and #{...} SpEL expressions in default values, or {@code null} if default
-	 * values are not expected to contain expressions
-	 * @param registry for checking reactive type wrappers
-	 * @param useDefaultResolution in default resolution mode a method argument
-	 * that is a simple type, as defined in {@link BeanUtils#isSimpleProperty},
-	 * is treated as a request parameter even if it isn't annotated, the
-	 * request parameter name is derived from the method parameter name.
-	 */
-	public RequestParamMethodArgumentResolver(
-			@Nullable ConfigurableBeanFactory factory, ReactiveAdapterRegistry registry, boolean useDefaultResolution) {
+    /**
+     * Class constructor with a default resolution mode flag.
+     *
+     * @param factory              a bean factory used for resolving  ${...} placeholder
+     *                             and #{...} SpEL expressions in default values, or {@code null} if default
+     *                             values are not expected to contain expressions
+     * @param registry             for checking reactive type wrappers
+     * @param useDefaultResolution in default resolution mode a method argument
+     *                             that is a simple type, as defined in {@link BeanUtils#isSimpleProperty},
+     *                             is treated as a request parameter even if it isn't annotated, the
+     *                             request parameter name is derived from the method parameter name.
+     */
+    public RequestParamMethodArgumentResolver(
+            @Nullable ConfigurableBeanFactory factory, ReactiveAdapterRegistry registry, boolean useDefaultResolution) {
 
-		super(factory, registry);
-		this.useDefaultResolution = useDefaultResolution;
-	}
-
-
-	@Override
-	public boolean supportsParameter(MethodParameter param) {
-		if (checkAnnotatedParamNoReactiveWrapper(param, RequestParam.class, this::singleParam)) {
-			return true;
-		}
-		else if (this.useDefaultResolution) {
-			return checkParameterTypeNoReactiveWrapper(param, BeanUtils::isSimpleProperty) ||
-					BeanUtils.isSimpleProperty(param.nestedIfOptional().getNestedParameterType());
-		}
-		return false;
-	}
-
-	private boolean singleParam(RequestParam requestParam, Class<?> type) {
-		return !Map.class.isAssignableFrom(type) || StringUtils.hasText(requestParam.name());
-	}
-
-	@Override
-	protected NamedValueInfo createNamedValueInfo(MethodParameter parameter) {
-		RequestParam ann = parameter.getParameterAnnotation(RequestParam.class);
-		return (ann != null ? new RequestParamNamedValueInfo(ann) : new RequestParamNamedValueInfo());
-	}
-
-	@Override
-	protected Object resolveNamedValue(String name, MethodParameter parameter, ServerWebExchange exchange) {
-		List<String> paramValues = exchange.getRequest().getQueryParams().get(name);
-		Object result = null;
-		if (paramValues != null) {
-			result = (paramValues.size() == 1 ? paramValues.get(0) : paramValues);
-		}
-		return result;
-	}
-
-	@Override
-	protected void handleMissingValue(String name, MethodParameter parameter, ServerWebExchange exchange) {
-		String type = parameter.getNestedParameterType().getSimpleName();
-		String reason = "Required " + type + " parameter '" + name + "' is not present";
-		throw new ServerWebInputException(reason, parameter);
-	}
+        super(factory, registry);
+        this.useDefaultResolution = useDefaultResolution;
+    }
 
 
-	private static class RequestParamNamedValueInfo extends NamedValueInfo {
+    @Override
+    public boolean supportsParameter(MethodParameter param) {
+        if (checkAnnotatedParamNoReactiveWrapper(param, RequestParam.class, this::singleParam)) {
+            return true;
+        } else if (this.useDefaultResolution) {
+            return checkParameterTypeNoReactiveWrapper(param, BeanUtils::isSimpleProperty) ||
+                    BeanUtils.isSimpleProperty(param.nestedIfOptional().getNestedParameterType());
+        }
+        return false;
+    }
 
-		RequestParamNamedValueInfo() {
-			super("", false, ValueConstants.DEFAULT_NONE);
-		}
+    private boolean singleParam(RequestParam requestParam, Class<?> type) {
+        return !Map.class.isAssignableFrom(type) || StringUtils.hasText(requestParam.name());
+    }
 
-		RequestParamNamedValueInfo(RequestParam annotation) {
-			super(annotation.name(), annotation.required(), annotation.defaultValue());
-		}
-	}
+    @Override
+    protected NamedValueInfo createNamedValueInfo(MethodParameter parameter) {
+        RequestParam ann = parameter.getParameterAnnotation(RequestParam.class);
+        return (ann != null ? new RequestParamNamedValueInfo(ann) : new RequestParamNamedValueInfo());
+    }
+
+    @Override
+    protected Object resolveNamedValue(String name, MethodParameter parameter, ServerWebExchange exchange) {
+        List<String> paramValues = exchange.getRequest().getQueryParams().get(name);
+        Object result = null;
+        if (paramValues != null) {
+            result = (paramValues.size() == 1 ? paramValues.get(0) : paramValues);
+        }
+        return result;
+    }
+
+    @Override
+    protected void handleMissingValue(String name, MethodParameter parameter, ServerWebExchange exchange) {
+        String type = parameter.getNestedParameterType().getSimpleName();
+        String reason = "Required " + type + " parameter '" + name + "' is not present";
+        throw new ServerWebInputException(reason, parameter);
+    }
+
+
+    private static class RequestParamNamedValueInfo extends NamedValueInfo {
+
+        RequestParamNamedValueInfo() {
+            super("", false, ValueConstants.DEFAULT_NONE);
+        }
+
+        RequestParamNamedValueInfo(RequestParam annotation) {
+            super(annotation.name(), annotation.required(), annotation.defaultValue());
+        }
+    }
 
 }

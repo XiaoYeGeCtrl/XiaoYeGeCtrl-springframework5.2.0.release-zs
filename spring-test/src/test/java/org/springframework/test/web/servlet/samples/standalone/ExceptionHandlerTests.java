@@ -36,60 +36,59 @@ import static org.springframework.test.web.servlet.setup.MockMvcBuilders.standal
  */
 public class ExceptionHandlerTests {
 
-	@Test
-	public void testExceptionHandlerMethod() throws Exception {
-		standaloneSetup(new PersonController()).build()
-			.perform(get("/person/Clyde"))
-				.andExpect(status().isOk())
-				.andExpect(forwardedUrl("errorView"));
-	}
+    @Test
+    public void testExceptionHandlerMethod() throws Exception {
+        standaloneSetup(new PersonController()).build()
+                .perform(get("/person/Clyde"))
+                .andExpect(status().isOk())
+                .andExpect(forwardedUrl("errorView"));
+    }
 
-	@Test
-	public void testGlobalExceptionHandlerMethod() throws Exception {
-		standaloneSetup(new PersonController()).setControllerAdvice(new GlobalExceptionHandler()).build()
-				.perform(get("/person/Bonnie"))
-				.andExpect(status().isOk())
-				.andExpect(forwardedUrl("globalErrorView"));
-	}
+    @Test
+    public void testGlobalExceptionHandlerMethod() throws Exception {
+        standaloneSetup(new PersonController()).setControllerAdvice(new GlobalExceptionHandler()).build()
+                .perform(get("/person/Bonnie"))
+                .andExpect(status().isOk())
+                .andExpect(forwardedUrl("globalErrorView"));
+    }
 
-	@Test
-	public void testGlobalExceptionHandlerMethodUsingClassArgument() throws Exception {
-		standaloneSetup(PersonController.class).setControllerAdvice(GlobalExceptionHandler.class).build()
-				.perform(get("/person/Bonnie"))
-				.andExpect(status().isOk())
-				.andExpect(forwardedUrl("globalErrorView"));
-	}
-
-
-	@Controller
-	private static class PersonController {
-
-		@GetMapping("/person/{name}")
-		public String show(@PathVariable String name) {
-			if (name.equals("Clyde")) {
-				throw new IllegalArgumentException("simulated exception");
-			}
-			else if (name.equals("Bonnie")) {
-				throw new IllegalStateException("simulated exception");
-			}
-			return "person/show";
-		}
-
-		@ExceptionHandler
-		public String handleException(IllegalArgumentException exception) {
-			return "errorView";
-		}
-	}
+    @Test
+    public void testGlobalExceptionHandlerMethodUsingClassArgument() throws Exception {
+        standaloneSetup(PersonController.class).setControllerAdvice(GlobalExceptionHandler.class).build()
+                .perform(get("/person/Bonnie"))
+                .andExpect(status().isOk())
+                .andExpect(forwardedUrl("globalErrorView"));
+    }
 
 
-	@ControllerAdvice
-	private static class GlobalExceptionHandler {
+    @Controller
+    private static class PersonController {
 
-		@ExceptionHandler
-		public String handleException(IllegalStateException exception) {
-			return "globalErrorView";
-		}
+        @GetMapping("/person/{name}")
+        public String show(@PathVariable String name) {
+            if (name.equals("Clyde")) {
+                throw new IllegalArgumentException("simulated exception");
+            } else if (name.equals("Bonnie")) {
+                throw new IllegalStateException("simulated exception");
+            }
+            return "person/show";
+        }
 
-	}
+        @ExceptionHandler
+        public String handleException(IllegalArgumentException exception) {
+            return "errorView";
+        }
+    }
+
+
+    @ControllerAdvice
+    private static class GlobalExceptionHandler {
+
+        @ExceptionHandler
+        public String handleException(IllegalStateException exception) {
+            return "globalErrorView";
+        }
+
+    }
 
 }

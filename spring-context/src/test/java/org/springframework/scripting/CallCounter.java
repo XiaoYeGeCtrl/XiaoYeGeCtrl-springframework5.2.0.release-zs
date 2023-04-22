@@ -21,8 +21,8 @@ package org.springframework.scripting;
  */
 public interface CallCounter {
 
-	void before();
+    void before();
 
-	int getCalls();
+    int getCalls();
 
 }

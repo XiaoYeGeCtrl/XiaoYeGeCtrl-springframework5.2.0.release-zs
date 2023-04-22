@@ -44,222 +44,222 @@ import static org.mockito.Mockito.mock;
  */
 public class MessageMethodArgumentResolverTests {
 
-	private MessageConverter converter;
+    private MessageConverter converter;
 
-	private MessageMethodArgumentResolver resolver;
+    private MessageMethodArgumentResolver resolver;
 
-	private Method method;
-
-
-	@BeforeEach
-	public void setup() throws Exception {
-		this.method = MessageMethodArgumentResolverTests.class.getDeclaredMethod("handle",
-				Message.class, Message.class, Message.class, Message.class, ErrorMessage.class, Message.class);
-
-		this.converter = mock(MessageConverter.class);
-		this.resolver = new MessageMethodArgumentResolver(this.converter);
-	}
+    private Method method;
 
 
-	@Test
-	public void resolveWithPayloadTypeAsWildcard() throws Exception {
-		Message<String> message = MessageBuilder.withPayload("test").build();
-		MethodParameter parameter = new MethodParameter(this.method, 0);
+    @BeforeEach
+    public void setup() throws Exception {
+        this.method = MessageMethodArgumentResolverTests.class.getDeclaredMethod("handle",
+                Message.class, Message.class, Message.class, Message.class, ErrorMessage.class, Message.class);
 
-		assertThat(this.resolver.supportsParameter(parameter)).isTrue();
-		assertThat(this.resolver.resolveArgument(parameter, message)).isSameAs(message);
-	}
-
-	@Test
-	public void resolveWithMatchingPayloadType() throws Exception {
-		Message<Integer> message = MessageBuilder.withPayload(123).build();
-		MethodParameter parameter = new MethodParameter(this.method, 1);
-
-		assertThat(this.resolver.supportsParameter(parameter)).isTrue();
-		assertThat(this.resolver.resolveArgument(parameter, message)).isSameAs(message);
-	}
-
-	@Test
-	public void resolveWithPayloadTypeSubclass() throws Exception {
-		Message<Integer> message = MessageBuilder.withPayload(123).build();
-		MethodParameter parameter = new MethodParameter(this.method, 2);
-
-		assertThat(this.resolver.supportsParameter(parameter)).isTrue();
-		assertThat(this.resolver.resolveArgument(parameter, message)).isSameAs(message);
-	}
-
-	@Test
-	public void resolveWithConversion() throws Exception {
-		Message<String> message = MessageBuilder.withPayload("test").build();
-		MethodParameter parameter = new MethodParameter(this.method, 1);
-
-		given(this.converter.fromMessage(message, Integer.class)).willReturn(4);
-
-		@SuppressWarnings("unchecked")
-		Message<Integer> actual = (Message<Integer>) this.resolver.resolveArgument(parameter, message);
-
-		assertThat(actual).isNotNull();
-		assertThat(actual.getHeaders()).isSameAs(message.getHeaders());
-		assertThat(actual.getPayload()).isEqualTo(new Integer(4));
-	}
-
-	@Test
-	public void resolveWithConversionNoMatchingConverter() throws Exception {
-		Message<String> message = MessageBuilder.withPayload("test").build();
-		MethodParameter parameter = new MethodParameter(this.method, 1);
-
-		assertThat(this.resolver.supportsParameter(parameter)).isTrue();
-		assertThatExceptionOfType(MessageConversionException.class).isThrownBy(() ->
-				this.resolver.resolveArgument(parameter, message))
-			.withMessageContaining(Integer.class.getName())
-			.withMessageContaining(String.class.getName());
-	}
-
-	@Test
-	public void resolveWithConversionEmptyPayload() throws Exception {
-		Message<String> message = MessageBuilder.withPayload("").build();
-		MethodParameter parameter = new MethodParameter(this.method, 1);
-
-		assertThat(this.resolver.supportsParameter(parameter)).isTrue();
-		assertThatExceptionOfType(MessageConversionException.class).isThrownBy(() ->
-				this.resolver.resolveArgument(parameter, message))
-			.withMessageContaining("payload is empty")
-			.withMessageContaining(Integer.class.getName())
-			.withMessageContaining(String.class.getName());
-	}
-
-	@Test
-	public void resolveWithPayloadTypeUpperBound() throws Exception {
-		Message<Integer> message = MessageBuilder.withPayload(123).build();
-		MethodParameter parameter = new MethodParameter(this.method, 3);
-
-		assertThat(this.resolver.supportsParameter(parameter)).isTrue();
-		assertThat(this.resolver.resolveArgument(parameter, message)).isSameAs(message);
-	}
-
-	@Test
-	public void resolveWithPayloadTypeOutOfBound() throws Exception {
-		Message<Locale> message = MessageBuilder.withPayload(Locale.getDefault()).build();
-		MethodParameter parameter = new MethodParameter(this.method, 3);
-
-		assertThat(this.resolver.supportsParameter(parameter)).isTrue();
-		assertThatExceptionOfType(MessageConversionException.class).isThrownBy(() ->
-				this.resolver.resolveArgument(parameter, message))
-			.withMessageContaining(Number.class.getName())
-			.withMessageContaining(Locale.class.getName());
-	}
-
-	@Test
-	public void resolveMessageSubclassMatch() throws Exception {
-		ErrorMessage message = new ErrorMessage(new UnsupportedOperationException());
-		MethodParameter parameter = new MethodParameter(this.method, 4);
-
-		assertThat(this.resolver.supportsParameter(parameter)).isTrue();
-		assertThat(this.resolver.resolveArgument(parameter, message)).isSameAs(message);
-	}
-
-	@Test
-	public void resolveWithMessageSubclassAndPayloadWildcard() throws Exception {
-		ErrorMessage message = new ErrorMessage(new UnsupportedOperationException());
-		MethodParameter parameter = new MethodParameter(this.method, 0);
-
-		assertThat(this.resolver.supportsParameter(parameter)).isTrue();
-		assertThat(this.resolver.resolveArgument(parameter, message)).isSameAs(message);
-	}
-
-	@Test
-	public void resolveWithWrongMessageType() throws Exception {
-		UnsupportedOperationException ex = new UnsupportedOperationException();
-		Message<? extends Throwable> message = new GenericMessage<Throwable>(ex);
-		MethodParameter parameter = new MethodParameter(this.method, 4);
-
-		assertThat(this.resolver.supportsParameter(parameter)).isTrue();
-		assertThatExceptionOfType(MethodArgumentTypeMismatchException.class).isThrownBy(() ->
-				this.resolver.resolveArgument(parameter, message))
-			.withMessageContaining(ErrorMessage.class.getName())
-			.withMessageContaining(GenericMessage.class.getName());
-	}
-
-	@Test
-	public void resolveWithPayloadTypeAsWildcardAndNoConverter() throws Exception {
-		this.resolver = new MessageMethodArgumentResolver();
-
-		Message<String> message = MessageBuilder.withPayload("test").build();
-		MethodParameter parameter = new MethodParameter(this.method, 0);
-
-		assertThat(this.resolver.supportsParameter(parameter)).isTrue();
-		assertThat(this.resolver.resolveArgument(parameter, message)).isSameAs(message);
-	}
-
-	@Test
-	public void resolveWithConversionNeededButNoConverter() throws Exception {
-		this.resolver = new MessageMethodArgumentResolver();
-
-		Message<String> message = MessageBuilder.withPayload("test").build();
-		MethodParameter parameter = new MethodParameter(this.method, 1);
-
-		assertThat(this.resolver.supportsParameter(parameter)).isTrue();
-		assertThatExceptionOfType(MessageConversionException.class).isThrownBy(() ->
-				this.resolver.resolveArgument(parameter, message))
-			.withMessageContaining(Integer.class.getName())
-			.withMessageContaining(String.class.getName());
-	}
-
-	@Test
-	public void resolveWithConversionEmptyPayloadButNoConverter() throws Exception {
-		this.resolver = new MessageMethodArgumentResolver();
-
-		Message<String> message = MessageBuilder.withPayload("").build();
-		MethodParameter parameter = new MethodParameter(this.method, 1);
-
-		assertThat(this.resolver.supportsParameter(parameter)).isTrue();
-		assertThatExceptionOfType(MessageConversionException.class).isThrownBy(() ->
-				this.resolver.resolveArgument(parameter, message))
-			.withMessageContaining("payload is empty")
-			.withMessageContaining(Integer.class.getName())
-			.withMessageContaining(String.class.getName());
-	}
-
-	@Test // SPR-16486
-	public void resolveWithJacksonConverter() throws Exception {
-		Message<String> inMessage = MessageBuilder.withPayload("{\"foo\":\"bar\"}").build();
-		MethodParameter parameter = new MethodParameter(this.method, 5);
-
-		this.resolver = new MessageMethodArgumentResolver(new MappingJackson2MessageConverter());
-		Object actual = this.resolver.resolveArgument(parameter, inMessage);
-
-		boolean condition1 = actual instanceof Message;
-		assertThat(condition1).isTrue();
-		Message<?> outMessage = (Message<?>) actual;
-		boolean condition = outMessage.getPayload() instanceof Foo;
-		assertThat(condition).isTrue();
-		assertThat(((Foo) outMessage.getPayload()).getFoo()).isEqualTo("bar");
-	}
+        this.converter = mock(MessageConverter.class);
+        this.resolver = new MessageMethodArgumentResolver(this.converter);
+    }
 
 
-	@SuppressWarnings("unused")
-	private void handle(
-			Message<?> wildcardPayload,
-			Message<Integer> integerPayload,
-			Message<Number> numberPayload,
-			Message<? extends Number> anyNumberPayload,
-			ErrorMessage subClass,
-			Message<Foo> fooPayload) {
-	}
+    @Test
+    public void resolveWithPayloadTypeAsWildcard() throws Exception {
+        Message<String> message = MessageBuilder.withPayload("test").build();
+        MethodParameter parameter = new MethodParameter(this.method, 0);
+
+        assertThat(this.resolver.supportsParameter(parameter)).isTrue();
+        assertThat(this.resolver.resolveArgument(parameter, message)).isSameAs(message);
+    }
+
+    @Test
+    public void resolveWithMatchingPayloadType() throws Exception {
+        Message<Integer> message = MessageBuilder.withPayload(123).build();
+        MethodParameter parameter = new MethodParameter(this.method, 1);
+
+        assertThat(this.resolver.supportsParameter(parameter)).isTrue();
+        assertThat(this.resolver.resolveArgument(parameter, message)).isSameAs(message);
+    }
+
+    @Test
+    public void resolveWithPayloadTypeSubclass() throws Exception {
+        Message<Integer> message = MessageBuilder.withPayload(123).build();
+        MethodParameter parameter = new MethodParameter(this.method, 2);
+
+        assertThat(this.resolver.supportsParameter(parameter)).isTrue();
+        assertThat(this.resolver.resolveArgument(parameter, message)).isSameAs(message);
+    }
+
+    @Test
+    public void resolveWithConversion() throws Exception {
+        Message<String> message = MessageBuilder.withPayload("test").build();
+        MethodParameter parameter = new MethodParameter(this.method, 1);
+
+        given(this.converter.fromMessage(message, Integer.class)).willReturn(4);
+
+        @SuppressWarnings("unchecked")
+        Message<Integer> actual = (Message<Integer>) this.resolver.resolveArgument(parameter, message);
+
+        assertThat(actual).isNotNull();
+        assertThat(actual.getHeaders()).isSameAs(message.getHeaders());
+        assertThat(actual.getPayload()).isEqualTo(new Integer(4));
+    }
+
+    @Test
+    public void resolveWithConversionNoMatchingConverter() throws Exception {
+        Message<String> message = MessageBuilder.withPayload("test").build();
+        MethodParameter parameter = new MethodParameter(this.method, 1);
+
+        assertThat(this.resolver.supportsParameter(parameter)).isTrue();
+        assertThatExceptionOfType(MessageConversionException.class).isThrownBy(() ->
+                this.resolver.resolveArgument(parameter, message))
+                .withMessageContaining(Integer.class.getName())
+                .withMessageContaining(String.class.getName());
+    }
+
+    @Test
+    public void resolveWithConversionEmptyPayload() throws Exception {
+        Message<String> message = MessageBuilder.withPayload("").build();
+        MethodParameter parameter = new MethodParameter(this.method, 1);
+
+        assertThat(this.resolver.supportsParameter(parameter)).isTrue();
+        assertThatExceptionOfType(MessageConversionException.class).isThrownBy(() ->
+                this.resolver.resolveArgument(parameter, message))
+                .withMessageContaining("payload is empty")
+                .withMessageContaining(Integer.class.getName())
+                .withMessageContaining(String.class.getName());
+    }
+
+    @Test
+    public void resolveWithPayloadTypeUpperBound() throws Exception {
+        Message<Integer> message = MessageBuilder.withPayload(123).build();
+        MethodParameter parameter = new MethodParameter(this.method, 3);
+
+        assertThat(this.resolver.supportsParameter(parameter)).isTrue();
+        assertThat(this.resolver.resolveArgument(parameter, message)).isSameAs(message);
+    }
+
+    @Test
+    public void resolveWithPayloadTypeOutOfBound() throws Exception {
+        Message<Locale> message = MessageBuilder.withPayload(Locale.getDefault()).build();
+        MethodParameter parameter = new MethodParameter(this.method, 3);
+
+        assertThat(this.resolver.supportsParameter(parameter)).isTrue();
+        assertThatExceptionOfType(MessageConversionException.class).isThrownBy(() ->
+                this.resolver.resolveArgument(parameter, message))
+                .withMessageContaining(Number.class.getName())
+                .withMessageContaining(Locale.class.getName());
+    }
+
+    @Test
+    public void resolveMessageSubclassMatch() throws Exception {
+        ErrorMessage message = new ErrorMessage(new UnsupportedOperationException());
+        MethodParameter parameter = new MethodParameter(this.method, 4);
+
+        assertThat(this.resolver.supportsParameter(parameter)).isTrue();
+        assertThat(this.resolver.resolveArgument(parameter, message)).isSameAs(message);
+    }
+
+    @Test
+    public void resolveWithMessageSubclassAndPayloadWildcard() throws Exception {
+        ErrorMessage message = new ErrorMessage(new UnsupportedOperationException());
+        MethodParameter parameter = new MethodParameter(this.method, 0);
+
+        assertThat(this.resolver.supportsParameter(parameter)).isTrue();
+        assertThat(this.resolver.resolveArgument(parameter, message)).isSameAs(message);
+    }
+
+    @Test
+    public void resolveWithWrongMessageType() throws Exception {
+        UnsupportedOperationException ex = new UnsupportedOperationException();
+        Message<? extends Throwable> message = new GenericMessage<Throwable>(ex);
+        MethodParameter parameter = new MethodParameter(this.method, 4);
+
+        assertThat(this.resolver.supportsParameter(parameter)).isTrue();
+        assertThatExceptionOfType(MethodArgumentTypeMismatchException.class).isThrownBy(() ->
+                this.resolver.resolveArgument(parameter, message))
+                .withMessageContaining(ErrorMessage.class.getName())
+                .withMessageContaining(GenericMessage.class.getName());
+    }
+
+    @Test
+    public void resolveWithPayloadTypeAsWildcardAndNoConverter() throws Exception {
+        this.resolver = new MessageMethodArgumentResolver();
+
+        Message<String> message = MessageBuilder.withPayload("test").build();
+        MethodParameter parameter = new MethodParameter(this.method, 0);
+
+        assertThat(this.resolver.supportsParameter(parameter)).isTrue();
+        assertThat(this.resolver.resolveArgument(parameter, message)).isSameAs(message);
+    }
+
+    @Test
+    public void resolveWithConversionNeededButNoConverter() throws Exception {
+        this.resolver = new MessageMethodArgumentResolver();
+
+        Message<String> message = MessageBuilder.withPayload("test").build();
+        MethodParameter parameter = new MethodParameter(this.method, 1);
+
+        assertThat(this.resolver.supportsParameter(parameter)).isTrue();
+        assertThatExceptionOfType(MessageConversionException.class).isThrownBy(() ->
+                this.resolver.resolveArgument(parameter, message))
+                .withMessageContaining(Integer.class.getName())
+                .withMessageContaining(String.class.getName());
+    }
+
+    @Test
+    public void resolveWithConversionEmptyPayloadButNoConverter() throws Exception {
+        this.resolver = new MessageMethodArgumentResolver();
+
+        Message<String> message = MessageBuilder.withPayload("").build();
+        MethodParameter parameter = new MethodParameter(this.method, 1);
+
+        assertThat(this.resolver.supportsParameter(parameter)).isTrue();
+        assertThatExceptionOfType(MessageConversionException.class).isThrownBy(() ->
+                this.resolver.resolveArgument(parameter, message))
+                .withMessageContaining("payload is empty")
+                .withMessageContaining(Integer.class.getName())
+                .withMessageContaining(String.class.getName());
+    }
+
+    @Test // SPR-16486
+    public void resolveWithJacksonConverter() throws Exception {
+        Message<String> inMessage = MessageBuilder.withPayload("{\"foo\":\"bar\"}").build();
+        MethodParameter parameter = new MethodParameter(this.method, 5);
+
+        this.resolver = new MessageMethodArgumentResolver(new MappingJackson2MessageConverter());
+        Object actual = this.resolver.resolveArgument(parameter, inMessage);
+
+        boolean condition1 = actual instanceof Message;
+        assertThat(condition1).isTrue();
+        Message<?> outMessage = (Message<?>) actual;
+        boolean condition = outMessage.getPayload() instanceof Foo;
+        assertThat(condition).isTrue();
+        assertThat(((Foo) outMessage.getPayload()).getFoo()).isEqualTo("bar");
+    }
 
 
-	static class Foo {
+    @SuppressWarnings("unused")
+    private void handle(
+            Message<?> wildcardPayload,
+            Message<Integer> integerPayload,
+            Message<Number> numberPayload,
+            Message<? extends Number> anyNumberPayload,
+            ErrorMessage subClass,
+            Message<Foo> fooPayload) {
+    }
 
-		private String foo;
 
-		public String getFoo() {
-			return foo;
-		}
+    static class Foo {
 
-		public void setFoo(String foo) {
-			this.foo = foo;
-		}
+        private String foo;
 
-	}
+        public String getFoo() {
+            return foo;
+        }
+
+        public void setFoo(String foo) {
+            this.foo = foo;
+        }
+
+    }
 
 }

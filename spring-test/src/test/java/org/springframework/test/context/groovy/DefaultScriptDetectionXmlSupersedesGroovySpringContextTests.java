@@ -33,13 +33,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 @SpringJUnitConfig
 class DefaultScriptDetectionXmlSupersedesGroovySpringContextTests {
 
-	@Autowired
-	String foo;
+    @Autowired
+    String foo;
 
 
-	@Test
-	final void foo() {
-		assertThat(this.foo).as("The foo field should have been autowired.").isEqualTo("Foo");
-	}
+    @Test
+    final void foo() {
+        assertThat(this.foo).as("The foo field should have been autowired.").isEqualTo("Foo");
+    }
 
 }

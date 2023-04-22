@@ -23,8 +23,8 @@ import org.codehaus.groovy.control.customizers.ImportCustomizer;
  */
 public class MyImportCustomizer extends ImportCustomizer {
 
-	public MyImportCustomizer() {
-		addStarImports("org.springframework.scripting.groovy");
-	}
+    public MyImportCustomizer() {
+        addStarImports("org.springframework.scripting.groovy");
+    }
 
 }

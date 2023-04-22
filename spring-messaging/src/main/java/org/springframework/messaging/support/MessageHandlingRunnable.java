@@ -28,14 +28,14 @@ import org.springframework.messaging.MessageHandler;
  */
 public interface MessageHandlingRunnable extends Runnable {
 
-	/**
-	 * Return the Message that will be handled.
-	 */
-	Message<?> getMessage();
+    /**
+     * Return the Message that will be handled.
+     */
+    Message<?> getMessage();
 
-	/**
-	 * Return the MessageHandler that will be used to handle the message.
-	 */
-	MessageHandler getMessageHandler();
+    /**
+     * Return the MessageHandler that will be used to handle the message.
+     */
+    MessageHandler getMessageHandler();
 
 }

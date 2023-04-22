@@ -25,68 +25,68 @@ import org.springframework.util.Assert;
  */
 class LeakAwareDataBuffer extends DataBufferWrapper implements PooledDataBuffer {
 
-	private final AssertionError leakError;
+    private final AssertionError leakError;
 
-	private final LeakAwareDataBufferFactory dataBufferFactory;
-
-
-	LeakAwareDataBuffer(DataBuffer delegate, LeakAwareDataBufferFactory dataBufferFactory) {
-		super(delegate);
-		Assert.notNull(dataBufferFactory, "DataBufferFactory must not be null");
-		this.dataBufferFactory = dataBufferFactory;
-		this.leakError = createLeakError(delegate);
-	}
-
-	private static AssertionError createLeakError(DataBuffer delegate) {
-		String message = String.format("DataBuffer leak detected: {%s} has not been released.%n" +
-				"Stack trace of buffer allocation statement follows:",
-				delegate);
-		AssertionError result = new AssertionError(message);
-		// remove first four irrelevant stack trace elements
-		StackTraceElement[] oldTrace = result.getStackTrace();
-		StackTraceElement[] newTrace = new StackTraceElement[oldTrace.length - 4];
-		System.arraycopy(oldTrace, 4, newTrace, 0, oldTrace.length - 4);
-		result.setStackTrace(newTrace);
-		return result;
-	}
-
-	AssertionError leakError() {
-		return this.leakError;
-	}
+    private final LeakAwareDataBufferFactory dataBufferFactory;
 
 
-	@Override
-	public boolean isAllocated() {
-		DataBuffer delegate = dataBuffer();
-		return delegate instanceof PooledDataBuffer &&
-				((PooledDataBuffer) delegate).isAllocated();
-	}
+    LeakAwareDataBuffer(DataBuffer delegate, LeakAwareDataBufferFactory dataBufferFactory) {
+        super(delegate);
+        Assert.notNull(dataBufferFactory, "DataBufferFactory must not be null");
+        this.dataBufferFactory = dataBufferFactory;
+        this.leakError = createLeakError(delegate);
+    }
 
-	@Override
-	public PooledDataBuffer retain() {
-		DataBuffer delegate = dataBuffer();
-		if (delegate instanceof PooledDataBuffer) {
-			((PooledDataBuffer) delegate).retain();
-		}
-		return this;
-	}
+    private static AssertionError createLeakError(DataBuffer delegate) {
+        String message = String.format("DataBuffer leak detected: {%s} has not been released.%n" +
+                        "Stack trace of buffer allocation statement follows:",
+                delegate);
+        AssertionError result = new AssertionError(message);
+        // remove first four irrelevant stack trace elements
+        StackTraceElement[] oldTrace = result.getStackTrace();
+        StackTraceElement[] newTrace = new StackTraceElement[oldTrace.length - 4];
+        System.arraycopy(oldTrace, 4, newTrace, 0, oldTrace.length - 4);
+        result.setStackTrace(newTrace);
+        return result;
+    }
 
-	@Override
-	public boolean release() {
-		DataBuffer delegate = dataBuffer();
-		if (delegate instanceof PooledDataBuffer) {
-			((PooledDataBuffer) delegate).release();
-		}
-		return isAllocated();
-	}
+    AssertionError leakError() {
+        return this.leakError;
+    }
 
-	@Override
-	public LeakAwareDataBufferFactory factory() {
-		return this.dataBufferFactory;
-	}
 
-	@Override
-	public String toString() {
-		return String.format("LeakAwareDataBuffer (%s)", dataBuffer());
-	}
+    @Override
+    public boolean isAllocated() {
+        DataBuffer delegate = dataBuffer();
+        return delegate instanceof PooledDataBuffer &&
+                ((PooledDataBuffer) delegate).isAllocated();
+    }
+
+    @Override
+    public PooledDataBuffer retain() {
+        DataBuffer delegate = dataBuffer();
+        if (delegate instanceof PooledDataBuffer) {
+            ((PooledDataBuffer) delegate).retain();
+        }
+        return this;
+    }
+
+    @Override
+    public boolean release() {
+        DataBuffer delegate = dataBuffer();
+        if (delegate instanceof PooledDataBuffer) {
+            ((PooledDataBuffer) delegate).release();
+        }
+        return isAllocated();
+    }
+
+    @Override
+    public LeakAwareDataBufferFactory factory() {
+        return this.dataBufferFactory;
+    }
+
+    @Override
+    public String toString() {
+        return String.format("LeakAwareDataBuffer (%s)", dataBuffer());
+    }
 }

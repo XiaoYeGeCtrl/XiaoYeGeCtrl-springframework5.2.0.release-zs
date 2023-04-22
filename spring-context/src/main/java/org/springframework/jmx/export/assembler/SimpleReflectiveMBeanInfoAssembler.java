@@ -29,28 +29,28 @@ import java.lang.reflect.Method;
  */
 public class SimpleReflectiveMBeanInfoAssembler extends AbstractConfigurableMBeanInfoAssembler {
 
-	/**
-	 * Always returns {@code true}.
-	 */
-	@Override
-	protected boolean includeReadAttribute(Method method, String beanKey) {
-		return true;
-	}
+    /**
+     * Always returns {@code true}.
+     */
+    @Override
+    protected boolean includeReadAttribute(Method method, String beanKey) {
+        return true;
+    }
 
-	/**
-	 * Always returns {@code true}.
-	 */
-	@Override
-	protected boolean includeWriteAttribute(Method method, String beanKey) {
-		return true;
-	}
+    /**
+     * Always returns {@code true}.
+     */
+    @Override
+    protected boolean includeWriteAttribute(Method method, String beanKey) {
+        return true;
+    }
 
-	/**
-	 * Always returns {@code true}.
-	 */
-	@Override
-	protected boolean includeOperation(Method method, String beanKey) {
-		return true;
-	}
+    /**
+     * Always returns {@code true}.
+     */
+    @Override
+    protected boolean includeOperation(Method method, String beanKey) {
+        return true;
+    }
 
 }

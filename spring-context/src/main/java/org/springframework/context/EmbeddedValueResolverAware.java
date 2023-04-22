@@ -28,16 +28,16 @@ import org.springframework.util.StringValueResolver;
  *
  * @author Juergen Hoeller
  * @author Chris Beams
- * @since 3.0.3
  * @see org.springframework.beans.factory.config.ConfigurableBeanFactory#resolveEmbeddedValue(String)
  * @see org.springframework.beans.factory.config.ConfigurableBeanFactory#getBeanExpressionResolver()
  * @see org.springframework.beans.factory.config.EmbeddedValueResolver
+ * @since 3.0.3
  */
 public interface EmbeddedValueResolverAware extends Aware {
 
-	/**
-	 * Set the StringValueResolver to use for resolving embedded definition values.
-	 */
-	void setEmbeddedValueResolver(StringValueResolver resolver);
+    /**
+     * Set the StringValueResolver to use for resolving embedded definition values.
+     */
+    void setEmbeddedValueResolver(StringValueResolver resolver);
 
 }

@@ -31,41 +31,42 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Unit tests for {@link ServerWebExchangeContextFilter}.
+ *
  * @author Rossen Stoyanchev
  */
 public class ServerWebExchangeContextFilterTests {
 
-	@Test
-	public void extractServerWebExchangeFromContext() {
-		MyService service = new MyService();
+    @Test
+    public void extractServerWebExchangeFromContext() {
+        MyService service = new MyService();
 
-		HttpHandler httpHandler = WebHttpHandlerBuilder
-				.webHandler(exchange -> service.service().then())
-				.filter(new ServerWebExchangeContextFilter())
-				.build();
+        HttpHandler httpHandler = WebHttpHandlerBuilder
+                .webHandler(exchange -> service.service().then())
+                .filter(new ServerWebExchangeContextFilter())
+                .build();
 
-		httpHandler.handle(MockServerHttpRequest.get("/path").build(), new MockServerHttpResponse())
-				.block(Duration.ofSeconds(5));
+        httpHandler.handle(MockServerHttpRequest.get("/path").build(), new MockServerHttpResponse())
+                .block(Duration.ofSeconds(5));
 
-		assertThat(service.getExchange()).isNotNull();
-	}
-
-
-	private static class MyService {
-
-		private final AtomicReference<ServerWebExchange> exchangeRef = new AtomicReference<>();
+        assertThat(service.getExchange()).isNotNull();
+    }
 
 
-		public ServerWebExchange getExchange() {
-			return this.exchangeRef.get();
-		}
+    private static class MyService {
 
-		public Mono<String> service() {
-			return Mono.just("result").subscriberContext(context -> {
-				ServerWebExchangeContextFilter.get(context).ifPresent(exchangeRef::set);
-				return context;
-			});
-		}
-	}
+        private final AtomicReference<ServerWebExchange> exchangeRef = new AtomicReference<>();
+
+
+        public ServerWebExchange getExchange() {
+            return this.exchangeRef.get();
+        }
+
+        public Mono<String> service() {
+            return Mono.just("result").subscriberContext(context -> {
+                ServerWebExchangeContextFilter.get(context).ifPresent(exchangeRef::set);
+                return context;
+            });
+        }
+    }
 
 }

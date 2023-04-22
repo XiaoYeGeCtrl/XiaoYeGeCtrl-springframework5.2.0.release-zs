@@ -33,33 +33,32 @@ import org.springframework.context.support.GenericXmlApplicationContext;
  */
 class LazyScheduledTasksBeanDefinitionParserTests {
 
-	@Test
-	@Timeout(5)
-	void checkTarget() {
-		try (ConfigurableApplicationContext applicationContext =
-				new GenericXmlApplicationContext(getClass(), "lazyScheduledTasksContext.xml")) {
+    @Test
+    @Timeout(5)
+    void checkTarget() {
+        try (ConfigurableApplicationContext applicationContext =
+                     new GenericXmlApplicationContext(getClass(), "lazyScheduledTasksContext.xml")) {
 
-			Task task = applicationContext.getBean(Task.class);
+            Task task = applicationContext.getBean(Task.class);
 
-			while (!task.executed) {
-				try {
-					Thread.sleep(10);
-				}
-				catch (Exception ex) {
-					/* Do Nothing */
-				}
-			}
-		}
-	}
+            while (!task.executed) {
+                try {
+                    Thread.sleep(10);
+                } catch (Exception ex) {
+                    /* Do Nothing */
+                }
+            }
+        }
+    }
 
 
-	static class Task {
+    static class Task {
 
-		volatile boolean executed = false;
+        volatile boolean executed = false;
 
-		public void doWork() {
-			executed = true;
-		}
-	}
+        public void doWork() {
+            executed = true;
+        }
+    }
 
 }

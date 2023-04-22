@@ -59,99 +59,96 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 public abstract class AbstractMBeanServerTests {
 
-	@RegisterExtension
-	BindExceptionHandler bindExceptionHandler = new BindExceptionHandler();
+    protected MBeanServer server;
+    @RegisterExtension
+    BindExceptionHandler bindExceptionHandler = new BindExceptionHandler();
 
-	protected MBeanServer server;
+    @BeforeEach
+    public final void setUp() throws Exception {
+        this.server = MBeanServerFactory.createMBeanServer();
+        try {
+            onSetUp();
+        } catch (Exception ex) {
+            releaseServer();
+            throw ex;
+        }
+    }
 
+    protected ConfigurableApplicationContext loadContext(String configLocation) {
+        GenericApplicationContext ctx = new GenericApplicationContext();
+        new XmlBeanDefinitionReader(ctx).loadBeanDefinitions(configLocation);
+        ctx.getDefaultListableBeanFactory().registerSingleton("server", this.server);
+        ctx.refresh();
+        return ctx;
+    }
 
-	@BeforeEach
-	public final void setUp() throws Exception {
-		this.server = MBeanServerFactory.createMBeanServer();
-		try {
-			onSetUp();
-		}
-		catch (Exception ex) {
-			releaseServer();
-			throw ex;
-		}
-	}
+    @AfterEach
+    public void tearDown() throws Exception {
+        releaseServer();
+        onTearDown();
+    }
 
-	protected ConfigurableApplicationContext loadContext(String configLocation) {
-		GenericApplicationContext ctx = new GenericApplicationContext();
-		new XmlBeanDefinitionReader(ctx).loadBeanDefinitions(configLocation);
-		ctx.getDefaultListableBeanFactory().registerSingleton("server", this.server);
-		ctx.refresh();
-		return ctx;
-	}
+    private void releaseServer() throws Exception {
+        MBeanServerFactory.releaseMBeanServer(getServer());
+        MBeanTestUtils.resetMBeanServers();
+    }
 
-	@AfterEach
-	public void tearDown() throws Exception {
-		releaseServer();
-		onTearDown();
-	}
+    protected void onTearDown() throws Exception {
+    }
 
-	private void releaseServer() throws Exception {
-		MBeanServerFactory.releaseMBeanServer(getServer());
-		MBeanTestUtils.resetMBeanServers();
-	}
+    protected void onSetUp() throws Exception {
+    }
 
-	protected void onTearDown() throws Exception {
-	}
+    public MBeanServer getServer() {
+        return this.server;
+    }
 
-	protected void onSetUp() throws Exception {
-	}
+    /**
+     * Start the specified {@link MBeanExporter}.
+     */
+    protected void start(MBeanExporter exporter) {
+        exporter.afterPropertiesSet();
+        exporter.afterSingletonsInstantiated();
+    }
 
-	public MBeanServer getServer() {
-		return this.server;
-	}
+    protected void assertIsRegistered(String message, ObjectName objectName) {
+        assertThat(getServer().isRegistered(objectName)).as(message).isTrue();
+    }
 
-	/**
-	 * Start the specified {@link MBeanExporter}.
-	 */
-	protected void start(MBeanExporter exporter) {
-		exporter.afterPropertiesSet();
-		exporter.afterSingletonsInstantiated();
-	}
-
-	protected void assertIsRegistered(String message, ObjectName objectName) {
-		assertThat(getServer().isRegistered(objectName)).as(message).isTrue();
-	}
-
-	protected void assertIsNotRegistered(String message, ObjectName objectName) {
-		assertThat(getServer().isRegistered(objectName)).as(message).isFalse();
-	}
+    protected void assertIsNotRegistered(String message, ObjectName objectName) {
+        assertThat(getServer().isRegistered(objectName)).as(message).isFalse();
+    }
 
 
-	private static class BindExceptionHandler implements TestExecutionExceptionHandler, LifecycleMethodExecutionExceptionHandler {
+    private static class BindExceptionHandler implements TestExecutionExceptionHandler, LifecycleMethodExecutionExceptionHandler {
 
-		@Override
-		public void handleTestExecutionException(ExtensionContext context, Throwable throwable) throws Throwable {
-			handleBindException(throwable);
-		}
+        @Override
+        public void handleTestExecutionException(ExtensionContext context, Throwable throwable) throws Throwable {
+            handleBindException(throwable);
+        }
 
-		@Override
-		public void handleBeforeEachMethodExecutionException(ExtensionContext context, Throwable throwable)
-				throws Throwable {
-			handleBindException(throwable);
-		}
+        @Override
+        public void handleBeforeEachMethodExecutionException(ExtensionContext context, Throwable throwable)
+                throws Throwable {
+            handleBindException(throwable);
+        }
 
-		@Override
-		public void handleAfterEachMethodExecutionException(ExtensionContext context, Throwable throwable)
-				throws Throwable {
-			handleBindException(throwable);
-		}
+        @Override
+        public void handleAfterEachMethodExecutionException(ExtensionContext context, Throwable throwable)
+                throws Throwable {
+            handleBindException(throwable);
+        }
 
-		private void handleBindException(Throwable throwable) throws Throwable {
-			// Abort test?
-			if (throwable instanceof BindException) {
-				throw new TestAbortedException("Failed to bind to MBeanServer", throwable);
-			}
-			// Else rethrow to conform to the contracts of TestExecutionExceptionHandler and LifecycleMethodExecutionExceptionHandler
-			throw throwable;
-		}
+        private void handleBindException(Throwable throwable) throws Throwable {
+            // Abort test?
+            if (throwable instanceof BindException) {
+                throw new TestAbortedException("Failed to bind to MBeanServer", throwable);
+            }
+            // Else rethrow to conform to the contracts of TestExecutionExceptionHandler and LifecycleMethodExecutionExceptionHandler
+            throw throwable;
+        }
 
-	}
+    }
 
 }
 

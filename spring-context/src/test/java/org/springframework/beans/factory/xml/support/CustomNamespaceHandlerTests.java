@@ -73,129 +73,129 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
  */
 public class CustomNamespaceHandlerTests {
 
-	private static final Class<?> CLASS = CustomNamespaceHandlerTests.class;
-	private static final String CLASSNAME = CLASS.getSimpleName();
-	private static final String FQ_PATH = "org/springframework/beans/factory/xml/support";
+    private static final Class<?> CLASS = CustomNamespaceHandlerTests.class;
+    private static final String CLASSNAME = CLASS.getSimpleName();
+    private static final String FQ_PATH = "org/springframework/beans/factory/xml/support";
 
-	private static final String NS_PROPS = format("%s/%s.properties", FQ_PATH, CLASSNAME);
-	private static final String NS_XML = format("%s/%s-context.xml", FQ_PATH, CLASSNAME);
-	private static final String TEST_XSD = format("%s/%s.xsd", FQ_PATH, CLASSNAME);
+    private static final String NS_PROPS = format("%s/%s.properties", FQ_PATH, CLASSNAME);
+    private static final String NS_XML = format("%s/%s-context.xml", FQ_PATH, CLASSNAME);
+    private static final String TEST_XSD = format("%s/%s.xsd", FQ_PATH, CLASSNAME);
 
-	private GenericApplicationContext beanFactory;
-
-
-	@BeforeEach
-	public void setUp() throws Exception {
-		NamespaceHandlerResolver resolver = new DefaultNamespaceHandlerResolver(CLASS.getClassLoader(), NS_PROPS);
-		this.beanFactory = new GenericApplicationContext();
-		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(this.beanFactory);
-		reader.setNamespaceHandlerResolver(resolver);
-		reader.setValidationMode(XmlBeanDefinitionReader.VALIDATION_XSD);
-		reader.setEntityResolver(new DummySchemaResolver());
-		reader.loadBeanDefinitions(getResource());
-		this.beanFactory.refresh();
-	}
+    private GenericApplicationContext beanFactory;
 
 
-	@Test
-	public void testSimpleParser() throws Exception {
-		TestBean bean = (TestBean) this.beanFactory.getBean("testBean");
-		assertTestBean(bean);
-	}
-
-	@Test
-	public void testSimpleDecorator() throws Exception {
-		TestBean bean = (TestBean) this.beanFactory.getBean("customisedTestBean");
-		assertTestBean(bean);
-	}
-
-	@Test
-	public void testProxyingDecorator() throws Exception {
-		ITestBean bean = (ITestBean) this.beanFactory.getBean("debuggingTestBean");
-		assertTestBean(bean);
-		assertThat(AopUtils.isAopProxy(bean)).isTrue();
-		Advisor[] advisors = ((Advised) bean).getAdvisors();
-		assertThat(advisors.length).as("Incorrect number of advisors").isEqualTo(1);
-		assertThat(advisors[0].getAdvice().getClass()).as("Incorrect advice class").isEqualTo(DebugInterceptor.class);
-	}
-
-	@Test
-	public void testProxyingDecoratorNoInstance() throws Exception {
-		String[] beanNames = this.beanFactory.getBeanNamesForType(ApplicationListener.class);
-		assertThat(Arrays.asList(beanNames).contains("debuggingTestBeanNoInstance")).isTrue();
-		assertThat(this.beanFactory.getType("debuggingTestBeanNoInstance")).isEqualTo(ApplicationListener.class);
-		assertThatExceptionOfType(BeanCreationException.class).isThrownBy(() ->
-				this.beanFactory.getBean("debuggingTestBeanNoInstance"))
-			.satisfies(ex -> assertThat(ex.getRootCause()).isInstanceOf(BeanInstantiationException.class));
-	}
-
-	@Test
-	public void testChainedDecorators() throws Exception {
-		ITestBean bean = (ITestBean) this.beanFactory.getBean("chainedTestBean");
-		assertTestBean(bean);
-		assertThat(AopUtils.isAopProxy(bean)).isTrue();
-		Advisor[] advisors = ((Advised) bean).getAdvisors();
-		assertThat(advisors.length).as("Incorrect number of advisors").isEqualTo(2);
-		assertThat(advisors[0].getAdvice().getClass()).as("Incorrect advice class").isEqualTo(DebugInterceptor.class);
-		assertThat(advisors[1].getAdvice().getClass()).as("Incorrect advice class").isEqualTo(NopInterceptor.class);
-	}
-
-	@Test
-	public void testDecorationViaAttribute() throws Exception {
-		BeanDefinition beanDefinition = this.beanFactory.getBeanDefinition("decorateWithAttribute");
-		assertThat(beanDefinition.getAttribute("objectName")).isEqualTo("foo");
-	}
-
-	@Test  // SPR-2728
-	public void testCustomElementNestedWithinUtilList() throws Exception {
-		List<?> things = (List<?>) this.beanFactory.getBean("list.of.things");
-		assertThat(things).isNotNull();
-		assertThat(things.size()).isEqualTo(2);
-	}
-
-	@Test  // SPR-2728
-	public void testCustomElementNestedWithinUtilSet() throws Exception {
-		Set<?> things = (Set<?>) this.beanFactory.getBean("set.of.things");
-		assertThat(things).isNotNull();
-		assertThat(things.size()).isEqualTo(2);
-	}
-
-	@Test  // SPR-2728
-	public void testCustomElementNestedWithinUtilMap() throws Exception {
-		Map<?, ?> things = (Map<?, ?>) this.beanFactory.getBean("map.of.things");
-		assertThat(things).isNotNull();
-		assertThat(things.size()).isEqualTo(2);
-	}
+    @BeforeEach
+    public void setUp() throws Exception {
+        NamespaceHandlerResolver resolver = new DefaultNamespaceHandlerResolver(CLASS.getClassLoader(), NS_PROPS);
+        this.beanFactory = new GenericApplicationContext();
+        XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(this.beanFactory);
+        reader.setNamespaceHandlerResolver(resolver);
+        reader.setValidationMode(XmlBeanDefinitionReader.VALIDATION_XSD);
+        reader.setEntityResolver(new DummySchemaResolver());
+        reader.loadBeanDefinitions(getResource());
+        this.beanFactory.refresh();
+    }
 
 
-	private void assertTestBean(ITestBean bean) {
-		assertThat(bean.getName()).as("Invalid name").isEqualTo("Rob Harrop");
-		assertThat(bean.getAge()).as("Invalid age").isEqualTo(23);
-	}
+    @Test
+    public void testSimpleParser() throws Exception {
+        TestBean bean = (TestBean) this.beanFactory.getBean("testBean");
+        assertTestBean(bean);
+    }
 
-	private Resource getResource() {
-		return new ClassPathResource(NS_XML);
-	}
+    @Test
+    public void testSimpleDecorator() throws Exception {
+        TestBean bean = (TestBean) this.beanFactory.getBean("customisedTestBean");
+        assertTestBean(bean);
+    }
+
+    @Test
+    public void testProxyingDecorator() throws Exception {
+        ITestBean bean = (ITestBean) this.beanFactory.getBean("debuggingTestBean");
+        assertTestBean(bean);
+        assertThat(AopUtils.isAopProxy(bean)).isTrue();
+        Advisor[] advisors = ((Advised) bean).getAdvisors();
+        assertThat(advisors.length).as("Incorrect number of advisors").isEqualTo(1);
+        assertThat(advisors[0].getAdvice().getClass()).as("Incorrect advice class").isEqualTo(DebugInterceptor.class);
+    }
+
+    @Test
+    public void testProxyingDecoratorNoInstance() throws Exception {
+        String[] beanNames = this.beanFactory.getBeanNamesForType(ApplicationListener.class);
+        assertThat(Arrays.asList(beanNames).contains("debuggingTestBeanNoInstance")).isTrue();
+        assertThat(this.beanFactory.getType("debuggingTestBeanNoInstance")).isEqualTo(ApplicationListener.class);
+        assertThatExceptionOfType(BeanCreationException.class).isThrownBy(() ->
+                this.beanFactory.getBean("debuggingTestBeanNoInstance"))
+                .satisfies(ex -> assertThat(ex.getRootCause()).isInstanceOf(BeanInstantiationException.class));
+    }
+
+    @Test
+    public void testChainedDecorators() throws Exception {
+        ITestBean bean = (ITestBean) this.beanFactory.getBean("chainedTestBean");
+        assertTestBean(bean);
+        assertThat(AopUtils.isAopProxy(bean)).isTrue();
+        Advisor[] advisors = ((Advised) bean).getAdvisors();
+        assertThat(advisors.length).as("Incorrect number of advisors").isEqualTo(2);
+        assertThat(advisors[0].getAdvice().getClass()).as("Incorrect advice class").isEqualTo(DebugInterceptor.class);
+        assertThat(advisors[1].getAdvice().getClass()).as("Incorrect advice class").isEqualTo(NopInterceptor.class);
+    }
+
+    @Test
+    public void testDecorationViaAttribute() throws Exception {
+        BeanDefinition beanDefinition = this.beanFactory.getBeanDefinition("decorateWithAttribute");
+        assertThat(beanDefinition.getAttribute("objectName")).isEqualTo("foo");
+    }
+
+    @Test  // SPR-2728
+    public void testCustomElementNestedWithinUtilList() throws Exception {
+        List<?> things = (List<?>) this.beanFactory.getBean("list.of.things");
+        assertThat(things).isNotNull();
+        assertThat(things.size()).isEqualTo(2);
+    }
+
+    @Test  // SPR-2728
+    public void testCustomElementNestedWithinUtilSet() throws Exception {
+        Set<?> things = (Set<?>) this.beanFactory.getBean("set.of.things");
+        assertThat(things).isNotNull();
+        assertThat(things.size()).isEqualTo(2);
+    }
+
+    @Test  // SPR-2728
+    public void testCustomElementNestedWithinUtilMap() throws Exception {
+        Map<?, ?> things = (Map<?, ?>) this.beanFactory.getBean("map.of.things");
+        assertThat(things).isNotNull();
+        assertThat(things.size()).isEqualTo(2);
+    }
 
 
-	private final class DummySchemaResolver extends PluggableSchemaResolver {
+    private void assertTestBean(ITestBean bean) {
+        assertThat(bean.getName()).as("Invalid name").isEqualTo("Rob Harrop");
+        assertThat(bean.getAge()).as("Invalid age").isEqualTo(23);
+    }
 
-		public DummySchemaResolver() {
-			super(CLASS.getClassLoader());
-		}
+    private Resource getResource() {
+        return new ClassPathResource(NS_XML);
+    }
 
-		@Override
-		public InputSource resolveEntity(String publicId, String systemId) throws IOException {
-			InputSource source = super.resolveEntity(publicId, systemId);
-			if (source == null) {
-				Resource resource = new ClassPathResource(TEST_XSD);
-				source = new InputSource(resource.getInputStream());
-				source.setPublicId(publicId);
-				source.setSystemId(systemId);
-			}
-			return source;
-		}
-	}
+
+    private final class DummySchemaResolver extends PluggableSchemaResolver {
+
+        public DummySchemaResolver() {
+            super(CLASS.getClassLoader());
+        }
+
+        @Override
+        public InputSource resolveEntity(String publicId, String systemId) throws IOException {
+            InputSource source = super.resolveEntity(publicId, systemId);
+            if (source == null) {
+                Resource resource = new ClassPathResource(TEST_XSD);
+                source = new InputSource(resource.getInputStream());
+                source.setPublicId(publicId);
+                source.setSystemId(systemId);
+            }
+            return source;
+        }
+    }
 
 }
 
@@ -207,94 +207,94 @@ public class CustomNamespaceHandlerTests {
  */
 final class TestNamespaceHandler extends NamespaceHandlerSupport {
 
-	@Override
-	public void init() {
-		registerBeanDefinitionParser("testBean", new TestBeanDefinitionParser());
-		registerBeanDefinitionParser("person", new PersonDefinitionParser());
+    @Override
+    public void init() {
+        registerBeanDefinitionParser("testBean", new TestBeanDefinitionParser());
+        registerBeanDefinitionParser("person", new PersonDefinitionParser());
 
-		registerBeanDefinitionDecorator("set", new PropertyModifyingBeanDefinitionDecorator());
-		registerBeanDefinitionDecorator("debug", new DebugBeanDefinitionDecorator());
-		registerBeanDefinitionDecorator("nop", new NopInterceptorBeanDefinitionDecorator());
-		registerBeanDefinitionDecoratorForAttribute("object-name", new ObjectNameBeanDefinitionDecorator());
-	}
-
-
-	private static class TestBeanDefinitionParser implements BeanDefinitionParser {
-
-		@Override
-		public BeanDefinition parse(Element element, ParserContext parserContext) {
-			RootBeanDefinition definition = new RootBeanDefinition();
-			definition.setBeanClass(TestBean.class);
-
-			MutablePropertyValues mpvs = new MutablePropertyValues();
-			mpvs.add("name", element.getAttribute("name"));
-			mpvs.add("age", element.getAttribute("age"));
-			definition.setPropertyValues(mpvs);
-
-			parserContext.getRegistry().registerBeanDefinition(element.getAttribute("id"), definition);
-			return null;
-		}
-	}
+        registerBeanDefinitionDecorator("set", new PropertyModifyingBeanDefinitionDecorator());
+        registerBeanDefinitionDecorator("debug", new DebugBeanDefinitionDecorator());
+        registerBeanDefinitionDecorator("nop", new NopInterceptorBeanDefinitionDecorator());
+        registerBeanDefinitionDecoratorForAttribute("object-name", new ObjectNameBeanDefinitionDecorator());
+    }
 
 
-	private static final class PersonDefinitionParser extends AbstractSingleBeanDefinitionParser {
+    private static class TestBeanDefinitionParser implements BeanDefinitionParser {
 
-		@Override
-		protected Class<?> getBeanClass(Element element) {
-			return TestBean.class;
-		}
+        @Override
+        public BeanDefinition parse(Element element, ParserContext parserContext) {
+            RootBeanDefinition definition = new RootBeanDefinition();
+            definition.setBeanClass(TestBean.class);
 
-		@Override
-		protected void doParse(Element element, BeanDefinitionBuilder builder) {
-			builder.addPropertyValue("name", element.getAttribute("name"));
-			builder.addPropertyValue("age", element.getAttribute("age"));
-		}
-	}
+            MutablePropertyValues mpvs = new MutablePropertyValues();
+            mpvs.add("name", element.getAttribute("name"));
+            mpvs.add("age", element.getAttribute("age"));
+            definition.setPropertyValues(mpvs);
 
-
-	private static class PropertyModifyingBeanDefinitionDecorator implements BeanDefinitionDecorator {
-
-		@Override
-		public BeanDefinitionHolder decorate(Node node, BeanDefinitionHolder definition, ParserContext parserContext) {
-			Element element = (Element) node;
-			BeanDefinition def = definition.getBeanDefinition();
-
-			MutablePropertyValues mpvs = (def.getPropertyValues() == null) ? new MutablePropertyValues() : def.getPropertyValues();
-			mpvs.add("name", element.getAttribute("name"));
-			mpvs.add("age", element.getAttribute("age"));
-
-			((AbstractBeanDefinition) def).setPropertyValues(mpvs);
-			return definition;
-		}
-	}
+            parserContext.getRegistry().registerBeanDefinition(element.getAttribute("id"), definition);
+            return null;
+        }
+    }
 
 
-	private static class DebugBeanDefinitionDecorator extends AbstractInterceptorDrivenBeanDefinitionDecorator {
+    private static final class PersonDefinitionParser extends AbstractSingleBeanDefinitionParser {
 
-		@Override
-		protected BeanDefinition createInterceptorDefinition(Node node) {
-			return new RootBeanDefinition(DebugInterceptor.class);
-		}
-	}
+        @Override
+        protected Class<?> getBeanClass(Element element) {
+            return TestBean.class;
+        }
 
-
-	private static class NopInterceptorBeanDefinitionDecorator extends AbstractInterceptorDrivenBeanDefinitionDecorator {
-
-		@Override
-		protected BeanDefinition createInterceptorDefinition(Node node) {
-			return new RootBeanDefinition(NopInterceptor.class);
-		}
-	}
+        @Override
+        protected void doParse(Element element, BeanDefinitionBuilder builder) {
+            builder.addPropertyValue("name", element.getAttribute("name"));
+            builder.addPropertyValue("age", element.getAttribute("age"));
+        }
+    }
 
 
-	private static class ObjectNameBeanDefinitionDecorator implements BeanDefinitionDecorator {
+    private static class PropertyModifyingBeanDefinitionDecorator implements BeanDefinitionDecorator {
 
-		@Override
-		public BeanDefinitionHolder decorate(Node node, BeanDefinitionHolder definition, ParserContext parserContext) {
-			Attr objectNameAttribute = (Attr) node;
-			definition.getBeanDefinition().setAttribute("objectName", objectNameAttribute.getValue());
-			return definition;
-		}
-	}
+        @Override
+        public BeanDefinitionHolder decorate(Node node, BeanDefinitionHolder definition, ParserContext parserContext) {
+            Element element = (Element) node;
+            BeanDefinition def = definition.getBeanDefinition();
+
+            MutablePropertyValues mpvs = (def.getPropertyValues() == null) ? new MutablePropertyValues() : def.getPropertyValues();
+            mpvs.add("name", element.getAttribute("name"));
+            mpvs.add("age", element.getAttribute("age"));
+
+            ((AbstractBeanDefinition) def).setPropertyValues(mpvs);
+            return definition;
+        }
+    }
+
+
+    private static class DebugBeanDefinitionDecorator extends AbstractInterceptorDrivenBeanDefinitionDecorator {
+
+        @Override
+        protected BeanDefinition createInterceptorDefinition(Node node) {
+            return new RootBeanDefinition(DebugInterceptor.class);
+        }
+    }
+
+
+    private static class NopInterceptorBeanDefinitionDecorator extends AbstractInterceptorDrivenBeanDefinitionDecorator {
+
+        @Override
+        protected BeanDefinition createInterceptorDefinition(Node node) {
+            return new RootBeanDefinition(NopInterceptor.class);
+        }
+    }
+
+
+    private static class ObjectNameBeanDefinitionDecorator implements BeanDefinitionDecorator {
+
+        @Override
+        public BeanDefinitionHolder decorate(Node node, BeanDefinitionHolder definition, ParserContext parserContext) {
+            Attr objectNameAttribute = (Attr) node;
+            definition.getBeanDefinition().setAttribute("objectName", objectNameAttribute.getValue());
+            return definition;
+        }
+    }
 
 }

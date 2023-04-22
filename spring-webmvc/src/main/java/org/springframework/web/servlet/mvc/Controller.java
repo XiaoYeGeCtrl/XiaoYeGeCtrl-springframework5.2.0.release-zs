@@ -110,17 +110,18 @@ import org.springframework.web.servlet.ModelAndView;
 @FunctionalInterface
 public interface Controller {
 
-	/**
-	 * Process the request and return a ModelAndView object which the DispatcherServlet
-	 * will render. A {@code null} return value is not an error: it indicates that
-	 * this object completed request processing itself and that there is therefore no
-	 * ModelAndView to render.
-	 * @param request current HTTP request
-	 * @param response current HTTP response
-	 * @return a ModelAndView to render, or {@code null} if handled directly
-	 * @throws Exception in case of errors
-	 */
-	@Nullable
-	ModelAndView handleRequest(HttpServletRequest request, HttpServletResponse response) throws Exception;
+    /**
+     * Process the request and return a ModelAndView object which the DispatcherServlet
+     * will render. A {@code null} return value is not an error: it indicates that
+     * this object completed request processing itself and that there is therefore no
+     * ModelAndView to render.
+     *
+     * @param request  current HTTP request
+     * @param response current HTTP response
+     * @return a ModelAndView to render, or {@code null} if handled directly
+     * @throws Exception in case of errors
+     */
+    @Nullable
+    ModelAndView handleRequest(HttpServletRequest request, HttpServletResponse response) throws Exception;
 
 }

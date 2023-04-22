@@ -34,11 +34,12 @@ import org.springframework.web.server.adapter.WebHttpHandlerBuilder;
  */
 public interface WebHandler {
 
-	/**
-	 * Handle the web server exchange.
-	 * @param exchange the current server exchange
-	 * @return {@code Mono<Void>} to indicate when request handling is complete
-	 */
-	Mono<Void> handle(ServerWebExchange exchange);
+    /**
+     * Handle the web server exchange.
+     *
+     * @param exchange the current server exchange
+     * @return {@code Mono<Void>} to indicate when request handling is complete
+     */
+    Mono<Void> handle(ServerWebExchange exchange);
 
 }

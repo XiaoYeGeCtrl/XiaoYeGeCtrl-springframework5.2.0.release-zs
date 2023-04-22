@@ -24,37 +24,36 @@ package org.springframework.jmx.export.metadata;
  */
 public class AbstractJmxAttribute {
 
-	private String description = "";
+    private String description = "";
 
-	private int currencyTimeLimit = -1;
+    private int currencyTimeLimit = -1;
 
+    /**
+     * Return a description for this attribute.
+     */
+    public String getDescription() {
+        return this.description;
+    }
 
-	/**
-	 * Set a description for this attribute.
-	 */
-	public void setDescription(String description) {
-		this.description = description;
-	}
+    /**
+     * Set a description for this attribute.
+     */
+    public void setDescription(String description) {
+        this.description = description;
+    }
 
-	/**
-	 * Return a description for this attribute.
-	 */
-	public String getDescription() {
-		return this.description;
-	}
+    /**
+     * Return a currency time limit for this attribute.
+     */
+    public int getCurrencyTimeLimit() {
+        return this.currencyTimeLimit;
+    }
 
-	/**
-	 * Set a currency time limit for this attribute.
-	 */
-	public void setCurrencyTimeLimit(int currencyTimeLimit) {
-		this.currencyTimeLimit = currencyTimeLimit;
-	}
-
-	/**
-	 * Return a currency time limit for this attribute.
-	 */
-	public int getCurrencyTimeLimit() {
-		return this.currencyTimeLimit;
-	}
+    /**
+     * Set a currency time limit for this attribute.
+     */
+    public void setCurrencyTimeLimit(int currencyTimeLimit) {
+        this.currencyTimeLimit = currencyTimeLimit;
+    }
 
 }

@@ -26,11 +26,11 @@ import javax.xml.transform.Result;
  */
 class StaxStreamHandlerTests extends AbstractStaxHandlerTests {
 
-	@Override
-	protected AbstractStaxHandler createStaxHandler(Result result) throws XMLStreamException {
-		XMLOutputFactory outputFactory = XMLOutputFactory.newFactory();
-		XMLStreamWriter streamWriter = outputFactory.createXMLStreamWriter(result);
-		return new StaxStreamHandler(streamWriter);
-	}
+    @Override
+    protected AbstractStaxHandler createStaxHandler(Result result) throws XMLStreamException {
+        XMLOutputFactory outputFactory = XMLOutputFactory.newFactory();
+        XMLStreamWriter streamWriter = outputFactory.createXMLStreamWriter(result);
+        return new StaxStreamHandler(streamWriter);
+    }
 
 }

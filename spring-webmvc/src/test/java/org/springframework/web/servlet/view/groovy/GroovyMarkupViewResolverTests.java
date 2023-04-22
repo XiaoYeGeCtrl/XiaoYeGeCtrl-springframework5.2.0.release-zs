@@ -32,21 +32,21 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 public class GroovyMarkupViewResolverTests {
 
-	@Test
-	public void viewClass() throws Exception {
-		GroovyMarkupViewResolver resolver = new GroovyMarkupViewResolver();
-		assertThat(resolver.requiredViewClass()).isEqualTo(GroovyMarkupView.class);
-		DirectFieldAccessor viewAccessor = new DirectFieldAccessor(resolver);
-		Class<?> viewClass = (Class<?>) viewAccessor.getPropertyValue("viewClass");
-		assertThat(viewClass).isEqualTo(GroovyMarkupView.class);
-	}
+    @Test
+    public void viewClass() throws Exception {
+        GroovyMarkupViewResolver resolver = new GroovyMarkupViewResolver();
+        assertThat(resolver.requiredViewClass()).isEqualTo(GroovyMarkupView.class);
+        DirectFieldAccessor viewAccessor = new DirectFieldAccessor(resolver);
+        Class<?> viewClass = (Class<?>) viewAccessor.getPropertyValue("viewClass");
+        assertThat(viewClass).isEqualTo(GroovyMarkupView.class);
+    }
 
-	@Test
-	public void cacheKey() throws Exception {
-		GroovyMarkupViewResolver resolver = new GroovyMarkupViewResolver();
-		String cacheKey = (String) resolver.getCacheKey("test", Locale.US);
-		assertThat(cacheKey).isNotNull();
-		assertThat(cacheKey).isEqualTo("test_en_US");
-	}
+    @Test
+    public void cacheKey() throws Exception {
+        GroovyMarkupViewResolver resolver = new GroovyMarkupViewResolver();
+        String cacheKey = (String) resolver.getCacheKey("test", Locale.US);
+        assertThat(cacheKey).isNotNull();
+        assertThat(cacheKey).isEqualTo("test_en_US");
+    }
 
 }

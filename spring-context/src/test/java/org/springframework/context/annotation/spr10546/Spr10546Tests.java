@@ -32,118 +32,124 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Rob Winch
  */
 public class Spr10546Tests {
-	private ConfigurableApplicationContext context;
+    private ConfigurableApplicationContext context;
 
-	@AfterEach
-	public void closeContext() {
-		if (context != null) {
-			context.close();
-		}
-	}
+    @AfterEach
+    public void closeContext() {
+        if (context != null) {
+            context.close();
+        }
+    }
 
-	// These fail prior to fixing SPR-10546
+    // These fail prior to fixing SPR-10546
 
-	@Test
-	public void enclosingConfigFirstParentDefinesBean() {
-		assertLoadsMyBean(AEnclosingConfig.class,AEnclosingConfig.ChildConfig.class);
-	}
+    @Test
+    public void enclosingConfigFirstParentDefinesBean() {
+        assertLoadsMyBean(AEnclosingConfig.class, AEnclosingConfig.ChildConfig.class);
+    }
 
-	/**
-	 * Prior to fixing SPR-10546 this might have succeeded depending on the ordering the
-	 * classes were picked up. If they are picked up in the same order as
-	 * {@link #enclosingConfigFirstParentDefinesBean()} then it would fail. This test is
-	 * mostly for illustration purposes, but doesn't hurt to continue using it.
-	 *
-	 * <p>We purposely use the {@link AEnclosingConfig} to make it alphabetically prior to the
-	 * {@link AEnclosingConfig.ChildConfig} which encourages this to occur with the
-	 * classpath scanning implementation being used by the author of this test.
-	 */
-	@Test
-	public void enclosingConfigFirstParentDefinesBeanWithScanning() {
-		AnnotationConfigApplicationContext ctx= new AnnotationConfigApplicationContext();
-		context = ctx;
-		ctx.scan(AEnclosingConfig.class.getPackage().getName());
-		ctx.refresh();
-		assertThat(context.getBean("myBean",String.class)).isEqualTo("myBean");
-	}
+    /**
+     * Prior to fixing SPR-10546 this might have succeeded depending on the ordering the
+     * classes were picked up. If they are picked up in the same order as
+     * {@link #enclosingConfigFirstParentDefinesBean()} then it would fail. This test is
+     * mostly for illustration purposes, but doesn't hurt to continue using it.
+     *
+     * <p>We purposely use the {@link AEnclosingConfig} to make it alphabetically prior to the
+     * {@link AEnclosingConfig.ChildConfig} which encourages this to occur with the
+     * classpath scanning implementation being used by the author of this test.
+     */
+    @Test
+    public void enclosingConfigFirstParentDefinesBeanWithScanning() {
+        AnnotationConfigApplicationContext ctx = new AnnotationConfigApplicationContext();
+        context = ctx;
+        ctx.scan(AEnclosingConfig.class.getPackage().getName());
+        ctx.refresh();
+        assertThat(context.getBean("myBean", String.class)).isEqualTo("myBean");
+    }
 
-	@Test
-	public void enclosingConfigFirstParentDefinesBeanWithImportResource() {
-		assertLoadsMyBean(AEnclosingWithImportResourceConfig.class,AEnclosingWithImportResourceConfig.ChildConfig.class);
-	}
+    @Test
+    public void enclosingConfigFirstParentDefinesBeanWithImportResource() {
+        assertLoadsMyBean(AEnclosingWithImportResourceConfig.class, AEnclosingWithImportResourceConfig.ChildConfig.class);
+    }
 
-	@Configuration
-	static class AEnclosingWithImportResourceConfig {
-		@Configuration
-		public static class ChildConfig extends ParentWithImportResourceConfig {}
-	}
+    @Test
+    public void enclosingConfigFirstParentDefinesBeanWithComponentScan() {
+        assertLoadsMyBean(AEnclosingWithComponentScanConfig.class, AEnclosingWithComponentScanConfig.ChildConfig.class);
+    }
 
-	@Test
-	public void enclosingConfigFirstParentDefinesBeanWithComponentScan() {
-		assertLoadsMyBean(AEnclosingWithComponentScanConfig.class,AEnclosingWithComponentScanConfig.ChildConfig.class);
-	}
+    @Test
+    public void enclosingConfigFirstParentWithParentDefinesBean() {
+        assertLoadsMyBean(AEnclosingWithGrandparentConfig.class, AEnclosingWithGrandparentConfig.ChildConfig.class);
+    }
 
-	@Configuration
-	static class AEnclosingWithComponentScanConfig {
-		@Configuration
-		public static class ChildConfig extends ParentWithComponentScanConfig {}
-	}
+    @Test
+    public void importChildConfigThenChildConfig() {
+        assertLoadsMyBean(ImportChildConfig.class, ChildConfig.class);
+    }
 
-	@Test
-	public void enclosingConfigFirstParentWithParentDefinesBean() {
-		assertLoadsMyBean(AEnclosingWithGrandparentConfig.class,AEnclosingWithGrandparentConfig.ChildConfig.class);
-	}
+    @Test
+    public void enclosingConfigFirstParentDefinesBeanWithImport() {
+        assertLoadsMyBean(AEnclosingWithImportConfig.class, AEnclosingWithImportConfig.ChildConfig.class);
+    }
 
-	@Configuration
-	static class AEnclosingWithGrandparentConfig {
-		@Configuration
-		public static class ChildConfig extends ParentWithParentConfig {}
-	}
+    @Test
+    public void childConfigFirst() {
+        assertLoadsMyBean(AEnclosingConfig.ChildConfig.class, AEnclosingConfig.class);
+    }
 
-	@Test
-	public void importChildConfigThenChildConfig() {
-		assertLoadsMyBean(ImportChildConfig.class,ChildConfig.class);
-	}
+    @Test
+    public void enclosingConfigOnly() {
+        assertLoadsMyBean(AEnclosingConfig.class);
+    }
 
-	@Configuration
-	static class ChildConfig extends ParentConfig {}
+    @Test
+    public void childConfigOnly() {
+        assertLoadsMyBean(AEnclosingConfig.ChildConfig.class);
+    }
 
-	@Configuration
-	@Import(ChildConfig.class)
-	static class ImportChildConfig {}
+    private void assertLoadsMyBean(Class<?>... annotatedClasses) {
+        context = new AnnotationConfigApplicationContext(annotatedClasses);
+        assertThat(context.getBean("myBean", String.class)).isEqualTo("myBean");
+    }
 
 
-	// These worked prior, but validating they continue to work
+    // These worked prior, but validating they continue to work
 
-	@Test
-	public void enclosingConfigFirstParentDefinesBeanWithImport() {
-		assertLoadsMyBean(AEnclosingWithImportConfig.class,AEnclosingWithImportConfig.ChildConfig.class);
-	}
+    @Configuration
+    static class AEnclosingWithImportResourceConfig {
+        @Configuration
+        public static class ChildConfig extends ParentWithImportResourceConfig {
+        }
+    }
 
-	@Configuration
-	static class AEnclosingWithImportConfig {
-		@Configuration
-		public static class ChildConfig extends ParentWithImportConfig {}
-	}
+    @Configuration
+    static class AEnclosingWithComponentScanConfig {
+        @Configuration
+        public static class ChildConfig extends ParentWithComponentScanConfig {
+        }
+    }
 
-	@Test
-	public void childConfigFirst() {
-		assertLoadsMyBean(AEnclosingConfig.ChildConfig.class, AEnclosingConfig.class);
-	}
+    @Configuration
+    static class AEnclosingWithGrandparentConfig {
+        @Configuration
+        public static class ChildConfig extends ParentWithParentConfig {
+        }
+    }
 
-	@Test
-	public void enclosingConfigOnly() {
-		assertLoadsMyBean(AEnclosingConfig.class);
-	}
+    @Configuration
+    static class ChildConfig extends ParentConfig {
+    }
 
-	@Test
-	public void childConfigOnly() {
-		assertLoadsMyBean(AEnclosingConfig.ChildConfig.class);
-	}
+    @Configuration
+    @Import(ChildConfig.class)
+    static class ImportChildConfig {
+    }
 
-	private void assertLoadsMyBean(Class<?>... annotatedClasses) {
-		context = new AnnotationConfigApplicationContext(annotatedClasses);
-		assertThat(context.getBean("myBean",String.class)).isEqualTo("myBean");
-	}
+    @Configuration
+    static class AEnclosingWithImportConfig {
+        @Configuration
+        public static class ChildConfig extends ParentWithImportConfig {
+        }
+    }
 
 }

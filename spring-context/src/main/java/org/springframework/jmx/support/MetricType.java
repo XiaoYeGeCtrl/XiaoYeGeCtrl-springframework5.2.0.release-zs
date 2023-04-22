@@ -24,14 +24,14 @@ package org.springframework.jmx.support;
  */
 public enum MetricType {
 
-	/**
-	 * The measurement values may go up or down over time.
-	 */
-	GAUGE,
+    /**
+     * The measurement values may go up or down over time.
+     */
+    GAUGE,
 
-	/**
-	 * The measurement values will always increase.
-	 */
-	COUNTER
+    /**
+     * The measurement values will always increase.
+     */
+    COUNTER
 
 }

@@ -37,25 +37,25 @@ import org.springframework.orm.jpa.persistenceunit.SmartPersistenceUnitInfo;
  *
  * @author Juergen Hoeller
  * @author Joris Kuipers
- * @since 4.1
  * @see Configuration#addPackage
+ * @since 4.1
  */
 class SpringHibernateJpaPersistenceProvider extends HibernatePersistenceProvider {
 
-	@Override
-	@SuppressWarnings("rawtypes")
-	public EntityManagerFactory createContainerEntityManagerFactory(PersistenceUnitInfo info, Map properties) {
-		final List<String> mergedClassesAndPackages = new ArrayList<>(info.getManagedClassNames());
-		if (info instanceof SmartPersistenceUnitInfo) {
-			mergedClassesAndPackages.addAll(((SmartPersistenceUnitInfo) info).getManagedPackages());
-		}
-		return new EntityManagerFactoryBuilderImpl(
-				new PersistenceUnitInfoDescriptor(info) {
-					@Override
-					public List<String> getManagedClassNames() {
-						return mergedClassesAndPackages;
-					}
-				}, properties).build();
-	}
+    @Override
+    @SuppressWarnings("rawtypes")
+    public EntityManagerFactory createContainerEntityManagerFactory(PersistenceUnitInfo info, Map properties) {
+        final List<String> mergedClassesAndPackages = new ArrayList<>(info.getManagedClassNames());
+        if (info instanceof SmartPersistenceUnitInfo) {
+            mergedClassesAndPackages.addAll(((SmartPersistenceUnitInfo) info).getManagedPackages());
+        }
+        return new EntityManagerFactoryBuilderImpl(
+                new PersistenceUnitInfoDescriptor(info) {
+                    @Override
+                    public List<String> getManagedClassNames() {
+                        return mergedClassesAndPackages;
+                    }
+                }, properties).build();
+    }
 
 }

@@ -36,33 +36,33 @@ import org.springframework.web.server.ServerWebExchange;
  * template name-value pairs.
  *
  * @author Rossen Stoyanchev
- * @since 5.0
  * @see PathVariableMethodArgumentResolver
+ * @since 5.0
  */
 public class PathVariableMapMethodArgumentResolver extends HandlerMethodArgumentResolverSupport
-		implements SyncHandlerMethodArgumentResolver {
+        implements SyncHandlerMethodArgumentResolver {
 
-	public PathVariableMapMethodArgumentResolver(ReactiveAdapterRegistry adapterRegistry) {
-		super(adapterRegistry);
-	}
-
-
-	@Override
-	public boolean supportsParameter(MethodParameter parameter) {
-		return checkAnnotatedParamNoReactiveWrapper(parameter, PathVariable.class, this::allVariables);
-	}
-
-	private boolean allVariables(PathVariable pathVariable, Class<?> type) {
-		return (Map.class.isAssignableFrom(type) && !StringUtils.hasText(pathVariable.value()));
-	}
+    public PathVariableMapMethodArgumentResolver(ReactiveAdapterRegistry adapterRegistry) {
+        super(adapterRegistry);
+    }
 
 
-	@Override
-	public Object resolveArgumentValue(
-			MethodParameter methodParameter, BindingContext context, ServerWebExchange exchange) {
+    @Override
+    public boolean supportsParameter(MethodParameter parameter) {
+        return checkAnnotatedParamNoReactiveWrapper(parameter, PathVariable.class, this::allVariables);
+    }
 
-		String name = HandlerMapping.URI_TEMPLATE_VARIABLES_ATTRIBUTE;
-		return exchange.getAttributeOrDefault(name, Collections.emptyMap());
-	}
+    private boolean allVariables(PathVariable pathVariable, Class<?> type) {
+        return (Map.class.isAssignableFrom(type) && !StringUtils.hasText(pathVariable.value()));
+    }
+
+
+    @Override
+    public Object resolveArgumentValue(
+            MethodParameter methodParameter, BindingContext context, ServerWebExchange exchange) {
+
+        String name = HandlerMapping.URI_TEMPLATE_VARIABLES_ATTRIBUTE;
+        return exchange.getAttributeOrDefault(name, Collections.emptyMap());
+    }
 
 }

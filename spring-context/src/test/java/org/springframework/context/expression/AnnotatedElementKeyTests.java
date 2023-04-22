@@ -32,47 +32,47 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 class AnnotatedElementKeyTests {
 
-	private Method method;
+    private Method method;
 
-	@BeforeEach
-	void setUpMethod(TestInfo testInfo) {
-		this.method = ReflectionUtils.findMethod(getClass(), testInfo.getTestMethod().get().getName());
-	}
+    @BeforeEach
+    void setUpMethod(TestInfo testInfo) {
+        this.method = ReflectionUtils.findMethod(getClass(), testInfo.getTestMethod().get().getName());
+    }
 
-	@Test
-	void sameInstanceEquals() {
-		AnnotatedElementKey instance = new AnnotatedElementKey(this.method, getClass());
+    @Test
+    void sameInstanceEquals() {
+        AnnotatedElementKey instance = new AnnotatedElementKey(this.method, getClass());
 
-		assertKeyEquals(instance, instance);
-	}
+        assertKeyEquals(instance, instance);
+    }
 
-	@Test
-	void equals() {
-		AnnotatedElementKey first = new AnnotatedElementKey(this.method, getClass());
-		AnnotatedElementKey second = new AnnotatedElementKey(this.method, getClass());
+    @Test
+    void equals() {
+        AnnotatedElementKey first = new AnnotatedElementKey(this.method, getClass());
+        AnnotatedElementKey second = new AnnotatedElementKey(this.method, getClass());
 
-		assertKeyEquals(first, second);
-	}
+        assertKeyEquals(first, second);
+    }
 
-	@Test
-	void equalsNoTarget() {
-		AnnotatedElementKey first = new AnnotatedElementKey(this.method, null);
-		AnnotatedElementKey second = new AnnotatedElementKey(this.method, null);
+    @Test
+    void equalsNoTarget() {
+        AnnotatedElementKey first = new AnnotatedElementKey(this.method, null);
+        AnnotatedElementKey second = new AnnotatedElementKey(this.method, null);
 
-		assertKeyEquals(first, second);
-	}
+        assertKeyEquals(first, second);
+    }
 
-	@Test
-	void noTargetClassNotEquals() {
-		AnnotatedElementKey first = new AnnotatedElementKey(this.method, getClass());
-		AnnotatedElementKey second = new AnnotatedElementKey(this.method, null);
+    @Test
+    void noTargetClassNotEquals() {
+        AnnotatedElementKey first = new AnnotatedElementKey(this.method, getClass());
+        AnnotatedElementKey second = new AnnotatedElementKey(this.method, null);
 
-		assertThat(first.equals(second)).isFalse();
-	}
+        assertThat(first.equals(second)).isFalse();
+    }
 
-	private void assertKeyEquals(AnnotatedElementKey first, AnnotatedElementKey second) {
-		assertThat(second).isEqualTo(first);
-		assertThat(second.hashCode()).isEqualTo(first.hashCode());
-	}
+    private void assertKeyEquals(AnnotatedElementKey first, AnnotatedElementKey second) {
+        assertThat(second).isEqualTo(first);
+        assertThat(second.hashCode()).isEqualTo(first.hashCode());
+    }
 
 }

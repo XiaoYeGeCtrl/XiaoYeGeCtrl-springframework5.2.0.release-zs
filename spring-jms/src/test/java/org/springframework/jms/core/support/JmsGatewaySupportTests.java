@@ -33,37 +33,37 @@ import static org.mockito.Mockito.mock;
  */
 public class JmsGatewaySupportTests {
 
-	@Test
-	public void testJmsGatewaySupportWithConnectionFactory() throws Exception {
-		ConnectionFactory mockConnectionFactory = mock(ConnectionFactory.class);
-		final List<String> test = new ArrayList<>(1);
-		JmsGatewaySupport gateway = new JmsGatewaySupport() {
-			@Override
-			protected void initGateway() {
-				test.add("test");
-			}
-		};
-		gateway.setConnectionFactory(mockConnectionFactory);
-		gateway.afterPropertiesSet();
-		assertThat(gateway.getConnectionFactory()).as("Correct ConnectionFactory").isEqualTo(mockConnectionFactory);
-		assertThat(gateway.getJmsTemplate().getConnectionFactory()).as("Correct JmsTemplate").isEqualTo(mockConnectionFactory);
-		assertThat(test.size()).as("initGateway called").isEqualTo(1);
-	}
+    @Test
+    public void testJmsGatewaySupportWithConnectionFactory() throws Exception {
+        ConnectionFactory mockConnectionFactory = mock(ConnectionFactory.class);
+        final List<String> test = new ArrayList<>(1);
+        JmsGatewaySupport gateway = new JmsGatewaySupport() {
+            @Override
+            protected void initGateway() {
+                test.add("test");
+            }
+        };
+        gateway.setConnectionFactory(mockConnectionFactory);
+        gateway.afterPropertiesSet();
+        assertThat(gateway.getConnectionFactory()).as("Correct ConnectionFactory").isEqualTo(mockConnectionFactory);
+        assertThat(gateway.getJmsTemplate().getConnectionFactory()).as("Correct JmsTemplate").isEqualTo(mockConnectionFactory);
+        assertThat(test.size()).as("initGateway called").isEqualTo(1);
+    }
 
-	@Test
-	public void testJmsGatewaySupportWithJmsTemplate() throws Exception {
-		JmsTemplate template = new JmsTemplate();
-		final List<String> test = new ArrayList<>(1);
-		JmsGatewaySupport gateway = new JmsGatewaySupport() {
-			@Override
-			protected void initGateway() {
-				test.add("test");
-			}
-		};
-		gateway.setJmsTemplate(template);
-		gateway.afterPropertiesSet();
-		assertThat(gateway.getJmsTemplate()).as("Correct JmsTemplate").isEqualTo(template);
-		assertThat(test.size()).as("initGateway called").isEqualTo(1);
-	}
+    @Test
+    public void testJmsGatewaySupportWithJmsTemplate() throws Exception {
+        JmsTemplate template = new JmsTemplate();
+        final List<String> test = new ArrayList<>(1);
+        JmsGatewaySupport gateway = new JmsGatewaySupport() {
+            @Override
+            protected void initGateway() {
+                test.add("test");
+            }
+        };
+        gateway.setJmsTemplate(template);
+        gateway.afterPropertiesSet();
+        assertThat(gateway.getJmsTemplate()).as("Correct JmsTemplate").isEqualTo(template);
+        assertThat(test.size()).as("initGateway called").isEqualTo(1);
+    }
 
 }

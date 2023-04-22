@@ -35,133 +35,138 @@ import org.springframework.util.StringUtils;
  *
  * @author Phillip Webb
  * @author Sam Brannen
- * @since 3.2
  * @see #createDateTimeFormatter()
  * @see #createDateTimeFormatter(DateTimeFormatter)
  * @see #setPattern
  * @see #setStyle
  * @see #setIso
  * @see DateTimeFormatterFactoryBean
+ * @since 3.2
  */
 public class DateTimeFormatterFactory {
 
-	@Nullable
-	private String pattern;
+    @Nullable
+    private String pattern;
 
-	@Nullable
-	private ISO iso;
+    @Nullable
+    private ISO iso;
 
-	@Nullable
-	private String style;
+    @Nullable
+    private String style;
 
-	@Nullable
-	private TimeZone timeZone;
-
-
-	/**
-	 * Create a new {@code DateTimeFormatterFactory} instance.
-	 */
-	public DateTimeFormatterFactory() {
-	}
-
-	/**
-	 * Create a new {@code DateTimeFormatterFactory} instance.
-	 * @param pattern the pattern to use to format date values
-	 */
-	public DateTimeFormatterFactory(String pattern) {
-		this.pattern = pattern;
-	}
+    @Nullable
+    private TimeZone timeZone;
 
 
-	/**
-	 * Set the pattern to use to format date values.
-	 * @param pattern the format pattern
-	 */
-	public void setPattern(String pattern) {
-		this.pattern = pattern;
-	}
+    /**
+     * Create a new {@code DateTimeFormatterFactory} instance.
+     */
+    public DateTimeFormatterFactory() {
+    }
 
-	/**
-	 * Set the ISO format used to format date values.
-	 * @param iso the ISO format
-	 */
-	public void setIso(ISO iso) {
-		this.iso = iso;
-	}
-
-	/**
-	 * Set the two characters to use to format date values, in Joda-Time style.
-	 * <p>The first character is used for the date style; the second is for
-	 * the time style. Supported characters are:
-	 * <ul>
-	 * <li>'S' = Small</li>
-	 * <li>'M' = Medium</li>
-	 * <li>'L' = Long</li>
-	 * <li>'F' = Full</li>
-	 * <li>'-' = Omitted</li>
-	 * </ul>
-	 * @param style two characters from the set {"S", "M", "L", "F", "-"}
-	 */
-	public void setStyle(String style) {
-		this.style = style;
-	}
-
-	/**
-	 * Set the {@code TimeZone} to normalize the date values into, if any.
-	 * @param timeZone the time zone
-	 */
-	public void setTimeZone(TimeZone timeZone) {
-		this.timeZone = timeZone;
-	}
+    /**
+     * Create a new {@code DateTimeFormatterFactory} instance.
+     *
+     * @param pattern the pattern to use to format date values
+     */
+    public DateTimeFormatterFactory(String pattern) {
+        this.pattern = pattern;
+    }
 
 
-	/**
-	 * Create a new {@code DateTimeFormatter} using this factory.
-	 * <p>If no specific pattern or style has been defined,
-	 * {@link DateTimeFormat#mediumDateTime() medium date time format} will be used.
-	 * @return a new date time formatter
-	 * @see #createDateTimeFormatter(DateTimeFormatter)
-	 */
-	public DateTimeFormatter createDateTimeFormatter() {
-		return createDateTimeFormatter(DateTimeFormat.mediumDateTime());
-	}
+    /**
+     * Set the pattern to use to format date values.
+     *
+     * @param pattern the format pattern
+     */
+    public void setPattern(String pattern) {
+        this.pattern = pattern;
+    }
 
-	/**
-	 * Create a new {@code DateTimeFormatter} using this factory.
-	 * <p>If no specific pattern or style has been defined,
-	 * the supplied {@code fallbackFormatter} will be used.
-	 * @param fallbackFormatter the fall-back formatter to use
-	 * when no specific factory properties have been set
-	 * @return a new date time formatter
-	 */
-	public DateTimeFormatter createDateTimeFormatter(DateTimeFormatter fallbackFormatter) {
-		DateTimeFormatter dateTimeFormatter = null;
-		if (StringUtils.hasLength(this.pattern)) {
-			dateTimeFormatter = DateTimeFormat.forPattern(this.pattern);
-		}
-		else if (this.iso != null && this.iso != ISO.NONE) {
-			switch (this.iso) {
-				case DATE:
-					dateTimeFormatter = ISODateTimeFormat.date();
-					break;
-				case TIME:
-					dateTimeFormatter = ISODateTimeFormat.time();
-					break;
-				case DATE_TIME:
-					dateTimeFormatter = ISODateTimeFormat.dateTime();
-					break;
-				default:
-					throw new IllegalStateException("Unsupported ISO format: " + this.iso);
-			}
-		}
-		else if (StringUtils.hasLength(this.style)) {
-			dateTimeFormatter = DateTimeFormat.forStyle(this.style);
-		}
+    /**
+     * Set the ISO format used to format date values.
+     *
+     * @param iso the ISO format
+     */
+    public void setIso(ISO iso) {
+        this.iso = iso;
+    }
 
-		if (dateTimeFormatter != null && this.timeZone != null) {
-			dateTimeFormatter = dateTimeFormatter.withZone(DateTimeZone.forTimeZone(this.timeZone));
-		}
-		return (dateTimeFormatter != null ? dateTimeFormatter : fallbackFormatter);
-	}
+    /**
+     * Set the two characters to use to format date values, in Joda-Time style.
+     * <p>The first character is used for the date style; the second is for
+     * the time style. Supported characters are:
+     * <ul>
+     * <li>'S' = Small</li>
+     * <li>'M' = Medium</li>
+     * <li>'L' = Long</li>
+     * <li>'F' = Full</li>
+     * <li>'-' = Omitted</li>
+     * </ul>
+     *
+     * @param style two characters from the set {"S", "M", "L", "F", "-"}
+     */
+    public void setStyle(String style) {
+        this.style = style;
+    }
+
+    /**
+     * Set the {@code TimeZone} to normalize the date values into, if any.
+     *
+     * @param timeZone the time zone
+     */
+    public void setTimeZone(TimeZone timeZone) {
+        this.timeZone = timeZone;
+    }
+
+
+    /**
+     * Create a new {@code DateTimeFormatter} using this factory.
+     * <p>If no specific pattern or style has been defined,
+     * {@link DateTimeFormat#mediumDateTime() medium date time format} will be used.
+     *
+     * @return a new date time formatter
+     * @see #createDateTimeFormatter(DateTimeFormatter)
+     */
+    public DateTimeFormatter createDateTimeFormatter() {
+        return createDateTimeFormatter(DateTimeFormat.mediumDateTime());
+    }
+
+    /**
+     * Create a new {@code DateTimeFormatter} using this factory.
+     * <p>If no specific pattern or style has been defined,
+     * the supplied {@code fallbackFormatter} will be used.
+     *
+     * @param fallbackFormatter the fall-back formatter to use
+     *                          when no specific factory properties have been set
+     * @return a new date time formatter
+     */
+    public DateTimeFormatter createDateTimeFormatter(DateTimeFormatter fallbackFormatter) {
+        DateTimeFormatter dateTimeFormatter = null;
+        if (StringUtils.hasLength(this.pattern)) {
+            dateTimeFormatter = DateTimeFormat.forPattern(this.pattern);
+        } else if (this.iso != null && this.iso != ISO.NONE) {
+            switch (this.iso) {
+                case DATE:
+                    dateTimeFormatter = ISODateTimeFormat.date();
+                    break;
+                case TIME:
+                    dateTimeFormatter = ISODateTimeFormat.time();
+                    break;
+                case DATE_TIME:
+                    dateTimeFormatter = ISODateTimeFormat.dateTime();
+                    break;
+                default:
+                    throw new IllegalStateException("Unsupported ISO format: " + this.iso);
+            }
+        } else if (StringUtils.hasLength(this.style)) {
+            dateTimeFormatter = DateTimeFormat.forStyle(this.style);
+        }
+
+        if (dateTimeFormatter != null && this.timeZone != null) {
+            dateTimeFormatter = dateTimeFormatter.withZone(DateTimeZone.forTimeZone(this.timeZone));
+        }
+        return (dateTimeFormatter != null ? dateTimeFormatter : fallbackFormatter);
+    }
 
 }

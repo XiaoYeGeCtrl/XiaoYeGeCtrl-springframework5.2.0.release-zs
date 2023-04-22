@@ -36,59 +36,59 @@ import static org.springframework.test.web.client.response.MockRestResponseCreat
 
 /**
  * Unit tests for {@link DefaultRequestExpectation}.
+ *
  * @author Rossen Stoyanchev
  */
 public class DefaultRequestExpectationTests {
 
 
-	@Test
-	public void match() throws Exception {
-		RequestExpectation expectation = new DefaultRequestExpectation(once(), requestTo("/foo"));
-		expectation.match(createRequest(GET, "/foo"));
-	}
+    @Test
+    public void match() throws Exception {
+        RequestExpectation expectation = new DefaultRequestExpectation(once(), requestTo("/foo"));
+        expectation.match(createRequest(GET, "/foo"));
+    }
 
-	@Test
-	public void matchWithFailedExpectation() throws Exception {
-		RequestExpectation expectation = new DefaultRequestExpectation(once(), requestTo("/foo"));
-		expectation.andExpect(method(POST));
-		assertThatExceptionOfType(AssertionError.class).isThrownBy(() ->
-				expectation.match(createRequest(GET, "/foo")))
-			.withMessageContaining("Unexpected HttpMethod expected:<POST> but was:<GET>");
-	}
+    @Test
+    public void matchWithFailedExpectation() throws Exception {
+        RequestExpectation expectation = new DefaultRequestExpectation(once(), requestTo("/foo"));
+        expectation.andExpect(method(POST));
+        assertThatExceptionOfType(AssertionError.class).isThrownBy(() ->
+                expectation.match(createRequest(GET, "/foo")))
+                .withMessageContaining("Unexpected HttpMethod expected:<POST> but was:<GET>");
+    }
 
-	@Test
-	public void hasRemainingCount() {
-		RequestExpectation expectation = new DefaultRequestExpectation(twice(), requestTo("/foo"));
-		expectation.andRespond(withSuccess());
+    @Test
+    public void hasRemainingCount() {
+        RequestExpectation expectation = new DefaultRequestExpectation(twice(), requestTo("/foo"));
+        expectation.andRespond(withSuccess());
 
-		expectation.incrementAndValidate();
-		assertThat(expectation.hasRemainingCount()).isTrue();
+        expectation.incrementAndValidate();
+        assertThat(expectation.hasRemainingCount()).isTrue();
 
-		expectation.incrementAndValidate();
-		assertThat(expectation.hasRemainingCount()).isFalse();
-	}
+        expectation.incrementAndValidate();
+        assertThat(expectation.hasRemainingCount()).isFalse();
+    }
 
-	@Test
-	public void isSatisfied() {
-		RequestExpectation expectation = new DefaultRequestExpectation(twice(), requestTo("/foo"));
-		expectation.andRespond(withSuccess());
+    @Test
+    public void isSatisfied() {
+        RequestExpectation expectation = new DefaultRequestExpectation(twice(), requestTo("/foo"));
+        expectation.andRespond(withSuccess());
 
-		expectation.incrementAndValidate();
-		assertThat(expectation.isSatisfied()).isFalse();
+        expectation.incrementAndValidate();
+        assertThat(expectation.isSatisfied()).isFalse();
 
-		expectation.incrementAndValidate();
-		assertThat(expectation.isSatisfied()).isTrue();
-	}
+        expectation.incrementAndValidate();
+        assertThat(expectation.isSatisfied()).isTrue();
+    }
 
 
-	@SuppressWarnings("deprecation")
-	private ClientHttpRequest createRequest(HttpMethod method, String url) {
-		try {
-			return new org.springframework.mock.http.client.MockAsyncClientHttpRequest(method,  new URI(url));
-		}
-		catch (URISyntaxException ex) {
-			throw new IllegalStateException(ex);
-		}
-	}
+    @SuppressWarnings("deprecation")
+    private ClientHttpRequest createRequest(HttpMethod method, String url) {
+        try {
+            return new org.springframework.mock.http.client.MockAsyncClientHttpRequest(method, new URI(url));
+        } catch (URISyntaxException ex) {
+            throw new IllegalStateException(ex);
+        }
+    }
 
 }

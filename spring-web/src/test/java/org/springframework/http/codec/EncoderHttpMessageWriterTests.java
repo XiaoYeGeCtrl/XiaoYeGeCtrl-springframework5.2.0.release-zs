@@ -61,160 +61,158 @@ import static org.springframework.http.MediaType.TEXT_XML;
 @MockitoSettings(strictness = Strictness.LENIENT)
 class EncoderHttpMessageWriterTests {
 
-	private static final Map<String, Object> NO_HINTS = Collections.emptyMap();
+    private static final Map<String, Object> NO_HINTS = Collections.emptyMap();
 
-	private static final MediaType TEXT_PLAIN_UTF_8 = new MediaType("text", "plain", UTF_8);
+    private static final MediaType TEXT_PLAIN_UTF_8 = new MediaType("text", "plain", UTF_8);
+    private final ArgumentCaptor<MediaType> mediaTypeCaptor = ArgumentCaptor.forClass(MediaType.class);
+    private final MockServerHttpResponse response = new MockServerHttpResponse();
+    @Mock
+    private HttpMessageEncoder<String> encoder;
 
+    @Test
+    void getWritableMediaTypes() {
+        configureEncoder(MimeTypeUtils.TEXT_HTML, MimeTypeUtils.TEXT_XML);
+        HttpMessageWriter<?> writer = new EncoderHttpMessageWriter<>(this.encoder);
+        assertThat(writer.getWritableMediaTypes()).isEqualTo(Arrays.asList(TEXT_HTML, TEXT_XML));
+    }
 
-	@Mock
-	private HttpMessageEncoder<String> encoder;
+    @Test
+    void canWrite() {
+        configureEncoder(MimeTypeUtils.TEXT_HTML);
+        HttpMessageWriter<?> writer = new EncoderHttpMessageWriter<>(this.encoder);
+        given(this.encoder.canEncode(forClass(String.class), TEXT_HTML)).willReturn(true);
 
-	private final ArgumentCaptor<MediaType> mediaTypeCaptor = ArgumentCaptor.forClass(MediaType.class);
+        assertThat(writer.canWrite(forClass(String.class), TEXT_HTML)).isTrue();
+        assertThat(writer.canWrite(forClass(String.class), TEXT_XML)).isFalse();
+    }
 
-	private final MockServerHttpResponse response = new MockServerHttpResponse();
+    @Test
+    void useNegotiatedMediaType() {
+        configureEncoder(TEXT_PLAIN);
+        HttpMessageWriter<String> writer = new EncoderHttpMessageWriter<>(this.encoder);
+        writer.write(Flux.empty(), forClass(String.class), TEXT_PLAIN, this.response, NO_HINTS);
 
+        assertThat(response.getHeaders().getContentType()).isEqualTo(TEXT_PLAIN);
+        assertThat(this.mediaTypeCaptor.getValue()).isEqualTo(TEXT_PLAIN);
+    }
 
-	@Test
-	void getWritableMediaTypes() {
-		configureEncoder(MimeTypeUtils.TEXT_HTML, MimeTypeUtils.TEXT_XML);
-		HttpMessageWriter<?> writer = new EncoderHttpMessageWriter<>(this.encoder);
-		assertThat(writer.getWritableMediaTypes()).isEqualTo(Arrays.asList(TEXT_HTML, TEXT_XML));
-	}
+    @Test
+    void useDefaultMediaType() {
+        testDefaultMediaType(null);
+        testDefaultMediaType(new MediaType("text", "*"));
+        testDefaultMediaType(new MediaType("*", "*"));
+        testDefaultMediaType(MediaType.APPLICATION_OCTET_STREAM);
+    }
 
-	@Test
-	void canWrite() {
-		configureEncoder(MimeTypeUtils.TEXT_HTML);
-		HttpMessageWriter<?> writer = new EncoderHttpMessageWriter<>(this.encoder);
-		given(this.encoder.canEncode(forClass(String.class), TEXT_HTML)).willReturn(true);
+    private void testDefaultMediaType(MediaType negotiatedMediaType) {
+        MimeType defaultContentType = MimeTypeUtils.TEXT_XML;
+        configureEncoder(defaultContentType);
+        HttpMessageWriter<String> writer = new EncoderHttpMessageWriter<>(this.encoder);
+        writer.write(Flux.empty(), forClass(String.class), negotiatedMediaType, this.response, NO_HINTS);
 
-		assertThat(writer.canWrite(forClass(String.class), TEXT_HTML)).isTrue();
-		assertThat(writer.canWrite(forClass(String.class), TEXT_XML)).isFalse();
-	}
+        assertThat(this.response.getHeaders().getContentType()).isEqualTo(defaultContentType);
+        assertThat(this.mediaTypeCaptor.getValue()).isEqualTo(defaultContentType);
+    }
 
-	@Test
-	void useNegotiatedMediaType() {
-		configureEncoder(TEXT_PLAIN);
-		HttpMessageWriter<String> writer = new EncoderHttpMessageWriter<>(this.encoder);
-		writer.write(Flux.empty(), forClass(String.class), TEXT_PLAIN, this.response, NO_HINTS);
+    @Test
+    void useDefaultMediaTypeCharset() {
+        configureEncoder(TEXT_PLAIN_UTF_8, TEXT_HTML);
+        HttpMessageWriter<String> writer = new EncoderHttpMessageWriter<>(this.encoder);
+        writer.write(Flux.empty(), forClass(String.class), TEXT_HTML, response, NO_HINTS);
 
-		assertThat(response.getHeaders().getContentType()).isEqualTo(TEXT_PLAIN);
-		assertThat(this.mediaTypeCaptor.getValue()).isEqualTo(TEXT_PLAIN);
-	}
+        assertThat(this.response.getHeaders().getContentType()).isEqualTo(new MediaType("text", "html", UTF_8));
+        assertThat(this.mediaTypeCaptor.getValue()).isEqualTo(new MediaType("text", "html", UTF_8));
+    }
 
-	@Test
-	void useDefaultMediaType() {
-		testDefaultMediaType(null);
-		testDefaultMediaType(new MediaType("text", "*"));
-		testDefaultMediaType(new MediaType("*", "*"));
-		testDefaultMediaType(MediaType.APPLICATION_OCTET_STREAM);
-	}
+    @Test
+    void useNegotiatedMediaTypeCharset() {
+        MediaType negotiatedMediaType = new MediaType("text", "html", ISO_8859_1);
+        configureEncoder(TEXT_PLAIN_UTF_8, TEXT_HTML);
+        HttpMessageWriter<String> writer = new EncoderHttpMessageWriter<>(this.encoder);
+        writer.write(Flux.empty(), forClass(String.class), negotiatedMediaType, this.response, NO_HINTS);
 
-	private void testDefaultMediaType(MediaType negotiatedMediaType) {
-		MimeType defaultContentType = MimeTypeUtils.TEXT_XML;
-		configureEncoder(defaultContentType);
-		HttpMessageWriter<String> writer = new EncoderHttpMessageWriter<>(this.encoder);
-		writer.write(Flux.empty(), forClass(String.class), negotiatedMediaType, this.response, NO_HINTS);
+        assertThat(this.response.getHeaders().getContentType()).isEqualTo(negotiatedMediaType);
+        assertThat(this.mediaTypeCaptor.getValue()).isEqualTo(negotiatedMediaType);
+    }
 
-		assertThat(this.response.getHeaders().getContentType()).isEqualTo(defaultContentType);
-		assertThat(this.mediaTypeCaptor.getValue()).isEqualTo(defaultContentType);
-	}
+    @Test
+    void useHttpOutputMessageMediaType() {
+        MediaType outputMessageMediaType = MediaType.TEXT_HTML;
+        this.response.getHeaders().setContentType(outputMessageMediaType);
 
-	@Test
-	void useDefaultMediaTypeCharset() {
-		configureEncoder(TEXT_PLAIN_UTF_8, TEXT_HTML);
-		HttpMessageWriter<String> writer = new EncoderHttpMessageWriter<>(this.encoder);
-		writer.write(Flux.empty(), forClass(String.class), TEXT_HTML, response, NO_HINTS);
+        configureEncoder(TEXT_PLAIN_UTF_8, TEXT_HTML);
+        HttpMessageWriter<String> writer = new EncoderHttpMessageWriter<>(this.encoder);
+        writer.write(Flux.empty(), forClass(String.class), TEXT_PLAIN, this.response, NO_HINTS);
 
-		assertThat(this.response.getHeaders().getContentType()).isEqualTo(new MediaType("text", "html", UTF_8));
-		assertThat(this.mediaTypeCaptor.getValue()).isEqualTo(new MediaType("text", "html", UTF_8));
-	}
+        assertThat(this.response.getHeaders().getContentType()).isEqualTo(outputMessageMediaType);
+        assertThat(this.mediaTypeCaptor.getValue()).isEqualTo(outputMessageMediaType);
+    }
 
-	@Test
-	void useNegotiatedMediaTypeCharset() {
-		MediaType negotiatedMediaType = new MediaType("text", "html", ISO_8859_1);
-		configureEncoder(TEXT_PLAIN_UTF_8, TEXT_HTML);
-		HttpMessageWriter<String> writer = new EncoderHttpMessageWriter<>(this.encoder);
-		writer.write(Flux.empty(), forClass(String.class), negotiatedMediaType, this.response, NO_HINTS);
+    @Test
+    void setContentLengthForMonoBody() {
+        DefaultDataBufferFactory factory = new DefaultDataBufferFactory();
+        DataBuffer buffer = factory.wrap("body".getBytes(StandardCharsets.UTF_8));
+        configureEncoder(buffer, MimeTypeUtils.TEXT_PLAIN);
+        HttpMessageWriter<String> writer = new EncoderHttpMessageWriter<>(this.encoder);
+        writer.write(Mono.just("body"), forClass(String.class), TEXT_PLAIN, this.response, NO_HINTS).block();
 
-		assertThat(this.response.getHeaders().getContentType()).isEqualTo(negotiatedMediaType);
-		assertThat(this.mediaTypeCaptor.getValue()).isEqualTo(negotiatedMediaType);
-	}
+        assertThat(this.response.getHeaders().getContentLength()).isEqualTo(4);
+    }
 
-	@Test
-	void useHttpOutputMessageMediaType() {
-		MediaType outputMessageMediaType = MediaType.TEXT_HTML;
-		this.response.getHeaders().setContentType(outputMessageMediaType);
+    @Test
+        // gh-22952
+    void monoBodyDoesNotCancelEncodedFlux() {
+        Mono<String> inputStream = Mono.just("body")
+                .doOnCancel(() -> {
+                    throw new AssertionError("Cancel signal not expected");
+                });
+        new EncoderHttpMessageWriter<>(CharSequenceEncoder.allMimeTypes())
+                .write(inputStream, forClass(String.class), TEXT_PLAIN, this.response, NO_HINTS)
+                .block();
+    }
 
-		configureEncoder(TEXT_PLAIN_UTF_8, TEXT_HTML);
-		HttpMessageWriter<String> writer = new EncoderHttpMessageWriter<>(this.encoder);
-		writer.write(Flux.empty(), forClass(String.class), TEXT_PLAIN, this.response, NO_HINTS);
+    @Test
+        // SPR-17220
+    void emptyBodyWritten() {
+        configureEncoder(MimeTypeUtils.TEXT_PLAIN);
+        HttpMessageWriter<String> writer = new EncoderHttpMessageWriter<>(this.encoder);
+        writer.write(Mono.empty(), forClass(String.class), TEXT_PLAIN, this.response, NO_HINTS).block();
+        StepVerifier.create(this.response.getBody()).expectComplete();
+        assertThat(this.response.getHeaders().getContentLength()).isEqualTo(0);
+    }
 
-		assertThat(this.response.getHeaders().getContentType()).isEqualTo(outputMessageMediaType);
-		assertThat(this.mediaTypeCaptor.getValue()).isEqualTo(outputMessageMediaType);
-	}
+    @Test
+        // gh-22936
+    void isStreamingMediaType() throws InvocationTargetException, IllegalAccessException {
+        configureEncoder(TEXT_HTML);
+        MediaType streamingMediaType = new MediaType(TEXT_PLAIN, Collections.singletonMap("streaming", "true"));
+        given(this.encoder.getStreamingMediaTypes()).willReturn(Arrays.asList(streamingMediaType));
 
-	@Test
-	void setContentLengthForMonoBody() {
-		DefaultDataBufferFactory factory = new DefaultDataBufferFactory();
-		DataBuffer buffer = factory.wrap("body".getBytes(StandardCharsets.UTF_8));
-		configureEncoder(buffer, MimeTypeUtils.TEXT_PLAIN);
-		HttpMessageWriter<String> writer = new EncoderHttpMessageWriter<>(this.encoder);
-		writer.write(Mono.just("body"), forClass(String.class), TEXT_PLAIN, this.response, NO_HINTS).block();
+        HttpMessageWriter<String> writer = new EncoderHttpMessageWriter<>(this.encoder);
+        Method method = ReflectionUtils.findMethod(writer.getClass(), "isStreamingMediaType", MediaType.class);
+        ReflectionUtils.makeAccessible(method);
 
-		assertThat(this.response.getHeaders().getContentLength()).isEqualTo(4);
-	}
+        assertThat((boolean) (Boolean) method.invoke(writer, streamingMediaType)).isTrue();
+        assertThat((boolean) (Boolean) method.invoke(writer, new MediaType(TEXT_PLAIN, Collections.singletonMap("streaming", "false")))).isFalse();
+        assertThat((boolean) (Boolean) method.invoke(writer, TEXT_HTML)).isFalse();
+    }
 
-	@Test // gh-22952
-	void monoBodyDoesNotCancelEncodedFlux() {
-		Mono<String> inputStream = Mono.just("body")
-				.doOnCancel(() -> {
-					throw new AssertionError("Cancel signal not expected");
-				});
-		new EncoderHttpMessageWriter<>(CharSequenceEncoder.allMimeTypes())
-				.write(inputStream, forClass(String.class), TEXT_PLAIN, this.response, NO_HINTS)
-				.block();
-	}
+    private void configureEncoder(MimeType... mimeTypes) {
+        configureEncoder(Flux.empty(), mimeTypes);
+    }
 
-	@Test // SPR-17220
-	void emptyBodyWritten() {
-		configureEncoder(MimeTypeUtils.TEXT_PLAIN);
-		HttpMessageWriter<String> writer = new EncoderHttpMessageWriter<>(this.encoder);
-		writer.write(Mono.empty(), forClass(String.class), TEXT_PLAIN, this.response, NO_HINTS).block();
-		StepVerifier.create(this.response.getBody()).expectComplete();
-		assertThat(this.response.getHeaders().getContentLength()).isEqualTo(0);
-	}
+    private void configureEncoder(Flux<DataBuffer> encodedStream, MimeType... mimeTypes) {
+        List<MimeType> typeList = Arrays.asList(mimeTypes);
+        given(this.encoder.getEncodableMimeTypes()).willReturn(typeList);
+        given(this.encoder.encode(any(), any(), any(), this.mediaTypeCaptor.capture(), any()))
+                .willReturn(encodedStream);
+    }
 
-	@Test  // gh-22936
-	void isStreamingMediaType() throws InvocationTargetException, IllegalAccessException {
-		configureEncoder(TEXT_HTML);
-		MediaType streamingMediaType = new MediaType(TEXT_PLAIN, Collections.singletonMap("streaming", "true"));
-		given(this.encoder.getStreamingMediaTypes()).willReturn(Arrays.asList(streamingMediaType));
-
-		HttpMessageWriter<String> writer = new EncoderHttpMessageWriter<>(this.encoder);
-		Method method = ReflectionUtils.findMethod(writer.getClass(), "isStreamingMediaType", MediaType.class);
-		ReflectionUtils.makeAccessible(method);
-
-		assertThat((boolean) (Boolean) method.invoke(writer, streamingMediaType)).isTrue();
-		assertThat((boolean) (Boolean) method.invoke(writer, new MediaType(TEXT_PLAIN, Collections.singletonMap("streaming", "false")))).isFalse();
-		assertThat((boolean) (Boolean) method.invoke(writer, TEXT_HTML)).isFalse();
-	}
-
-	private void configureEncoder(MimeType... mimeTypes) {
-		configureEncoder(Flux.empty(), mimeTypes);
-	}
-
-	private void configureEncoder(Flux<DataBuffer> encodedStream, MimeType... mimeTypes) {
-		List<MimeType> typeList = Arrays.asList(mimeTypes);
-		given(this.encoder.getEncodableMimeTypes()).willReturn(typeList);
-		given(this.encoder.encode(any(), any(), any(), this.mediaTypeCaptor.capture(), any()))
-				.willReturn(encodedStream);
-	}
-
-	private void configureEncoder(DataBuffer dataBuffer, MimeType... mimeTypes) {
-		List<MimeType> typeList = Arrays.asList(mimeTypes);
-		given(this.encoder.getEncodableMimeTypes()).willReturn(typeList);
-		given(this.encoder.encodeValue(any(), any(), any(), this.mediaTypeCaptor.capture(), any()))
-				.willReturn(dataBuffer);
-	}
+    private void configureEncoder(DataBuffer dataBuffer, MimeType... mimeTypes) {
+        List<MimeType> typeList = Arrays.asList(mimeTypes);
+        given(this.encoder.getEncodableMimeTypes()).willReturn(typeList);
+        given(this.encoder.encodeValue(any(), any(), any(), this.mediaTypeCaptor.capture(), any()))
+                .willReturn(dataBuffer);
+    }
 
 }

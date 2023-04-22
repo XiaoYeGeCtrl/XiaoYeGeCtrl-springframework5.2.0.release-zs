@@ -35,24 +35,25 @@ import org.springframework.lang.Nullable;
  */
 public interface MessagingAdviceBean extends Ordered {
 
-	/**
-	 * Return the type of the contained advice bean.
-	 * <p>If the bean type is a CGLIB-generated class, the original user-defined
-	 * class is returned.
-	 */
-	@Nullable
-	Class<?> getBeanType();
+    /**
+     * Return the type of the contained advice bean.
+     * <p>If the bean type is a CGLIB-generated class, the original user-defined
+     * class is returned.
+     */
+    @Nullable
+    Class<?> getBeanType();
 
-	/**
-	 * Return the advice bean instance, if necessary resolving a bean specified
-	 * by name through the BeanFactory.
-	 */
-	Object resolveBean();
+    /**
+     * Return the advice bean instance, if necessary resolving a bean specified
+     * by name through the BeanFactory.
+     */
+    Object resolveBean();
 
-	/**
-	 * Whether this {@link MessagingAdviceBean} applies to the given bean type.
-	 * @param beanType the type of the bean to check
-	 */
-	boolean isApplicableToBeanType(Class<?> beanType);
+    /**
+     * Whether this {@link MessagingAdviceBean} applies to the given bean type.
+     *
+     * @param beanType the type of the bean to check
+     */
+    boolean isApplicableToBeanType(Class<?> beanType);
 
 }

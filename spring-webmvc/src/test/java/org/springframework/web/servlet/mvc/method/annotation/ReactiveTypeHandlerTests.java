@@ -60,350 +60,365 @@ import static org.springframework.web.method.ResolvableMethod.on;
 
 /**
  * Unit tests for {@link ReactiveTypeHandler}.
+ *
  * @author Rossen Stoyanchev
  */
 public class ReactiveTypeHandlerTests {
 
-	private ReactiveTypeHandler handler;
-
-	private MockHttpServletRequest servletRequest;
-
-	private MockHttpServletResponse servletResponse;
-
-	private NativeWebRequest webRequest;
-
-
-	@BeforeEach
-	public void setup() throws Exception {
-		ContentNegotiationManagerFactoryBean factoryBean = new ContentNegotiationManagerFactoryBean();
-		factoryBean.afterPropertiesSet();
-		ContentNegotiationManager manager = factoryBean.getObject();
-		ReactiveAdapterRegistry adapterRegistry = ReactiveAdapterRegistry.getSharedInstance();
-		this.handler = new ReactiveTypeHandler(adapterRegistry, new SyncTaskExecutor(), manager);
-		resetRequest();
-	}
-
-	private void resetRequest() {
-		this.servletRequest = new MockHttpServletRequest();
-		this.servletResponse = new MockHttpServletResponse();
-		this.webRequest = new ServletWebRequest(this.servletRequest, this.servletResponse);
-
-		AsyncWebRequest webRequest = new StandardServletAsyncWebRequest(this.servletRequest, this.servletResponse);
-		WebAsyncUtils.getAsyncManager(this.webRequest).setAsyncWebRequest(webRequest);
-		this.servletRequest.setAsyncSupported(true);
-	}
-
-
-	@Test
-	public void supportsType() throws Exception {
-		assertThat(this.handler.isReactiveType(Mono.class)).isTrue();
-		assertThat(this.handler.isReactiveType(Single.class)).isTrue();
-		assertThat(this.handler.isReactiveType(io.reactivex.Single.class)).isTrue();
-	}
-
-	@Test
-	public void doesNotSupportType() throws Exception {
-		assertThat(this.handler.isReactiveType(String.class)).isFalse();
-	}
-
-	@Test
-	public void deferredResultSubscriberWithOneValue() throws Exception {
-
-		// Mono
-		MonoProcessor<String> mono = MonoProcessor.create();
-		testDeferredResultSubscriber(mono, Mono.class, forClass(String.class), () -> mono.onNext("foo"), "foo");
-
-		// Mono empty
-		MonoProcessor<String> monoEmpty = MonoProcessor.create();
-		testDeferredResultSubscriber(monoEmpty, Mono.class, forClass(String.class), monoEmpty::onComplete, null);
-
-		// RxJava 1 Single
-		AtomicReference<SingleEmitter<String>> ref = new AtomicReference<>();
-		Single<String> single = Single.fromEmitter(ref::set);
-		testDeferredResultSubscriber(single, Single.class, forClass(String.class),
-				() -> ref.get().onSuccess("foo"), "foo");
-
-		// RxJava 2 Single
-		AtomicReference<io.reactivex.SingleEmitter<String>> ref2 = new AtomicReference<>();
-		io.reactivex.Single<String> single2 = io.reactivex.Single.create(ref2::set);
-		testDeferredResultSubscriber(single2, io.reactivex.Single.class, forClass(String.class),
-				() -> ref2.get().onSuccess("foo"), "foo");
-	}
-
-	@Test
-	public void deferredResultSubscriberWithNoValues() throws Exception {
-		MonoProcessor<String> monoEmpty = MonoProcessor.create();
-		testDeferredResultSubscriber(monoEmpty, Mono.class, forClass(String.class), monoEmpty::onComplete, null);
-	}
-
-	@Test
-	public void deferredResultSubscriberWithMultipleValues() throws Exception {
-
-		// JSON must be preferred for Flux<String> -> List<String> or else we stream
-		this.servletRequest.addHeader("Accept", "application/json");
-
-		Bar bar1 = new Bar("foo");
-		Bar bar2 = new Bar("bar");
+    private ReactiveTypeHandler handler;
+
+    private MockHttpServletRequest servletRequest;
+
+    private MockHttpServletResponse servletResponse;
+
+    private NativeWebRequest webRequest;
+
+
+    @BeforeEach
+    public void setup() throws Exception {
+        ContentNegotiationManagerFactoryBean factoryBean = new ContentNegotiationManagerFactoryBean();
+        factoryBean.afterPropertiesSet();
+        ContentNegotiationManager manager = factoryBean.getObject();
+        ReactiveAdapterRegistry adapterRegistry = ReactiveAdapterRegistry.getSharedInstance();
+        this.handler = new ReactiveTypeHandler(adapterRegistry, new SyncTaskExecutor(), manager);
+        resetRequest();
+    }
+
+    private void resetRequest() {
+        this.servletRequest = new MockHttpServletRequest();
+        this.servletResponse = new MockHttpServletResponse();
+        this.webRequest = new ServletWebRequest(this.servletRequest, this.servletResponse);
+
+        AsyncWebRequest webRequest = new StandardServletAsyncWebRequest(this.servletRequest, this.servletResponse);
+        WebAsyncUtils.getAsyncManager(this.webRequest).setAsyncWebRequest(webRequest);
+        this.servletRequest.setAsyncSupported(true);
+    }
+
+
+    @Test
+    public void supportsType() throws Exception {
+        assertThat(this.handler.isReactiveType(Mono.class)).isTrue();
+        assertThat(this.handler.isReactiveType(Single.class)).isTrue();
+        assertThat(this.handler.isReactiveType(io.reactivex.Single.class)).isTrue();
+    }
+
+    @Test
+    public void doesNotSupportType() throws Exception {
+        assertThat(this.handler.isReactiveType(String.class)).isFalse();
+    }
+
+    @Test
+    public void deferredResultSubscriberWithOneValue() throws Exception {
+
+        // Mono
+        MonoProcessor<String> mono = MonoProcessor.create();
+        testDeferredResultSubscriber(mono, Mono.class, forClass(String.class), () -> mono.onNext("foo"), "foo");
+
+        // Mono empty
+        MonoProcessor<String> monoEmpty = MonoProcessor.create();
+        testDeferredResultSubscriber(monoEmpty, Mono.class, forClass(String.class), monoEmpty::onComplete, null);
+
+        // RxJava 1 Single
+        AtomicReference<SingleEmitter<String>> ref = new AtomicReference<>();
+        Single<String> single = Single.fromEmitter(ref::set);
+        testDeferredResultSubscriber(single, Single.class, forClass(String.class),
+                () -> ref.get().onSuccess("foo"), "foo");
+
+        // RxJava 2 Single
+        AtomicReference<io.reactivex.SingleEmitter<String>> ref2 = new AtomicReference<>();
+        io.reactivex.Single<String> single2 = io.reactivex.Single.create(ref2::set);
+        testDeferredResultSubscriber(single2, io.reactivex.Single.class, forClass(String.class),
+                () -> ref2.get().onSuccess("foo"), "foo");
+    }
+
+    @Test
+    public void deferredResultSubscriberWithNoValues() throws Exception {
+        MonoProcessor<String> monoEmpty = MonoProcessor.create();
+        testDeferredResultSubscriber(monoEmpty, Mono.class, forClass(String.class), monoEmpty::onComplete, null);
+    }
+
+    @Test
+    public void deferredResultSubscriberWithMultipleValues() throws Exception {
+
+        // JSON must be preferred for Flux<String> -> List<String> or else we stream
+        this.servletRequest.addHeader("Accept", "application/json");
+
+        Bar bar1 = new Bar("foo");
+        Bar bar2 = new Bar("bar");
 
-		EmitterProcessor<Bar> emitter = EmitterProcessor.create();
-		testDeferredResultSubscriber(emitter, Flux.class, forClass(Bar.class), () -> {
-			emitter.onNext(bar1);
-			emitter.onNext(bar2);
-			emitter.onComplete();
-		}, Arrays.asList(bar1, bar2));
-	}
+        EmitterProcessor<Bar> emitter = EmitterProcessor.create();
+        testDeferredResultSubscriber(emitter, Flux.class, forClass(Bar.class), () -> {
+            emitter.onNext(bar1);
+            emitter.onNext(bar2);
+            emitter.onComplete();
+        }, Arrays.asList(bar1, bar2));
+    }
 
-	@Test
-	public void deferredResultSubscriberWithError() throws Exception {
+    @Test
+    public void deferredResultSubscriberWithError() throws Exception {
 
-		IllegalStateException ex = new IllegalStateException();
+        IllegalStateException ex = new IllegalStateException();
 
-		// Mono
-		MonoProcessor<String> mono = MonoProcessor.create();
-		testDeferredResultSubscriber(mono, Mono.class, forClass(String.class), () -> mono.onError(ex), ex);
+        // Mono
+        MonoProcessor<String> mono = MonoProcessor.create();
+        testDeferredResultSubscriber(mono, Mono.class, forClass(String.class), () -> mono.onError(ex), ex);
 
-		// RxJava 1 Single
-		AtomicReference<SingleEmitter<String>> ref = new AtomicReference<>();
-		Single<String> single = Single.fromEmitter(ref::set);
-		testDeferredResultSubscriber(single, Single.class, forClass(String.class), () -> ref.get().onError(ex), ex);
+        // RxJava 1 Single
+        AtomicReference<SingleEmitter<String>> ref = new AtomicReference<>();
+        Single<String> single = Single.fromEmitter(ref::set);
+        testDeferredResultSubscriber(single, Single.class, forClass(String.class), () -> ref.get().onError(ex), ex);
 
-		// RxJava 2 Single
-		AtomicReference<io.reactivex.SingleEmitter<String>> ref2 = new AtomicReference<>();
-		io.reactivex.Single<String> single2 = io.reactivex.Single.create(ref2::set);
-		testDeferredResultSubscriber(single2, io.reactivex.Single.class, forClass(String.class),
-				() -> ref2.get().onError(ex), ex);
-	}
+        // RxJava 2 Single
+        AtomicReference<io.reactivex.SingleEmitter<String>> ref2 = new AtomicReference<>();
+        io.reactivex.Single<String> single2 = io.reactivex.Single.create(ref2::set);
+        testDeferredResultSubscriber(single2, io.reactivex.Single.class, forClass(String.class),
+                () -> ref2.get().onError(ex), ex);
+    }
 
-	@Test
-	public void mediaTypes() throws Exception {
+    @Test
+    public void mediaTypes() throws Exception {
 
-		// Media type from request
-		this.servletRequest.addHeader("Accept", "text/event-stream");
-		testSseResponse(true);
+        // Media type from request
+        this.servletRequest.addHeader("Accept", "text/event-stream");
+        testSseResponse(true);
 
-		// Media type from "produces" attribute
-		Set<MediaType> types = Collections.singleton(MediaType.TEXT_EVENT_STREAM);
-		this.servletRequest.setAttribute(HandlerMapping.PRODUCIBLE_MEDIA_TYPES_ATTRIBUTE, types);
-		testSseResponse(true);
+        // Media type from "produces" attribute
+        Set<MediaType> types = Collections.singleton(MediaType.TEXT_EVENT_STREAM);
+        this.servletRequest.setAttribute(HandlerMapping.PRODUCIBLE_MEDIA_TYPES_ATTRIBUTE, types);
+        testSseResponse(true);
 
-		// No media type preferences
-		testSseResponse(false);
-	}
+        // No media type preferences
+        testSseResponse(false);
+    }
 
-	private void testSseResponse(boolean expectSseEmitter) throws Exception {
-		ResponseBodyEmitter emitter = handleValue(Flux.empty(), Flux.class, forClass(String.class));
-		Object actual = emitter instanceof SseEmitter;
-		assertThat(actual).isEqualTo(expectSseEmitter);
-		resetRequest();
-	}
+    private void testSseResponse(boolean expectSseEmitter) throws Exception {
+        ResponseBodyEmitter emitter = handleValue(Flux.empty(), Flux.class, forClass(String.class));
+        Object actual = emitter instanceof SseEmitter;
+        assertThat(actual).isEqualTo(expectSseEmitter);
+        resetRequest();
+    }
 
-	@Test
-	public void writeServerSentEvents() throws Exception {
+    @Test
+    public void writeServerSentEvents() throws Exception {
 
-		this.servletRequest.addHeader("Accept", "text/event-stream");
-		EmitterProcessor<String> processor = EmitterProcessor.create();
-		SseEmitter sseEmitter = (SseEmitter) handleValue(processor, Flux.class, forClass(String.class));
+        this.servletRequest.addHeader("Accept", "text/event-stream");
+        EmitterProcessor<String> processor = EmitterProcessor.create();
+        SseEmitter sseEmitter = (SseEmitter) handleValue(processor, Flux.class, forClass(String.class));
 
-		EmitterHandler emitterHandler = new EmitterHandler();
-		sseEmitter.initialize(emitterHandler);
+        EmitterHandler emitterHandler = new EmitterHandler();
+        sseEmitter.initialize(emitterHandler);
 
-		processor.onNext("foo");
-		processor.onNext("bar");
-		processor.onNext("baz");
-		processor.onComplete();
+        processor.onNext("foo");
+        processor.onNext("bar");
+        processor.onNext("baz");
+        processor.onComplete();
 
-		assertThat(emitterHandler.getValuesAsText()).isEqualTo("data:foo\n\ndata:bar\n\ndata:baz\n\n");
-	}
+        assertThat(emitterHandler.getValuesAsText()).isEqualTo("data:foo\n\ndata:bar\n\ndata:baz\n\n");
+    }
 
-	@Test
-	public void writeServerSentEventsWithBuilder() throws Exception {
+    @Test
+    public void writeServerSentEventsWithBuilder() throws Exception {
 
-		ResolvableType type = ResolvableType.forClassWithGenerics(ServerSentEvent.class, String.class);
+        ResolvableType type = ResolvableType.forClassWithGenerics(ServerSentEvent.class, String.class);
 
-		EmitterProcessor<ServerSentEvent<?>> processor = EmitterProcessor.create();
-		SseEmitter sseEmitter = (SseEmitter) handleValue(processor, Flux.class, type);
+        EmitterProcessor<ServerSentEvent<?>> processor = EmitterProcessor.create();
+        SseEmitter sseEmitter = (SseEmitter) handleValue(processor, Flux.class, type);
 
-		EmitterHandler emitterHandler = new EmitterHandler();
-		sseEmitter.initialize(emitterHandler);
+        EmitterHandler emitterHandler = new EmitterHandler();
+        sseEmitter.initialize(emitterHandler);
 
-		processor.onNext(ServerSentEvent.builder("foo").id("1").build());
-		processor.onNext(ServerSentEvent.builder("bar").id("2").build());
-		processor.onNext(ServerSentEvent.builder("baz").id("3").build());
-		processor.onComplete();
+        processor.onNext(ServerSentEvent.builder("foo").id("1").build());
+        processor.onNext(ServerSentEvent.builder("bar").id("2").build());
+        processor.onNext(ServerSentEvent.builder("baz").id("3").build());
+        processor.onComplete();
 
-		assertThat(emitterHandler.getValuesAsText()).isEqualTo("id:1\ndata:foo\n\nid:2\ndata:bar\n\nid:3\ndata:baz\n\n");
-	}
+        assertThat(emitterHandler.getValuesAsText()).isEqualTo("id:1\ndata:foo\n\nid:2\ndata:bar\n\nid:3\ndata:baz\n\n");
+    }
 
-	@Test
-	public void writeStreamJson() throws Exception {
+    @Test
+    public void writeStreamJson() throws Exception {
 
-		this.servletRequest.addHeader("Accept", "application/stream+json");
+        this.servletRequest.addHeader("Accept", "application/stream+json");
 
-		EmitterProcessor<Bar> processor = EmitterProcessor.create();
-		ResponseBodyEmitter emitter = handleValue(processor, Flux.class, forClass(Bar.class));
+        EmitterProcessor<Bar> processor = EmitterProcessor.create();
+        ResponseBodyEmitter emitter = handleValue(processor, Flux.class, forClass(Bar.class));
 
-		EmitterHandler emitterHandler = new EmitterHandler();
-		emitter.initialize(emitterHandler);
+        EmitterHandler emitterHandler = new EmitterHandler();
+        emitter.initialize(emitterHandler);
 
-		ServletServerHttpResponse message = new ServletServerHttpResponse(this.servletResponse);
-		emitter.extendResponse(message);
+        ServletServerHttpResponse message = new ServletServerHttpResponse(this.servletResponse);
+        emitter.extendResponse(message);
 
-		Bar bar1 = new Bar("foo");
-		Bar bar2 = new Bar("bar");
+        Bar bar1 = new Bar("foo");
+        Bar bar2 = new Bar("bar");
 
-		processor.onNext(bar1);
-		processor.onNext(bar2);
-		processor.onComplete();
+        processor.onNext(bar1);
+        processor.onNext(bar2);
+        processor.onComplete();
 
-		assertThat(message.getHeaders().getContentType().toString()).isEqualTo("application/stream+json");
-		assertThat(emitterHandler.getValues()).isEqualTo(Arrays.asList(bar1, "\n", bar2, "\n"));
-	}
+        assertThat(message.getHeaders().getContentType().toString()).isEqualTo("application/stream+json");
+        assertThat(emitterHandler.getValues()).isEqualTo(Arrays.asList(bar1, "\n", bar2, "\n"));
+    }
 
-	@Test
-	public void writeText() throws Exception {
+    @Test
+    public void writeText() throws Exception {
 
-		EmitterProcessor<String> processor = EmitterProcessor.create();
-		ResponseBodyEmitter emitter = handleValue(processor, Flux.class, forClass(String.class));
+        EmitterProcessor<String> processor = EmitterProcessor.create();
+        ResponseBodyEmitter emitter = handleValue(processor, Flux.class, forClass(String.class));
 
-		EmitterHandler emitterHandler = new EmitterHandler();
-		emitter.initialize(emitterHandler);
+        EmitterHandler emitterHandler = new EmitterHandler();
+        emitter.initialize(emitterHandler);
 
-		processor.onNext("The quick");
-		processor.onNext(" brown fox jumps over ");
-		processor.onNext("the lazy dog");
-		processor.onComplete();
+        processor.onNext("The quick");
+        processor.onNext(" brown fox jumps over ");
+        processor.onNext("the lazy dog");
+        processor.onComplete();
 
-		assertThat(emitterHandler.getValuesAsText()).isEqualTo("The quick brown fox jumps over the lazy dog");
-	}
+        assertThat(emitterHandler.getValuesAsText()).isEqualTo("The quick brown fox jumps over the lazy dog");
+    }
 
-	@Test
-	public void writeFluxOfString() throws Exception {
+    @Test
+    public void writeFluxOfString() throws Exception {
 
-		// Default to "text/plain"
-		testEmitterContentType("text/plain");
+        // Default to "text/plain"
+        testEmitterContentType("text/plain");
 
-		// Same if no concrete media type
-		this.servletRequest.addHeader("Accept", "text/*");
-		testEmitterContentType("text/plain");
+        // Same if no concrete media type
+        this.servletRequest.addHeader("Accept", "text/*");
+        testEmitterContentType("text/plain");
 
-		// Otherwise pick concrete media type
-		this.servletRequest.addHeader("Accept", "*/*, text/*, text/markdown");
-		testEmitterContentType("text/markdown");
+        // Otherwise pick concrete media type
+        this.servletRequest.addHeader("Accept", "*/*, text/*, text/markdown");
+        testEmitterContentType("text/markdown");
 
-		// Any concrete media type
-		this.servletRequest.addHeader("Accept", "*/*, text/*, foo/bar");
-		testEmitterContentType("foo/bar");
+        // Any concrete media type
+        this.servletRequest.addHeader("Accept", "*/*, text/*, foo/bar");
+        testEmitterContentType("foo/bar");
 
-		// Including json
-		this.servletRequest.addHeader("Accept", "*/*, text/*, application/json");
-		testEmitterContentType("application/json");
-	}
+        // Including json
+        this.servletRequest.addHeader("Accept", "*/*, text/*, application/json");
+        testEmitterContentType("application/json");
+    }
 
-	private void testEmitterContentType(String expected) throws Exception {
-		ServletServerHttpResponse message = new ServletServerHttpResponse(this.servletResponse);
-		ResponseBodyEmitter emitter = handleValue(Flux.empty(), Flux.class, forClass(String.class));
-		emitter.extendResponse(message);
-		assertThat(message.getHeaders().getContentType().toString()).isEqualTo(expected);
-		resetRequest();
-	}
+    private void testEmitterContentType(String expected) throws Exception {
+        ServletServerHttpResponse message = new ServletServerHttpResponse(this.servletResponse);
+        ResponseBodyEmitter emitter = handleValue(Flux.empty(), Flux.class, forClass(String.class));
+        emitter.extendResponse(message);
+        assertThat(message.getHeaders().getContentType().toString()).isEqualTo(expected);
+        resetRequest();
+    }
 
 
-	private void testDeferredResultSubscriber(Object returnValue, Class<?> asyncType,
-			ResolvableType elementType, Runnable produceTask, Object expected) throws Exception {
+    private void testDeferredResultSubscriber(Object returnValue, Class<?> asyncType,
+                                              ResolvableType elementType, Runnable produceTask, Object expected) throws Exception {
 
-		ResponseBodyEmitter emitter = handleValue(returnValue, asyncType, elementType);
-		assertThat(emitter).isNull();
+        ResponseBodyEmitter emitter = handleValue(returnValue, asyncType, elementType);
+        assertThat(emitter).isNull();
 
-		assertThat(this.servletRequest.isAsyncStarted()).isTrue();
-		assertThat(WebAsyncUtils.getAsyncManager(this.webRequest).hasConcurrentResult()).isFalse();
+        assertThat(this.servletRequest.isAsyncStarted()).isTrue();
+        assertThat(WebAsyncUtils.getAsyncManager(this.webRequest).hasConcurrentResult()).isFalse();
 
-		produceTask.run();
+        produceTask.run();
 
-		assertThat(WebAsyncUtils.getAsyncManager(this.webRequest).hasConcurrentResult()).isTrue();
-		assertThat(WebAsyncUtils.getAsyncManager(this.webRequest).getConcurrentResult()).isEqualTo(expected);
+        assertThat(WebAsyncUtils.getAsyncManager(this.webRequest).hasConcurrentResult()).isTrue();
+        assertThat(WebAsyncUtils.getAsyncManager(this.webRequest).getConcurrentResult()).isEqualTo(expected);
 
-		resetRequest();
-	}
+        resetRequest();
+    }
 
-	private ResponseBodyEmitter handleValue(Object returnValue, Class<?> asyncType,
-			ResolvableType genericType) throws Exception {
+    private ResponseBodyEmitter handleValue(Object returnValue, Class<?> asyncType,
+                                            ResolvableType genericType) throws Exception {
 
-		ModelAndViewContainer mavContainer = new ModelAndViewContainer();
-		MethodParameter returnType = on(TestController.class).resolveReturnType(asyncType, genericType);
-		return this.handler.handleValue(returnValue, returnType, mavContainer, this.webRequest);
-	}
+        ModelAndViewContainer mavContainer = new ModelAndViewContainer();
+        MethodParameter returnType = on(TestController.class).resolveReturnType(asyncType, genericType);
+        return this.handler.handleValue(returnValue, returnType, mavContainer, this.webRequest);
+    }
 
 
-	@SuppressWarnings("unused")
-	static class TestController {
+    @SuppressWarnings("unused")
+    static class TestController {
 
-		String handleString() { return null; }
+        String handleString() {
+            return null;
+        }
 
-		Mono<String> handleMono() { return null; }
+        Mono<String> handleMono() {
+            return null;
+        }
 
-		Single<String> handleSingle() { return null; }
+        Single<String> handleSingle() {
+            return null;
+        }
 
-		io.reactivex.Single<String> handleSingleRxJava2() { return null; }
+        io.reactivex.Single<String> handleSingleRxJava2() {
+            return null;
+        }
 
-		Flux<Bar> handleFlux() { return null; }
+        Flux<Bar> handleFlux() {
+            return null;
+        }
 
-		Flux<String> handleFluxString() { return null; }
+        Flux<String> handleFluxString() {
+            return null;
+        }
 
-		Flux<ServerSentEvent<String>> handleFluxSseEventBuilder() { return null; }
-	}
+        Flux<ServerSentEvent<String>> handleFluxSseEventBuilder() {
+            return null;
+        }
+    }
 
 
-	private static class EmitterHandler implements ResponseBodyEmitter.Handler {
+    private static class EmitterHandler implements ResponseBodyEmitter.Handler {
 
-		private final List<Object> values = new ArrayList<>();
+        private final List<Object> values = new ArrayList<>();
 
 
-		public List<?> getValues() {
-			return this.values;
-		}
+        public List<?> getValues() {
+            return this.values;
+        }
 
-		public String getValuesAsText() {
-			return this.values.stream().map(Object::toString).collect(Collectors.joining());
-		}
+        public String getValuesAsText() {
+            return this.values.stream().map(Object::toString).collect(Collectors.joining());
+        }
 
-		@Override
-		public void send(Object data, MediaType mediaType) throws IOException {
-			this.values.add(data);
-		}
+        @Override
+        public void send(Object data, MediaType mediaType) throws IOException {
+            this.values.add(data);
+        }
 
-		@Override
-		public void complete() {
-		}
+        @Override
+        public void complete() {
+        }
 
-		@Override
-		public void completeWithError(Throwable failure) {
-		}
+        @Override
+        public void completeWithError(Throwable failure) {
+        }
 
-		@Override
-		public void onTimeout(Runnable callback) {
-		}
+        @Override
+        public void onTimeout(Runnable callback) {
+        }
 
-		@Override
-		public void onError(Consumer<Throwable> callback) {
-		}
+        @Override
+        public void onError(Consumer<Throwable> callback) {
+        }
 
-		@Override
-		public void onCompletion(Runnable callback) {
-		}
-	}
+        @Override
+        public void onCompletion(Runnable callback) {
+        }
+    }
 
-	private static class Bar {
+    private static class Bar {
 
-		private final String value;
+        private final String value;
 
-		public Bar(String value) {
-			this.value = value;
-		}
+        public Bar(String value) {
+            this.value = value;
+        }
 
-		@SuppressWarnings("unused")
-		public String getValue() {
-			return this.value;
-		}
-	}
+        @SuppressWarnings("unused")
+        public String getValue() {
+            return this.value;
+        }
+    }
 
 }

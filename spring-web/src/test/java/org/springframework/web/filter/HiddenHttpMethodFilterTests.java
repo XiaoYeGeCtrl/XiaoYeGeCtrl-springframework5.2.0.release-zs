@@ -39,44 +39,44 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 public class HiddenHttpMethodFilterTests {
 
-	private final HiddenHttpMethodFilter filter = new HiddenHttpMethodFilter();
+    private final HiddenHttpMethodFilter filter = new HiddenHttpMethodFilter();
 
-	@Test
-	public void filterWithParameter() throws IOException, ServletException {
-		filterWithParameterForMethod("delete", "DELETE");
-		filterWithParameterForMethod("put", "PUT");
-		filterWithParameterForMethod("patch", "PATCH");
-	}
+    @Test
+    public void filterWithParameter() throws IOException, ServletException {
+        filterWithParameterForMethod("delete", "DELETE");
+        filterWithParameterForMethod("put", "PUT");
+        filterWithParameterForMethod("patch", "PATCH");
+    }
 
-	@Test
-	public void filterWithParameterDisallowedMethods() throws IOException, ServletException {
-		filterWithParameterForMethod("trace", "POST");
-		filterWithParameterForMethod("head", "POST");
-		filterWithParameterForMethod("options", "POST");
-	}
+    @Test
+    public void filterWithParameterDisallowedMethods() throws IOException, ServletException {
+        filterWithParameterForMethod("trace", "POST");
+        filterWithParameterForMethod("head", "POST");
+        filterWithParameterForMethod("options", "POST");
+    }
 
-	@Test
-	public void filterWithNoParameter() throws IOException, ServletException {
-		filterWithParameterForMethod(null, "POST");
-	}
+    @Test
+    public void filterWithNoParameter() throws IOException, ServletException {
+        filterWithParameterForMethod(null, "POST");
+    }
 
-	private void filterWithParameterForMethod(String methodParam, String expectedMethod)
-			throws IOException, ServletException {
-		MockHttpServletRequest request = new MockHttpServletRequest("POST", "/hotels");
-		if(methodParam != null) {
-			request.addParameter("_method", methodParam);
-		}
-		MockHttpServletResponse response = new MockHttpServletResponse();
+    private void filterWithParameterForMethod(String methodParam, String expectedMethod)
+            throws IOException, ServletException {
+        MockHttpServletRequest request = new MockHttpServletRequest("POST", "/hotels");
+        if (methodParam != null) {
+            request.addParameter("_method", methodParam);
+        }
+        MockHttpServletResponse response = new MockHttpServletResponse();
 
-		FilterChain filterChain = new FilterChain() {
+        FilterChain filterChain = new FilterChain() {
 
-			@Override
-			public void doFilter(ServletRequest filterRequest,
-					ServletResponse filterResponse) throws IOException, ServletException {
-				assertThat(((HttpServletRequest) filterRequest).getMethod()).as("Invalid method").isEqualTo(expectedMethod);
-			}
-		};
-		this.filter.doFilter(request, response, filterChain);
-	}
+            @Override
+            public void doFilter(ServletRequest filterRequest,
+                                 ServletResponse filterResponse) throws IOException, ServletException {
+                assertThat(((HttpServletRequest) filterRequest).getMethod()).as("Invalid method").isEqualTo(expectedMethod);
+            }
+        };
+        this.filter.doFilter(request, response, filterChain);
+    }
 
 }

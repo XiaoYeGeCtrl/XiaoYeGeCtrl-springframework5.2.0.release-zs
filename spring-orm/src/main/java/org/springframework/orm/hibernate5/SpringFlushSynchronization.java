@@ -30,29 +30,29 @@ import org.springframework.transaction.support.TransactionSynchronizationAdapter
  */
 public class SpringFlushSynchronization extends TransactionSynchronizationAdapter {
 
-	private final Session session;
+    private final Session session;
 
 
-	public SpringFlushSynchronization(Session session) {
-		this.session = session;
-	}
+    public SpringFlushSynchronization(Session session) {
+        this.session = session;
+    }
 
 
-	@Override
-	public void flush() {
-		SessionFactoryUtils.flush(this.session, false);
-	}
+    @Override
+    public void flush() {
+        SessionFactoryUtils.flush(this.session, false);
+    }
 
 
-	@Override
-	public boolean equals(@Nullable Object other) {
-		return (this == other || (other instanceof SpringFlushSynchronization &&
-				this.session == ((SpringFlushSynchronization) other).session));
-	}
+    @Override
+    public boolean equals(@Nullable Object other) {
+        return (this == other || (other instanceof SpringFlushSynchronization &&
+                this.session == ((SpringFlushSynchronization) other).session));
+    }
 
-	@Override
-	public int hashCode() {
-		return this.session.hashCode();
-	}
+    @Override
+    public int hashCode() {
+        return this.session.hashCode();
+    }
 
 }

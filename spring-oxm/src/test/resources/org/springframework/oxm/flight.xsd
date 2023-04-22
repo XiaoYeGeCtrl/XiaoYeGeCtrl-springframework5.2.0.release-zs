@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<schema xmlns="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified"
-        targetNamespace="http://samples.springframework.org/flight"
-        xmlns:tns="http://samples.springframework.org/flight">
+<schema xmlns:tns="http://samples.springframework.org/flight" xmlns="http://www.w3.org/2001/XMLSchema"
+        elementFormDefault="qualified"
+        targetNamespace="http://samples.springframework.org/flight">
     <element name="flights">
         <complexType>
             <sequence>

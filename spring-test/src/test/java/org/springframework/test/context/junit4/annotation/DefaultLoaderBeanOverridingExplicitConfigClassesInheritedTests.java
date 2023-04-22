@@ -33,13 +33,13 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 @ContextConfiguration(classes = DefaultLoaderBeanOverridingDefaultConfigClassesInheritedTests.Config.class)
 public class DefaultLoaderBeanOverridingExplicitConfigClassesInheritedTests extends
-		DefaultLoaderExplicitConfigClassesBaseTests {
+        DefaultLoaderExplicitConfigClassesBaseTests {
 
-	@Test
-	@Override
-	public void verifyEmployeeSetFromBaseContextConfig() {
-		assertThat(this.employee).as("The employee should have been autowired.").isNotNull();
-		assertThat(this.employee.getName()).as("The employee bean should have been overridden.").isEqualTo("Yoda");
-	}
+    @Test
+    @Override
+    public void verifyEmployeeSetFromBaseContextConfig() {
+        assertThat(this.employee).as("The employee should have been autowired.").isNotNull();
+        assertThat(this.employee.getName()).as("The employee bean should have been overridden.").isEqualTo("Yoda");
+    }
 
 }

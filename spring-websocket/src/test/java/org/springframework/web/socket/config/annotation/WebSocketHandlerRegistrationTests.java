@@ -44,204 +44,204 @@ import static org.mockito.Mockito.mock;
  */
 public class WebSocketHandlerRegistrationTests {
 
-	private TestWebSocketHandlerRegistration registration = new TestWebSocketHandlerRegistration();
+    private TestWebSocketHandlerRegistration registration = new TestWebSocketHandlerRegistration();
 
-	private TaskScheduler taskScheduler = mock(TaskScheduler.class);
-
-
-	@Test
-	public void minimal() {
-		WebSocketHandler handler = new TextWebSocketHandler();
-		this.registration.addHandler(handler, "/foo", "/bar");
-
-		List<Mapping> mappings = this.registration.getMappings();
-		assertThat(mappings.size()).isEqualTo(2);
-
-		Mapping m1 = mappings.get(0);
-		assertThat(m1.webSocketHandler).isEqualTo(handler);
-		assertThat(m1.path).isEqualTo("/foo");
-		assertThat(m1.interceptors).isNotNull();
-		assertThat(m1.interceptors.length).isEqualTo(1);
-		assertThat(m1.interceptors[0].getClass()).isEqualTo(OriginHandshakeInterceptor.class);
-
-		Mapping m2 = mappings.get(1);
-		assertThat(m2.webSocketHandler).isEqualTo(handler);
-		assertThat(m2.path).isEqualTo("/bar");
-		assertThat(m2.interceptors).isNotNull();
-		assertThat(m2.interceptors.length).isEqualTo(1);
-		assertThat(m2.interceptors[0].getClass()).isEqualTo(OriginHandshakeInterceptor.class);
-	}
-
-	@Test
-	public void interceptors() {
-		WebSocketHandler handler = new TextWebSocketHandler();
-		HttpSessionHandshakeInterceptor interceptor = new HttpSessionHandshakeInterceptor();
-
-		this.registration.addHandler(handler, "/foo").addInterceptors(interceptor);
-
-		List<Mapping> mappings = this.registration.getMappings();
-		assertThat(mappings.size()).isEqualTo(1);
-
-		Mapping mapping = mappings.get(0);
-		assertThat(mapping.webSocketHandler).isEqualTo(handler);
-		assertThat(mapping.path).isEqualTo("/foo");
-		assertThat(mapping.interceptors).isNotNull();
-		assertThat(mapping.interceptors.length).isEqualTo(2);
-		assertThat(mapping.interceptors[0]).isEqualTo(interceptor);
-		assertThat(mapping.interceptors[1].getClass()).isEqualTo(OriginHandshakeInterceptor.class);
-	}
-
-	@Test
-	public void emptyAllowedOrigin() {
-		WebSocketHandler handler = new TextWebSocketHandler();
-		HttpSessionHandshakeInterceptor interceptor = new HttpSessionHandshakeInterceptor();
-
-		this.registration.addHandler(handler, "/foo").addInterceptors(interceptor).setAllowedOrigins();
-
-		List<Mapping> mappings = this.registration.getMappings();
-		assertThat(mappings.size()).isEqualTo(1);
-
-		Mapping mapping = mappings.get(0);
-		assertThat(mapping.webSocketHandler).isEqualTo(handler);
-		assertThat(mapping.path).isEqualTo("/foo");
-		assertThat(mapping.interceptors).isNotNull();
-		assertThat(mapping.interceptors.length).isEqualTo(2);
-		assertThat(mapping.interceptors[0]).isEqualTo(interceptor);
-		assertThat(mapping.interceptors[1].getClass()).isEqualTo(OriginHandshakeInterceptor.class);
-	}
-
-	@Test
-	public void interceptorsWithAllowedOrigins() {
-		WebSocketHandler handler = new TextWebSocketHandler();
-		HttpSessionHandshakeInterceptor interceptor = new HttpSessionHandshakeInterceptor();
-
-		this.registration.addHandler(handler, "/foo").addInterceptors(interceptor).setAllowedOrigins("https://mydomain1.example");
-
-		List<Mapping> mappings = this.registration.getMappings();
-		assertThat(mappings.size()).isEqualTo(1);
-
-		Mapping mapping = mappings.get(0);
-		assertThat(mapping.webSocketHandler).isEqualTo(handler);
-		assertThat(mapping.path).isEqualTo("/foo");
-		assertThat(mapping.interceptors).isNotNull();
-		assertThat(mapping.interceptors.length).isEqualTo(2);
-		assertThat(mapping.interceptors[0]).isEqualTo(interceptor);
-		assertThat(mapping.interceptors[1].getClass()).isEqualTo(OriginHandshakeInterceptor.class);
-	}
-
-	@Test
-	public void interceptorsPassedToSockJsRegistration() {
-		WebSocketHandler handler = new TextWebSocketHandler();
-		HttpSessionHandshakeInterceptor interceptor = new HttpSessionHandshakeInterceptor();
-
-		this.registration.addHandler(handler, "/foo")
-				.addInterceptors(interceptor)
-				.setAllowedOrigins("https://mydomain1.example")
-				.withSockJS();
-
-		this.registration.getSockJsServiceRegistration().setTaskScheduler(this.taskScheduler);
-
-		List<Mapping> mappings = this.registration.getMappings();
-		assertThat(mappings.size()).isEqualTo(1);
-
-		Mapping mapping = mappings.get(0);
-		assertThat(mapping.webSocketHandler).isEqualTo(handler);
-		assertThat(mapping.path).isEqualTo("/foo/**");
-		assertThat(mapping.sockJsService).isNotNull();
-		assertThat(mapping.sockJsService.getAllowedOrigins().contains("https://mydomain1.example")).isTrue();
-		List<HandshakeInterceptor> interceptors = mapping.sockJsService.getHandshakeInterceptors();
-		assertThat(interceptors.get(0)).isEqualTo(interceptor);
-		assertThat(interceptors.get(1).getClass()).isEqualTo(OriginHandshakeInterceptor.class);
-	}
-
-	@Test
-	public void handshakeHandler() {
-		WebSocketHandler handler = new TextWebSocketHandler();
-		HandshakeHandler handshakeHandler = new DefaultHandshakeHandler();
-
-		this.registration.addHandler(handler, "/foo").setHandshakeHandler(handshakeHandler);
-
-		List<Mapping> mappings = this.registration.getMappings();
-		assertThat(mappings.size()).isEqualTo(1);
-
-		Mapping mapping = mappings.get(0);
-		assertThat(mapping.webSocketHandler).isEqualTo(handler);
-		assertThat(mapping.path).isEqualTo("/foo");
-		assertThat(mapping.handshakeHandler).isSameAs(handshakeHandler);
-	}
-
-	@Test
-	public void handshakeHandlerPassedToSockJsRegistration() {
-		WebSocketHandler handler = new TextWebSocketHandler();
-		HandshakeHandler handshakeHandler = new DefaultHandshakeHandler();
-
-		this.registration.addHandler(handler, "/foo").setHandshakeHandler(handshakeHandler).withSockJS();
-		this.registration.getSockJsServiceRegistration().setTaskScheduler(this.taskScheduler);
-
-		List<Mapping> mappings = this.registration.getMappings();
-		assertThat(mappings.size()).isEqualTo(1);
-
-		Mapping mapping = mappings.get(0);
-		assertThat(mapping.webSocketHandler).isEqualTo(handler);
-		assertThat(mapping.path).isEqualTo("/foo/**");
-		assertThat(mapping.sockJsService).isNotNull();
-
-		WebSocketTransportHandler transportHandler =
-				(WebSocketTransportHandler) mapping.sockJsService.getTransportHandlers().get(TransportType.WEBSOCKET);
-		assertThat(transportHandler.getHandshakeHandler()).isSameAs(handshakeHandler);
-	}
+    private TaskScheduler taskScheduler = mock(TaskScheduler.class);
 
 
-	private static class TestWebSocketHandlerRegistration extends AbstractWebSocketHandlerRegistration<List<Mapping>> {
+    @Test
+    public void minimal() {
+        WebSocketHandler handler = new TextWebSocketHandler();
+        this.registration.addHandler(handler, "/foo", "/bar");
 
-		@Override
-		protected List<Mapping> createMappings() {
-			return new ArrayList<>();
-		}
+        List<Mapping> mappings = this.registration.getMappings();
+        assertThat(mappings.size()).isEqualTo(2);
 
-		@Override
-		protected void addSockJsServiceMapping(List<Mapping> mappings, SockJsService sockJsService,
-				WebSocketHandler wsHandler, String pathPattern) {
+        Mapping m1 = mappings.get(0);
+        assertThat(m1.webSocketHandler).isEqualTo(handler);
+        assertThat(m1.path).isEqualTo("/foo");
+        assertThat(m1.interceptors).isNotNull();
+        assertThat(m1.interceptors.length).isEqualTo(1);
+        assertThat(m1.interceptors[0].getClass()).isEqualTo(OriginHandshakeInterceptor.class);
 
-			mappings.add(new Mapping(wsHandler, pathPattern, sockJsService));
-		}
+        Mapping m2 = mappings.get(1);
+        assertThat(m2.webSocketHandler).isEqualTo(handler);
+        assertThat(m2.path).isEqualTo("/bar");
+        assertThat(m2.interceptors).isNotNull();
+        assertThat(m2.interceptors.length).isEqualTo(1);
+        assertThat(m2.interceptors[0].getClass()).isEqualTo(OriginHandshakeInterceptor.class);
+    }
 
-		@Override
-		protected void addWebSocketHandlerMapping(List<Mapping> mappings, WebSocketHandler handler,
-				HandshakeHandler handshakeHandler, HandshakeInterceptor[] interceptors, String path) {
+    @Test
+    public void interceptors() {
+        WebSocketHandler handler = new TextWebSocketHandler();
+        HttpSessionHandshakeInterceptor interceptor = new HttpSessionHandshakeInterceptor();
 
-			mappings.add(new Mapping(handler, path, handshakeHandler, interceptors));
-		}
-	}
+        this.registration.addHandler(handler, "/foo").addInterceptors(interceptor);
+
+        List<Mapping> mappings = this.registration.getMappings();
+        assertThat(mappings.size()).isEqualTo(1);
+
+        Mapping mapping = mappings.get(0);
+        assertThat(mapping.webSocketHandler).isEqualTo(handler);
+        assertThat(mapping.path).isEqualTo("/foo");
+        assertThat(mapping.interceptors).isNotNull();
+        assertThat(mapping.interceptors.length).isEqualTo(2);
+        assertThat(mapping.interceptors[0]).isEqualTo(interceptor);
+        assertThat(mapping.interceptors[1].getClass()).isEqualTo(OriginHandshakeInterceptor.class);
+    }
+
+    @Test
+    public void emptyAllowedOrigin() {
+        WebSocketHandler handler = new TextWebSocketHandler();
+        HttpSessionHandshakeInterceptor interceptor = new HttpSessionHandshakeInterceptor();
+
+        this.registration.addHandler(handler, "/foo").addInterceptors(interceptor).setAllowedOrigins();
+
+        List<Mapping> mappings = this.registration.getMappings();
+        assertThat(mappings.size()).isEqualTo(1);
+
+        Mapping mapping = mappings.get(0);
+        assertThat(mapping.webSocketHandler).isEqualTo(handler);
+        assertThat(mapping.path).isEqualTo("/foo");
+        assertThat(mapping.interceptors).isNotNull();
+        assertThat(mapping.interceptors.length).isEqualTo(2);
+        assertThat(mapping.interceptors[0]).isEqualTo(interceptor);
+        assertThat(mapping.interceptors[1].getClass()).isEqualTo(OriginHandshakeInterceptor.class);
+    }
+
+    @Test
+    public void interceptorsWithAllowedOrigins() {
+        WebSocketHandler handler = new TextWebSocketHandler();
+        HttpSessionHandshakeInterceptor interceptor = new HttpSessionHandshakeInterceptor();
+
+        this.registration.addHandler(handler, "/foo").addInterceptors(interceptor).setAllowedOrigins("https://mydomain1.example");
+
+        List<Mapping> mappings = this.registration.getMappings();
+        assertThat(mappings.size()).isEqualTo(1);
+
+        Mapping mapping = mappings.get(0);
+        assertThat(mapping.webSocketHandler).isEqualTo(handler);
+        assertThat(mapping.path).isEqualTo("/foo");
+        assertThat(mapping.interceptors).isNotNull();
+        assertThat(mapping.interceptors.length).isEqualTo(2);
+        assertThat(mapping.interceptors[0]).isEqualTo(interceptor);
+        assertThat(mapping.interceptors[1].getClass()).isEqualTo(OriginHandshakeInterceptor.class);
+    }
+
+    @Test
+    public void interceptorsPassedToSockJsRegistration() {
+        WebSocketHandler handler = new TextWebSocketHandler();
+        HttpSessionHandshakeInterceptor interceptor = new HttpSessionHandshakeInterceptor();
+
+        this.registration.addHandler(handler, "/foo")
+                .addInterceptors(interceptor)
+                .setAllowedOrigins("https://mydomain1.example")
+                .withSockJS();
+
+        this.registration.getSockJsServiceRegistration().setTaskScheduler(this.taskScheduler);
+
+        List<Mapping> mappings = this.registration.getMappings();
+        assertThat(mappings.size()).isEqualTo(1);
+
+        Mapping mapping = mappings.get(0);
+        assertThat(mapping.webSocketHandler).isEqualTo(handler);
+        assertThat(mapping.path).isEqualTo("/foo/**");
+        assertThat(mapping.sockJsService).isNotNull();
+        assertThat(mapping.sockJsService.getAllowedOrigins().contains("https://mydomain1.example")).isTrue();
+        List<HandshakeInterceptor> interceptors = mapping.sockJsService.getHandshakeInterceptors();
+        assertThat(interceptors.get(0)).isEqualTo(interceptor);
+        assertThat(interceptors.get(1).getClass()).isEqualTo(OriginHandshakeInterceptor.class);
+    }
+
+    @Test
+    public void handshakeHandler() {
+        WebSocketHandler handler = new TextWebSocketHandler();
+        HandshakeHandler handshakeHandler = new DefaultHandshakeHandler();
+
+        this.registration.addHandler(handler, "/foo").setHandshakeHandler(handshakeHandler);
+
+        List<Mapping> mappings = this.registration.getMappings();
+        assertThat(mappings.size()).isEqualTo(1);
+
+        Mapping mapping = mappings.get(0);
+        assertThat(mapping.webSocketHandler).isEqualTo(handler);
+        assertThat(mapping.path).isEqualTo("/foo");
+        assertThat(mapping.handshakeHandler).isSameAs(handshakeHandler);
+    }
+
+    @Test
+    public void handshakeHandlerPassedToSockJsRegistration() {
+        WebSocketHandler handler = new TextWebSocketHandler();
+        HandshakeHandler handshakeHandler = new DefaultHandshakeHandler();
+
+        this.registration.addHandler(handler, "/foo").setHandshakeHandler(handshakeHandler).withSockJS();
+        this.registration.getSockJsServiceRegistration().setTaskScheduler(this.taskScheduler);
+
+        List<Mapping> mappings = this.registration.getMappings();
+        assertThat(mappings.size()).isEqualTo(1);
+
+        Mapping mapping = mappings.get(0);
+        assertThat(mapping.webSocketHandler).isEqualTo(handler);
+        assertThat(mapping.path).isEqualTo("/foo/**");
+        assertThat(mapping.sockJsService).isNotNull();
+
+        WebSocketTransportHandler transportHandler =
+                (WebSocketTransportHandler) mapping.sockJsService.getTransportHandlers().get(TransportType.WEBSOCKET);
+        assertThat(transportHandler.getHandshakeHandler()).isSameAs(handshakeHandler);
+    }
 
 
-	private static class Mapping {
+    private static class TestWebSocketHandlerRegistration extends AbstractWebSocketHandlerRegistration<List<Mapping>> {
 
-		private final WebSocketHandler webSocketHandler;
+        @Override
+        protected List<Mapping> createMappings() {
+            return new ArrayList<>();
+        }
 
-		private final String path;
+        @Override
+        protected void addSockJsServiceMapping(List<Mapping> mappings, SockJsService sockJsService,
+                                               WebSocketHandler wsHandler, String pathPattern) {
 
-		private final HandshakeHandler handshakeHandler;
+            mappings.add(new Mapping(wsHandler, pathPattern, sockJsService));
+        }
 
-		private final HandshakeInterceptor[] interceptors;
+        @Override
+        protected void addWebSocketHandlerMapping(List<Mapping> mappings, WebSocketHandler handler,
+                                                  HandshakeHandler handshakeHandler, HandshakeInterceptor[] interceptors, String path) {
 
-		private final DefaultSockJsService sockJsService;
+            mappings.add(new Mapping(handler, path, handshakeHandler, interceptors));
+        }
+    }
 
-		public Mapping(WebSocketHandler handler, String path, SockJsService sockJsService) {
-			this.webSocketHandler = handler;
-			this.path = path;
-			this.handshakeHandler = null;
-			this.interceptors = null;
-			this.sockJsService = (DefaultSockJsService) sockJsService;
-		}
 
-		public Mapping(WebSocketHandler h, String path, HandshakeHandler hh, HandshakeInterceptor[] interceptors) {
-			this.webSocketHandler = h;
-			this.path = path;
-			this.handshakeHandler = hh;
-			this.interceptors = interceptors;
-			this.sockJsService = null;
-		}
-	}
+    private static class Mapping {
+
+        private final WebSocketHandler webSocketHandler;
+
+        private final String path;
+
+        private final HandshakeHandler handshakeHandler;
+
+        private final HandshakeInterceptor[] interceptors;
+
+        private final DefaultSockJsService sockJsService;
+
+        public Mapping(WebSocketHandler handler, String path, SockJsService sockJsService) {
+            this.webSocketHandler = handler;
+            this.path = path;
+            this.handshakeHandler = null;
+            this.interceptors = null;
+            this.sockJsService = (DefaultSockJsService) sockJsService;
+        }
+
+        public Mapping(WebSocketHandler h, String path, HandshakeHandler hh, HandshakeInterceptor[] interceptors) {
+            this.webSocketHandler = h;
+            this.path = path;
+            this.handshakeHandler = hh;
+            this.interceptors = interceptors;
+            this.sockJsService = null;
+        }
+    }
 
 }

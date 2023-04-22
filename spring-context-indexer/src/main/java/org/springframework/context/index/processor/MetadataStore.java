@@ -32,50 +32,48 @@ import javax.tools.StandardLocation;
  */
 class MetadataStore {
 
-	static final String METADATA_PATH = "META-INF/spring.components";
+    static final String METADATA_PATH = "META-INF/spring.components";
 
-	private final ProcessingEnvironment environment;
-
-
-	public MetadataStore(ProcessingEnvironment environment) {
-		this.environment = environment;
-	}
+    private final ProcessingEnvironment environment;
 
 
-	public CandidateComponentsMetadata readMetadata() {
-		try {
-			return readMetadata(getMetadataResource().openInputStream());
-		}
-		catch (IOException ex) {
-			// Failed to read metadata -> ignore.
-			return null;
-		}
-	}
-
-	public void writeMetadata(CandidateComponentsMetadata metadata) throws IOException {
-		if (!metadata.getItems().isEmpty()) {
-			try (OutputStream outputStream = createMetadataResource().openOutputStream()) {
-				PropertiesMarshaller.write(metadata, outputStream);
-			}
-		}
-	}
+    public MetadataStore(ProcessingEnvironment environment) {
+        this.environment = environment;
+    }
 
 
-	private CandidateComponentsMetadata readMetadata(InputStream in) throws IOException {
-		try {
-			return PropertiesMarshaller.read(in);
-		}
-		finally {
-			in.close();
-		}
-	}
+    public CandidateComponentsMetadata readMetadata() {
+        try {
+            return readMetadata(getMetadataResource().openInputStream());
+        } catch (IOException ex) {
+            // Failed to read metadata -> ignore.
+            return null;
+        }
+    }
 
-	private FileObject getMetadataResource() throws IOException {
-		return this.environment.getFiler().getResource(StandardLocation.CLASS_OUTPUT, "", METADATA_PATH);
-	}
+    public void writeMetadata(CandidateComponentsMetadata metadata) throws IOException {
+        if (!metadata.getItems().isEmpty()) {
+            try (OutputStream outputStream = createMetadataResource().openOutputStream()) {
+                PropertiesMarshaller.write(metadata, outputStream);
+            }
+        }
+    }
 
-	private FileObject createMetadataResource() throws IOException {
-		return this.environment.getFiler().createResource(StandardLocation.CLASS_OUTPUT, "", METADATA_PATH);
-	}
+
+    private CandidateComponentsMetadata readMetadata(InputStream in) throws IOException {
+        try {
+            return PropertiesMarshaller.read(in);
+        } finally {
+            in.close();
+        }
+    }
+
+    private FileObject getMetadataResource() throws IOException {
+        return this.environment.getFiler().getResource(StandardLocation.CLASS_OUTPUT, "", METADATA_PATH);
+    }
+
+    private FileObject createMetadataResource() throws IOException {
+        return this.environment.getFiler().createResource(StandardLocation.CLASS_OUTPUT, "", METADATA_PATH);
+    }
 
 }

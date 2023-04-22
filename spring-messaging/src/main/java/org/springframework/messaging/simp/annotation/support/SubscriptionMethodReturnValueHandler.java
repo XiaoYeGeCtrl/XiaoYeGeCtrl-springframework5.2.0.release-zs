@@ -58,92 +58,91 @@ import org.springframework.util.Assert;
  */
 public class SubscriptionMethodReturnValueHandler implements HandlerMethodReturnValueHandler {
 
-	private static final Log logger = SimpLogging.forLogName(SubscriptionMethodReturnValueHandler.class);
+    private static final Log logger = SimpLogging.forLogName(SubscriptionMethodReturnValueHandler.class);
 
 
-	private final MessageSendingOperations<String> messagingTemplate;
+    private final MessageSendingOperations<String> messagingTemplate;
 
-	@Nullable
-	private MessageHeaderInitializer headerInitializer;
-
-
-	/**
-	 * Construct a new SubscriptionMethodReturnValueHandler.
-	 * @param template a messaging template to send messages to,
-	 * most likely the "clientOutboundChannel" (must not be {@code null})
-	 */
-	public SubscriptionMethodReturnValueHandler(MessageSendingOperations<String> template) {
-		Assert.notNull(template, "messagingTemplate must not be null");
-		this.messagingTemplate = template;
-	}
+    @Nullable
+    private MessageHeaderInitializer headerInitializer;
 
 
-	/**
-	 * Configure a {@link MessageHeaderInitializer} to apply to the headers of all
-	 * messages sent to the client outbound channel.
-	 * <p>By default this property is not set.
-	 */
-	public void setHeaderInitializer(@Nullable MessageHeaderInitializer headerInitializer) {
-		this.headerInitializer = headerInitializer;
-	}
+    /**
+     * Construct a new SubscriptionMethodReturnValueHandler.
+     *
+     * @param template a messaging template to send messages to,
+     *                 most likely the "clientOutboundChannel" (must not be {@code null})
+     */
+    public SubscriptionMethodReturnValueHandler(MessageSendingOperations<String> template) {
+        Assert.notNull(template, "messagingTemplate must not be null");
+        this.messagingTemplate = template;
+    }
 
-	/**
-	 * Return the configured header initializer.
-	 */
-	@Nullable
-	public MessageHeaderInitializer getHeaderInitializer() {
-		return this.headerInitializer;
-	}
+    /**
+     * Return the configured header initializer.
+     */
+    @Nullable
+    public MessageHeaderInitializer getHeaderInitializer() {
+        return this.headerInitializer;
+    }
 
+    /**
+     * Configure a {@link MessageHeaderInitializer} to apply to the headers of all
+     * messages sent to the client outbound channel.
+     * <p>By default this property is not set.
+     */
+    public void setHeaderInitializer(@Nullable MessageHeaderInitializer headerInitializer) {
+        this.headerInitializer = headerInitializer;
+    }
 
-	@Override
-	public boolean supportsReturnType(MethodParameter returnType) {
-		return (returnType.hasMethodAnnotation(SubscribeMapping.class) &&
-				!returnType.hasMethodAnnotation(SendTo.class) &&
-				!returnType.hasMethodAnnotation(SendToUser.class));
-	}
+    @Override
+    public boolean supportsReturnType(MethodParameter returnType) {
+        return (returnType.hasMethodAnnotation(SubscribeMapping.class) &&
+                !returnType.hasMethodAnnotation(SendTo.class) &&
+                !returnType.hasMethodAnnotation(SendToUser.class));
+    }
 
-	@Override
-	public void handleReturnValue(@Nullable Object returnValue, MethodParameter returnType, Message<?> message)
-			throws Exception {
+    @Override
+    public void handleReturnValue(@Nullable Object returnValue, MethodParameter returnType, Message<?> message)
+            throws Exception {
 
-		if (returnValue == null) {
-			return;
-		}
+        if (returnValue == null) {
+            return;
+        }
 
-		MessageHeaders headers = message.getHeaders();
-		String sessionId = SimpMessageHeaderAccessor.getSessionId(headers);
-		String subscriptionId = SimpMessageHeaderAccessor.getSubscriptionId(headers);
-		String destination = SimpMessageHeaderAccessor.getDestination(headers);
+        MessageHeaders headers = message.getHeaders();
+        String sessionId = SimpMessageHeaderAccessor.getSessionId(headers);
+        String subscriptionId = SimpMessageHeaderAccessor.getSubscriptionId(headers);
+        String destination = SimpMessageHeaderAccessor.getDestination(headers);
 
-		if (subscriptionId == null) {
-			throw new IllegalStateException("No simpSubscriptionId in " + message +
-					" returned by: " + returnType.getMethod());
-		}
-		if (destination == null) {
-			throw new IllegalStateException("No simpDestination in " + message +
-					" returned by: " + returnType.getMethod());
-		}
+        if (subscriptionId == null) {
+            throw new IllegalStateException("No simpSubscriptionId in " + message +
+                    " returned by: " + returnType.getMethod());
+        }
+        if (destination == null) {
+            throw new IllegalStateException("No simpDestination in " + message +
+                    " returned by: " + returnType.getMethod());
+        }
 
-		if (logger.isDebugEnabled()) {
-			logger.debug("Reply to @SubscribeMapping: " + returnValue);
-		}
-		MessageHeaders headersToSend = createHeaders(sessionId, subscriptionId, returnType);
-		this.messagingTemplate.convertAndSend(destination, returnValue, headersToSend);
-	}
+        if (logger.isDebugEnabled()) {
+            logger.debug("Reply to @SubscribeMapping: " + returnValue);
+        }
+        MessageHeaders headersToSend = createHeaders(sessionId, subscriptionId, returnType);
+        this.messagingTemplate.convertAndSend(destination, returnValue, headersToSend);
+    }
 
-	private MessageHeaders createHeaders(@Nullable String sessionId, String subscriptionId, MethodParameter returnType) {
-		SimpMessageHeaderAccessor accessor = SimpMessageHeaderAccessor.create(SimpMessageType.MESSAGE);
-		if (getHeaderInitializer() != null) {
-			getHeaderInitializer().initHeaders(accessor);
-		}
-		if (sessionId != null) {
-			accessor.setSessionId(sessionId);
-		}
-		accessor.setSubscriptionId(subscriptionId);
-		accessor.setHeader(SimpMessagingTemplate.CONVERSION_HINT_HEADER, returnType);
-		accessor.setLeaveMutable(true);
-		return accessor.getMessageHeaders();
-	}
+    private MessageHeaders createHeaders(@Nullable String sessionId, String subscriptionId, MethodParameter returnType) {
+        SimpMessageHeaderAccessor accessor = SimpMessageHeaderAccessor.create(SimpMessageType.MESSAGE);
+        if (getHeaderInitializer() != null) {
+            getHeaderInitializer().initHeaders(accessor);
+        }
+        if (sessionId != null) {
+            accessor.setSessionId(sessionId);
+        }
+        accessor.setSubscriptionId(subscriptionId);
+        accessor.setHeader(SimpMessagingTemplate.CONVERSION_HINT_HEADER, returnType);
+        accessor.setLeaveMutable(true);
+        return accessor.getMessageHeaders();
+    }
 
 }

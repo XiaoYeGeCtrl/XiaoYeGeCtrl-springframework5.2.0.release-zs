@@ -43,33 +43,33 @@ import static org.assertj.core.api.Assertions.assertThat;
 @TestPropertySource("SystemPropertyOverridePropertiesFileTestPropertySourceTests.properties")
 class SystemPropertyOverridePropertiesFileTestPropertySourceTests {
 
-	private static final String KEY = SystemPropertyOverridePropertiesFileTestPropertySourceTests.class.getSimpleName() + ".riddle";
+    private static final String KEY = SystemPropertyOverridePropertiesFileTestPropertySourceTests.class.getSimpleName() + ".riddle";
 
-	@Autowired
-	protected Environment env;
-
-
-	@BeforeAll
-	static void setSystemProperty() {
-		System.setProperty(KEY, "override me!");
-	}
-
-	@AfterAll
-	static void removeSystemProperty() {
-		System.setProperty(KEY, "");
-	}
-
-	@Test
-	void verifyPropertiesAreAvailableInEnvironment() {
-		assertThat(env.getProperty(KEY)).isEqualTo("enigma");
-	}
+    @Autowired
+    protected Environment env;
 
 
-	// -------------------------------------------------------------------
+    @BeforeAll
+    static void setSystemProperty() {
+        System.setProperty(KEY, "override me!");
+    }
 
-	@Configuration
-	static class Config {
-		/* no user beans required for these tests */
-	}
+    @AfterAll
+    static void removeSystemProperty() {
+        System.setProperty(KEY, "");
+    }
+
+    @Test
+    void verifyPropertiesAreAvailableInEnvironment() {
+        assertThat(env.getProperty(KEY)).isEqualTo("enigma");
+    }
+
+
+    // -------------------------------------------------------------------
+
+    @Configuration
+    static class Config {
+        /* no user beans required for these tests */
+    }
 
 }

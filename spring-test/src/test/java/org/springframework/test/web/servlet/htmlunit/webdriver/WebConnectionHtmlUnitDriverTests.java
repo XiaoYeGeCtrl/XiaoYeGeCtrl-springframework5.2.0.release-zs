@@ -43,32 +43,32 @@ import static org.mockito.BDDMockito.given;
 @MockitoSettings(strictness = Strictness.LENIENT)
 class WebConnectionHtmlUnitDriverTests {
 
-	private final WebConnectionHtmlUnitDriver driver = new WebConnectionHtmlUnitDriver();
+    private final WebConnectionHtmlUnitDriver driver = new WebConnectionHtmlUnitDriver();
 
-	@Mock
-	private WebConnection connection;
+    @Mock
+    private WebConnection connection;
 
-	@BeforeEach
-	void setup() throws Exception {
-		given(this.connection.getResponse(any(WebRequest.class))).willThrow(new IOException(""));
-	}
+    @BeforeEach
+    void setup() throws Exception {
+        given(this.connection.getResponse(any(WebRequest.class))).willThrow(new IOException(""));
+    }
 
 
-	@Test
-	void getWebConnectionDefaultNotNull() {
-		assertThat(this.driver.getWebConnection()).isNotNull();
-	}
+    @Test
+    void getWebConnectionDefaultNotNull() {
+        assertThat(this.driver.getWebConnection()).isNotNull();
+    }
 
-	@Test
-	void setWebConnectionToNull() {
-		assertThatIllegalArgumentException().isThrownBy(() -> this.driver.setWebConnection(null));
-	}
+    @Test
+    void setWebConnectionToNull() {
+        assertThatIllegalArgumentException().isThrownBy(() -> this.driver.setWebConnection(null));
+    }
 
-	@Test
-	public void setWebConnection() {
-		this.driver.setWebConnection(this.connection);
-		assertThat(this.driver.getWebConnection()).isEqualTo(this.connection);
-		assertThatExceptionOfType(WebDriverException.class).isThrownBy(() -> this.driver.get("https://example.com"));
-	}
+    @Test
+    public void setWebConnection() {
+        this.driver.setWebConnection(this.connection);
+        assertThat(this.driver.getWebConnection()).isEqualTo(this.connection);
+        assertThatExceptionOfType(WebDriverException.class).isThrownBy(() -> this.driver.get("https://example.com"));
+    }
 
 }

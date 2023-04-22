@@ -31,18 +31,18 @@ import org.springframework.scheduling.config.TaskManagementConfigUtils;
  * {@code @EnableScheduling}'s javadoc for complete usage details.
  *
  * @author Chris Beams
- * @since 3.1
  * @see EnableScheduling
  * @see ScheduledAnnotationBeanPostProcessor
+ * @since 3.1
  */
 @Configuration
 @Role(BeanDefinition.ROLE_INFRASTRUCTURE)
 public class SchedulingConfiguration {
 
-	@Bean(name = TaskManagementConfigUtils.SCHEDULED_ANNOTATION_PROCESSOR_BEAN_NAME)
-	@Role(BeanDefinition.ROLE_INFRASTRUCTURE)
-	public ScheduledAnnotationBeanPostProcessor scheduledAnnotationProcessor() {
-		return new ScheduledAnnotationBeanPostProcessor();
-	}
+    @Bean(name = TaskManagementConfigUtils.SCHEDULED_ANNOTATION_PROCESSOR_BEAN_NAME)
+    @Role(BeanDefinition.ROLE_INFRASTRUCTURE)
+    public ScheduledAnnotationBeanPostProcessor scheduledAnnotationProcessor() {
+        return new ScheduledAnnotationBeanPostProcessor();
+    }
 
 }

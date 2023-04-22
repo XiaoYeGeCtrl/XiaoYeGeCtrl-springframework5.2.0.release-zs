@@ -33,49 +33,48 @@ import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException
  */
 public class InputStreamEditorTests {
 
-	@Test
-	public void testCtorWithNullResourceEditor() throws Exception {
-		assertThatIllegalArgumentException().isThrownBy(() ->
-				new InputStreamEditor(null));
-	}
+    @Test
+    public void testCtorWithNullResourceEditor() throws Exception {
+        assertThatIllegalArgumentException().isThrownBy(() ->
+                new InputStreamEditor(null));
+    }
 
-	@Test
-	public void testSunnyDay() throws Exception {
-		InputStream stream = null;
-		try {
-			String resource = "classpath:" + ClassUtils.classPackageAsResourcePath(getClass()) +
-					"/" + ClassUtils.getShortName(getClass()) + ".class";
-			InputStreamEditor editor = new InputStreamEditor();
-			editor.setAsText(resource);
-			Object value = editor.getValue();
-			assertThat(value).isNotNull();
-			boolean condition = value instanceof InputStream;
-			assertThat(condition).isTrue();
-			stream = (InputStream) value;
-			assertThat(stream.available() > 0).isTrue();
-		}
-		finally {
-			if (stream != null) {
-				stream.close();
-			}
-		}
-	}
+    @Test
+    public void testSunnyDay() throws Exception {
+        InputStream stream = null;
+        try {
+            String resource = "classpath:" + ClassUtils.classPackageAsResourcePath(getClass()) +
+                    "/" + ClassUtils.getShortName(getClass()) + ".class";
+            InputStreamEditor editor = new InputStreamEditor();
+            editor.setAsText(resource);
+            Object value = editor.getValue();
+            assertThat(value).isNotNull();
+            boolean condition = value instanceof InputStream;
+            assertThat(condition).isTrue();
+            stream = (InputStream) value;
+            assertThat(stream.available() > 0).isTrue();
+        } finally {
+            if (stream != null) {
+                stream.close();
+            }
+        }
+    }
 
-	@Test
-	public void testWhenResourceDoesNotExist() throws Exception {
-		InputStreamEditor editor = new InputStreamEditor();
-		assertThatIllegalArgumentException().isThrownBy(() ->
-				editor.setAsText("classpath:bingo!"));
-	}
+    @Test
+    public void testWhenResourceDoesNotExist() throws Exception {
+        InputStreamEditor editor = new InputStreamEditor();
+        assertThatIllegalArgumentException().isThrownBy(() ->
+                editor.setAsText("classpath:bingo!"));
+    }
 
-	@Test
-	public void testGetAsTextReturnsNullByDefault() throws Exception {
-		assertThat(new InputStreamEditor().getAsText()).isNull();
-		String resource = "classpath:" + ClassUtils.classPackageAsResourcePath(getClass()) +
-				"/" + ClassUtils.getShortName(getClass()) + ".class";
-		InputStreamEditor editor = new InputStreamEditor();
-		editor.setAsText(resource);
-		assertThat(editor.getAsText()).isNull();
-	}
+    @Test
+    public void testGetAsTextReturnsNullByDefault() throws Exception {
+        assertThat(new InputStreamEditor().getAsText()).isNull();
+        String resource = "classpath:" + ClassUtils.classPackageAsResourcePath(getClass()) +
+                "/" + ClassUtils.getShortName(getClass()) + ".class";
+        InputStreamEditor editor = new InputStreamEditor();
+        editor.setAsText(resource);
+        assertThat(editor.getAsText()).isNull();
+    }
 
 }

@@ -47,172 +47,172 @@ import static org.mockito.Mockito.verify;
  */
 public class MarshallingViewTests {
 
-	private Marshaller marshallerMock;
+    private Marshaller marshallerMock;
 
-	private MarshallingView view;
-
-
-	@BeforeEach
-	public void createView() throws Exception {
-		marshallerMock = mock(Marshaller.class);
-		view = new MarshallingView(marshallerMock);
-	}
+    private MarshallingView view;
 
 
-	@Test
-	public void getContentType() {
-		assertThat(view.getContentType()).as("Invalid content type").isEqualTo("application/xml");
-	}
+    @BeforeEach
+    public void createView() throws Exception {
+        marshallerMock = mock(Marshaller.class);
+        view = new MarshallingView(marshallerMock);
+    }
 
-	@Test
-	public void isExposePathVars() {
-		assertThat(view.isExposePathVariables()).as("Must not expose path variables").isEqualTo(false);
-	}
 
-	@Test
-	public void isExposePathVarsDefaultConstructor() {
-		assertThat(new MarshallingView().isExposePathVariables()).as("Must not expose path variables").isEqualTo(false);
-	}
+    @Test
+    public void getContentType() {
+        assertThat(view.getContentType()).as("Invalid content type").isEqualTo("application/xml");
+    }
 
-	@Test
-	public void renderModelKey() throws Exception {
-		Object toBeMarshalled = new Object();
-		String modelKey = "key";
-		view.setModelKey(modelKey);
-		Map<String, Object> model = new HashMap<>();
-		model.put(modelKey, toBeMarshalled);
+    @Test
+    public void isExposePathVars() {
+        assertThat(view.isExposePathVariables()).as("Must not expose path variables").isEqualTo(false);
+    }
 
-		MockHttpServletRequest request = new MockHttpServletRequest();
-		MockHttpServletResponse response = new MockHttpServletResponse();
+    @Test
+    public void isExposePathVarsDefaultConstructor() {
+        assertThat(new MarshallingView().isExposePathVariables()).as("Must not expose path variables").isEqualTo(false);
+    }
 
-		given(marshallerMock.supports(Object.class)).willReturn(true);
-		marshallerMock.marshal(eq(toBeMarshalled), isA(StreamResult.class));
+    @Test
+    public void renderModelKey() throws Exception {
+        Object toBeMarshalled = new Object();
+        String modelKey = "key";
+        view.setModelKey(modelKey);
+        Map<String, Object> model = new HashMap<>();
+        model.put(modelKey, toBeMarshalled);
 
-		view.render(model, request, response);
-		assertThat(response.getContentType()).as("Invalid content type").isEqualTo("application/xml");
-		assertThat(response.getContentLength()).as("Invalid content length").isEqualTo(0);
-	}
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        MockHttpServletResponse response = new MockHttpServletResponse();
 
-	@Test
-	public void renderModelKeyWithJaxbElement() throws Exception {
-		String toBeMarshalled = "value";
-		String modelKey = "key";
-		view.setModelKey(modelKey);
-		Map<String, Object> model = new HashMap<>();
-		model.put(modelKey, new JAXBElement<>(new QName("model"), String.class, toBeMarshalled));
+        given(marshallerMock.supports(Object.class)).willReturn(true);
+        marshallerMock.marshal(eq(toBeMarshalled), isA(StreamResult.class));
 
-		MockHttpServletRequest request = new MockHttpServletRequest();
-		MockHttpServletResponse response = new MockHttpServletResponse();
+        view.render(model, request, response);
+        assertThat(response.getContentType()).as("Invalid content type").isEqualTo("application/xml");
+        assertThat(response.getContentLength()).as("Invalid content length").isEqualTo(0);
+    }
 
-		given(marshallerMock.supports(String.class)).willReturn(true);
-		marshallerMock.marshal(eq(toBeMarshalled), isA(StreamResult.class));
+    @Test
+    public void renderModelKeyWithJaxbElement() throws Exception {
+        String toBeMarshalled = "value";
+        String modelKey = "key";
+        view.setModelKey(modelKey);
+        Map<String, Object> model = new HashMap<>();
+        model.put(modelKey, new JAXBElement<>(new QName("model"), String.class, toBeMarshalled));
 
-		view.render(model, request, response);
-		assertThat(response.getContentType()).as("Invalid content type").isEqualTo("application/xml");
-		assertThat(response.getContentLength()).as("Invalid content length").isEqualTo(0);
-	}
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        MockHttpServletResponse response = new MockHttpServletResponse();
 
-	@Test
-	public void renderInvalidModelKey() throws Exception {
-		Object toBeMarshalled = new Object();
-		String modelKey = "key";
-		view.setModelKey("invalidKey");
-		Map<String, Object> model = new HashMap<>();
-		model.put(modelKey, toBeMarshalled);
+        given(marshallerMock.supports(String.class)).willReturn(true);
+        marshallerMock.marshal(eq(toBeMarshalled), isA(StreamResult.class));
 
-		MockHttpServletRequest request = new MockHttpServletRequest();
-		MockHttpServletResponse response = new MockHttpServletResponse();
+        view.render(model, request, response);
+        assertThat(response.getContentType()).as("Invalid content type").isEqualTo("application/xml");
+        assertThat(response.getContentLength()).as("Invalid content length").isEqualTo(0);
+    }
 
-		assertThatIllegalStateException().isThrownBy(() ->
-				view.render(model, request, response));
+    @Test
+    public void renderInvalidModelKey() throws Exception {
+        Object toBeMarshalled = new Object();
+        String modelKey = "key";
+        view.setModelKey("invalidKey");
+        Map<String, Object> model = new HashMap<>();
+        model.put(modelKey, toBeMarshalled);
 
-		assertThat(response.getContentLength()).as("Invalid content length").isEqualTo(0);
-	}
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        MockHttpServletResponse response = new MockHttpServletResponse();
 
-	@Test
-	public void renderNullModelValue() throws Exception {
-		String modelKey = "key";
-		Map<String, Object> model = new HashMap<>();
-		model.put(modelKey, null);
+        assertThatIllegalStateException().isThrownBy(() ->
+                view.render(model, request, response));
 
-		MockHttpServletRequest request = new MockHttpServletRequest();
-		MockHttpServletResponse response = new MockHttpServletResponse();
+        assertThat(response.getContentLength()).as("Invalid content length").isEqualTo(0);
+    }
 
-		assertThatIllegalStateException().isThrownBy(() ->
-				view.render(model, request, response));
+    @Test
+    public void renderNullModelValue() throws Exception {
+        String modelKey = "key";
+        Map<String, Object> model = new HashMap<>();
+        model.put(modelKey, null);
 
-		assertThat(response.getContentLength()).as("Invalid content length").isEqualTo(0);
-	}
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        MockHttpServletResponse response = new MockHttpServletResponse();
 
-	@Test
-	public void renderModelKeyUnsupported() throws Exception {
-		Object toBeMarshalled = new Object();
-		String modelKey = "key";
-		view.setModelKey(modelKey);
-		Map<String, Object> model = new HashMap<>();
-		model.put(modelKey, toBeMarshalled);
+        assertThatIllegalStateException().isThrownBy(() ->
+                view.render(model, request, response));
 
-		MockHttpServletRequest request = new MockHttpServletRequest();
-		MockHttpServletResponse response = new MockHttpServletResponse();
+        assertThat(response.getContentLength()).as("Invalid content length").isEqualTo(0);
+    }
 
-		given(marshallerMock.supports(Object.class)).willReturn(false);
+    @Test
+    public void renderModelKeyUnsupported() throws Exception {
+        Object toBeMarshalled = new Object();
+        String modelKey = "key";
+        view.setModelKey(modelKey);
+        Map<String, Object> model = new HashMap<>();
+        model.put(modelKey, toBeMarshalled);
 
-		assertThatIllegalStateException().isThrownBy(() ->
-				view.render(model, request, response));
-	}
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        MockHttpServletResponse response = new MockHttpServletResponse();
 
-	@Test
-	public void renderNoModelKey() throws Exception {
-		Object toBeMarshalled = new Object();
-		String modelKey = "key";
-		Map<String, Object> model = new HashMap<>();
-		model.put(modelKey, toBeMarshalled);
+        given(marshallerMock.supports(Object.class)).willReturn(false);
 
-		MockHttpServletRequest request = new MockHttpServletRequest();
-		MockHttpServletResponse response = new MockHttpServletResponse();
+        assertThatIllegalStateException().isThrownBy(() ->
+                view.render(model, request, response));
+    }
 
-		given(marshallerMock.supports(Object.class)).willReturn(true);
+    @Test
+    public void renderNoModelKey() throws Exception {
+        Object toBeMarshalled = new Object();
+        String modelKey = "key";
+        Map<String, Object> model = new HashMap<>();
+        model.put(modelKey, toBeMarshalled);
 
-		view.render(model, request, response);
-		assertThat(response.getContentType()).as("Invalid content type").isEqualTo("application/xml");
-		assertThat(response.getContentLength()).as("Invalid content length").isEqualTo(0);
-		verify(marshallerMock).marshal(eq(toBeMarshalled), isA(StreamResult.class));
-	}
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        MockHttpServletResponse response = new MockHttpServletResponse();
 
-	@Test
-	public void renderNoModelKeyAndBindingResultFirst() throws Exception {
-		Object toBeMarshalled = new Object();
-		String modelKey = "key";
-		Map<String, Object> model = new LinkedHashMap<>();
-		model.put(BindingResult.MODEL_KEY_PREFIX + modelKey, new BeanPropertyBindingResult(toBeMarshalled, modelKey));
-		model.put(modelKey, toBeMarshalled);
+        given(marshallerMock.supports(Object.class)).willReturn(true);
 
-		MockHttpServletRequest request = new MockHttpServletRequest();
-		MockHttpServletResponse response = new MockHttpServletResponse();
+        view.render(model, request, response);
+        assertThat(response.getContentType()).as("Invalid content type").isEqualTo("application/xml");
+        assertThat(response.getContentLength()).as("Invalid content length").isEqualTo(0);
+        verify(marshallerMock).marshal(eq(toBeMarshalled), isA(StreamResult.class));
+    }
 
-		given(marshallerMock.supports(BeanPropertyBindingResult.class)).willReturn(true);
-		given(marshallerMock.supports(Object.class)).willReturn(true);
+    @Test
+    public void renderNoModelKeyAndBindingResultFirst() throws Exception {
+        Object toBeMarshalled = new Object();
+        String modelKey = "key";
+        Map<String, Object> model = new LinkedHashMap<>();
+        model.put(BindingResult.MODEL_KEY_PREFIX + modelKey, new BeanPropertyBindingResult(toBeMarshalled, modelKey));
+        model.put(modelKey, toBeMarshalled);
 
-		view.render(model, request, response);
-		assertThat(response.getContentType()).as("Invalid content type").isEqualTo("application/xml");
-		assertThat(response.getContentLength()).as("Invalid content length").isEqualTo(0);
-		verify(marshallerMock).marshal(eq(toBeMarshalled), isA(StreamResult.class));
-	}
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        MockHttpServletResponse response = new MockHttpServletResponse();
 
-	@Test
-	public void testRenderUnsupportedModel() throws Exception {
-		Object toBeMarshalled = new Object();
-		String modelKey = "key";
-		Map<String, Object> model = new HashMap<>();
-		model.put(modelKey, toBeMarshalled);
+        given(marshallerMock.supports(BeanPropertyBindingResult.class)).willReturn(true);
+        given(marshallerMock.supports(Object.class)).willReturn(true);
 
-		MockHttpServletRequest request = new MockHttpServletRequest();
-		MockHttpServletResponse response = new MockHttpServletResponse();
+        view.render(model, request, response);
+        assertThat(response.getContentType()).as("Invalid content type").isEqualTo("application/xml");
+        assertThat(response.getContentLength()).as("Invalid content length").isEqualTo(0);
+        verify(marshallerMock).marshal(eq(toBeMarshalled), isA(StreamResult.class));
+    }
 
-		given(marshallerMock.supports(Object.class)).willReturn(false);
+    @Test
+    public void testRenderUnsupportedModel() throws Exception {
+        Object toBeMarshalled = new Object();
+        String modelKey = "key";
+        Map<String, Object> model = new HashMap<>();
+        model.put(modelKey, toBeMarshalled);
 
-		assertThatIllegalStateException().isThrownBy(() ->
-				view.render(model, request, response));
-	}
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        MockHttpServletResponse response = new MockHttpServletResponse();
+
+        given(marshallerMock.supports(Object.class)).willReturn(false);
+
+        assertThatIllegalStateException().isThrownBy(() ->
+                view.render(model, request, response));
+    }
 
 }

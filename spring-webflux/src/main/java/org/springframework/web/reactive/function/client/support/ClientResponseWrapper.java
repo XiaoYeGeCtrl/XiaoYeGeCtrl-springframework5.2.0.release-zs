@@ -48,150 +48,152 @@ import org.springframework.web.reactive.function.client.WebClientResponseExcepti
  */
 public class ClientResponseWrapper implements ClientResponse {
 
-	private final ClientResponse delegate;
+    private final ClientResponse delegate;
 
 
-	/**
-	 * Create a new {@code ClientResponseWrapper} that wraps the given response.
-	 * @param delegate the response to wrap
-	 */
-	public ClientResponseWrapper(ClientResponse delegate) {
-		Assert.notNull(delegate, "Delegate is required");
-		this.delegate = delegate;
-	}
+    /**
+     * Create a new {@code ClientResponseWrapper} that wraps the given response.
+     *
+     * @param delegate the response to wrap
+     */
+    public ClientResponseWrapper(ClientResponse delegate) {
+        Assert.notNull(delegate, "Delegate is required");
+        this.delegate = delegate;
+    }
 
 
-	/**
-	 * Return the wrapped request.
-	 */
-	public ClientResponse response() {
-		return this.delegate;
-	}
+    /**
+     * Return the wrapped request.
+     */
+    public ClientResponse response() {
+        return this.delegate;
+    }
 
-	@Override
-	public ExchangeStrategies strategies() {
-		return this.delegate.strategies();
-	}
+    @Override
+    public ExchangeStrategies strategies() {
+        return this.delegate.strategies();
+    }
 
-	@Override
-	public HttpStatus statusCode() {
-		return this.delegate.statusCode();
-	}
+    @Override
+    public HttpStatus statusCode() {
+        return this.delegate.statusCode();
+    }
 
-	@Override
-	public int rawStatusCode() {
-		return this.delegate.rawStatusCode();
-	}
+    @Override
+    public int rawStatusCode() {
+        return this.delegate.rawStatusCode();
+    }
 
-	@Override
-	public Headers headers() {
-		return this.delegate.headers();
-	}
+    @Override
+    public Headers headers() {
+        return this.delegate.headers();
+    }
 
-	@Override
-	public MultiValueMap<String, ResponseCookie> cookies() {
-		return this.delegate.cookies();
-	}
+    @Override
+    public MultiValueMap<String, ResponseCookie> cookies() {
+        return this.delegate.cookies();
+    }
 
-	@Override
-	public <T> T body(BodyExtractor<T, ? super ClientHttpResponse> extractor) {
-		return this.delegate.body(extractor);
-	}
+    @Override
+    public <T> T body(BodyExtractor<T, ? super ClientHttpResponse> extractor) {
+        return this.delegate.body(extractor);
+    }
 
-	@Override
-	public <T> Mono<T> bodyToMono(Class<? extends T> elementClass) {
-		return this.delegate.bodyToMono(elementClass);
-	}
+    @Override
+    public <T> Mono<T> bodyToMono(Class<? extends T> elementClass) {
+        return this.delegate.bodyToMono(elementClass);
+    }
 
-	@Override
-	public <T> Mono<T> bodyToMono(ParameterizedTypeReference<T> elementTypeRef) {
-		return this.delegate.bodyToMono(elementTypeRef);
-	}
+    @Override
+    public <T> Mono<T> bodyToMono(ParameterizedTypeReference<T> elementTypeRef) {
+        return this.delegate.bodyToMono(elementTypeRef);
+    }
 
-	@Override
-	public <T> Flux<T> bodyToFlux(Class<? extends T> elementClass) {
-		return this.delegate.bodyToFlux(elementClass);
-	}
+    @Override
+    public <T> Flux<T> bodyToFlux(Class<? extends T> elementClass) {
+        return this.delegate.bodyToFlux(elementClass);
+    }
 
-	@Override
-	public <T> Flux<T> bodyToFlux(ParameterizedTypeReference<T> elementTypeRef) {
-		return this.delegate.bodyToFlux(elementTypeRef);
-	}
+    @Override
+    public <T> Flux<T> bodyToFlux(ParameterizedTypeReference<T> elementTypeRef) {
+        return this.delegate.bodyToFlux(elementTypeRef);
+    }
 
-	@Override
-	public Mono<Void> releaseBody() {
-		return this.delegate.releaseBody();
-	}
+    @Override
+    public Mono<Void> releaseBody() {
+        return this.delegate.releaseBody();
+    }
 
-	@Override
-	public Mono<ResponseEntity<Void>> toBodilessEntity() {
-		return this.delegate.toBodilessEntity();
-	}
+    @Override
+    public Mono<ResponseEntity<Void>> toBodilessEntity() {
+        return this.delegate.toBodilessEntity();
+    }
 
-	@Override
-	public <T> Mono<ResponseEntity<T>> toEntity(Class<T> bodyType) {
-		return this.delegate.toEntity(bodyType);
-	}
+    @Override
+    public <T> Mono<ResponseEntity<T>> toEntity(Class<T> bodyType) {
+        return this.delegate.toEntity(bodyType);
+    }
 
-	@Override
-	public <T> Mono<ResponseEntity<T>> toEntity(ParameterizedTypeReference<T> bodyTypeReference) {
-		return this.delegate.toEntity(bodyTypeReference);
-	}
+    @Override
+    public <T> Mono<ResponseEntity<T>> toEntity(ParameterizedTypeReference<T> bodyTypeReference) {
+        return this.delegate.toEntity(bodyTypeReference);
+    }
 
-	@Override
-	public <T> Mono<ResponseEntity<List<T>>> toEntityList(Class<T> elementClass) {
-		return this.delegate.toEntityList(elementClass);
-	}
+    @Override
+    public <T> Mono<ResponseEntity<List<T>>> toEntityList(Class<T> elementClass) {
+        return this.delegate.toEntityList(elementClass);
+    }
 
-	@Override
-	public <T> Mono<ResponseEntity<List<T>>> toEntityList(ParameterizedTypeReference<T> elementTypeRef) {
-		return this.delegate.toEntityList(elementTypeRef);
-	}
+    @Override
+    public <T> Mono<ResponseEntity<List<T>>> toEntityList(ParameterizedTypeReference<T> elementTypeRef) {
+        return this.delegate.toEntityList(elementTypeRef);
+    }
 
-	@Override
-	public Mono<WebClientResponseException> createException() {
-		return this.delegate.createException();
-	}
+    @Override
+    public Mono<WebClientResponseException> createException() {
+        return this.delegate.createException();
+    }
 
-	/**
-	 * Implementation of the {@code Headers} interface that can be subclassed
-	  * to adapt the headers in a
-	  * {@link org.springframework.web.reactive.function.client.ExchangeFilterFunction exchange filter function}.
-	  * All methods default to calling through to the wrapped request.
-	 */
-	public static class HeadersWrapper implements ClientResponse.Headers {
+    /**
+     * Implementation of the {@code Headers} interface that can be subclassed
+     * to adapt the headers in a
+     * {@link org.springframework.web.reactive.function.client.ExchangeFilterFunction exchange filter function}.
+     * All methods default to calling through to the wrapped request.
+     */
+    public static class HeadersWrapper implements ClientResponse.Headers {
 
-		private final Headers headers;
-
-
-		/**
-		 * Create a new {@code HeadersWrapper} that wraps the given request.
-		 * @param headers the headers to wrap
-		 */
-		public HeadersWrapper(Headers headers) {
-			this.headers = headers;
-		}
+        private final Headers headers;
 
 
-		@Override
-		public OptionalLong contentLength() {
-			return this.headers.contentLength();
-		}
+        /**
+         * Create a new {@code HeadersWrapper} that wraps the given request.
+         *
+         * @param headers the headers to wrap
+         */
+        public HeadersWrapper(Headers headers) {
+            this.headers = headers;
+        }
 
-		@Override
-		public Optional<MediaType> contentType() {
-			return this.headers.contentType();
-		}
 
-		@Override
-		public List<String> header(String headerName) {
-			return this.headers.header(headerName);
-		}
+        @Override
+        public OptionalLong contentLength() {
+            return this.headers.contentLength();
+        }
 
-		@Override
-		public HttpHeaders asHttpHeaders() {
-			return this.headers.asHttpHeaders();
-		}
-	}
+        @Override
+        public Optional<MediaType> contentType() {
+            return this.headers.contentType();
+        }
+
+        @Override
+        public List<String> header(String headerName) {
+            return this.headers.header(headerName);
+        }
+
+        @Override
+        public HttpHeaders asHttpHeaders() {
+            return this.headers.asHttpHeaders();
+        }
+    }
 
 }

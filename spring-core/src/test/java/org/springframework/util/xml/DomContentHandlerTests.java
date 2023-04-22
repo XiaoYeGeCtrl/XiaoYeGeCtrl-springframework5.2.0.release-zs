@@ -37,69 +37,70 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 class DomContentHandlerTests {
 
-	private static final String XML_1 =
-			"<?xml version='1.0' encoding='UTF-8'?>" + "<?pi content?>" + "<root xmlns='namespace'>" +
-					"<prefix:child xmlns:prefix='namespace2' xmlns:prefix2='namespace3' prefix2:attr='value'>content</prefix:child>" +
-					"</root>";
+    private static final String XML_1 =
+            "<?xml version='1.0' encoding='UTF-8'?>" + "<?pi content?>" + "<root xmlns='namespace'>" +
+                    "<prefix:child xmlns:prefix='namespace2' xmlns:prefix2='namespace3' prefix2:attr='value'>content</prefix:child>" +
+                    "</root>";
 
-	private static final String XML_2_EXPECTED =
-			"<?xml version='1.0' encoding='UTF-8'?>" + "<root xmlns='namespace'>" + "<child xmlns='namespace2' />" +
-					"</root>";
+    private static final String XML_2_EXPECTED =
+            "<?xml version='1.0' encoding='UTF-8'?>" + "<root xmlns='namespace'>" + "<child xmlns='namespace2' />" +
+                    "</root>";
 
-	private static final String XML_2_SNIPPET =
-			"<?xml version='1.0' encoding='UTF-8'?>" + "<child xmlns='namespace2' />";
-
-
-	private Document expected;
-
-	private DomContentHandler handler;
-
-	private Document result;
-
-	private XMLReader xmlReader;
-
-	private DocumentBuilder documentBuilder;
+    private static final String XML_2_SNIPPET =
+            "<?xml version='1.0' encoding='UTF-8'?>" + "<child xmlns='namespace2' />";
 
 
-	@BeforeEach
-	@SuppressWarnings("deprecation")  // on JDK 9
-	void setUp() throws Exception {
-		DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
-		documentBuilderFactory.setNamespaceAware(true);
-		documentBuilder = documentBuilderFactory.newDocumentBuilder();
-		result = documentBuilder.newDocument();
-		xmlReader = org.xml.sax.helpers.XMLReaderFactory.createXMLReader();
-	}
+    private Document expected;
+
+    private DomContentHandler handler;
+
+    private Document result;
+
+    private XMLReader xmlReader;
+
+    private DocumentBuilder documentBuilder;
 
 
-	@Test
-	void contentHandlerDocumentNamespacePrefixes() throws Exception {
-		xmlReader.setFeature("http://xml.org/sax/features/namespace-prefixes", true);
-		handler = new DomContentHandler(result);
-		expected = documentBuilder.parse(new InputSource(new StringReader(XML_1)));
-		xmlReader.setContentHandler(handler);
-		xmlReader.parse(new InputSource(new StringReader(XML_1)));
-		assertThat(XmlContent.of(result)).as("Invalid result").isSimilarTo(expected);
-	}
+    @BeforeEach
+    @SuppressWarnings("deprecation")
+        // on JDK 9
+    void setUp() throws Exception {
+        DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
+        documentBuilderFactory.setNamespaceAware(true);
+        documentBuilder = documentBuilderFactory.newDocumentBuilder();
+        result = documentBuilder.newDocument();
+        xmlReader = org.xml.sax.helpers.XMLReaderFactory.createXMLReader();
+    }
 
-	@Test
-	void contentHandlerDocumentNoNamespacePrefixes() throws Exception {
-		handler = new DomContentHandler(result);
-		expected = documentBuilder.parse(new InputSource(new StringReader(XML_1)));
-		xmlReader.setContentHandler(handler);
-		xmlReader.parse(new InputSource(new StringReader(XML_1)));
-		assertThat(XmlContent.of(result)).as("Invalid result").isSimilarTo(expected);
-	}
 
-	@Test
-	void contentHandlerElement() throws Exception {
-		Element rootElement = result.createElementNS("namespace", "root");
-		result.appendChild(rootElement);
-		handler = new DomContentHandler(rootElement);
-		expected = documentBuilder.parse(new InputSource(new StringReader(XML_2_EXPECTED)));
-		xmlReader.setContentHandler(handler);
-		xmlReader.parse(new InputSource(new StringReader(XML_2_SNIPPET)));
-		assertThat(XmlContent.of(result)).as("Invalid result").isSimilarTo(expected);
-	}
+    @Test
+    void contentHandlerDocumentNamespacePrefixes() throws Exception {
+        xmlReader.setFeature("http://xml.org/sax/features/namespace-prefixes", true);
+        handler = new DomContentHandler(result);
+        expected = documentBuilder.parse(new InputSource(new StringReader(XML_1)));
+        xmlReader.setContentHandler(handler);
+        xmlReader.parse(new InputSource(new StringReader(XML_1)));
+        assertThat(XmlContent.of(result)).as("Invalid result").isSimilarTo(expected);
+    }
+
+    @Test
+    void contentHandlerDocumentNoNamespacePrefixes() throws Exception {
+        handler = new DomContentHandler(result);
+        expected = documentBuilder.parse(new InputSource(new StringReader(XML_1)));
+        xmlReader.setContentHandler(handler);
+        xmlReader.parse(new InputSource(new StringReader(XML_1)));
+        assertThat(XmlContent.of(result)).as("Invalid result").isSimilarTo(expected);
+    }
+
+    @Test
+    void contentHandlerElement() throws Exception {
+        Element rootElement = result.createElementNS("namespace", "root");
+        result.appendChild(rootElement);
+        handler = new DomContentHandler(rootElement);
+        expected = documentBuilder.parse(new InputSource(new StringReader(XML_2_EXPECTED)));
+        xmlReader.setContentHandler(handler);
+        xmlReader.parse(new InputSource(new StringReader(XML_2_SNIPPET)));
+        assertThat(XmlContent.of(result)).as("Invalid result").isSimilarTo(expected);
+    }
 
 }

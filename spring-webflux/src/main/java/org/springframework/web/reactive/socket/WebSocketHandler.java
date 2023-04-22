@@ -40,21 +40,21 @@ import reactor.core.publisher.Mono;
  *
  * <pre class="code">
  * class ExampleHandler implements WebSocketHandler {
-
+ *
  * 	&#064;Override
  * 	public Mono&lt;Void&gt; handle(WebSocketSession session) {
  *
  * 		Flux&lt;WebSocketMessage&gt; output = session.receive()
- *			.doOnNext(message -> {
+ * 			.doOnNext(message -> {
  * 				// ...
- * 			})
+ *            })
  * 			.concatMap(message -> {
  * 				// ...
- * 			})
+ *            })
  * 			.map(value -> session.textMessage("Echo " + value));
  *
  * 		return session.send(output);
- * 	}
+ *    }
  * }
  * </pre>
  *
@@ -63,24 +63,24 @@ import reactor.core.publisher.Mono;
  *
  * <pre class="code">
  * class ExampleHandler implements WebSocketHandler {
-
+ *
  * 	&#064;Override
  * 	public Mono&lt;Void&gt; handle(WebSocketSession session) {
  *
  * 		Mono&lt;Void&gt; input = session.receive()
- *			.doOnNext(message -> {
+ * 			.doOnNext(message -> {
  * 				// ...
- * 			})
+ *            })
  * 			.concatMap(message -> {
  * 				// ...
- * 			})
+ *            })
  * 			.then();
  *
- *		Flux&lt;String&gt; source = ... ;
+ * 		Flux&lt;String&gt; source = ... ;
  * 		Mono&lt;Void&gt; output = session.send(source.map(session::textMessage));
  *
  * 		return Mono.zip(input, output).then();
- * 	}
+ *    }
  * }
  * </pre>
  *
@@ -96,27 +96,27 @@ import reactor.core.publisher.Mono;
  */
 public interface WebSocketHandler {
 
-	/**
-	 * Return the list of sub-protocols supported by this handler.
-	 * <p>By default an empty list is returned.
-	 */
-	default List<String> getSubProtocols() {
-		return Collections.emptyList();
-	}
+    /**
+     * Return the list of sub-protocols supported by this handler.
+     * <p>By default an empty list is returned.
+     */
+    default List<String> getSubProtocols() {
+        return Collections.emptyList();
+    }
 
-	/**
-	 * Invoked when a new WebSocket connection is established, and allows
-	 * handling of the session.
-	 *
-	 * <p>See the class-level doc and the reference for more details and
-	 * examples of how to handle the session.
-	 *
-	 * @param session the session to handle
-	 * @return indicates when appilcation handling of the session is complete,
-	 * which should reflect the completion of the inbound message stream
-	 * (i.e. connection closing) and possibly the completion of the outbound
-	 * message stream and the writing of messages.
-	 */
-	Mono<Void> handle(WebSocketSession session);
+    /**
+     * Invoked when a new WebSocket connection is established, and allows
+     * handling of the session.
+     *
+     * <p>See the class-level doc and the reference for more details and
+     * examples of how to handle the session.
+     *
+     * @param session the session to handle
+     * @return indicates when appilcation handling of the session is complete,
+     * which should reflect the completion of the inbound message stream
+     * (i.e. connection closing) and possibly the completion of the outbound
+     * message stream and the writing of messages.
+     */
+    Mono<Void> handle(WebSocketSession session);
 
 }

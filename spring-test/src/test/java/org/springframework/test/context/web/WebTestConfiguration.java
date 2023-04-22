@@ -39,8 +39,8 @@ public @interface WebTestConfiguration {
 @Configuration
 class FooConfig {
 
-	@Bean
-	public String foo() {
-		return "enigma";
-	}
+    @Bean
+    public String foo() {
+        return "enigma";
+    }
 }

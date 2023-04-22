@@ -31,48 +31,48 @@ import org.springframework.transaction.support.TransactionSynchronizationUtils;
  * Applied when participating in an existing (non-Spring) JTA transaction.
  *
  * @author Juergen Hoeller
- * @since 2.0
  * @see TransactionSynchronization#afterCommit
  * @see TransactionSynchronization#afterCompletion
+ * @since 2.0
  */
 public class JtaAfterCompletionSynchronization implements Synchronization {
 
-	private final List<TransactionSynchronization> synchronizations;
+    private final List<TransactionSynchronization> synchronizations;
 
 
-	/**
-	 * Create a new JtaAfterCompletionSynchronization for the given synchronization objects.
-	 * @param synchronizations the List of TransactionSynchronization objects
-	 * @see org.springframework.transaction.support.TransactionSynchronization
-	 */
-	public JtaAfterCompletionSynchronization(List<TransactionSynchronization> synchronizations) {
-		this.synchronizations = synchronizations;
-	}
+    /**
+     * Create a new JtaAfterCompletionSynchronization for the given synchronization objects.
+     *
+     * @param synchronizations the List of TransactionSynchronization objects
+     * @see org.springframework.transaction.support.TransactionSynchronization
+     */
+    public JtaAfterCompletionSynchronization(List<TransactionSynchronization> synchronizations) {
+        this.synchronizations = synchronizations;
+    }
 
 
-	@Override
-	public void beforeCompletion() {
-	}
+    @Override
+    public void beforeCompletion() {
+    }
 
-	@Override
-	public void afterCompletion(int status) {
-		switch (status) {
-			case Status.STATUS_COMMITTED:
-				try {
-					TransactionSynchronizationUtils.invokeAfterCommit(this.synchronizations);
-				}
-				finally {
-					TransactionSynchronizationUtils.invokeAfterCompletion(
-							this.synchronizations, TransactionSynchronization.STATUS_COMMITTED);
-				}
-				break;
-			case Status.STATUS_ROLLEDBACK:
-				TransactionSynchronizationUtils.invokeAfterCompletion(
-						this.synchronizations, TransactionSynchronization.STATUS_ROLLED_BACK);
-				break;
-			default:
-				TransactionSynchronizationUtils.invokeAfterCompletion(
-						this.synchronizations, TransactionSynchronization.STATUS_UNKNOWN);
-		}
-	}
+    @Override
+    public void afterCompletion(int status) {
+        switch (status) {
+            case Status.STATUS_COMMITTED:
+                try {
+                    TransactionSynchronizationUtils.invokeAfterCommit(this.synchronizations);
+                } finally {
+                    TransactionSynchronizationUtils.invokeAfterCompletion(
+                            this.synchronizations, TransactionSynchronization.STATUS_COMMITTED);
+                }
+                break;
+            case Status.STATUS_ROLLEDBACK:
+                TransactionSynchronizationUtils.invokeAfterCompletion(
+                        this.synchronizations, TransactionSynchronization.STATUS_ROLLED_BACK);
+                break;
+            default:
+                TransactionSynchronizationUtils.invokeAfterCompletion(
+                        this.synchronizations, TransactionSynchronization.STATUS_UNKNOWN);
+        }
+    }
 }

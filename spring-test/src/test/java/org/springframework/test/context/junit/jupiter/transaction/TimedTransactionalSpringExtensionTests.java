@@ -50,75 +50,75 @@ import static org.springframework.test.transaction.TransactionAssert.assertThatT
  * Jupiter's {@link Timeout @Timeout}.
  *
  * @author Sam Brannen
- * @since 5.2
  * @see org.springframework.test.context.junit4.TimedTransactionalSpringRunnerTests
+ * @since 5.2
  */
 class TimedTransactionalSpringExtensionTests {
 
-	@Test
-	void springTransactionsWorkWithJUnitJupiterTimeouts() {
-		Events events = EngineTestKit.engine("junit-jupiter")
-				.selectors(selectClass(TestCase.class))
-				.execute()
-				.tests()
-				.assertStatistics(stats -> stats.started(4).succeeded(2).failed(2));
+    @Test
+    void springTransactionsWorkWithJUnitJupiterTimeouts() {
+        Events events = EngineTestKit.engine("junit-jupiter")
+                .selectors(selectClass(TestCase.class))
+                .execute()
+                .tests()
+                .assertStatistics(stats -> stats.started(4).succeeded(2).failed(2));
 
-		events.failed().assertThatEvents().haveExactly(2,
-			event(test("WithExceededJUnitJupiterTimeout"),
-				finishedWithFailure(
-					instanceOf(TimeoutException.class),
-					message(msg -> msg.endsWith("timed out after 50 milliseconds")))));
-	}
-
-
-	@SpringJUnitConfig
-	@Transactional
-	@FailingTestCase
-	static class TestCase {
-
-		@Test
-		@Timeout(1)
-		void transactionalWithJUnitJupiterTimeout() {
-			assertThatTransaction().isActive();
-		}
-
-		@Test
-		@Timeout(value = 50, unit = TimeUnit.MILLISECONDS)
-		void transactionalWithExceededJUnitJupiterTimeout() throws Exception {
-			assertThatTransaction().isActive();
-			Thread.sleep(100);
-		}
-
-		@Test
-		@Timeout(1)
-		@Transactional(propagation = Propagation.NOT_SUPPORTED)
-		void notTransactionalWithJUnitJupiterTimeout() {
-			assertThatTransaction().isNotActive();
-		}
-
-		@Test
-		@Timeout(value = 50, unit = TimeUnit.MILLISECONDS)
-		@Transactional(propagation = Propagation.NOT_SUPPORTED)
-		void notTransactionalWithExceededJUnitJupiterTimeout() throws Exception {
-			assertThatTransaction().isNotActive();
-			Thread.sleep(100);
-		}
+        events.failed().assertThatEvents().haveExactly(2,
+                event(test("WithExceededJUnitJupiterTimeout"),
+                        finishedWithFailure(
+                                instanceOf(TimeoutException.class),
+                                message(msg -> msg.endsWith("timed out after 50 milliseconds")))));
+    }
 
 
-		@Configuration
-		static class Config {
+    @SpringJUnitConfig
+    @Transactional
+    @FailingTestCase
+    static class TestCase {
 
-			@Bean
-			PlatformTransactionManager transactionManager(DataSource dataSource) {
-				return new DataSourceTransactionManager(dataSource);
-			}
+        @Test
+        @Timeout(1)
+        void transactionalWithJUnitJupiterTimeout() {
+            assertThatTransaction().isActive();
+        }
 
-			@Bean
-			DataSource dataSource() {
-				return new EmbeddedDatabaseBuilder().generateUniqueName(true).build();
-			}
-		}
+        @Test
+        @Timeout(value = 50, unit = TimeUnit.MILLISECONDS)
+        void transactionalWithExceededJUnitJupiterTimeout() throws Exception {
+            assertThatTransaction().isActive();
+            Thread.sleep(100);
+        }
 
-	}
+        @Test
+        @Timeout(1)
+        @Transactional(propagation = Propagation.NOT_SUPPORTED)
+        void notTransactionalWithJUnitJupiterTimeout() {
+            assertThatTransaction().isNotActive();
+        }
+
+        @Test
+        @Timeout(value = 50, unit = TimeUnit.MILLISECONDS)
+        @Transactional(propagation = Propagation.NOT_SUPPORTED)
+        void notTransactionalWithExceededJUnitJupiterTimeout() throws Exception {
+            assertThatTransaction().isNotActive();
+            Thread.sleep(100);
+        }
+
+
+        @Configuration
+        static class Config {
+
+            @Bean
+            PlatformTransactionManager transactionManager(DataSource dataSource) {
+                return new DataSourceTransactionManager(dataSource);
+            }
+
+            @Bean
+            DataSource dataSource() {
+                return new EmbeddedDatabaseBuilder().generateUniqueName(true).build();
+            }
+        }
+
+    }
 
 }

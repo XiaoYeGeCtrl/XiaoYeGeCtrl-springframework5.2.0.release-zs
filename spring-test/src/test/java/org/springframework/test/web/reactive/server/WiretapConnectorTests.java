@@ -44,23 +44,23 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 public class WiretapConnectorTests {
 
-	@Test
-	public void captureAndClaim() {
-		ClientHttpRequest request = new MockClientHttpRequest(HttpMethod.GET, "/test");
-		ClientHttpResponse response = new MockClientHttpResponse(HttpStatus.OK);
-		ClientHttpConnector connector = (method, uri, fn) -> fn.apply(request).then(Mono.just(response));
+    @Test
+    public void captureAndClaim() {
+        ClientHttpRequest request = new MockClientHttpRequest(HttpMethod.GET, "/test");
+        ClientHttpResponse response = new MockClientHttpResponse(HttpStatus.OK);
+        ClientHttpConnector connector = (method, uri, fn) -> fn.apply(request).then(Mono.just(response));
 
-		ClientRequest clientRequest = ClientRequest.create(HttpMethod.GET, URI.create("/test"))
-				.header(WebTestClient.WEBTESTCLIENT_REQUEST_ID, "1").build();
+        ClientRequest clientRequest = ClientRequest.create(HttpMethod.GET, URI.create("/test"))
+                .header(WebTestClient.WEBTESTCLIENT_REQUEST_ID, "1").build();
 
-		WiretapConnector wiretapConnector = new WiretapConnector(connector);
-		ExchangeFunction function = ExchangeFunctions.create(wiretapConnector);
-		function.exchange(clientRequest).block(ofMillis(0));
+        WiretapConnector wiretapConnector = new WiretapConnector(connector);
+        ExchangeFunction function = ExchangeFunctions.create(wiretapConnector);
+        function.exchange(clientRequest).block(ofMillis(0));
 
-		WiretapConnector.Info actual = wiretapConnector.claimRequest("1");
-		ExchangeResult result = actual.createExchangeResult(Duration.ZERO, null);
-		assertThat(result.getMethod()).isEqualTo(HttpMethod.GET);
-		assertThat(result.getUrl().toString()).isEqualTo("/test");
-	}
+        WiretapConnector.Info actual = wiretapConnector.claimRequest("1");
+        ExchangeResult result = actual.createExchangeResult(Duration.ZERO, null);
+        assertThat(result.getMethod()).isEqualTo(HttpMethod.GET);
+        assertThat(result.getUrl().toString()).isEqualTo("/test");
+    }
 
 }

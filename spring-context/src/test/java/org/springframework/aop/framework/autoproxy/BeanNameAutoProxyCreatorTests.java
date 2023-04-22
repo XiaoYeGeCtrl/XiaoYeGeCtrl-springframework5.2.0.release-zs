@@ -42,181 +42,181 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
  */
 public class BeanNameAutoProxyCreatorTests {
 
-	private BeanFactory beanFactory;
+    private BeanFactory beanFactory;
 
 
-	@BeforeEach
-	public void setup() {
-		// Note that we need an ApplicationContext, not just a BeanFactory,
-		// for post-processing and hence auto-proxying to work.
-		beanFactory = new ClassPathXmlApplicationContext(getClass().getSimpleName() + "-context.xml", getClass());
-	}
+    @BeforeEach
+    public void setup() {
+        // Note that we need an ApplicationContext, not just a BeanFactory,
+        // for post-processing and hence auto-proxying to work.
+        beanFactory = new ClassPathXmlApplicationContext(getClass().getSimpleName() + "-context.xml", getClass());
+    }
 
 
-	@Test
-	public void testNoProxy() {
-		TestBean tb = (TestBean) beanFactory.getBean("noproxy");
-		assertThat(AopUtils.isAopProxy(tb)).isFalse();
-		assertThat(tb.getName()).isEqualTo("noproxy");
-	}
+    @Test
+    public void testNoProxy() {
+        TestBean tb = (TestBean) beanFactory.getBean("noproxy");
+        assertThat(AopUtils.isAopProxy(tb)).isFalse();
+        assertThat(tb.getName()).isEqualTo("noproxy");
+    }
 
-	@Test
-	public void testJdkProxyWithExactNameMatch() {
-		ITestBean tb = (ITestBean) beanFactory.getBean("onlyJdk");
-		jdkAssertions(tb, 1);
-		assertThat(tb.getName()).isEqualTo("onlyJdk");
-	}
+    @Test
+    public void testJdkProxyWithExactNameMatch() {
+        ITestBean tb = (ITestBean) beanFactory.getBean("onlyJdk");
+        jdkAssertions(tb, 1);
+        assertThat(tb.getName()).isEqualTo("onlyJdk");
+    }
 
-	@Test
-	public void testJdkProxyWithDoubleProxying() {
-		ITestBean tb = (ITestBean) beanFactory.getBean("doubleJdk");
-		jdkAssertions(tb, 2);
-		assertThat(tb.getName()).isEqualTo("doubleJdk");
-	}
+    @Test
+    public void testJdkProxyWithDoubleProxying() {
+        ITestBean tb = (ITestBean) beanFactory.getBean("doubleJdk");
+        jdkAssertions(tb, 2);
+        assertThat(tb.getName()).isEqualTo("doubleJdk");
+    }
 
-	@Test
-	public void testJdkIntroduction() {
-		ITestBean tb = (ITestBean) beanFactory.getBean("introductionUsingJdk");
-		NopInterceptor nop = (NopInterceptor) beanFactory.getBean("introductionNopInterceptor");
-		assertThat(nop.getCount()).isEqualTo(0);
-		assertThat(AopUtils.isJdkDynamicProxy(tb)).isTrue();
-		int age = 5;
-		tb.setAge(age);
-		assertThat(tb.getAge()).isEqualTo(age);
-		boolean condition = tb instanceof TimeStamped;
-		assertThat(condition).as("Introduction was made").isTrue();
-		assertThat(((TimeStamped) tb).getTimeStamp()).isEqualTo(0);
-		assertThat(nop.getCount()).isEqualTo(3);
-		assertThat(tb.getName()).isEqualTo("introductionUsingJdk");
+    @Test
+    public void testJdkIntroduction() {
+        ITestBean tb = (ITestBean) beanFactory.getBean("introductionUsingJdk");
+        NopInterceptor nop = (NopInterceptor) beanFactory.getBean("introductionNopInterceptor");
+        assertThat(nop.getCount()).isEqualTo(0);
+        assertThat(AopUtils.isJdkDynamicProxy(tb)).isTrue();
+        int age = 5;
+        tb.setAge(age);
+        assertThat(tb.getAge()).isEqualTo(age);
+        boolean condition = tb instanceof TimeStamped;
+        assertThat(condition).as("Introduction was made").isTrue();
+        assertThat(((TimeStamped) tb).getTimeStamp()).isEqualTo(0);
+        assertThat(nop.getCount()).isEqualTo(3);
+        assertThat(tb.getName()).isEqualTo("introductionUsingJdk");
 
-		ITestBean tb2 = (ITestBean) beanFactory.getBean("second-introductionUsingJdk");
+        ITestBean tb2 = (ITestBean) beanFactory.getBean("second-introductionUsingJdk");
 
-		// Check two per-instance mixins were distinct
-		Lockable lockable1 = (Lockable) tb;
-		Lockable lockable2 = (Lockable) tb2;
-		assertThat(lockable1.locked()).isFalse();
-		assertThat(lockable2.locked()).isFalse();
-		tb.setAge(65);
-		assertThat(tb.getAge()).isEqualTo(65);
-		lockable1.lock();
-		assertThat(lockable1.locked()).isTrue();
-		// Shouldn't affect second
-		assertThat(lockable2.locked()).isFalse();
-		// Can still mod second object
-		tb2.setAge(12);
-		// But can't mod first
-		assertThatExceptionOfType(LockedException.class).as("mixin should have locked this object").isThrownBy(() ->
-				tb.setAge(6));
-	}
+        // Check two per-instance mixins were distinct
+        Lockable lockable1 = (Lockable) tb;
+        Lockable lockable2 = (Lockable) tb2;
+        assertThat(lockable1.locked()).isFalse();
+        assertThat(lockable2.locked()).isFalse();
+        tb.setAge(65);
+        assertThat(tb.getAge()).isEqualTo(65);
+        lockable1.lock();
+        assertThat(lockable1.locked()).isTrue();
+        // Shouldn't affect second
+        assertThat(lockable2.locked()).isFalse();
+        // Can still mod second object
+        tb2.setAge(12);
+        // But can't mod first
+        assertThatExceptionOfType(LockedException.class).as("mixin should have locked this object").isThrownBy(() ->
+                tb.setAge(6));
+    }
 
-	@Test
-	public void testJdkIntroductionAppliesToCreatedObjectsNotFactoryBean() {
-		ITestBean tb = (ITestBean) beanFactory.getBean("factory-introductionUsingJdk");
-		NopInterceptor nop = (NopInterceptor) beanFactory.getBean("introductionNopInterceptor");
-		assertThat(nop.getCount()).as("NOP should not have done any work yet").isEqualTo(0);
-		assertThat(AopUtils.isJdkDynamicProxy(tb)).isTrue();
-		int age = 5;
-		tb.setAge(age);
-		assertThat(tb.getAge()).isEqualTo(age);
-		boolean condition = tb instanceof TimeStamped;
-		assertThat(condition).as("Introduction was made").isTrue();
-		assertThat(((TimeStamped) tb).getTimeStamp()).isEqualTo(0);
-		assertThat(nop.getCount()).isEqualTo(3);
+    @Test
+    public void testJdkIntroductionAppliesToCreatedObjectsNotFactoryBean() {
+        ITestBean tb = (ITestBean) beanFactory.getBean("factory-introductionUsingJdk");
+        NopInterceptor nop = (NopInterceptor) beanFactory.getBean("introductionNopInterceptor");
+        assertThat(nop.getCount()).as("NOP should not have done any work yet").isEqualTo(0);
+        assertThat(AopUtils.isJdkDynamicProxy(tb)).isTrue();
+        int age = 5;
+        tb.setAge(age);
+        assertThat(tb.getAge()).isEqualTo(age);
+        boolean condition = tb instanceof TimeStamped;
+        assertThat(condition).as("Introduction was made").isTrue();
+        assertThat(((TimeStamped) tb).getTimeStamp()).isEqualTo(0);
+        assertThat(nop.getCount()).isEqualTo(3);
 
-		ITestBean tb2 = (ITestBean) beanFactory.getBean("second-introductionUsingJdk");
+        ITestBean tb2 = (ITestBean) beanFactory.getBean("second-introductionUsingJdk");
 
-		// Check two per-instance mixins were distinct
-		Lockable lockable1 = (Lockable) tb;
-		Lockable lockable2 = (Lockable) tb2;
-		assertThat(lockable1.locked()).isFalse();
-		assertThat(lockable2.locked()).isFalse();
-		tb.setAge(65);
-		assertThat(tb.getAge()).isEqualTo(65);
-		lockable1.lock();
-		assertThat(lockable1.locked()).isTrue();
-		// Shouldn't affect second
-		assertThat(lockable2.locked()).isFalse();
-		// Can still mod second object
-		tb2.setAge(12);
-		// But can't mod first
-		assertThatExceptionOfType(LockedException.class).as("mixin should have locked this object").isThrownBy(() ->
-				tb.setAge(6));
-	}
+        // Check two per-instance mixins were distinct
+        Lockable lockable1 = (Lockable) tb;
+        Lockable lockable2 = (Lockable) tb2;
+        assertThat(lockable1.locked()).isFalse();
+        assertThat(lockable2.locked()).isFalse();
+        tb.setAge(65);
+        assertThat(tb.getAge()).isEqualTo(65);
+        lockable1.lock();
+        assertThat(lockable1.locked()).isTrue();
+        // Shouldn't affect second
+        assertThat(lockable2.locked()).isFalse();
+        // Can still mod second object
+        tb2.setAge(12);
+        // But can't mod first
+        assertThatExceptionOfType(LockedException.class).as("mixin should have locked this object").isThrownBy(() ->
+                tb.setAge(6));
+    }
 
-	@Test
-	public void testJdkProxyWithWildcardMatch() {
-		ITestBean tb = (ITestBean) beanFactory.getBean("jdk1");
-		jdkAssertions(tb, 1);
-		assertThat(tb.getName()).isEqualTo("jdk1");
-	}
+    @Test
+    public void testJdkProxyWithWildcardMatch() {
+        ITestBean tb = (ITestBean) beanFactory.getBean("jdk1");
+        jdkAssertions(tb, 1);
+        assertThat(tb.getName()).isEqualTo("jdk1");
+    }
 
-	@Test
-	public void testCglibProxyWithWildcardMatch() {
-		TestBean tb = (TestBean) beanFactory.getBean("cglib1");
-		cglibAssertions(tb);
-		assertThat(tb.getName()).isEqualTo("cglib1");
-	}
+    @Test
+    public void testCglibProxyWithWildcardMatch() {
+        TestBean tb = (TestBean) beanFactory.getBean("cglib1");
+        cglibAssertions(tb);
+        assertThat(tb.getName()).isEqualTo("cglib1");
+    }
 
-	@Test
-	public void testWithFrozenProxy() {
-		ITestBean testBean = (ITestBean) beanFactory.getBean("frozenBean");
-		assertThat(((Advised)testBean).isFrozen()).isTrue();
-	}
+    @Test
+    public void testWithFrozenProxy() {
+        ITestBean testBean = (ITestBean) beanFactory.getBean("frozenBean");
+        assertThat(((Advised) testBean).isFrozen()).isTrue();
+    }
 
 
-	private void jdkAssertions(ITestBean tb, int nopInterceptorCount)  {
-		NopInterceptor nop = (NopInterceptor) beanFactory.getBean("nopInterceptor");
-		assertThat(nop.getCount()).isEqualTo(0);
-		assertThat(AopUtils.isJdkDynamicProxy(tb)).isTrue();
-		int age = 5;
-		tb.setAge(age);
-		assertThat(tb.getAge()).isEqualTo(age);
-		assertThat(nop.getCount()).isEqualTo((2 * nopInterceptorCount));
-	}
+    private void jdkAssertions(ITestBean tb, int nopInterceptorCount) {
+        NopInterceptor nop = (NopInterceptor) beanFactory.getBean("nopInterceptor");
+        assertThat(nop.getCount()).isEqualTo(0);
+        assertThat(AopUtils.isJdkDynamicProxy(tb)).isTrue();
+        int age = 5;
+        tb.setAge(age);
+        assertThat(tb.getAge()).isEqualTo(age);
+        assertThat(nop.getCount()).isEqualTo((2 * nopInterceptorCount));
+    }
 
-	/**
-	 * Also has counting before advice.
-	 */
-	private void cglibAssertions(TestBean tb) {
-		CountingBeforeAdvice cba = (CountingBeforeAdvice) beanFactory.getBean("countingBeforeAdvice");
-		NopInterceptor nop = (NopInterceptor) beanFactory.getBean("nopInterceptor");
-		assertThat(cba.getCalls()).isEqualTo(0);
-		assertThat(nop.getCount()).isEqualTo(0);
-		assertThat(AopUtils.isCglibProxy(tb)).isTrue();
-		int age = 5;
-		tb.setAge(age);
-		assertThat(tb.getAge()).isEqualTo(age);
-		assertThat(nop.getCount()).isEqualTo(2);
-		assertThat(cba.getCalls()).isEqualTo(2);
-	}
+    /**
+     * Also has counting before advice.
+     */
+    private void cglibAssertions(TestBean tb) {
+        CountingBeforeAdvice cba = (CountingBeforeAdvice) beanFactory.getBean("countingBeforeAdvice");
+        NopInterceptor nop = (NopInterceptor) beanFactory.getBean("nopInterceptor");
+        assertThat(cba.getCalls()).isEqualTo(0);
+        assertThat(nop.getCount()).isEqualTo(0);
+        assertThat(AopUtils.isCglibProxy(tb)).isTrue();
+        int age = 5;
+        tb.setAge(age);
+        assertThat(tb.getAge()).isEqualTo(age);
+        assertThat(nop.getCount()).isEqualTo(2);
+        assertThat(cba.getCalls()).isEqualTo(2);
+    }
 
 }
 
 
 class CreatesTestBean implements FactoryBean<Object> {
 
-	/**
-	 * @see org.springframework.beans.factory.FactoryBean#getObject()
-	 */
-	@Override
-	public Object getObject() throws Exception {
-		return new TestBean();
-	}
+    /**
+     * @see org.springframework.beans.factory.FactoryBean#getObject()
+     */
+    @Override
+    public Object getObject() throws Exception {
+        return new TestBean();
+    }
 
-	/**
-	 * @see org.springframework.beans.factory.FactoryBean#getObjectType()
-	 */
-	@Override
-	public Class<?> getObjectType() {
-		return TestBean.class;
-	}
+    /**
+     * @see org.springframework.beans.factory.FactoryBean#getObjectType()
+     */
+    @Override
+    public Class<?> getObjectType() {
+        return TestBean.class;
+    }
 
-	/**
-	 * @see org.springframework.beans.factory.FactoryBean#isSingleton()
-	 */
-	@Override
-	public boolean isSingleton() {
-		return true;
-	}
+    /**
+     * @see org.springframework.beans.factory.FactoryBean#isSingleton()
+     */
+    @Override
+    public boolean isSingleton() {
+        return true;
+    }
 
 }

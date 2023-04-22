@@ -40,73 +40,73 @@ import static org.mockito.Mockito.verify;
  */
 public class MarshallingMessageConverterTests {
 
-	private MarshallingMessageConverter converter;
+    private MarshallingMessageConverter converter;
 
-	private Marshaller marshallerMock;
+    private Marshaller marshallerMock;
 
-	private Unmarshaller unmarshallerMock;
+    private Unmarshaller unmarshallerMock;
 
-	private Session sessionMock;
-
-
-	@BeforeEach
-	public void setup() throws Exception {
-		marshallerMock = mock(Marshaller.class);
-		unmarshallerMock = mock(Unmarshaller.class);
-		sessionMock = mock(Session.class);
-		converter = new MarshallingMessageConverter(marshallerMock, unmarshallerMock);
-	}
+    private Session sessionMock;
 
 
-	@Test
-	public void toBytesMessage() throws Exception {
-		BytesMessage bytesMessageMock = mock(BytesMessage.class);
-		Object toBeMarshalled = new Object();
-		given(sessionMock.createBytesMessage()).willReturn(bytesMessageMock);
+    @BeforeEach
+    public void setup() throws Exception {
+        marshallerMock = mock(Marshaller.class);
+        unmarshallerMock = mock(Unmarshaller.class);
+        sessionMock = mock(Session.class);
+        converter = new MarshallingMessageConverter(marshallerMock, unmarshallerMock);
+    }
 
-		converter.toMessage(toBeMarshalled, sessionMock);
 
-		verify(marshallerMock).marshal(eq(toBeMarshalled), isA(Result.class));
-		verify(bytesMessageMock).writeBytes(isA(byte[].class));
-	}
+    @Test
+    public void toBytesMessage() throws Exception {
+        BytesMessage bytesMessageMock = mock(BytesMessage.class);
+        Object toBeMarshalled = new Object();
+        given(sessionMock.createBytesMessage()).willReturn(bytesMessageMock);
 
-	@Test
-	public void fromBytesMessage() throws Exception {
-		BytesMessage bytesMessageMock = mock(BytesMessage.class);
-		Object unmarshalled = new Object();
+        converter.toMessage(toBeMarshalled, sessionMock);
 
-		given(bytesMessageMock.getBodyLength()).willReturn(10L);
-		given(bytesMessageMock.readBytes(isA(byte[].class))).willReturn(0);
-		given(unmarshallerMock.unmarshal(isA(Source.class))).willReturn(unmarshalled);
+        verify(marshallerMock).marshal(eq(toBeMarshalled), isA(Result.class));
+        verify(bytesMessageMock).writeBytes(isA(byte[].class));
+    }
 
-		Object result = converter.fromMessage(bytesMessageMock);
-		assertThat(unmarshalled).as("Invalid result").isEqualTo(result);
-	}
+    @Test
+    public void fromBytesMessage() throws Exception {
+        BytesMessage bytesMessageMock = mock(BytesMessage.class);
+        Object unmarshalled = new Object();
 
-	@Test
-	public void toTextMessage() throws Exception {
-		converter.setTargetType(MessageType.TEXT);
-		TextMessage textMessageMock = mock(TextMessage.class);
-		Object toBeMarshalled = new Object();
+        given(bytesMessageMock.getBodyLength()).willReturn(10L);
+        given(bytesMessageMock.readBytes(isA(byte[].class))).willReturn(0);
+        given(unmarshallerMock.unmarshal(isA(Source.class))).willReturn(unmarshalled);
 
-		given(sessionMock.createTextMessage(isA(String.class))).willReturn(textMessageMock);
+        Object result = converter.fromMessage(bytesMessageMock);
+        assertThat(unmarshalled).as("Invalid result").isEqualTo(result);
+    }
 
-		converter.toMessage(toBeMarshalled, sessionMock);
+    @Test
+    public void toTextMessage() throws Exception {
+        converter.setTargetType(MessageType.TEXT);
+        TextMessage textMessageMock = mock(TextMessage.class);
+        Object toBeMarshalled = new Object();
 
-		verify(marshallerMock).marshal(eq(toBeMarshalled), isA(Result.class));
-	}
+        given(sessionMock.createTextMessage(isA(String.class))).willReturn(textMessageMock);
 
-	@Test
-	public void fromTextMessage() throws Exception {
-		TextMessage textMessageMock = mock(TextMessage.class);
-		Object unmarshalled = new Object();
+        converter.toMessage(toBeMarshalled, sessionMock);
 
-		String text = "foo";
-		given(textMessageMock.getText()).willReturn(text);
-		given(unmarshallerMock.unmarshal(isA(Source.class))).willReturn(unmarshalled);
+        verify(marshallerMock).marshal(eq(toBeMarshalled), isA(Result.class));
+    }
 
-		Object result = converter.fromMessage(textMessageMock);
-		assertThat(unmarshalled).as("Invalid result").isEqualTo(result);
-	}
+    @Test
+    public void fromTextMessage() throws Exception {
+        TextMessage textMessageMock = mock(TextMessage.class);
+        Object unmarshalled = new Object();
+
+        String text = "foo";
+        given(textMessageMock.getText()).willReturn(text);
+        given(unmarshallerMock.unmarshal(isA(Source.class))).willReturn(unmarshalled);
+
+        Object result = converter.fromMessage(textMessageMock);
+        assertThat(unmarshalled).as("Invalid result").isEqualTo(result);
+    }
 
 }

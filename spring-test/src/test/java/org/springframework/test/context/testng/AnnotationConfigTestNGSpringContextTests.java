@@ -41,35 +41,35 @@ import static org.assertj.core.api.Assertions.assertThat;
 @ContextConfiguration
 public class AnnotationConfigTestNGSpringContextTests extends AbstractTestNGSpringContextTests {
 
-	@Autowired
-	Employee employee;
+    @Autowired
+    Employee employee;
 
-	@Autowired
-	Pet pet;
+    @Autowired
+    Pet pet;
 
-	@Test
-	void autowiringFromConfigClass() {
-		assertThat(employee).as("The employee should have been autowired.").isNotNull();
-		assertThat(employee.getName()).isEqualTo("John Smith");
+    @Test
+    void autowiringFromConfigClass() {
+        assertThat(employee).as("The employee should have been autowired.").isNotNull();
+        assertThat(employee.getName()).isEqualTo("John Smith");
 
-		assertThat(pet).as("The pet should have been autowired.").isNotNull();
-		assertThat(pet.getName()).isEqualTo("Fido");
-	}
+        assertThat(pet).as("The pet should have been autowired.").isNotNull();
+        assertThat(pet.getName()).isEqualTo("Fido");
+    }
 
 
-	@Configuration
-	static class Config {
+    @Configuration
+    static class Config {
 
-		@Bean
-		Employee employee() {
-			return new Employee("John Smith");
-		}
+        @Bean
+        Employee employee() {
+            return new Employee("John Smith");
+        }
 
-		@Bean
-		Pet pet() {
-			return new Pet("Fido");
-		}
+        @Bean
+        Pet pet() {
+            return new Pet("Fido");
+        }
 
-	}
+    }
 
 }

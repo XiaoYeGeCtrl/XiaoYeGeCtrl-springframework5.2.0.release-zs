@@ -52,113 +52,113 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 class RequestMappingDataBindingIntegrationTests extends AbstractRequestMappingIntegrationTests {
 
-	@Override
-	protected ApplicationContext initApplicationContext() {
-		AnnotationConfigApplicationContext wac = new AnnotationConfigApplicationContext();
-		wac.register(WebConfig.class);
-		wac.refresh();
-		return wac;
-	}
+    @Override
+    protected ApplicationContext initApplicationContext() {
+        AnnotationConfigApplicationContext wac = new AnnotationConfigApplicationContext();
+        wac.register(WebConfig.class);
+        wac.refresh();
+        return wac;
+    }
 
 
-	@ParameterizedHttpServerTest
-	void handleDateParam(HttpServer httpServer) throws Exception {
-		startServer(httpServer);
+    @ParameterizedHttpServerTest
+    void handleDateParam(HttpServer httpServer) throws Exception {
+        startServer(httpServer);
 
-		assertThat(performPost("/date-param?date=2016-10-31&date-pattern=YYYY-mm-dd",
-				new HttpHeaders(), null, String.class).getBody()).isEqualTo("Processed date!");
-	}
+        assertThat(performPost("/date-param?date=2016-10-31&date-pattern=YYYY-mm-dd",
+                new HttpHeaders(), null, String.class).getBody()).isEqualTo("Processed date!");
+    }
 
-	@ParameterizedHttpServerTest
-	void handleForm(HttpServer httpServer) throws Exception {
-		startServer(httpServer);
+    @ParameterizedHttpServerTest
+    void handleForm(HttpServer httpServer) throws Exception {
+        startServer(httpServer);
 
-		MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
-		formData.add("name", "George");
-		formData.add("age", "5");
+        MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
+        formData.add("name", "George");
+        formData.add("age", "5");
 
-		assertThat(performPost("/foos/1", MediaType.APPLICATION_FORM_URLENCODED, formData,
-				MediaType.TEXT_PLAIN, String.class).getBody()).isEqualTo("Processed form: Foo[id=1, name='George', age=5]");
-	}
-
-
-	@Configuration
-	@EnableWebFlux
-	@ComponentScan(resourcePattern = "**/RequestMappingDataBindingIntegrationTests*.class")
-	@SuppressWarnings({"unused", "WeakerAccess"})
-	static class WebConfig {
-	}
+        assertThat(performPost("/foos/1", MediaType.APPLICATION_FORM_URLENCODED, formData,
+                MediaType.TEXT_PLAIN, String.class).getBody()).isEqualTo("Processed form: Foo[id=1, name='George', age=5]");
+    }
 
 
-	@RestController
-	@SuppressWarnings({"unused", "OptionalUsedAsFieldOrParameterType"})
-	private static class TestController {
-
-		@InitBinder
-		public void initBinder(WebDataBinder binder,
-				@RequestParam("date-pattern") Optional<String> optionalPattern) {
-
-			optionalPattern.ifPresent(pattern -> {
-				CustomDateEditor dateEditor = new CustomDateEditor(new SimpleDateFormat(pattern), false);
-				binder.registerCustomEditor(Date.class, dateEditor);
-			});
-		}
-
-		@PostMapping("/date-param")
-		public String handleDateParam(@RequestParam Date date) {
-			return "Processed date!";
-		}
-
-		@ModelAttribute
-		public Mono<Foo> addFooAttribute(@PathVariable("id") Optional<Long> optiponalId) {
-			return optiponalId.map(id -> Mono.just(new Foo(id))).orElse(Mono.empty());
-		}
-
-		@PostMapping("/foos/{id}")
-		public String handleForm(@ModelAttribute Foo foo, Errors errors) {
-			return (errors.hasErrors() ?
-					"Form not processed" : "Processed form: " + foo);
-		}
-	}
+    @Configuration
+    @EnableWebFlux
+    @ComponentScan(resourcePattern = "**/RequestMappingDataBindingIntegrationTests*.class")
+    @SuppressWarnings({"unused", "WeakerAccess"})
+    static class WebConfig {
+    }
 
 
-	@SuppressWarnings("unused")
-	private static class Foo {
+    @RestController
+    @SuppressWarnings({"unused", "OptionalUsedAsFieldOrParameterType"})
+    private static class TestController {
 
-		private final Long id;
+        @InitBinder
+        public void initBinder(WebDataBinder binder,
+                               @RequestParam("date-pattern") Optional<String> optionalPattern) {
 
-		private String name;
+            optionalPattern.ifPresent(pattern -> {
+                CustomDateEditor dateEditor = new CustomDateEditor(new SimpleDateFormat(pattern), false);
+                binder.registerCustomEditor(Date.class, dateEditor);
+            });
+        }
 
-		private int age;
+        @PostMapping("/date-param")
+        public String handleDateParam(@RequestParam Date date) {
+            return "Processed date!";
+        }
 
-		public Foo(Long id) {
-			this.id = id;
-		}
+        @ModelAttribute
+        public Mono<Foo> addFooAttribute(@PathVariable("id") Optional<Long> optiponalId) {
+            return optiponalId.map(id -> Mono.just(new Foo(id))).orElse(Mono.empty());
+        }
 
-		public Long getId() {
-			return id;
-		}
+        @PostMapping("/foos/{id}")
+        public String handleForm(@ModelAttribute Foo foo, Errors errors) {
+            return (errors.hasErrors() ?
+                    "Form not processed" : "Processed form: " + foo);
+        }
+    }
 
-		public String getName() {
-			return name;
-		}
 
-		public void setName(String name) {
-			this.name = name;
-		}
+    @SuppressWarnings("unused")
+    private static class Foo {
 
-		public int getAge() {
-			return this.age;
-		}
+        private final Long id;
 
-		public void setAge(int age) {
-			this.age = age;
-		}
+        private String name;
 
-		@Override
-		public String toString() {
-			return "Foo[id=" + this.id + ", name='" + this.name + "', age=" + this.age + "]";
-		}
-	}
+        private int age;
+
+        public Foo(Long id) {
+            this.id = id;
+        }
+
+        public Long getId() {
+            return id;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public void setName(String name) {
+            this.name = name;
+        }
+
+        public int getAge() {
+            return this.age;
+        }
+
+        public void setAge(int age) {
+            this.age = age;
+        }
+
+        @Override
+        public String toString() {
+            return "Foo[id=" + this.id + ", name='" + this.name + "', age=" + this.age + "]";
+        }
+    }
 
 }

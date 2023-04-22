@@ -47,7 +47,6 @@ import org.springframework.util.Assert;
  * to combine Java serialization with HTTP-based transport.
  *
  * @author Juergen Hoeller
- * @since 13.05.2003
  * @see #setServiceInterface
  * @see #setServiceUrl
  * @see RmiClientInterceptor
@@ -57,34 +56,35 @@ import org.springframework.util.Assert;
  * @see org.springframework.remoting.RemoteAccessException
  * @see org.springframework.remoting.caucho.HessianProxyFactoryBean
  * @see org.springframework.remoting.httpinvoker.HttpInvokerProxyFactoryBean
+ * @since 13.05.2003
  */
 public class RmiProxyFactoryBean extends RmiClientInterceptor implements FactoryBean<Object>, BeanClassLoaderAware {
 
-	private Object serviceProxy;
+    private Object serviceProxy;
 
 
-	@Override
-	public void afterPropertiesSet() {
-		super.afterPropertiesSet();
-		Class<?> ifc = getServiceInterface();
-		Assert.notNull(ifc, "Property 'serviceInterface' is required");
-		this.serviceProxy = new ProxyFactory(ifc, this).getProxy(getBeanClassLoader());
-	}
+    @Override
+    public void afterPropertiesSet() {
+        super.afterPropertiesSet();
+        Class<?> ifc = getServiceInterface();
+        Assert.notNull(ifc, "Property 'serviceInterface' is required");
+        this.serviceProxy = new ProxyFactory(ifc, this).getProxy(getBeanClassLoader());
+    }
 
 
-	@Override
-	public Object getObject() {
-		return this.serviceProxy;
-	}
+    @Override
+    public Object getObject() {
+        return this.serviceProxy;
+    }
 
-	@Override
-	public Class<?> getObjectType() {
-		return getServiceInterface();
-	}
+    @Override
+    public Class<?> getObjectType() {
+        return getServiceInterface();
+    }
 
-	@Override
-	public boolean isSingleton() {
-		return true;
-	}
+    @Override
+    public boolean isSingleton() {
+        return true;
+    }
 
 }

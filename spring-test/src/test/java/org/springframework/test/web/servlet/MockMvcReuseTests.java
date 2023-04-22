@@ -52,73 +52,73 @@ import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppC
 @WebAppConfiguration
 public class MockMvcReuseTests {
 
-	private static final String HELLO = "hello";
-	private static final String ENIGMA = "enigma";
-	private static final String FOO = "foo";
-	private static final String BAR = "bar";
+    private static final String HELLO = "hello";
+    private static final String ENIGMA = "enigma";
+    private static final String FOO = "foo";
+    private static final String BAR = "bar";
 
-	@Autowired
-	private WebApplicationContext wac;
+    @Autowired
+    private WebApplicationContext wac;
 
-	private MockMvc mvc;
-
-
-	@BeforeEach
-	public void setUp() {
-		this.mvc = webAppContextSetup(this.wac).build();
-	}
-
-	@Test
-	public void sessionAttributesAreClearedBetweenInvocations() throws Exception {
-
-		this.mvc.perform(get("/"))
-			.andExpect(content().string(HELLO))
-			.andExpect(request().sessionAttribute(FOO, nullValue()));
-
-		this.mvc.perform(get("/").sessionAttr(FOO, BAR))
-			.andExpect(content().string(HELLO))
-			.andExpect(request().sessionAttribute(FOO, BAR));
-
-		this.mvc.perform(get("/"))
-			.andExpect(content().string(HELLO))
-			.andExpect(request().sessionAttribute(FOO, nullValue()));
-	}
-
-	@Test
-	public void requestParametersAreClearedBetweenInvocations() throws Exception {
-		this.mvc.perform(get("/"))
-			.andExpect(content().string(HELLO));
-
-		this.mvc.perform(get("/").param(ENIGMA, ""))
-			.andExpect(content().string(ENIGMA));
-
-		this.mvc.perform(get("/"))
-			.andExpect(content().string(HELLO));
-	}
+    private MockMvc mvc;
 
 
-	@Configuration
-	@EnableWebMvc
-	static class Config {
+    @BeforeEach
+    public void setUp() {
+        this.mvc = webAppContextSetup(this.wac).build();
+    }
 
-		@Bean
-		public MyController myController() {
-			return new MyController();
-		}
-	}
+    @Test
+    public void sessionAttributesAreClearedBetweenInvocations() throws Exception {
 
-	@RestController
-	static class MyController {
+        this.mvc.perform(get("/"))
+                .andExpect(content().string(HELLO))
+                .andExpect(request().sessionAttribute(FOO, nullValue()));
 
-		@RequestMapping("/")
-		public String hello() {
-			return HELLO;
-		}
+        this.mvc.perform(get("/").sessionAttr(FOO, BAR))
+                .andExpect(content().string(HELLO))
+                .andExpect(request().sessionAttribute(FOO, BAR));
 
-		@RequestMapping(path = "/", params = ENIGMA)
-		public String enigma() {
-			return ENIGMA;
-		}
-	}
+        this.mvc.perform(get("/"))
+                .andExpect(content().string(HELLO))
+                .andExpect(request().sessionAttribute(FOO, nullValue()));
+    }
+
+    @Test
+    public void requestParametersAreClearedBetweenInvocations() throws Exception {
+        this.mvc.perform(get("/"))
+                .andExpect(content().string(HELLO));
+
+        this.mvc.perform(get("/").param(ENIGMA, ""))
+                .andExpect(content().string(ENIGMA));
+
+        this.mvc.perform(get("/"))
+                .andExpect(content().string(HELLO));
+    }
+
+
+    @Configuration
+    @EnableWebMvc
+    static class Config {
+
+        @Bean
+        public MyController myController() {
+            return new MyController();
+        }
+    }
+
+    @RestController
+    static class MyController {
+
+        @RequestMapping("/")
+        public String hello() {
+            return HELLO;
+        }
+
+        @RequestMapping(path = "/", params = ENIGMA)
+        public String enigma() {
+            return ENIGMA;
+        }
+    }
 
 }

@@ -39,36 +39,36 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 class AsyncIntegrationTests extends AbstractHttpHandlerIntegrationTests {
 
-	private final Scheduler asyncGroup = Schedulers.parallel();
+    private final Scheduler asyncGroup = Schedulers.parallel();
 
-	private final DataBufferFactory dataBufferFactory = new DefaultDataBufferFactory();
-
-
-	@Override
-	protected AsyncHandler createHttpHandler() {
-		return new AsyncHandler();
-	}
-
-	@ParameterizedHttpServerTest
-	void basicTest(HttpServer httpServer) throws Exception {
-		startServer(httpServer);
-
-		URI url = new URI("http://localhost:" + port);
-		ResponseEntity<String> response = new RestTemplate().exchange(RequestEntity.get(url).build(), String.class);
-
-		assertThat(response.getBody()).isEqualTo("hello");
-	}
+    private final DataBufferFactory dataBufferFactory = new DefaultDataBufferFactory();
 
 
-	private class AsyncHandler implements HttpHandler {
+    @Override
+    protected AsyncHandler createHttpHandler() {
+        return new AsyncHandler();
+    }
 
-		@Override
-		public Mono<Void> handle(ServerHttpRequest request, ServerHttpResponse response) {
-			return response.writeWith(Flux.just("h", "e", "l", "l", "o")
-										.delayElements(Duration.ofMillis(100))
-										.publishOn(asyncGroup)
-					.collect(dataBufferFactory::allocateBuffer, (buffer, str) -> buffer.write(str.getBytes())));
-		}
-	}
+    @ParameterizedHttpServerTest
+    void basicTest(HttpServer httpServer) throws Exception {
+        startServer(httpServer);
+
+        URI url = new URI("http://localhost:" + port);
+        ResponseEntity<String> response = new RestTemplate().exchange(RequestEntity.get(url).build(), String.class);
+
+        assertThat(response.getBody()).isEqualTo("hello");
+    }
+
+
+    private class AsyncHandler implements HttpHandler {
+
+        @Override
+        public Mono<Void> handle(ServerHttpRequest request, ServerHttpResponse response) {
+            return response.writeWith(Flux.just("h", "e", "l", "l", "o")
+                    .delayElements(Duration.ofMillis(100))
+                    .publishOn(asyncGroup)
+                    .collect(dataBufferFactory::allocateBuffer, (buffer, str) -> buffer.write(str.getBytes())));
+        }
+    }
 
 }

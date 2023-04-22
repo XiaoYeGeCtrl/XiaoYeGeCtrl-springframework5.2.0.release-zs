@@ -38,109 +38,112 @@ import org.springframework.web.context.request.NativeWebRequest;
  */
 public class HandlerMethodArgumentResolverComposite implements HandlerMethodArgumentResolver {
 
-	private final List<HandlerMethodArgumentResolver> argumentResolvers = new LinkedList<>();
+    private final List<HandlerMethodArgumentResolver> argumentResolvers = new LinkedList<>();
 
-	private final Map<MethodParameter, HandlerMethodArgumentResolver> argumentResolverCache =
-			new ConcurrentHashMap<>(256);
-
-
-	/**
-	 * Add the given {@link HandlerMethodArgumentResolver}.
-	 */
-	public HandlerMethodArgumentResolverComposite addResolver(HandlerMethodArgumentResolver resolver) {
-		this.argumentResolvers.add(resolver);
-		return this;
-	}
-
-	/**
-	 * Add the given {@link HandlerMethodArgumentResolver HandlerMethodArgumentResolvers}.
-	 * @since 4.3
-	 */
-	public HandlerMethodArgumentResolverComposite addResolvers(
-			@Nullable HandlerMethodArgumentResolver... resolvers) {
-
-		if (resolvers != null) {
-			Collections.addAll(this.argumentResolvers, resolvers);
-		}
-		return this;
-	}
-
-	/**
-	 * Add the given {@link HandlerMethodArgumentResolver HandlerMethodArgumentResolvers}.
-	 */
-	public HandlerMethodArgumentResolverComposite addResolvers(
-			@Nullable List<? extends HandlerMethodArgumentResolver> resolvers) {
-
-		if (resolvers != null) {
-			this.argumentResolvers.addAll(resolvers);
-		}
-		return this;
-	}
-
-	/**
-	 * Return a read-only list with the contained resolvers, or an empty list.
-	 */
-	public List<HandlerMethodArgumentResolver> getResolvers() {
-		return Collections.unmodifiableList(this.argumentResolvers);
-	}
-
-	/**
-	 * Clear the list of configured resolvers.
-	 * @since 4.3
-	 */
-	public void clear() {
-		this.argumentResolvers.clear();
-	}
+    private final Map<MethodParameter, HandlerMethodArgumentResolver> argumentResolverCache =
+            new ConcurrentHashMap<>(256);
 
 
-	/**
-	 * Whether the given {@linkplain MethodParameter method parameter} is
-	 * supported by any registered {@link HandlerMethodArgumentResolver}.
-	 */
-	@Override
-	public boolean supportsParameter(MethodParameter parameter) {
-		return getArgumentResolver(parameter) != null;
-	}
+    /**
+     * Add the given {@link HandlerMethodArgumentResolver}.
+     */
+    public HandlerMethodArgumentResolverComposite addResolver(HandlerMethodArgumentResolver resolver) {
+        this.argumentResolvers.add(resolver);
+        return this;
+    }
 
-	/**
-	 * Iterate over registered
-	 * {@link HandlerMethodArgumentResolver HandlerMethodArgumentResolvers}
-	 * and invoke the one that supports it.
-	 * @throws IllegalArgumentException if no suitable argument resolver is found
-	 */
-	@Override
-	@Nullable
-	public Object resolveArgument(MethodParameter parameter, @Nullable ModelAndViewContainer mavContainer,
-			NativeWebRequest webRequest, @Nullable WebDataBinderFactory binderFactory) throws Exception {
-		//首先获取参数解析器，这里获取的逻辑是首先从argumentResolverCache缓存中
-		// 获取该MethodParameter匹配的HandlerMethodArgumentResolver。
-		// 如果为空，遍历初始化定义的那26个解析器实例，
-		// 查找匹配的HandlerMethodArgumentResolver，然后添加至argumentResolverCache缓存中
-		HandlerMethodArgumentResolver resolver = getArgumentResolver(parameter);
-		if (resolver == null) {
-			throw new IllegalArgumentException("Unsupported parameter type [" +
-					parameter.getParameterType().getName() + "]. supportsParameter should be called first.");
-		}
-		return resolver.resolveArgument(parameter, mavContainer, webRequest, binderFactory);
-	}
+    /**
+     * Add the given {@link HandlerMethodArgumentResolver HandlerMethodArgumentResolvers}.
+     *
+     * @since 4.3
+     */
+    public HandlerMethodArgumentResolverComposite addResolvers(
+            @Nullable HandlerMethodArgumentResolver... resolvers) {
 
-	/**
-	 * Find a registered {@link HandlerMethodArgumentResolver} that supports
-	 * the given method parameter.
-	 */
-	@Nullable
-	private HandlerMethodArgumentResolver getArgumentResolver(MethodParameter parameter) {
-		HandlerMethodArgumentResolver result = this.argumentResolverCache.get(parameter);
-		if (result == null) {
-			for (HandlerMethodArgumentResolver resolver : this.argumentResolvers) {
-				if (resolver.supportsParameter(parameter)) {
-					result = resolver;
-					this.argumentResolverCache.put(parameter, result);
-					break;
-				}
-			}
-		}
-		return result;
-	}
+        if (resolvers != null) {
+            Collections.addAll(this.argumentResolvers, resolvers);
+        }
+        return this;
+    }
+
+    /**
+     * Add the given {@link HandlerMethodArgumentResolver HandlerMethodArgumentResolvers}.
+     */
+    public HandlerMethodArgumentResolverComposite addResolvers(
+            @Nullable List<? extends HandlerMethodArgumentResolver> resolvers) {
+
+        if (resolvers != null) {
+            this.argumentResolvers.addAll(resolvers);
+        }
+        return this;
+    }
+
+    /**
+     * Return a read-only list with the contained resolvers, or an empty list.
+     */
+    public List<HandlerMethodArgumentResolver> getResolvers() {
+        return Collections.unmodifiableList(this.argumentResolvers);
+    }
+
+    /**
+     * Clear the list of configured resolvers.
+     *
+     * @since 4.3
+     */
+    public void clear() {
+        this.argumentResolvers.clear();
+    }
+
+
+    /**
+     * Whether the given {@linkplain MethodParameter method parameter} is
+     * supported by any registered {@link HandlerMethodArgumentResolver}.
+     */
+    @Override
+    public boolean supportsParameter(MethodParameter parameter) {
+        return getArgumentResolver(parameter) != null;
+    }
+
+    /**
+     * Iterate over registered
+     * {@link HandlerMethodArgumentResolver HandlerMethodArgumentResolvers}
+     * and invoke the one that supports it.
+     *
+     * @throws IllegalArgumentException if no suitable argument resolver is found
+     */
+    @Override
+    @Nullable
+    public Object resolveArgument(MethodParameter parameter, @Nullable ModelAndViewContainer mavContainer,
+                                  NativeWebRequest webRequest, @Nullable WebDataBinderFactory binderFactory) throws Exception {
+        //首先获取参数解析器，这里获取的逻辑是首先从argumentResolverCache缓存中
+        // 获取该MethodParameter匹配的HandlerMethodArgumentResolver。
+        // 如果为空，遍历初始化定义的那26个解析器实例，
+        // 查找匹配的HandlerMethodArgumentResolver，然后添加至argumentResolverCache缓存中
+        HandlerMethodArgumentResolver resolver = getArgumentResolver(parameter);
+        if (resolver == null) {
+            throw new IllegalArgumentException("Unsupported parameter type [" +
+                    parameter.getParameterType().getName() + "]. supportsParameter should be called first.");
+        }
+        return resolver.resolveArgument(parameter, mavContainer, webRequest, binderFactory);
+    }
+
+    /**
+     * Find a registered {@link HandlerMethodArgumentResolver} that supports
+     * the given method parameter.
+     */
+    @Nullable
+    private HandlerMethodArgumentResolver getArgumentResolver(MethodParameter parameter) {
+        HandlerMethodArgumentResolver result = this.argumentResolverCache.get(parameter);
+        if (result == null) {
+            for (HandlerMethodArgumentResolver resolver : this.argumentResolvers) {
+                if (resolver.supportsParameter(parameter)) {
+                    result = resolver;
+                    this.argumentResolverCache.put(parameter, result);
+                    break;
+                }
+            }
+        }
+        return result;
+    }
 
 }

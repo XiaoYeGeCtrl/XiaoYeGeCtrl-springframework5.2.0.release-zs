@@ -38,44 +38,43 @@ import static org.mockito.Mockito.verify;
  */
 public class SharedEntityManagerFactoryTests {
 
-	@Test
-	public void testValidUsage() {
-		Object o = new Object();
+    @Test
+    public void testValidUsage() {
+        Object o = new Object();
 
-		EntityManager mockEm = mock(EntityManager.class);
-		given(mockEm.isOpen()).willReturn(true);
+        EntityManager mockEm = mock(EntityManager.class);
+        given(mockEm.isOpen()).willReturn(true);
 
-		EntityManagerFactory mockEmf = mock(EntityManagerFactory.class);
-		given(mockEmf.createEntityManager()).willReturn(mockEm);
+        EntityManagerFactory mockEmf = mock(EntityManagerFactory.class);
+        given(mockEmf.createEntityManager()).willReturn(mockEm);
 
-		SharedEntityManagerBean proxyFactoryBean = new SharedEntityManagerBean();
-		proxyFactoryBean.setEntityManagerFactory(mockEmf);
-		proxyFactoryBean.afterPropertiesSet();
+        SharedEntityManagerBean proxyFactoryBean = new SharedEntityManagerBean();
+        proxyFactoryBean.setEntityManagerFactory(mockEmf);
+        proxyFactoryBean.afterPropertiesSet();
 
-		assertThat(EntityManager.class.isAssignableFrom(proxyFactoryBean.getObjectType())).isTrue();
-		assertThat(proxyFactoryBean.isSingleton()).isTrue();
+        assertThat(EntityManager.class.isAssignableFrom(proxyFactoryBean.getObjectType())).isTrue();
+        assertThat(proxyFactoryBean.isSingleton()).isTrue();
 
-		EntityManager proxy = proxyFactoryBean.getObject();
-		assertThat(proxyFactoryBean.getObject()).isSameAs(proxy);
-		assertThat(proxy.contains(o)).isFalse();
+        EntityManager proxy = proxyFactoryBean.getObject();
+        assertThat(proxyFactoryBean.getObject()).isSameAs(proxy);
+        assertThat(proxy.contains(o)).isFalse();
 
-		boolean condition = proxy instanceof EntityManagerProxy;
-		assertThat(condition).isTrue();
-		EntityManagerProxy emProxy = (EntityManagerProxy) proxy;
-		assertThatIllegalStateException().as("outside of transaction").isThrownBy(
-				emProxy::getTargetEntityManager);
+        boolean condition = proxy instanceof EntityManagerProxy;
+        assertThat(condition).isTrue();
+        EntityManagerProxy emProxy = (EntityManagerProxy) proxy;
+        assertThatIllegalStateException().as("outside of transaction").isThrownBy(
+                emProxy::getTargetEntityManager);
 
-		TransactionSynchronizationManager.bindResource(mockEmf, new EntityManagerHolder(mockEm));
-		try {
-			assertThat(emProxy.getTargetEntityManager()).isSameAs(mockEm);
-		}
-		finally {
-			TransactionSynchronizationManager.unbindResource(mockEmf);
-		}
+        TransactionSynchronizationManager.bindResource(mockEmf, new EntityManagerHolder(mockEm));
+        try {
+            assertThat(emProxy.getTargetEntityManager()).isSameAs(mockEm);
+        } finally {
+            TransactionSynchronizationManager.unbindResource(mockEmf);
+        }
 
-		assertThat(TransactionSynchronizationManager.getResourceMap().isEmpty()).isTrue();
-		verify(mockEm).contains(o);
-		verify(mockEm).close();
-	}
+        assertThat(TransactionSynchronizationManager.getResourceMap().isEmpty()).isTrue();
+        verify(mockEm).contains(o);
+        verify(mockEm).close();
+    }
 
 }

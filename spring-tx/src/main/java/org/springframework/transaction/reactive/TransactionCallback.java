@@ -29,24 +29,25 @@ import org.springframework.transaction.ReactiveTransaction;
  * alternative, consider the use of declarative transaction demarcation (e.g. through
  * Spring's {@link org.springframework.transaction.annotation.Transactional} annotation).
  *
+ * @param <T> the result type
  * @author Mark Paluch
  * @author Juergen Hoeller
- * @since 5.2
  * @see TransactionalOperator
- * @param <T> the result type
+ * @since 5.2
  */
 @FunctionalInterface
 public interface TransactionCallback<T> {
 
-	/**
-	 * Gets called by {@link TransactionalOperator} within a transactional context.
-	 * Does not need to care about transactions itself, although it can retrieve and
-	 * influence the status of the current transaction via the given status object,
-	 * e.g. setting rollback-only.
-	 * @param status associated transaction status
-	 * @return a result publisher
-	 * @see TransactionalOperator#transactional
-	 */
-	Publisher<T> doInTransaction(ReactiveTransaction status);
+    /**
+     * Gets called by {@link TransactionalOperator} within a transactional context.
+     * Does not need to care about transactions itself, although it can retrieve and
+     * influence the status of the current transaction via the given status object,
+     * e.g. setting rollback-only.
+     *
+     * @param status associated transaction status
+     * @return a result publisher
+     * @see TransactionalOperator#transactional
+     */
+    Publisher<T> doInTransaction(ReactiveTransaction status);
 
 }

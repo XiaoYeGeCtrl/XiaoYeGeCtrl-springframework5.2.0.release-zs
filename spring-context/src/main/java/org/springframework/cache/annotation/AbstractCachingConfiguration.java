@@ -38,61 +38,61 @@ import org.springframework.util.CollectionUtils;
  * @author Chris Beams
  * @author Stephane Nicoll
  * @author Juergen Hoeller
- * @since 3.1
  * @see EnableCaching
+ * @since 3.1
  */
 @Configuration
 public abstract class AbstractCachingConfiguration implements ImportAware {
 
-	@Nullable
-	protected AnnotationAttributes enableCaching;
+    @Nullable
+    protected AnnotationAttributes enableCaching;
 
-	@Nullable
-	protected Supplier<CacheManager> cacheManager;
+    @Nullable
+    protected Supplier<CacheManager> cacheManager;
 
-	@Nullable
-	protected Supplier<CacheResolver> cacheResolver;
+    @Nullable
+    protected Supplier<CacheResolver> cacheResolver;
 
-	@Nullable
-	protected Supplier<KeyGenerator> keyGenerator;
+    @Nullable
+    protected Supplier<KeyGenerator> keyGenerator;
 
-	@Nullable
-	protected Supplier<CacheErrorHandler> errorHandler;
+    @Nullable
+    protected Supplier<CacheErrorHandler> errorHandler;
 
 
-	@Override
-	public void setImportMetadata(AnnotationMetadata importMetadata) {
-		this.enableCaching = AnnotationAttributes.fromMap(
-				importMetadata.getAnnotationAttributes(EnableCaching.class.getName(), false));
-		if (this.enableCaching == null) {
-			throw new IllegalArgumentException(
-					"@EnableCaching is not present on importing class " + importMetadata.getClassName());
-		}
-	}
+    @Override
+    public void setImportMetadata(AnnotationMetadata importMetadata) {
+        this.enableCaching = AnnotationAttributes.fromMap(
+                importMetadata.getAnnotationAttributes(EnableCaching.class.getName(), false));
+        if (this.enableCaching == null) {
+            throw new IllegalArgumentException(
+                    "@EnableCaching is not present on importing class " + importMetadata.getClassName());
+        }
+    }
 
-	@Autowired(required = false)
-	void setConfigurers(Collection<CachingConfigurer> configurers) {
-		if (CollectionUtils.isEmpty(configurers)) {
-			return;
-		}
-		if (configurers.size() > 1) {
-			throw new IllegalStateException(configurers.size() + " implementations of " +
-					"CachingConfigurer were found when only 1 was expected. " +
-					"Refactor the configuration such that CachingConfigurer is " +
-					"implemented only once or not at all.");
-		}
-		CachingConfigurer configurer = configurers.iterator().next();
-		useCachingConfigurer(configurer);
-	}
+    @Autowired(required = false)
+    void setConfigurers(Collection<CachingConfigurer> configurers) {
+        if (CollectionUtils.isEmpty(configurers)) {
+            return;
+        }
+        if (configurers.size() > 1) {
+            throw new IllegalStateException(configurers.size() + " implementations of " +
+                    "CachingConfigurer were found when only 1 was expected. " +
+                    "Refactor the configuration such that CachingConfigurer is " +
+                    "implemented only once or not at all.");
+        }
+        CachingConfigurer configurer = configurers.iterator().next();
+        useCachingConfigurer(configurer);
+    }
 
-	/**
-	 * Extract the configuration from the nominated {@link CachingConfigurer}.
-	 */
-	protected void useCachingConfigurer(CachingConfigurer config) {
-		this.cacheManager = config::cacheManager;
-		this.cacheResolver = config::cacheResolver;
-		this.keyGenerator = config::keyGenerator;
-		this.errorHandler = config::errorHandler;
-	}
+    /**
+     * Extract the configuration from the nominated {@link CachingConfigurer}.
+     */
+    protected void useCachingConfigurer(CachingConfigurer config) {
+        this.cacheManager = config::cacheManager;
+        this.cacheResolver = config::cacheResolver;
+        this.keyGenerator = config::keyGenerator;
+        this.errorHandler = config::errorHandler;
+    }
 
 }

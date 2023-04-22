@@ -36,21 +36,21 @@ import org.springframework.util.StringUtils;
  */
 public class ResourceHttpMessageReader extends DecoderHttpMessageReader<Resource> {
 
-	public ResourceHttpMessageReader() {
-		super(new ResourceDecoder());
-	}
+    public ResourceHttpMessageReader() {
+        super(new ResourceDecoder());
+    }
 
-	public ResourceHttpMessageReader(ResourceDecoder resourceDecoder) {
-		super(resourceDecoder);
-	}
+    public ResourceHttpMessageReader(ResourceDecoder resourceDecoder) {
+        super(resourceDecoder);
+    }
 
 
-	@Override
-	protected Map<String, Object> getReadHints(ResolvableType actualType, ResolvableType elementType,
-			ServerHttpRequest request, ServerHttpResponse response) {
+    @Override
+    protected Map<String, Object> getReadHints(ResolvableType actualType, ResolvableType elementType,
+                                               ServerHttpRequest request, ServerHttpResponse response) {
 
-		String name = request.getHeaders().getContentDisposition().getFilename();
-		return StringUtils.hasText(name) ? Hints.from(ResourceDecoder.FILENAME_HINT, name) : Hints.none();
-	}
+        String name = request.getHeaders().getContentDisposition().getFilename();
+        return StringUtils.hasText(name) ? Hints.from(ResourceDecoder.FILENAME_HINT, name) : Hints.none();
+    }
 
 }

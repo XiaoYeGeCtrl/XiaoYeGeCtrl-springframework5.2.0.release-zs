@@ -46,143 +46,141 @@ import org.springframework.util.StringUtils;
  *
  * @author Phillip Webb
  * @author Chris Beams
- * @since 3.2
  * @see EnableMBeanExport
+ * @since 3.2
  */
 @Configuration
 public class MBeanExportConfiguration implements ImportAware, EnvironmentAware, BeanFactoryAware {
 
-	private static final String MBEAN_EXPORTER_BEAN_NAME = "mbeanExporter";
+    private static final String MBEAN_EXPORTER_BEAN_NAME = "mbeanExporter";
 
-	@Nullable
-	private AnnotationAttributes enableMBeanExport;
+    @Nullable
+    private AnnotationAttributes enableMBeanExport;
 
-	@Nullable
-	private Environment environment;
+    @Nullable
+    private Environment environment;
 
-	@Nullable
-	private BeanFactory beanFactory;
-
-
-	@Override
-	public void setImportMetadata(AnnotationMetadata importMetadata) {
-		Map<String, Object> map = importMetadata.getAnnotationAttributes(EnableMBeanExport.class.getName());
-		this.enableMBeanExport = AnnotationAttributes.fromMap(map);
-		if (this.enableMBeanExport == null) {
-			throw new IllegalArgumentException(
-					"@EnableMBeanExport is not present on importing class " + importMetadata.getClassName());
-		}
-	}
-
-	@Override
-	public void setEnvironment(Environment environment) {
-		this.environment = environment;
-	}
-
-	@Override
-	public void setBeanFactory(BeanFactory beanFactory) {
-		this.beanFactory = beanFactory;
-	}
+    @Nullable
+    private BeanFactory beanFactory;
 
 
-	@Bean(name = MBEAN_EXPORTER_BEAN_NAME)
-	@Role(BeanDefinition.ROLE_INFRASTRUCTURE)
-	public AnnotationMBeanExporter mbeanExporter() {
-		AnnotationMBeanExporter exporter = new AnnotationMBeanExporter();
-		Assert.state(this.enableMBeanExport != null, "No EnableMBeanExport annotation found");
-		setupDomain(exporter, this.enableMBeanExport);
-		setupServer(exporter, this.enableMBeanExport);
-		setupRegistrationPolicy(exporter, this.enableMBeanExport);
-		return exporter;
-	}
+    @Override
+    public void setImportMetadata(AnnotationMetadata importMetadata) {
+        Map<String, Object> map = importMetadata.getAnnotationAttributes(EnableMBeanExport.class.getName());
+        this.enableMBeanExport = AnnotationAttributes.fromMap(map);
+        if (this.enableMBeanExport == null) {
+            throw new IllegalArgumentException(
+                    "@EnableMBeanExport is not present on importing class " + importMetadata.getClassName());
+        }
+    }
 
-	private void setupDomain(AnnotationMBeanExporter exporter, AnnotationAttributes enableMBeanExport) {
-		String defaultDomain = enableMBeanExport.getString("defaultDomain");
-		if (StringUtils.hasLength(defaultDomain) && this.environment != null) {
-			defaultDomain = this.environment.resolvePlaceholders(defaultDomain);
-		}
-		if (StringUtils.hasText(defaultDomain)) {
-			exporter.setDefaultDomain(defaultDomain);
-		}
-	}
+    @Override
+    public void setEnvironment(Environment environment) {
+        this.environment = environment;
+    }
 
-	private void setupServer(AnnotationMBeanExporter exporter, AnnotationAttributes enableMBeanExport) {
-		String server = enableMBeanExport.getString("server");
-		if (StringUtils.hasLength(server) && this.environment != null) {
-			server = this.environment.resolvePlaceholders(server);
-		}
-		if (StringUtils.hasText(server)) {
-			Assert.state(this.beanFactory != null, "No BeanFactory set");
-			exporter.setServer(this.beanFactory.getBean(server, MBeanServer.class));
-		}
-		else {
-			SpecificPlatform specificPlatform = SpecificPlatform.get();
-			if (specificPlatform != null) {
-				MBeanServer mbeanServer = specificPlatform.getMBeanServer();
-				if (mbeanServer != null) {
-					exporter.setServer(mbeanServer);
-				}
-			}
-		}
-	}
-
-	private void setupRegistrationPolicy(AnnotationMBeanExporter exporter, AnnotationAttributes enableMBeanExport) {
-		RegistrationPolicy registrationPolicy = enableMBeanExport.getEnum("registration");
-		exporter.setRegistrationPolicy(registrationPolicy);
-	}
+    @Override
+    public void setBeanFactory(BeanFactory beanFactory) {
+        this.beanFactory = beanFactory;
+    }
 
 
-	/**
-	 * Specific platforms that might need custom MBean handling.
-	 */
-	public enum SpecificPlatform {
+    @Bean(name = MBEAN_EXPORTER_BEAN_NAME)
+    @Role(BeanDefinition.ROLE_INFRASTRUCTURE)
+    public AnnotationMBeanExporter mbeanExporter() {
+        AnnotationMBeanExporter exporter = new AnnotationMBeanExporter();
+        Assert.state(this.enableMBeanExport != null, "No EnableMBeanExport annotation found");
+        setupDomain(exporter, this.enableMBeanExport);
+        setupServer(exporter, this.enableMBeanExport);
+        setupRegistrationPolicy(exporter, this.enableMBeanExport);
+        return exporter;
+    }
 
-		/**
-		 * Weblogic.
-		 */
-		WEBLOGIC("weblogic.management.Helper") {
-			@Override
-			public MBeanServer getMBeanServer() {
-				try {
-					return new JndiLocatorDelegate().lookup("java:comp/env/jmx/runtime", MBeanServer.class);
-				}
-				catch (NamingException ex) {
-					throw new MBeanServerNotFoundException("Failed to retrieve WebLogic MBeanServer from JNDI", ex);
-				}
-			}
-		},
+    private void setupDomain(AnnotationMBeanExporter exporter, AnnotationAttributes enableMBeanExport) {
+        String defaultDomain = enableMBeanExport.getString("defaultDomain");
+        if (StringUtils.hasLength(defaultDomain) && this.environment != null) {
+            defaultDomain = this.environment.resolvePlaceholders(defaultDomain);
+        }
+        if (StringUtils.hasText(defaultDomain)) {
+            exporter.setDefaultDomain(defaultDomain);
+        }
+    }
 
-		/**
-		 * Websphere.
-		 */
-		WEBSPHERE("com.ibm.websphere.management.AdminServiceFactory") {
-			@Override
-			public MBeanServer getMBeanServer() {
-				WebSphereMBeanServerFactoryBean fb = new WebSphereMBeanServerFactoryBean();
-				fb.afterPropertiesSet();
-				return fb.getObject();
-			}
-		};
+    private void setupServer(AnnotationMBeanExporter exporter, AnnotationAttributes enableMBeanExport) {
+        String server = enableMBeanExport.getString("server");
+        if (StringUtils.hasLength(server) && this.environment != null) {
+            server = this.environment.resolvePlaceholders(server);
+        }
+        if (StringUtils.hasText(server)) {
+            Assert.state(this.beanFactory != null, "No BeanFactory set");
+            exporter.setServer(this.beanFactory.getBean(server, MBeanServer.class));
+        } else {
+            SpecificPlatform specificPlatform = SpecificPlatform.get();
+            if (specificPlatform != null) {
+                MBeanServer mbeanServer = specificPlatform.getMBeanServer();
+                if (mbeanServer != null) {
+                    exporter.setServer(mbeanServer);
+                }
+            }
+        }
+    }
 
-		private final String identifyingClass;
+    private void setupRegistrationPolicy(AnnotationMBeanExporter exporter, AnnotationAttributes enableMBeanExport) {
+        RegistrationPolicy registrationPolicy = enableMBeanExport.getEnum("registration");
+        exporter.setRegistrationPolicy(registrationPolicy);
+    }
 
-		SpecificPlatform(String identifyingClass) {
-			this.identifyingClass = identifyingClass;
-		}
 
-		@Nullable
-		public abstract MBeanServer getMBeanServer();
+    /**
+     * Specific platforms that might need custom MBean handling.
+     */
+    public enum SpecificPlatform {
 
-		@Nullable
-		public static SpecificPlatform get() {
-			ClassLoader classLoader = MBeanExportConfiguration.class.getClassLoader();
-			for (SpecificPlatform environment : values()) {
-				if (ClassUtils.isPresent(environment.identifyingClass, classLoader)) {
-					return environment;
-				}
-			}
-			return null;
-		}
-	}
+        /**
+         * Weblogic.
+         */
+        WEBLOGIC("weblogic.management.Helper") {
+            @Override
+            public MBeanServer getMBeanServer() {
+                try {
+                    return new JndiLocatorDelegate().lookup("java:comp/env/jmx/runtime", MBeanServer.class);
+                } catch (NamingException ex) {
+                    throw new MBeanServerNotFoundException("Failed to retrieve WebLogic MBeanServer from JNDI", ex);
+                }
+            }
+        },
+
+        /**
+         * Websphere.
+         */
+        WEBSPHERE("com.ibm.websphere.management.AdminServiceFactory") {
+            @Override
+            public MBeanServer getMBeanServer() {
+                WebSphereMBeanServerFactoryBean fb = new WebSphereMBeanServerFactoryBean();
+                fb.afterPropertiesSet();
+                return fb.getObject();
+            }
+        };
+
+        private final String identifyingClass;
+
+        SpecificPlatform(String identifyingClass) {
+            this.identifyingClass = identifyingClass;
+        }
+
+        @Nullable
+        public static SpecificPlatform get() {
+            ClassLoader classLoader = MBeanExportConfiguration.class.getClassLoader();
+            for (SpecificPlatform environment : values()) {
+                if (ClassUtils.isPresent(environment.identifyingClass, classLoader)) {
+                    return environment;
+                }
+            }
+            return null;
+        }
+
+        @Nullable
+        public abstract MBeanServer getMBeanServer();
+    }
 
 }

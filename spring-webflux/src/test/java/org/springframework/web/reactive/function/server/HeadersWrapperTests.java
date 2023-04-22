@@ -41,81 +41,81 @@ import static org.mockito.Mockito.mock;
  */
 public class HeadersWrapperTests {
 
-	private ServerRequest.Headers mockHeaders;
+    private ServerRequest.Headers mockHeaders;
 
-	private ServerRequestWrapper.HeadersWrapper wrapper;
-
-
-	@BeforeEach
-	public void createWrapper() {
-		mockHeaders = mock(ServerRequest.Headers.class);
-		wrapper = new ServerRequestWrapper.HeadersWrapper(mockHeaders);
-	}
+    private ServerRequestWrapper.HeadersWrapper wrapper;
 
 
-	@Test
-	public void accept() {
-		List<MediaType> accept = Collections.singletonList(MediaType.APPLICATION_JSON);
-		given(mockHeaders.accept()).willReturn(accept);
+    @BeforeEach
+    public void createWrapper() {
+        mockHeaders = mock(ServerRequest.Headers.class);
+        wrapper = new ServerRequestWrapper.HeadersWrapper(mockHeaders);
+    }
 
-		assertThat(wrapper.accept()).isSameAs(accept);
-	}
 
-	@Test
-	public void acceptCharset() {
-		List<Charset> acceptCharset = Collections.singletonList(StandardCharsets.UTF_8);
-		given(mockHeaders.acceptCharset()).willReturn(acceptCharset);
+    @Test
+    public void accept() {
+        List<MediaType> accept = Collections.singletonList(MediaType.APPLICATION_JSON);
+        given(mockHeaders.accept()).willReturn(accept);
 
-		assertThat(wrapper.acceptCharset()).isSameAs(acceptCharset);
-	}
+        assertThat(wrapper.accept()).isSameAs(accept);
+    }
 
-	@Test
-	public void contentLength() {
-		OptionalLong contentLength = OptionalLong.of(42L);
-		given(mockHeaders.contentLength()).willReturn(contentLength);
+    @Test
+    public void acceptCharset() {
+        List<Charset> acceptCharset = Collections.singletonList(StandardCharsets.UTF_8);
+        given(mockHeaders.acceptCharset()).willReturn(acceptCharset);
 
-		assertThat(wrapper.contentLength()).isSameAs(contentLength);
-	}
+        assertThat(wrapper.acceptCharset()).isSameAs(acceptCharset);
+    }
 
-	@Test
-	public void contentType() {
-		Optional<MediaType> contentType = Optional.of(MediaType.APPLICATION_JSON);
-		given(mockHeaders.contentType()).willReturn(contentType);
+    @Test
+    public void contentLength() {
+        OptionalLong contentLength = OptionalLong.of(42L);
+        given(mockHeaders.contentLength()).willReturn(contentLength);
 
-		assertThat(wrapper.contentType()).isSameAs(contentType);
-	}
+        assertThat(wrapper.contentLength()).isSameAs(contentLength);
+    }
 
-	@Test
-	public void host() {
-		InetSocketAddress host = InetSocketAddress.createUnresolved("example.com", 42);
-		given(mockHeaders.host()).willReturn(host);
+    @Test
+    public void contentType() {
+        Optional<MediaType> contentType = Optional.of(MediaType.APPLICATION_JSON);
+        given(mockHeaders.contentType()).willReturn(contentType);
 
-		assertThat(wrapper.host()).isSameAs(host);
-	}
+        assertThat(wrapper.contentType()).isSameAs(contentType);
+    }
 
-	@Test
-	public void range() {
-		List<HttpRange> range = Collections.singletonList(HttpRange.createByteRange(42));
-		given(mockHeaders.range()).willReturn(range);
+    @Test
+    public void host() {
+        InetSocketAddress host = InetSocketAddress.createUnresolved("example.com", 42);
+        given(mockHeaders.host()).willReturn(host);
 
-		assertThat(wrapper.range()).isSameAs(range);
-	}
+        assertThat(wrapper.host()).isSameAs(host);
+    }
 
-	@Test
-	public void header() {
-		String name = "foo";
-		List<String> value = Collections.singletonList("bar");
-		given(mockHeaders.header(name)).willReturn(value);
+    @Test
+    public void range() {
+        List<HttpRange> range = Collections.singletonList(HttpRange.createByteRange(42));
+        given(mockHeaders.range()).willReturn(range);
 
-		assertThat(wrapper.header(name)).isSameAs(value);
-	}
+        assertThat(wrapper.range()).isSameAs(range);
+    }
 
-	@Test
-	public void asHttpHeaders() {
-		HttpHeaders httpHeaders = new HttpHeaders();
-		given(mockHeaders.asHttpHeaders()).willReturn(httpHeaders);
+    @Test
+    public void header() {
+        String name = "foo";
+        List<String> value = Collections.singletonList("bar");
+        given(mockHeaders.header(name)).willReturn(value);
 
-		assertThat(wrapper.asHttpHeaders()).isSameAs(httpHeaders);
-	}
+        assertThat(wrapper.header(name)).isSameAs(value);
+    }
+
+    @Test
+    public void asHttpHeaders() {
+        HttpHeaders httpHeaders = new HttpHeaders();
+        given(mockHeaders.asHttpHeaders()).willReturn(httpHeaders);
+
+        assertThat(wrapper.asHttpHeaders()).isSameAs(httpHeaders);
+    }
 
 }

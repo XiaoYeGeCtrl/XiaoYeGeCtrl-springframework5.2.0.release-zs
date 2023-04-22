@@ -51,126 +51,125 @@ import org.springframework.web.socket.sockjs.support.SockJsHttpRequestHandler;
  */
 class HandlersBeanDefinitionParser implements BeanDefinitionParser {
 
-	private static final String SOCK_JS_SCHEDULER_NAME = "SockJsScheduler";
+    private static final String SOCK_JS_SCHEDULER_NAME = "SockJsScheduler";
 
-	private static final int DEFAULT_MAPPING_ORDER = 1;
-
-
-	@Override
-	@Nullable
-	public BeanDefinition parse(Element element, ParserContext context) {
-		Object source = context.extractSource(element);
-		CompositeComponentDefinition compDefinition = new CompositeComponentDefinition(element.getTagName(), source);
-		context.pushContainingComponent(compDefinition);
-
-		String orderAttribute = element.getAttribute("order");
-		int order = orderAttribute.isEmpty() ? DEFAULT_MAPPING_ORDER : Integer.parseInt(orderAttribute);
-
-		RootBeanDefinition handlerMappingDef = new RootBeanDefinition(WebSocketHandlerMapping.class);
-		handlerMappingDef.setSource(source);
-		handlerMappingDef.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
-		handlerMappingDef.getPropertyValues().add("order", order);
-		String handlerMappingName = context.getReaderContext().registerWithGeneratedName(handlerMappingDef);
-
-		RuntimeBeanReference sockJsService = WebSocketNamespaceUtils.registerSockJsService(
-				element, SOCK_JS_SCHEDULER_NAME, context, source);
-
-		HandlerMappingStrategy strategy;
-		if (sockJsService != null) {
-			strategy = new SockJsHandlerMappingStrategy(sockJsService);
-		}
-		else {
-			RuntimeBeanReference handler = WebSocketNamespaceUtils.registerHandshakeHandler(element, context, source);
-			Element interceptElem = DomUtils.getChildElementByTagName(element, "handshake-interceptors");
-			ManagedList<Object> interceptors = WebSocketNamespaceUtils.parseBeanSubElements(interceptElem, context);
-			String allowedOrigins = element.getAttribute("allowed-origins");
-			List<String> origins = Arrays.asList(StringUtils.tokenizeToStringArray(allowedOrigins, ","));
-			interceptors.add(new OriginHandshakeInterceptor(origins));
-			strategy = new WebSocketHandlerMappingStrategy(handler, interceptors);
-		}
-
-		ManagedMap<String, Object> urlMap = new ManagedMap<>();
-		urlMap.setSource(source);
-		for (Element mappingElement : DomUtils.getChildElementsByTagName(element, "mapping")) {
-			strategy.addMapping(mappingElement, urlMap, context);
-		}
-		handlerMappingDef.getPropertyValues().add("urlMap", urlMap);
-
-		context.registerComponent(new BeanComponentDefinition(handlerMappingDef, handlerMappingName));
-		context.popAndRegisterContainingComponent();
-		return null;
-	}
+    private static final int DEFAULT_MAPPING_ORDER = 1;
 
 
-	private interface HandlerMappingStrategy {
+    @Override
+    @Nullable
+    public BeanDefinition parse(Element element, ParserContext context) {
+        Object source = context.extractSource(element);
+        CompositeComponentDefinition compDefinition = new CompositeComponentDefinition(element.getTagName(), source);
+        context.pushContainingComponent(compDefinition);
 
-		void addMapping(Element mappingElement, ManagedMap<String, Object> map, ParserContext context);
-	}
+        String orderAttribute = element.getAttribute("order");
+        int order = orderAttribute.isEmpty() ? DEFAULT_MAPPING_ORDER : Integer.parseInt(orderAttribute);
+
+        RootBeanDefinition handlerMappingDef = new RootBeanDefinition(WebSocketHandlerMapping.class);
+        handlerMappingDef.setSource(source);
+        handlerMappingDef.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
+        handlerMappingDef.getPropertyValues().add("order", order);
+        String handlerMappingName = context.getReaderContext().registerWithGeneratedName(handlerMappingDef);
+
+        RuntimeBeanReference sockJsService = WebSocketNamespaceUtils.registerSockJsService(
+                element, SOCK_JS_SCHEDULER_NAME, context, source);
+
+        HandlerMappingStrategy strategy;
+        if (sockJsService != null) {
+            strategy = new SockJsHandlerMappingStrategy(sockJsService);
+        } else {
+            RuntimeBeanReference handler = WebSocketNamespaceUtils.registerHandshakeHandler(element, context, source);
+            Element interceptElem = DomUtils.getChildElementByTagName(element, "handshake-interceptors");
+            ManagedList<Object> interceptors = WebSocketNamespaceUtils.parseBeanSubElements(interceptElem, context);
+            String allowedOrigins = element.getAttribute("allowed-origins");
+            List<String> origins = Arrays.asList(StringUtils.tokenizeToStringArray(allowedOrigins, ","));
+            interceptors.add(new OriginHandshakeInterceptor(origins));
+            strategy = new WebSocketHandlerMappingStrategy(handler, interceptors);
+        }
+
+        ManagedMap<String, Object> urlMap = new ManagedMap<>();
+        urlMap.setSource(source);
+        for (Element mappingElement : DomUtils.getChildElementsByTagName(element, "mapping")) {
+            strategy.addMapping(mappingElement, urlMap, context);
+        }
+        handlerMappingDef.getPropertyValues().add("urlMap", urlMap);
+
+        context.registerComponent(new BeanComponentDefinition(handlerMappingDef, handlerMappingName));
+        context.popAndRegisterContainingComponent();
+        return null;
+    }
 
 
-	private static class WebSocketHandlerMappingStrategy implements HandlerMappingStrategy {
+    private interface HandlerMappingStrategy {
 
-		private final RuntimeBeanReference handshakeHandlerReference;
-
-		private final ManagedList<?> interceptorsList;
-
-		public WebSocketHandlerMappingStrategy(RuntimeBeanReference handshakeHandler, ManagedList<?> interceptors) {
-			this.handshakeHandlerReference = handshakeHandler;
-			this.interceptorsList = interceptors;
-		}
-
-		@Override
-		public void addMapping(Element element, ManagedMap<String, Object> urlMap, ParserContext context) {
-			String pathAttribute = element.getAttribute("path");
-			String[] mappings = StringUtils.tokenizeToStringArray(pathAttribute, ",");
-			RuntimeBeanReference handlerReference = new RuntimeBeanReference(element.getAttribute("handler"));
-
-			ConstructorArgumentValues cargs = new ConstructorArgumentValues();
-			cargs.addIndexedArgumentValue(0, handlerReference);
-			cargs.addIndexedArgumentValue(1, this.handshakeHandlerReference);
-			RootBeanDefinition requestHandlerDef = new RootBeanDefinition(WebSocketHttpRequestHandler.class, cargs, null);
-			requestHandlerDef.setSource(context.extractSource(element));
-			requestHandlerDef.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
-			requestHandlerDef.getPropertyValues().add("handshakeInterceptors", this.interceptorsList);
-			String requestHandlerName = context.getReaderContext().registerWithGeneratedName(requestHandlerDef);
-			RuntimeBeanReference requestHandlerRef = new RuntimeBeanReference(requestHandlerName);
-
-			for (String mapping : mappings) {
-				urlMap.put(mapping, requestHandlerRef);
-			}
-		}
-	}
+        void addMapping(Element mappingElement, ManagedMap<String, Object> map, ParserContext context);
+    }
 
 
-	private static class SockJsHandlerMappingStrategy implements HandlerMappingStrategy {
+    private static class WebSocketHandlerMappingStrategy implements HandlerMappingStrategy {
 
-		private final RuntimeBeanReference sockJsService;
+        private final RuntimeBeanReference handshakeHandlerReference;
 
-		public SockJsHandlerMappingStrategy(RuntimeBeanReference sockJsService) {
-			this.sockJsService = sockJsService;
-		}
+        private final ManagedList<?> interceptorsList;
 
-		@Override
-		public void addMapping(Element element, ManagedMap<String, Object> urlMap, ParserContext context) {
-			String pathAttribute = element.getAttribute("path");
-			String[] mappings = StringUtils.tokenizeToStringArray(pathAttribute, ",");
-			RuntimeBeanReference handlerReference = new RuntimeBeanReference(element.getAttribute("handler"));
+        public WebSocketHandlerMappingStrategy(RuntimeBeanReference handshakeHandler, ManagedList<?> interceptors) {
+            this.handshakeHandlerReference = handshakeHandler;
+            this.interceptorsList = interceptors;
+        }
 
-			ConstructorArgumentValues cargs = new ConstructorArgumentValues();
-			cargs.addIndexedArgumentValue(0, this.sockJsService, "SockJsService");
-			cargs.addIndexedArgumentValue(1, handlerReference, "WebSocketHandler");
+        @Override
+        public void addMapping(Element element, ManagedMap<String, Object> urlMap, ParserContext context) {
+            String pathAttribute = element.getAttribute("path");
+            String[] mappings = StringUtils.tokenizeToStringArray(pathAttribute, ",");
+            RuntimeBeanReference handlerReference = new RuntimeBeanReference(element.getAttribute("handler"));
 
-			RootBeanDefinition requestHandlerDef = new RootBeanDefinition(SockJsHttpRequestHandler.class, cargs, null);
-			requestHandlerDef.setSource(context.extractSource(element));
-			requestHandlerDef.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
-			String requestHandlerName = context.getReaderContext().registerWithGeneratedName(requestHandlerDef);
-			RuntimeBeanReference requestHandlerRef = new RuntimeBeanReference(requestHandlerName);
+            ConstructorArgumentValues cargs = new ConstructorArgumentValues();
+            cargs.addIndexedArgumentValue(0, handlerReference);
+            cargs.addIndexedArgumentValue(1, this.handshakeHandlerReference);
+            RootBeanDefinition requestHandlerDef = new RootBeanDefinition(WebSocketHttpRequestHandler.class, cargs, null);
+            requestHandlerDef.setSource(context.extractSource(element));
+            requestHandlerDef.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
+            requestHandlerDef.getPropertyValues().add("handshakeInterceptors", this.interceptorsList);
+            String requestHandlerName = context.getReaderContext().registerWithGeneratedName(requestHandlerDef);
+            RuntimeBeanReference requestHandlerRef = new RuntimeBeanReference(requestHandlerName);
 
-			for (String mapping : mappings) {
-				String pathPattern = (mapping.endsWith("/") ? mapping + "**" : mapping + "/**");
-				urlMap.put(pathPattern, requestHandlerRef);
-			}
-		}
-	}
+            for (String mapping : mappings) {
+                urlMap.put(mapping, requestHandlerRef);
+            }
+        }
+    }
+
+
+    private static class SockJsHandlerMappingStrategy implements HandlerMappingStrategy {
+
+        private final RuntimeBeanReference sockJsService;
+
+        public SockJsHandlerMappingStrategy(RuntimeBeanReference sockJsService) {
+            this.sockJsService = sockJsService;
+        }
+
+        @Override
+        public void addMapping(Element element, ManagedMap<String, Object> urlMap, ParserContext context) {
+            String pathAttribute = element.getAttribute("path");
+            String[] mappings = StringUtils.tokenizeToStringArray(pathAttribute, ",");
+            RuntimeBeanReference handlerReference = new RuntimeBeanReference(element.getAttribute("handler"));
+
+            ConstructorArgumentValues cargs = new ConstructorArgumentValues();
+            cargs.addIndexedArgumentValue(0, this.sockJsService, "SockJsService");
+            cargs.addIndexedArgumentValue(1, handlerReference, "WebSocketHandler");
+
+            RootBeanDefinition requestHandlerDef = new RootBeanDefinition(SockJsHttpRequestHandler.class, cargs, null);
+            requestHandlerDef.setSource(context.extractSource(element));
+            requestHandlerDef.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
+            String requestHandlerName = context.getReaderContext().registerWithGeneratedName(requestHandlerDef);
+            RuntimeBeanReference requestHandlerRef = new RuntimeBeanReference(requestHandlerName);
+
+            for (String mapping : mappings) {
+                String pathPattern = (mapping.endsWith("/") ? mapping + "**" : mapping + "/**");
+                urlMap.put(pathPattern, requestHandlerRef);
+            }
+        }
+    }
 
 }

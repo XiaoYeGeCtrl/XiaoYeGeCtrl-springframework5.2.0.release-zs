@@ -25,22 +25,22 @@ package org.springframework.messaging.simp;
  */
 public enum SimpMessageType {
 
-	CONNECT,
+    CONNECT,
 
-	CONNECT_ACK,
+    CONNECT_ACK,
 
-	MESSAGE,
+    MESSAGE,
 
-	SUBSCRIBE,
+    SUBSCRIBE,
 
-	UNSUBSCRIBE,
+    UNSUBSCRIBE,
 
-	HEARTBEAT,
+    HEARTBEAT,
 
-	DISCONNECT,
+    DISCONNECT,
 
-	DISCONNECT_ACK,
+    DISCONNECT_ACK,
 
-	OTHER;
+    OTHER;
 
 }

@@ -33,46 +33,46 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 public class EchoHandlerIntegrationTests extends AbstractHttpHandlerIntegrationTests {
 
-	private static final int REQUEST_SIZE = 4096 * 3;
+    private static final int REQUEST_SIZE = 4096 * 3;
 
-	private final Random rnd = new Random();
-
-
-	@Override
-	protected EchoHandler createHttpHandler() {
-		return new EchoHandler();
-	}
+    private final Random rnd = new Random();
 
 
-	@ParameterizedHttpServerTest
-	public void echo(HttpServer httpServer) throws Exception {
-		startServer(httpServer);
-
-		RestTemplate restTemplate = new RestTemplate();
-
-		byte[] body = randomBytes();
-		RequestEntity<byte[]> request = RequestEntity.post(new URI("http://localhost:" + port)).body(body);
-		ResponseEntity<byte[]> response = restTemplate.exchange(request, byte[].class);
-
-		assertThat(response.getBody()).isEqualTo(body);
-	}
+    @Override
+    protected EchoHandler createHttpHandler() {
+        return new EchoHandler();
+    }
 
 
-	private byte[] randomBytes() {
-		byte[] buffer = new byte[REQUEST_SIZE];
-		rnd.nextBytes(buffer);
-		return buffer;
-	}
+    @ParameterizedHttpServerTest
+    public void echo(HttpServer httpServer) throws Exception {
+        startServer(httpServer);
 
-	/**
-	 * @author Arjen Poutsma
-	 */
-	public static class EchoHandler implements HttpHandler {
+        RestTemplate restTemplate = new RestTemplate();
 
-		@Override
-		public Mono<Void> handle(ServerHttpRequest request, ServerHttpResponse response) {
-			return response.writeWith(request.getBody());
-		}
-	}
+        byte[] body = randomBytes();
+        RequestEntity<byte[]> request = RequestEntity.post(new URI("http://localhost:" + port)).body(body);
+        ResponseEntity<byte[]> response = restTemplate.exchange(request, byte[].class);
+
+        assertThat(response.getBody()).isEqualTo(body);
+    }
+
+
+    private byte[] randomBytes() {
+        byte[] buffer = new byte[REQUEST_SIZE];
+        rnd.nextBytes(buffer);
+        return buffer;
+    }
+
+    /**
+     * @author Arjen Poutsma
+     */
+    public static class EchoHandler implements HttpHandler {
+
+        @Override
+        public Mono<Void> handle(ServerHttpRequest request, ServerHttpResponse response) {
+            return response.writeWith(request.getBody());
+        }
+    }
 
 }

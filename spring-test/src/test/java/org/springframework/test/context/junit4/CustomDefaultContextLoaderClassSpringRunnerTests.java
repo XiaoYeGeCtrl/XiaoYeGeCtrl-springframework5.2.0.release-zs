@@ -42,29 +42,29 @@ import static org.assertj.core.api.Assertions.assertThat;
 @ContextConfiguration("PropertiesBasedSpringJUnit4ClassRunnerAppCtxTests-context.properties")
 public class CustomDefaultContextLoaderClassSpringRunnerTests {
 
-	@Autowired
-	private Pet cat;
+    @Autowired
+    private Pet cat;
 
-	@Autowired
-	private String testString;
-
-
-	@Test
-	public void verifyAnnotationAutowiredFields() {
-		assertThat(this.cat).as("The cat field should have been autowired.").isNotNull();
-		assertThat(this.cat.getName()).isEqualTo("Garfield");
-
-		assertThat(this.testString).as("The testString field should have been autowired.").isNotNull();
-		assertThat(this.testString).isEqualTo("Test String");
-	}
+    @Autowired
+    private String testString;
 
 
-	public static class PropertiesBasedTestContextBootstrapper extends DefaultTestContextBootstrapper {
+    @Test
+    public void verifyAnnotationAutowiredFields() {
+        assertThat(this.cat).as("The cat field should have been autowired.").isNotNull();
+        assertThat(this.cat.getName()).isEqualTo("Garfield");
 
-		@Override
-		protected Class<? extends ContextLoader> getDefaultContextLoaderClass(Class<?> testClass) {
-			return GenericPropertiesContextLoader.class;
-		}
-	}
+        assertThat(this.testString).as("The testString field should have been autowired.").isNotNull();
+        assertThat(this.testString).isEqualTo("Test String");
+    }
+
+
+    public static class PropertiesBasedTestContextBootstrapper extends DefaultTestContextBootstrapper {
+
+        @Override
+        protected Class<? extends ContextLoader> getDefaultContextLoaderClass(Class<?> testClass) {
+            return GenericPropertiesContextLoader.class;
+        }
+    }
 
 }

@@ -31,28 +31,28 @@ import org.springframework.web.server.ServerWebExchange;
  * Resolves method argument value of type {@link java.security.Principal}.
  *
  * @author Rossen Stoyanchev
- * @since 5.2
  * @see ServerWebExchangeMethodArgumentResolver
+ * @since 5.2
  */
 public class PrincipalMethodArgumentResolver extends HandlerMethodArgumentResolverSupport {
 
-	public PrincipalMethodArgumentResolver(ReactiveAdapterRegistry adapterRegistry) {
-		super(adapterRegistry);
-	}
+    public PrincipalMethodArgumentResolver(ReactiveAdapterRegistry adapterRegistry) {
+        super(adapterRegistry);
+    }
 
 
-	@Override
-	public boolean supportsParameter(MethodParameter parameter) {
-		return checkParameterType(parameter, Principal.class::isAssignableFrom);
-	}
+    @Override
+    public boolean supportsParameter(MethodParameter parameter) {
+        return checkParameterType(parameter, Principal.class::isAssignableFrom);
+    }
 
-	@Override
-	public Mono<Object> resolveArgument(
-			MethodParameter parameter, BindingContext context, ServerWebExchange exchange) {
+    @Override
+    public Mono<Object> resolveArgument(
+            MethodParameter parameter, BindingContext context, ServerWebExchange exchange) {
 
-		Mono<Principal> principal = exchange.getPrincipal();
-		ReactiveAdapter adapter = getAdapterRegistry().getAdapter(parameter.getParameterType());
-		return (adapter != null ? Mono.just(adapter.fromPublisher(principal)) : Mono.from(principal));
-	}
+        Mono<Principal> principal = exchange.getPrincipal();
+        ReactiveAdapter adapter = getAdapterRegistry().getAdapter(parameter.getParameterType());
+        return (adapter != null ? Mono.just(adapter.fromPublisher(principal)) : Mono.from(principal));
+    }
 
 }

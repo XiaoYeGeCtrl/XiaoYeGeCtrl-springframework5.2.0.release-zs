@@ -27,27 +27,27 @@ import org.springframework.transaction.TransactionStatus;
  * {@link TransactionCallback} without an actual transaction.
  *
  * @author Juergen Hoeller
- * @since 5.2
  * @see TransactionOperations#withoutTransaction()
+ * @since 5.2
  */
 final class WithoutTransactionOperations implements TransactionOperations {
 
-	static final WithoutTransactionOperations INSTANCE = new WithoutTransactionOperations();
+    static final WithoutTransactionOperations INSTANCE = new WithoutTransactionOperations();
 
 
-	private WithoutTransactionOperations() {
-	}
+    private WithoutTransactionOperations() {
+    }
 
 
-	@Override
-	@Nullable
-	public <T> T execute(TransactionCallback<T> action) throws TransactionException {
-		return action.doInTransaction(new SimpleTransactionStatus(false));
-	}
+    @Override
+    @Nullable
+    public <T> T execute(TransactionCallback<T> action) throws TransactionException {
+        return action.doInTransaction(new SimpleTransactionStatus(false));
+    }
 
-	@Override
-	public void executeWithoutResult(Consumer<TransactionStatus> action) throws TransactionException {
-		action.accept(new SimpleTransactionStatus(false));
-	}
+    @Override
+    public void executeWithoutResult(Consumer<TransactionStatus> action) throws TransactionException {
+        action.accept(new SimpleTransactionStatus(false));
+    }
 
 }

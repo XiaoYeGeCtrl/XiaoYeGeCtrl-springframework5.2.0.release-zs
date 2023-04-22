@@ -37,59 +37,59 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 public class ContextLoaderInitializerTests {
 
-	private static final String BEAN_NAME = "myBean";
+    private static final String BEAN_NAME = "myBean";
 
-	private AbstractContextLoaderInitializer initializer;
+    private AbstractContextLoaderInitializer initializer;
 
-	private MockServletContext servletContext;
+    private MockServletContext servletContext;
 
-	private EventListener eventListener;
+    private EventListener eventListener;
 
-	@BeforeEach
-	public void setUp() throws Exception {
-		servletContext = new MyMockServletContext();
-		initializer = new MyContextLoaderInitializer();
-		eventListener = null;
-	}
+    @BeforeEach
+    public void setUp() throws Exception {
+        servletContext = new MyMockServletContext();
+        initializer = new MyContextLoaderInitializer();
+        eventListener = null;
+    }
 
-	@Test
-	public void register() throws ServletException {
-		initializer.onStartup(servletContext);
+    @Test
+    public void register() throws ServletException {
+        initializer.onStartup(servletContext);
 
-		boolean condition1 = eventListener instanceof ContextLoaderListener;
-		assertThat(condition1).isTrue();
-		ContextLoaderListener cll = (ContextLoaderListener) eventListener;
-		cll.contextInitialized(new ServletContextEvent(servletContext));
+        boolean condition1 = eventListener instanceof ContextLoaderListener;
+        assertThat(condition1).isTrue();
+        ContextLoaderListener cll = (ContextLoaderListener) eventListener;
+        cll.contextInitialized(new ServletContextEvent(servletContext));
 
-		WebApplicationContext applicationContext = WebApplicationContextUtils
-				.getRequiredWebApplicationContext(servletContext);
+        WebApplicationContext applicationContext = WebApplicationContextUtils
+                .getRequiredWebApplicationContext(servletContext);
 
-		assertThat(applicationContext.containsBean(BEAN_NAME)).isTrue();
-		boolean condition = applicationContext.getBean(BEAN_NAME) instanceof MyBean;
-		assertThat(condition).isTrue();
-	}
+        assertThat(applicationContext.containsBean(BEAN_NAME)).isTrue();
+        boolean condition = applicationContext.getBean(BEAN_NAME) instanceof MyBean;
+        assertThat(condition).isTrue();
+    }
 
-	private class MyMockServletContext extends MockServletContext {
+    private static class MyContextLoaderInitializer
+            extends AbstractContextLoaderInitializer {
 
-		@Override
-		public <T extends EventListener> void addListener(T listener) {
-			eventListener = listener;
-		}
+        @Override
+        protected WebApplicationContext createRootApplicationContext() {
+            StaticWebApplicationContext rootContext = new StaticWebApplicationContext();
+            rootContext.registerSingleton(BEAN_NAME, MyBean.class);
+            return rootContext;
+        }
+    }
 
-	}
+    private static class MyBean {
 
-	private static class MyContextLoaderInitializer
-			extends AbstractContextLoaderInitializer {
+    }
 
-		@Override
-		protected WebApplicationContext createRootApplicationContext() {
-			StaticWebApplicationContext rootContext = new StaticWebApplicationContext();
-			rootContext.registerSingleton(BEAN_NAME, MyBean.class);
-			return rootContext;
-		}
-	}
+    private class MyMockServletContext extends MockServletContext {
 
-	private static class MyBean {
+        @Override
+        public <T extends EventListener> void addListener(T listener) {
+            eventListener = listener;
+        }
 
-	}
+    }
 }

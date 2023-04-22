@@ -25,18 +25,18 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 public class ExchangeStrategiesTests {
 
-	@Test
-	public void empty() {
-		ExchangeStrategies strategies = ExchangeStrategies.empty().build();
-		assertThat(strategies.messageReaders().isEmpty()).isTrue();
-		assertThat(strategies.messageWriters().isEmpty()).isTrue();
-	}
+    @Test
+    public void empty() {
+        ExchangeStrategies strategies = ExchangeStrategies.empty().build();
+        assertThat(strategies.messageReaders().isEmpty()).isTrue();
+        assertThat(strategies.messageWriters().isEmpty()).isTrue();
+    }
 
-	@Test
-	public void withDefaults() {
-		ExchangeStrategies strategies = ExchangeStrategies.withDefaults();
-		assertThat(strategies.messageReaders().isEmpty()).isFalse();
-		assertThat(strategies.messageWriters().isEmpty()).isFalse();
-	}
+    @Test
+    public void withDefaults() {
+        ExchangeStrategies strategies = ExchangeStrategies.withDefaults();
+        assertThat(strategies.messageReaders().isEmpty()).isFalse();
+        assertThat(strategies.messageWriters().isEmpty()).isFalse();
+    }
 
 }

@@ -49,177 +49,176 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * Unit tests for {@link RSocketMessageHandler}.
+ *
  * @author Rossen Stoyanchev
  * @since 5.2
  */
 public class RSocketMessageHandlerTests {
 
-	@Test
-	public void getRSocketStrategies() {
-		RSocketMessageHandler handler = new RSocketMessageHandler();
-		handler.setDecoders(Collections.singletonList(new ByteArrayDecoder()));
-		handler.setEncoders(Collections.singletonList(new ByteArrayEncoder()));
-		handler.setRouteMatcher(new SimpleRouteMatcher(new AntPathMatcher()));
-		handler.setMetadataExtractor(new DefaultMetadataExtractor());
-		handler.setReactiveAdapterRegistry(new ReactiveAdapterRegistry());
+    private static void testMapping(Object controller, String... expectedPatterns) {
+        RSocketMessageHandler handler = new RSocketMessageHandler();
+        handler.setDecoders(Collections.singletonList(StringDecoder.allMimeTypes()));
+        handler.setEncoders(Collections.singletonList(CharSequenceEncoder.allMimeTypes()));
+        handler.setHandlers(Collections.singletonList(controller));
+        handler.afterPropertiesSet();
 
-		RSocketStrategies strategies = handler.getRSocketStrategies();
-		assertThat(strategies).isNotNull();
-		assertThat(strategies.encoders()).isEqualTo(handler.getEncoders());
-		assertThat(strategies.decoders()).isEqualTo(handler.getDecoders());
-		assertThat(strategies.routeMatcher()).isSameAs(handler.getRouteMatcher());
-		assertThat(strategies.metadataExtractor()).isSameAs(handler.getMetadataExtractor());
-		assertThat(strategies.reactiveAdapterRegistry()).isSameAs(handler.getReactiveAdapterRegistry());
-	}
+        Map<CompositeMessageCondition, HandlerMethod> map = handler.getHandlerMethods();
+        assertThat(map).hasSize(1);
 
-	@Test
-	public void setRSocketStrategies() {
-		RSocketStrategies strategies = RSocketStrategies.builder()
-				.encoder(new ByteArrayEncoder())
-				.decoder(new ByteArrayDecoder())
-				.routeMatcher(new SimpleRouteMatcher(new AntPathMatcher()))
-				.metadataExtractor(new DefaultMetadataExtractor())
-				.reactiveAdapterStrategy(new ReactiveAdapterRegistry())
-				.build();
+        CompositeMessageCondition condition = map.entrySet().iterator().next().getKey();
+        RSocketFrameTypeMessageCondition c1 = condition.getCondition(RSocketFrameTypeMessageCondition.class);
+        assertThat(c1.getFrameTypes()).contains(FrameType.SETUP, FrameType.METADATA_PUSH);
 
-		RSocketMessageHandler handler = new RSocketMessageHandler();
-		handler.setRSocketStrategies(strategies);
+        DestinationPatternsMessageCondition c2 = condition.getCondition(DestinationPatternsMessageCondition.class);
+        if (ObjectUtils.isEmpty(expectedPatterns)) {
+            assertThat(c2.getPatterns()).isEmpty();
+        } else {
+            assertThat(c2.getPatterns()).contains(expectedPatterns);
+        }
+    }
 
-		assertThat(handler.getEncoders()).isEqualTo(strategies.encoders());
-		assertThat(handler.getDecoders()).isEqualTo(strategies.decoders());
-		assertThat(handler.getRouteMatcher()).isSameAs(strategies.routeMatcher());
-		assertThat(handler.getMetadataExtractor()).isSameAs(strategies.metadataExtractor());
-		assertThat(handler.getReactiveAdapterRegistry()).isSameAs(strategies.reactiveAdapterRegistry());
-	}
+    private static void testHandleNoMatch(FrameType frameType) {
+        RSocketMessageHandler handler = new RSocketMessageHandler();
+        handler.setDecoders(Collections.singletonList(StringDecoder.allMimeTypes()));
+        handler.setEncoders(Collections.singletonList(CharSequenceEncoder.allMimeTypes()));
+        handler.afterPropertiesSet();
 
-	@Test
-	public void getRSocketStrategiesReflectsCurrentState() {
+        RouteMatcher matcher = new SimpleRouteMatcher(new AntPathMatcher("."));
+        RouteMatcher.Route route = matcher.parseRoute("path");
 
-		RSocketMessageHandler handler = new RSocketMessageHandler();
+        MessageHeaderAccessor headers = new MessageHeaderAccessor();
+        headers.setHeader(RSocketFrameTypeMessageCondition.FRAME_TYPE_HEADER, frameType);
+        Message<Object> message = MessageBuilder.createMessage("", headers.getMessageHeaders());
 
-		// 1. Set properties
-		handler.setDecoders(Collections.singletonList(new ByteArrayDecoder()));
-		handler.setEncoders(Collections.singletonList(new ByteArrayEncoder()));
-		handler.setRouteMatcher(new SimpleRouteMatcher(new AntPathMatcher()));
-		handler.setMetadataExtractor(new DefaultMetadataExtractor());
-		handler.setReactiveAdapterRegistry(new ReactiveAdapterRegistry());
+        handler.handleNoMatch(route, message);
+    }
 
-		RSocketStrategies strategies = handler.getRSocketStrategies();
-		assertThat(strategies.encoders()).isEqualTo(handler.getEncoders());
-		assertThat(strategies.decoders()).isEqualTo(handler.getDecoders());
-		assertThat(strategies.routeMatcher()).isSameAs(handler.getRouteMatcher());
-		assertThat(strategies.metadataExtractor()).isSameAs(handler.getMetadataExtractor());
-		assertThat(strategies.reactiveAdapterRegistry()).isSameAs(handler.getReactiveAdapterRegistry());
+    @Test
+    public void getRSocketStrategies() {
+        RSocketMessageHandler handler = new RSocketMessageHandler();
+        handler.setDecoders(Collections.singletonList(new ByteArrayDecoder()));
+        handler.setEncoders(Collections.singletonList(new ByteArrayEncoder()));
+        handler.setRouteMatcher(new SimpleRouteMatcher(new AntPathMatcher()));
+        handler.setMetadataExtractor(new DefaultMetadataExtractor());
+        handler.setReactiveAdapterRegistry(new ReactiveAdapterRegistry());
 
-		// 2. Set properties again
-		handler.setDecoders(Collections.singletonList(StringDecoder.allMimeTypes()));
-		handler.setEncoders(Collections.singletonList(CharSequenceEncoder.allMimeTypes()));
-		handler.setRouteMatcher(new SimpleRouteMatcher(new AntPathMatcher()));
-		handler.setMetadataExtractor(new DefaultMetadataExtractor());
-		handler.setReactiveAdapterRegistry(new ReactiveAdapterRegistry());
-		handler.afterPropertiesSet();
+        RSocketStrategies strategies = handler.getRSocketStrategies();
+        assertThat(strategies).isNotNull();
+        assertThat(strategies.encoders()).isEqualTo(handler.getEncoders());
+        assertThat(strategies.decoders()).isEqualTo(handler.getDecoders());
+        assertThat(strategies.routeMatcher()).isSameAs(handler.getRouteMatcher());
+        assertThat(strategies.metadataExtractor()).isSameAs(handler.getMetadataExtractor());
+        assertThat(strategies.reactiveAdapterRegistry()).isSameAs(handler.getReactiveAdapterRegistry());
+    }
 
-		strategies = handler.getRSocketStrategies();
-		assertThat(strategies.encoders()).isEqualTo(handler.getEncoders());
-		assertThat(strategies.decoders()).isEqualTo(handler.getDecoders());
-		assertThat(strategies.routeMatcher()).isSameAs(handler.getRouteMatcher());
-		assertThat(strategies.metadataExtractor()).isSameAs(handler.getMetadataExtractor());
-		assertThat(strategies.reactiveAdapterRegistry()).isSameAs(handler.getReactiveAdapterRegistry());
-	}
+    @Test
+    public void setRSocketStrategies() {
+        RSocketStrategies strategies = RSocketStrategies.builder()
+                .encoder(new ByteArrayEncoder())
+                .decoder(new ByteArrayDecoder())
+                .routeMatcher(new SimpleRouteMatcher(new AntPathMatcher()))
+                .metadataExtractor(new DefaultMetadataExtractor())
+                .reactiveAdapterStrategy(new ReactiveAdapterRegistry())
+                .build();
 
-	@Test
-	public void metadataExtractorWithExplicitlySetDecoders() {
-		DefaultMetadataExtractor extractor = new DefaultMetadataExtractor(StringDecoder.allMimeTypes());
+        RSocketMessageHandler handler = new RSocketMessageHandler();
+        handler.setRSocketStrategies(strategies);
 
-		RSocketMessageHandler handler = new RSocketMessageHandler();
-		handler.setDecoders(Arrays.asList(new ByteArrayDecoder(), new ByteBufferDecoder()));
-		handler.setEncoders(Collections.singletonList(new ByteBufferEncoder()));
-		handler.setMetadataExtractor(extractor);
-		handler.afterPropertiesSet();
+        assertThat(handler.getEncoders()).isEqualTo(strategies.encoders());
+        assertThat(handler.getDecoders()).isEqualTo(strategies.decoders());
+        assertThat(handler.getRouteMatcher()).isSameAs(strategies.routeMatcher());
+        assertThat(handler.getMetadataExtractor()).isSameAs(strategies.metadataExtractor());
+        assertThat(handler.getReactiveAdapterRegistry()).isSameAs(strategies.reactiveAdapterRegistry());
+    }
 
-		assertThat(((DefaultMetadataExtractor) handler.getMetadataExtractor()).getDecoders()).hasSize(1);
-	}
+    @Test
+    public void getRSocketStrategiesReflectsCurrentState() {
 
-	@Test
-	public void mappings() {
-		testMapping(new SimpleController(), "path");
-		testMapping(new TypeLevelMappingController(), "base.path");
-		testMapping(new HandleAllController());
-	}
+        RSocketMessageHandler handler = new RSocketMessageHandler();
 
-	private static void testMapping(Object controller, String... expectedPatterns) {
-		RSocketMessageHandler handler = new RSocketMessageHandler();
-		handler.setDecoders(Collections.singletonList(StringDecoder.allMimeTypes()));
-		handler.setEncoders(Collections.singletonList(CharSequenceEncoder.allMimeTypes()));
-		handler.setHandlers(Collections.singletonList(controller));
-		handler.afterPropertiesSet();
+        // 1. Set properties
+        handler.setDecoders(Collections.singletonList(new ByteArrayDecoder()));
+        handler.setEncoders(Collections.singletonList(new ByteArrayEncoder()));
+        handler.setRouteMatcher(new SimpleRouteMatcher(new AntPathMatcher()));
+        handler.setMetadataExtractor(new DefaultMetadataExtractor());
+        handler.setReactiveAdapterRegistry(new ReactiveAdapterRegistry());
 
-		Map<CompositeMessageCondition, HandlerMethod> map = handler.getHandlerMethods();
-		assertThat(map).hasSize(1);
+        RSocketStrategies strategies = handler.getRSocketStrategies();
+        assertThat(strategies.encoders()).isEqualTo(handler.getEncoders());
+        assertThat(strategies.decoders()).isEqualTo(handler.getDecoders());
+        assertThat(strategies.routeMatcher()).isSameAs(handler.getRouteMatcher());
+        assertThat(strategies.metadataExtractor()).isSameAs(handler.getMetadataExtractor());
+        assertThat(strategies.reactiveAdapterRegistry()).isSameAs(handler.getReactiveAdapterRegistry());
 
-		CompositeMessageCondition condition = map.entrySet().iterator().next().getKey();
-		RSocketFrameTypeMessageCondition c1 = condition.getCondition(RSocketFrameTypeMessageCondition.class);
-		assertThat(c1.getFrameTypes()).contains(FrameType.SETUP, FrameType.METADATA_PUSH);
+        // 2. Set properties again
+        handler.setDecoders(Collections.singletonList(StringDecoder.allMimeTypes()));
+        handler.setEncoders(Collections.singletonList(CharSequenceEncoder.allMimeTypes()));
+        handler.setRouteMatcher(new SimpleRouteMatcher(new AntPathMatcher()));
+        handler.setMetadataExtractor(new DefaultMetadataExtractor());
+        handler.setReactiveAdapterRegistry(new ReactiveAdapterRegistry());
+        handler.afterPropertiesSet();
 
-		DestinationPatternsMessageCondition c2 = condition.getCondition(DestinationPatternsMessageCondition.class);
-		if (ObjectUtils.isEmpty(expectedPatterns)) {
-			assertThat(c2.getPatterns()).isEmpty();
-		}
-		else {
-			assertThat(c2.getPatterns()).contains(expectedPatterns);
-		}
-	}
+        strategies = handler.getRSocketStrategies();
+        assertThat(strategies.encoders()).isEqualTo(handler.getEncoders());
+        assertThat(strategies.decoders()).isEqualTo(handler.getDecoders());
+        assertThat(strategies.routeMatcher()).isSameAs(handler.getRouteMatcher());
+        assertThat(strategies.metadataExtractor()).isSameAs(handler.getMetadataExtractor());
+        assertThat(strategies.reactiveAdapterRegistry()).isSameAs(handler.getReactiveAdapterRegistry());
+    }
 
-	@Test
-	public void handleNoMatch() {
+    @Test
+    public void metadataExtractorWithExplicitlySetDecoders() {
+        DefaultMetadataExtractor extractor = new DefaultMetadataExtractor(StringDecoder.allMimeTypes());
 
-		testHandleNoMatch(FrameType.SETUP);
-		testHandleNoMatch(FrameType.METADATA_PUSH);
-		testHandleNoMatch(FrameType.REQUEST_FNF);
+        RSocketMessageHandler handler = new RSocketMessageHandler();
+        handler.setDecoders(Arrays.asList(new ByteArrayDecoder(), new ByteBufferDecoder()));
+        handler.setEncoders(Collections.singletonList(new ByteBufferEncoder()));
+        handler.setMetadataExtractor(extractor);
+        handler.afterPropertiesSet();
 
-		assertThatThrownBy(() -> testHandleNoMatch(FrameType.REQUEST_RESPONSE))
-			.hasMessage("No handler for destination 'path'");
-	}
+        assertThat(((DefaultMetadataExtractor) handler.getMetadataExtractor()).getDecoders()).hasSize(1);
+    }
 
-	private static void testHandleNoMatch(FrameType frameType) {
-		RSocketMessageHandler handler = new RSocketMessageHandler();
-		handler.setDecoders(Collections.singletonList(StringDecoder.allMimeTypes()));
-		handler.setEncoders(Collections.singletonList(CharSequenceEncoder.allMimeTypes()));
-		handler.afterPropertiesSet();
+    @Test
+    public void mappings() {
+        testMapping(new SimpleController(), "path");
+        testMapping(new TypeLevelMappingController(), "base.path");
+        testMapping(new HandleAllController());
+    }
 
-		RouteMatcher matcher = new SimpleRouteMatcher(new AntPathMatcher("."));
-		RouteMatcher.Route route = matcher.parseRoute("path");
+    @Test
+    public void handleNoMatch() {
 
-		MessageHeaderAccessor headers = new MessageHeaderAccessor();
-		headers.setHeader(RSocketFrameTypeMessageCondition.FRAME_TYPE_HEADER, frameType);
-		Message<Object> message = MessageBuilder.createMessage("", headers.getMessageHeaders());
+        testHandleNoMatch(FrameType.SETUP);
+        testHandleNoMatch(FrameType.METADATA_PUSH);
+        testHandleNoMatch(FrameType.REQUEST_FNF);
 
-		handler.handleNoMatch(route, message);
-	}
+        assertThatThrownBy(() -> testHandleNoMatch(FrameType.REQUEST_RESPONSE))
+                .hasMessage("No handler for destination 'path'");
+    }
 
+    private static class SimpleController {
 
-	private static class SimpleController {
-
-		@ConnectMapping("path")
-		public void handle() {
-		}
-	}
+        @ConnectMapping("path")
+        public void handle() {
+        }
+    }
 
 
-	@MessageMapping("base")
-	private static class TypeLevelMappingController {
+    @MessageMapping("base")
+    private static class TypeLevelMappingController {
 
-		@ConnectMapping("path")
-		public void handleWithPatterns() {
-		}
-	}
+        @ConnectMapping("path")
+        public void handleWithPatterns() {
+        }
+    }
 
 
-	private static class HandleAllController {
+    private static class HandleAllController {
 
-		@ConnectMapping
-		public void handleAll() {
-		}
-	}
+        @ConnectMapping
+        public void handleAll() {
+        }
+    }
 
 }

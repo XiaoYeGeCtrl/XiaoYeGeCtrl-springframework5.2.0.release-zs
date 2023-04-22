@@ -31,21 +31,21 @@ import org.springframework.transaction.config.TransactionManagementConfigUtils;
  * {@link org.springframework.transaction.annotation.Transactional} annotation.
  *
  * @author Juergen Hoeller
- * @since 5.1
  * @see EnableTransactionManagement
  * @see TransactionManagementConfigurationSelector
+ * @since 5.1
  */
 @Configuration
 public class AspectJJtaTransactionManagementConfiguration extends AspectJTransactionManagementConfiguration {
 
-	@Bean(name = TransactionManagementConfigUtils.JTA_TRANSACTION_ASPECT_BEAN_NAME)
-	@Role(BeanDefinition.ROLE_INFRASTRUCTURE)
-	public JtaAnnotationTransactionAspect jtaTransactionAspect() {
-		JtaAnnotationTransactionAspect txAspect = JtaAnnotationTransactionAspect.aspectOf();
-		if (this.txManager != null) {
-			txAspect.setTransactionManager(this.txManager);
-		}
-		return txAspect;
-	}
+    @Bean(name = TransactionManagementConfigUtils.JTA_TRANSACTION_ASPECT_BEAN_NAME)
+    @Role(BeanDefinition.ROLE_INFRASTRUCTURE)
+    public JtaAnnotationTransactionAspect jtaTransactionAspect() {
+        JtaAnnotationTransactionAspect txAspect = JtaAnnotationTransactionAspect.aspectOf();
+        if (this.txManager != null) {
+            txAspect.setTransactionManager(this.txManager);
+        }
+        return txAspect;
+    }
 
 }

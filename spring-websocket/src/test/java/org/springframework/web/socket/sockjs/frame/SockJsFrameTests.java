@@ -29,70 +29,70 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class SockJsFrameTests {
 
 
-	@Test
-	public void openFrame() {
-		SockJsFrame frame = SockJsFrame.openFrame();
+    @Test
+    public void openFrame() {
+        SockJsFrame frame = SockJsFrame.openFrame();
 
-		assertThat(frame.getContent()).isEqualTo("o");
-		assertThat(frame.getType()).isEqualTo(SockJsFrameType.OPEN);
-		assertThat(frame.getFrameData()).isNull();
-	}
+        assertThat(frame.getContent()).isEqualTo("o");
+        assertThat(frame.getType()).isEqualTo(SockJsFrameType.OPEN);
+        assertThat(frame.getFrameData()).isNull();
+    }
 
-	@Test
-	public void heartbeatFrame() {
-		SockJsFrame frame = SockJsFrame.heartbeatFrame();
+    @Test
+    public void heartbeatFrame() {
+        SockJsFrame frame = SockJsFrame.heartbeatFrame();
 
-		assertThat(frame.getContent()).isEqualTo("h");
-		assertThat(frame.getType()).isEqualTo(SockJsFrameType.HEARTBEAT);
-		assertThat(frame.getFrameData()).isNull();
-	}
+        assertThat(frame.getContent()).isEqualTo("h");
+        assertThat(frame.getType()).isEqualTo(SockJsFrameType.HEARTBEAT);
+        assertThat(frame.getFrameData()).isNull();
+    }
 
-	@Test
-	public void messageArrayFrame() {
-		SockJsFrame frame = SockJsFrame.messageFrame(new Jackson2SockJsMessageCodec(), "m1", "m2");
+    @Test
+    public void messageArrayFrame() {
+        SockJsFrame frame = SockJsFrame.messageFrame(new Jackson2SockJsMessageCodec(), "m1", "m2");
 
-		assertThat(frame.getContent()).isEqualTo("a[\"m1\",\"m2\"]");
-		assertThat(frame.getType()).isEqualTo(SockJsFrameType.MESSAGE);
-		assertThat(frame.getFrameData()).isEqualTo("[\"m1\",\"m2\"]");
-	}
+        assertThat(frame.getContent()).isEqualTo("a[\"m1\",\"m2\"]");
+        assertThat(frame.getType()).isEqualTo(SockJsFrameType.MESSAGE);
+        assertThat(frame.getFrameData()).isEqualTo("[\"m1\",\"m2\"]");
+    }
 
-	@Test
-	public void messageArrayFrameEmpty() {
-		SockJsFrame frame = new SockJsFrame("a");
+    @Test
+    public void messageArrayFrameEmpty() {
+        SockJsFrame frame = new SockJsFrame("a");
 
-		assertThat(frame.getContent()).isEqualTo("a[]");
-		assertThat(frame.getType()).isEqualTo(SockJsFrameType.MESSAGE);
-		assertThat(frame.getFrameData()).isEqualTo("[]");
+        assertThat(frame.getContent()).isEqualTo("a[]");
+        assertThat(frame.getType()).isEqualTo(SockJsFrameType.MESSAGE);
+        assertThat(frame.getFrameData()).isEqualTo("[]");
 
-		frame = new SockJsFrame("a[]");
+        frame = new SockJsFrame("a[]");
 
-		assertThat(frame.getContent()).isEqualTo("a[]");
-		assertThat(frame.getType()).isEqualTo(SockJsFrameType.MESSAGE);
-		assertThat(frame.getFrameData()).isEqualTo("[]");
-	}
+        assertThat(frame.getContent()).isEqualTo("a[]");
+        assertThat(frame.getType()).isEqualTo(SockJsFrameType.MESSAGE);
+        assertThat(frame.getFrameData()).isEqualTo("[]");
+    }
 
-	@Test
-	public void closeFrame() {
-		SockJsFrame frame = SockJsFrame.closeFrame(3000, "Go Away!");
+    @Test
+    public void closeFrame() {
+        SockJsFrame frame = SockJsFrame.closeFrame(3000, "Go Away!");
 
-		assertThat(frame.getContent()).isEqualTo("c[3000,\"Go Away!\"]");
-		assertThat(frame.getType()).isEqualTo(SockJsFrameType.CLOSE);
-		assertThat(frame.getFrameData()).isEqualTo("[3000,\"Go Away!\"]");
-	}
+        assertThat(frame.getContent()).isEqualTo("c[3000,\"Go Away!\"]");
+        assertThat(frame.getType()).isEqualTo(SockJsFrameType.CLOSE);
+        assertThat(frame.getFrameData()).isEqualTo("[3000,\"Go Away!\"]");
+    }
 
-	@Test
-	public void closeFrameEmpty() {
-		SockJsFrame frame = new SockJsFrame("c");
+    @Test
+    public void closeFrameEmpty() {
+        SockJsFrame frame = new SockJsFrame("c");
 
-		assertThat(frame.getContent()).isEqualTo("c[]");
-		assertThat(frame.getType()).isEqualTo(SockJsFrameType.CLOSE);
-		assertThat(frame.getFrameData()).isEqualTo("[]");
+        assertThat(frame.getContent()).isEqualTo("c[]");
+        assertThat(frame.getType()).isEqualTo(SockJsFrameType.CLOSE);
+        assertThat(frame.getFrameData()).isEqualTo("[]");
 
-		frame = new SockJsFrame("c[]");
+        frame = new SockJsFrame("c[]");
 
-		assertThat(frame.getContent()).isEqualTo("c[]");
-		assertThat(frame.getType()).isEqualTo(SockJsFrameType.CLOSE);
-		assertThat(frame.getFrameData()).isEqualTo("[]");
-	}
+        assertThat(frame.getContent()).isEqualTo("c[]");
+        assertThat(frame.getType()).isEqualTo(SockJsFrameType.CLOSE);
+        assertThat(frame.getFrameData()).isEqualTo("[]");
+    }
 
 }

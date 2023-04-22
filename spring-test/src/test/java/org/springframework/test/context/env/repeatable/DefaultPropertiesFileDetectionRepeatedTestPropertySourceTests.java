@@ -31,12 +31,12 @@ import org.springframework.test.context.TestPropertySource;
 @TestPropertySource
 @TestPropertySource("local.properties")
 class DefaultPropertiesFileDetectionRepeatedTestPropertySourceTests
-		extends AbstractRepeatableTestPropertySourceTests {
+        extends AbstractRepeatableTestPropertySourceTests {
 
-	@Test
-	void test() {
-		assertEnvironmentValue("default.value", "default file");
-		assertEnvironmentValue("key1", "local file");
-	}
+    @Test
+    void test() {
+        assertEnvironmentValue("default.value", "default file");
+        assertEnvironmentValue("key1", "local file");
+    }
 
 }

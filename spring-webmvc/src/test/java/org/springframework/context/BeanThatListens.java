@@ -26,37 +26,37 @@ import java.util.Map;
  */
 public class BeanThatListens implements ApplicationListener<ApplicationEvent> {
 
-	private BeanThatBroadcasts beanThatBroadcasts;
+    private BeanThatBroadcasts beanThatBroadcasts;
 
-	private int eventCount;
-
-
-	public BeanThatListens() {
-	}
-
-	public BeanThatListens(BeanThatBroadcasts beanThatBroadcasts) {
-		this.beanThatBroadcasts = beanThatBroadcasts;
-		Map<String, BeanThatListens> beans = beanThatBroadcasts.applicationContext.getBeansOfType(BeanThatListens.class);
-		if (!beans.isEmpty()) {
-			throw new IllegalStateException("Shouldn't have found any BeanThatListens instances");
-		}
-	}
+    private int eventCount;
 
 
-	@Override
-	public void onApplicationEvent(ApplicationEvent event) {
-		eventCount++;
-		if (beanThatBroadcasts != null) {
-			beanThatBroadcasts.receivedCount++;
-		}
-	}
+    public BeanThatListens() {
+    }
 
-	public int getEventCount() {
-		return eventCount;
-	}
+    public BeanThatListens(BeanThatBroadcasts beanThatBroadcasts) {
+        this.beanThatBroadcasts = beanThatBroadcasts;
+        Map<String, BeanThatListens> beans = beanThatBroadcasts.applicationContext.getBeansOfType(BeanThatListens.class);
+        if (!beans.isEmpty()) {
+            throw new IllegalStateException("Shouldn't have found any BeanThatListens instances");
+        }
+    }
 
-	public void zero() {
-		eventCount = 0;
-	}
+
+    @Override
+    public void onApplicationEvent(ApplicationEvent event) {
+        eventCount++;
+        if (beanThatBroadcasts != null) {
+            beanThatBroadcasts.receivedCount++;
+        }
+    }
+
+    public int getEventCount() {
+        return eventCount;
+    }
+
+    public void zero() {
+        eventCount = 0;
+    }
 
 }

@@ -31,10 +31,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 
 
-
-
-
-
 /**
  * Unit tests for
  * {@link org.springframework.messaging.simp.SimpAttributesContextHolder}.
@@ -44,96 +40,96 @@ import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
  */
 public class SimpAttributesContextHolderTests {
 
-	private SimpAttributes simpAttributes;
+    private SimpAttributes simpAttributes;
 
 
-	@BeforeEach
-	public void setUp() {
-		Map<String, Object> map = new ConcurrentHashMap<>();
-		this.simpAttributes = new SimpAttributes("session1", map);
-	}
+    @BeforeEach
+    public void setUp() {
+        Map<String, Object> map = new ConcurrentHashMap<>();
+        this.simpAttributes = new SimpAttributes("session1", map);
+    }
 
-	@AfterEach
-	public void tearDown() {
-		SimpAttributesContextHolder.resetAttributes();
-	}
+    @AfterEach
+    public void tearDown() {
+        SimpAttributesContextHolder.resetAttributes();
+    }
 
 
-	@Test
-	public void resetAttributes() {
-		SimpAttributesContextHolder.setAttributes(this.simpAttributes);
-		assertThat(SimpAttributesContextHolder.getAttributes()).isSameAs(this.simpAttributes);
+    @Test
+    public void resetAttributes() {
+        SimpAttributesContextHolder.setAttributes(this.simpAttributes);
+        assertThat(SimpAttributesContextHolder.getAttributes()).isSameAs(this.simpAttributes);
 
-		SimpAttributesContextHolder.resetAttributes();
-		assertThat(SimpAttributesContextHolder.getAttributes()).isNull();
-	}
+        SimpAttributesContextHolder.resetAttributes();
+        assertThat(SimpAttributesContextHolder.getAttributes()).isNull();
+    }
 
-	@Test
-	public void getAttributes() {
-		assertThat(SimpAttributesContextHolder.getAttributes()).isNull();
+    @Test
+    public void getAttributes() {
+        assertThat(SimpAttributesContextHolder.getAttributes()).isNull();
 
-		SimpAttributesContextHolder.setAttributes(this.simpAttributes);
-		assertThat(SimpAttributesContextHolder.getAttributes()).isSameAs(this.simpAttributes);
-	}
+        SimpAttributesContextHolder.setAttributes(this.simpAttributes);
+        assertThat(SimpAttributesContextHolder.getAttributes()).isSameAs(this.simpAttributes);
+    }
 
-	@Test
-	public void setAttributes() {
-		SimpAttributesContextHolder.setAttributes(this.simpAttributes);
-		assertThat(SimpAttributesContextHolder.getAttributes()).isSameAs(this.simpAttributes);
+    @Test
+    public void setAttributes() {
+        SimpAttributesContextHolder.setAttributes(this.simpAttributes);
+        assertThat(SimpAttributesContextHolder.getAttributes()).isSameAs(this.simpAttributes);
 
-		SimpAttributesContextHolder.setAttributes(null);
-		assertThat(SimpAttributesContextHolder.getAttributes()).isNull();
-	}
+        SimpAttributesContextHolder.setAttributes(null);
+        assertThat(SimpAttributesContextHolder.getAttributes()).isNull();
+    }
 
-	@Test
-	public void setAttributesFromMessage() {
+    @Test
+    public void setAttributesFromMessage() {
 
-		String sessionId = "session1";
-		ConcurrentHashMap<String, Object> map = new ConcurrentHashMap<>();
+        String sessionId = "session1";
+        ConcurrentHashMap<String, Object> map = new ConcurrentHashMap<>();
 
-		SimpMessageHeaderAccessor headerAccessor = SimpMessageHeaderAccessor.create();
-		headerAccessor.setSessionId(sessionId);
-		headerAccessor.setSessionAttributes(map);
-		Message<?> message = MessageBuilder.createMessage("", headerAccessor.getMessageHeaders());
+        SimpMessageHeaderAccessor headerAccessor = SimpMessageHeaderAccessor.create();
+        headerAccessor.setSessionId(sessionId);
+        headerAccessor.setSessionAttributes(map);
+        Message<?> message = MessageBuilder.createMessage("", headerAccessor.getMessageHeaders());
 
-		SimpAttributesContextHolder.setAttributesFromMessage(message);
+        SimpAttributesContextHolder.setAttributesFromMessage(message);
 
-		SimpAttributes attrs = SimpAttributesContextHolder.getAttributes();
-		assertThat(attrs).isNotNull();
-		assertThat(attrs.getSessionId()).isEqualTo(sessionId);
+        SimpAttributes attrs = SimpAttributesContextHolder.getAttributes();
+        assertThat(attrs).isNotNull();
+        assertThat(attrs.getSessionId()).isEqualTo(sessionId);
 
-		attrs.setAttribute("name1", "value1");
-		assertThat(map.get("name1")).isEqualTo("value1");
-	}
+        attrs.setAttribute("name1", "value1");
+        assertThat(map.get("name1")).isEqualTo("value1");
+    }
 
-	@Test
-	public void setAttributesFromMessageWithMissingSessionId() {
-		assertThatIllegalStateException().isThrownBy(() ->
-				SimpAttributesContextHolder.setAttributesFromMessage(new GenericMessage<Object>("")))
-			.withMessageStartingWith("No session id in");
-	}
+    @Test
+    public void setAttributesFromMessageWithMissingSessionId() {
+        assertThatIllegalStateException().isThrownBy(() ->
+                SimpAttributesContextHolder.setAttributesFromMessage(new GenericMessage<Object>("")))
+                .withMessageStartingWith("No session id in");
+    }
 
-	@Test
-	public void setAttributesFromMessageWithMissingSessionAttributes() {
-		SimpMessageHeaderAccessor headerAccessor = SimpMessageHeaderAccessor.create();
-		headerAccessor.setSessionId("session1");
-		Message<?> message = MessageBuilder.createMessage("", headerAccessor.getMessageHeaders());
-		assertThatIllegalStateException().isThrownBy(() ->
-				SimpAttributesContextHolder.setAttributesFromMessage(message))
-			.withMessageStartingWith("No session attributes in");
-	}
+    @Test
+    public void setAttributesFromMessageWithMissingSessionAttributes() {
+        SimpMessageHeaderAccessor headerAccessor = SimpMessageHeaderAccessor.create();
+        headerAccessor.setSessionId("session1");
+        Message<?> message = MessageBuilder.createMessage("", headerAccessor.getMessageHeaders());
+        assertThatIllegalStateException().isThrownBy(() ->
+                SimpAttributesContextHolder.setAttributesFromMessage(message))
+                .withMessageStartingWith("No session attributes in");
+    }
 
-	@Test
-	public void currentAttributes() {
-		SimpAttributesContextHolder.setAttributes(this.simpAttributes);
-		assertThat(SimpAttributesContextHolder.currentAttributes()).isSameAs(this.simpAttributes);
-	}
+    @Test
+    public void currentAttributes() {
+        SimpAttributesContextHolder.setAttributes(this.simpAttributes);
+        assertThat(SimpAttributesContextHolder.currentAttributes()).isSameAs(this.simpAttributes);
+    }
 
-	@Test
-	public void currentAttributesNone() {
-		assertThatIllegalStateException().isThrownBy(() ->
-				SimpAttributesContextHolder.currentAttributes())
-			.withMessageStartingWith("No thread-bound SimpAttributes found");
-	}
+    @Test
+    public void currentAttributesNone() {
+        assertThatIllegalStateException().isThrownBy(() ->
+                SimpAttributesContextHolder.currentAttributes())
+                .withMessageStartingWith("No thread-bound SimpAttributes found");
+    }
 
 }

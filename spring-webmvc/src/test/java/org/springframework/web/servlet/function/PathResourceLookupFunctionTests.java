@@ -34,87 +34,86 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 public class PathResourceLookupFunctionTests {
 
-	@Test
-	public void normal() throws Exception {
-		ClassPathResource location =
-				new ClassPathResource("org/springframework/web/servlet/function/");
+    @Test
+    public void normal() throws Exception {
+        ClassPathResource location =
+                new ClassPathResource("org/springframework/web/servlet/function/");
 
-		PathResourceLookupFunction function =
-				new PathResourceLookupFunction("/resources/**", location);
+        PathResourceLookupFunction function =
+                new PathResourceLookupFunction("/resources/**", location);
 
-		MockHttpServletRequest servletRequest =
-				new MockHttpServletRequest("GET", "/resources/response.txt");
-		ServerRequest request = new DefaultServerRequest(servletRequest, Collections.emptyList());
+        MockHttpServletRequest servletRequest =
+                new MockHttpServletRequest("GET", "/resources/response.txt");
+        ServerRequest request = new DefaultServerRequest(servletRequest, Collections.emptyList());
 
-		Optional<Resource> result = function.apply(request);
-		assertThat(result.isPresent()).isTrue();
+        Optional<Resource> result = function.apply(request);
+        assertThat(result.isPresent()).isTrue();
 
-		File expected = new ClassPathResource("response.txt", getClass()).getFile();
-		assertThat(result.get().getFile()).isEqualTo(expected);
-	}
+        File expected = new ClassPathResource("response.txt", getClass()).getFile();
+        assertThat(result.get().getFile()).isEqualTo(expected);
+    }
 
-	@Test
-	public void subPath() throws Exception {
-		ClassPathResource location =
-				new ClassPathResource("org/springframework/web/servlet/function/");
+    @Test
+    public void subPath() throws Exception {
+        ClassPathResource location =
+                new ClassPathResource("org/springframework/web/servlet/function/");
 
-		PathResourceLookupFunction function =
-				new PathResourceLookupFunction("/resources/**", location);
+        PathResourceLookupFunction function =
+                new PathResourceLookupFunction("/resources/**", location);
 
-		MockHttpServletRequest servletRequest =
-				new MockHttpServletRequest("GET", "/resources/child/response.txt");
-		ServerRequest request = new DefaultServerRequest(servletRequest, Collections.emptyList());
+        MockHttpServletRequest servletRequest =
+                new MockHttpServletRequest("GET", "/resources/child/response.txt");
+        ServerRequest request = new DefaultServerRequest(servletRequest, Collections.emptyList());
 
-		Optional<Resource> result = function.apply(request);
-		assertThat(result.isPresent()).isTrue();
+        Optional<Resource> result = function.apply(request);
+        assertThat(result.isPresent()).isTrue();
 
-		File expected =
-				new ClassPathResource("org/springframework/web/servlet/function/child/response.txt")
-						.getFile();
-		assertThat(result.get().getFile()).isEqualTo(expected);
-	}
+        File expected =
+                new ClassPathResource("org/springframework/web/servlet/function/child/response.txt")
+                        .getFile();
+        assertThat(result.get().getFile()).isEqualTo(expected);
+    }
 
-	@Test
-	public void notFound() {
-		ClassPathResource location =
-				new ClassPathResource("org/springframework/web/reactive/function/server/");
+    @Test
+    public void notFound() {
+        ClassPathResource location =
+                new ClassPathResource("org/springframework/web/reactive/function/server/");
 
-		PathResourceLookupFunction function =
-				new PathResourceLookupFunction("/resources/**", location);
+        PathResourceLookupFunction function =
+                new PathResourceLookupFunction("/resources/**", location);
 
-		MockHttpServletRequest servletRequest =
-				new MockHttpServletRequest("GET", "/resources/foo.txt");
-		ServerRequest request = new DefaultServerRequest(servletRequest, Collections.emptyList());
+        MockHttpServletRequest servletRequest =
+                new MockHttpServletRequest("GET", "/resources/foo.txt");
+        ServerRequest request = new DefaultServerRequest(servletRequest, Collections.emptyList());
 
-		Optional<Resource> result = function.apply(request);
-		assertThat(result.isPresent()).isFalse();
-	}
+        Optional<Resource> result = function.apply(request);
+        assertThat(result.isPresent()).isFalse();
+    }
 
-	@Test
-	public void composeResourceLookupFunction() throws Exception {
-		ClassPathResource defaultResource = new ClassPathResource("response.txt", getClass());
+    @Test
+    public void composeResourceLookupFunction() throws Exception {
+        ClassPathResource defaultResource = new ClassPathResource("response.txt", getClass());
 
-		Function<ServerRequest, Optional<Resource>> lookupFunction =
-				new PathResourceLookupFunction("/resources/**",
-						new ClassPathResource("org/springframework/web/servlet/function/"));
+        Function<ServerRequest, Optional<Resource>> lookupFunction =
+                new PathResourceLookupFunction("/resources/**",
+                        new ClassPathResource("org/springframework/web/servlet/function/"));
 
-		Function<ServerRequest, Optional<Resource>> customLookupFunction =
-				lookupFunction.andThen((Optional<Resource> optionalResource) -> {
-					if (optionalResource.isPresent()) {
-						return optionalResource;
-					}
-					else {
-						return Optional.of(defaultResource);
-					}
-				});
+        Function<ServerRequest, Optional<Resource>> customLookupFunction =
+                lookupFunction.andThen((Optional<Resource> optionalResource) -> {
+                    if (optionalResource.isPresent()) {
+                        return optionalResource;
+                    } else {
+                        return Optional.of(defaultResource);
+                    }
+                });
 
-		MockHttpServletRequest servletRequest = new MockHttpServletRequest("GET", "/resources/foo");
-		ServerRequest request = new DefaultServerRequest(servletRequest, Collections.emptyList());
+        MockHttpServletRequest servletRequest = new MockHttpServletRequest("GET", "/resources/foo");
+        ServerRequest request = new DefaultServerRequest(servletRequest, Collections.emptyList());
 
-		Optional<Resource> result = customLookupFunction.apply(request);
-		assertThat(result.isPresent()).isTrue();
+        Optional<Resource> result = customLookupFunction.apply(request);
+        assertThat(result.isPresent()).isTrue();
 
-		assertThat(result.get().getFile()).isEqualTo(defaultResource.getFile());
-	}
+        assertThat(result.get().getFile()).isEqualTo(defaultResource.getFile());
+    }
 
 }

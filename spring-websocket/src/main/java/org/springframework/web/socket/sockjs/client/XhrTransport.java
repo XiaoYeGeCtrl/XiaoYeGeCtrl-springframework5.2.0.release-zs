@@ -32,22 +32,23 @@ import org.springframework.web.socket.TextMessage;
  */
 public interface XhrTransport extends Transport, InfoReceiver {
 
-	/**
-	 * An {@code XhrTransport} supports both the "xhr_streaming" and "xhr" SockJS
-	 * server transports. From a client perspective there is no implementation
-	 * difference.
-	 * <p>By default an {@code XhrTransport} will be used with "xhr_streaming"
-	 * first and then with "xhr", if the streaming fails to connect. In some
-	 * cases it may be useful to suppress streaming so that only "xhr" is used.
-	 */
-	boolean isXhrStreamingDisabled();
+    /**
+     * An {@code XhrTransport} supports both the "xhr_streaming" and "xhr" SockJS
+     * server transports. From a client perspective there is no implementation
+     * difference.
+     * <p>By default an {@code XhrTransport} will be used with "xhr_streaming"
+     * first and then with "xhr", if the streaming fails to connect. In some
+     * cases it may be useful to suppress streaming so that only "xhr" is used.
+     */
+    boolean isXhrStreamingDisabled();
 
-	/**
-	 * Execute a request to send the message to the server.
-	 * <p>Note that as of 4.2 this method accepts a {@code headers} parameter.
-	 * @param transportUrl the URL for sending messages.
-	 * @param message the message to send
-	 */
-	void executeSendRequest(URI transportUrl, HttpHeaders headers, TextMessage message);
+    /**
+     * Execute a request to send the message to the server.
+     * <p>Note that as of 4.2 this method accepts a {@code headers} parameter.
+     *
+     * @param transportUrl the URL for sending messages.
+     * @param message      the message to send
+     */
+    void executeSendRequest(URI transportUrl, HttpHeaders headers, TextMessage message);
 
 }

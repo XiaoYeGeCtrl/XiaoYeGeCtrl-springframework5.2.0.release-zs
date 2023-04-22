@@ -36,37 +36,37 @@ import org.springframework.util.MimeTypeUtils;
  */
 public class ByteArrayEncoder extends AbstractEncoder<byte[]> {
 
-	public ByteArrayEncoder() {
-		super(MimeTypeUtils.ALL);
-	}
+    public ByteArrayEncoder() {
+        super(MimeTypeUtils.ALL);
+    }
 
 
-	@Override
-	public boolean canEncode(ResolvableType elementType, @Nullable MimeType mimeType) {
-		Class<?> clazz = elementType.toClass();
-		return super.canEncode(elementType, mimeType) && byte[].class.isAssignableFrom(clazz);
-	}
+    @Override
+    public boolean canEncode(ResolvableType elementType, @Nullable MimeType mimeType) {
+        Class<?> clazz = elementType.toClass();
+        return super.canEncode(elementType, mimeType) && byte[].class.isAssignableFrom(clazz);
+    }
 
-	@Override
-	public Flux<DataBuffer> encode(Publisher<? extends byte[]> inputStream,
-			DataBufferFactory bufferFactory, ResolvableType elementType, @Nullable MimeType mimeType,
-			@Nullable Map<String, Object> hints) {
+    @Override
+    public Flux<DataBuffer> encode(Publisher<? extends byte[]> inputStream,
+                                   DataBufferFactory bufferFactory, ResolvableType elementType, @Nullable MimeType mimeType,
+                                   @Nullable Map<String, Object> hints) {
 
-		// Use (byte[] bytes) for Eclipse
-		return Flux.from(inputStream).map((byte[] bytes) ->
-				encodeValue(bytes, bufferFactory, elementType, mimeType, hints));
-	}
+        // Use (byte[] bytes) for Eclipse
+        return Flux.from(inputStream).map((byte[] bytes) ->
+                encodeValue(bytes, bufferFactory, elementType, mimeType, hints));
+    }
 
-	@Override
-	public DataBuffer encodeValue(byte[] bytes, DataBufferFactory bufferFactory,
-			ResolvableType valueType, @Nullable MimeType mimeType, @Nullable Map<String, Object> hints) {
+    @Override
+    public DataBuffer encodeValue(byte[] bytes, DataBufferFactory bufferFactory,
+                                  ResolvableType valueType, @Nullable MimeType mimeType, @Nullable Map<String, Object> hints) {
 
-		DataBuffer dataBuffer = bufferFactory.wrap(bytes);
-		if (logger.isDebugEnabled() && !Hints.isLoggingSuppressed(hints)) {
-			String logPrefix = Hints.getLogPrefix(hints);
-			logger.debug(logPrefix + "Writing " + dataBuffer.readableByteCount() + " bytes");
-		}
-		return dataBuffer;
-	}
+        DataBuffer dataBuffer = bufferFactory.wrap(bytes);
+        if (logger.isDebugEnabled() && !Hints.isLoggingSuppressed(hints)) {
+            String logPrefix = Hints.getLogPrefix(hints);
+            logger.debug(logPrefix + "Writing " + dataBuffer.readableByteCount() + " bytes");
+        }
+        return dataBuffer;
+    }
 
 }

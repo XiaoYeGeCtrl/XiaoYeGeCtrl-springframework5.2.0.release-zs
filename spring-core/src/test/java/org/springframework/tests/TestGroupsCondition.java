@@ -33,25 +33,25 @@ import static org.junit.platform.commons.support.AnnotationSupport.findAnnotatio
  * {@link ExecutionCondition} for Spring's {@link TestGroup} support.
  *
  * @author Sam Brannen
- * @since 5.2
  * @see EnabledForTestGroups @EnabledForTestGroups
+ * @since 5.2
  */
 class TestGroupsCondition implements ExecutionCondition {
 
-	private static final ConditionEvaluationResult ENABLED_BY_DEFAULT = enabled("@EnabledForTestGroups is not present");
+    private static final ConditionEvaluationResult ENABLED_BY_DEFAULT = enabled("@EnabledForTestGroups is not present");
 
 
-	@Override
-	public ConditionEvaluationResult evaluateExecutionCondition(ExtensionContext context) {
-		Optional<EnabledForTestGroups> optional = findAnnotation(context.getElement(), EnabledForTestGroups.class);
-		if (!optional.isPresent()) {
-			return ENABLED_BY_DEFAULT;
-		}
-		TestGroup[] testGroups = optional.get().value();
-		Assert.state(testGroups.length > 0, "You must declare at least one TestGroup in @EnabledForTestGroups");
-		return (Arrays.stream(testGroups).anyMatch(TestGroup::isActive)) ?
-				enabled("Enabled for TestGroups: " + Arrays.toString(testGroups)) :
-				disabled("Disabled for TestGroups: " + Arrays.toString(testGroups));
-	}
+    @Override
+    public ConditionEvaluationResult evaluateExecutionCondition(ExtensionContext context) {
+        Optional<EnabledForTestGroups> optional = findAnnotation(context.getElement(), EnabledForTestGroups.class);
+        if (!optional.isPresent()) {
+            return ENABLED_BY_DEFAULT;
+        }
+        TestGroup[] testGroups = optional.get().value();
+        Assert.state(testGroups.length > 0, "You must declare at least one TestGroup in @EnabledForTestGroups");
+        return (Arrays.stream(testGroups).anyMatch(TestGroup::isActive)) ?
+                enabled("Enabled for TestGroups: " + Arrays.toString(testGroups)) :
+                disabled("Disabled for TestGroups: " + Arrays.toString(testGroups));
+    }
 
 }

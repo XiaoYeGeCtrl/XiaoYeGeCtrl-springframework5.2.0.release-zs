@@ -46,41 +46,42 @@ import org.springframework.beans.PropertyAccessorFactory;
  * a dependency on Spring base classes.
  *
  * @author Juergen Hoeller
- * @since 18.02.2004
  * @see org.quartz.JobExecutionContext#getMergedJobDataMap()
  * @see org.quartz.Scheduler#getContext()
  * @see SchedulerFactoryBean#setSchedulerContextAsMap
  * @see SpringBeanJobFactory
  * @see SchedulerFactoryBean#setJobFactory
+ * @since 18.02.2004
  */
 public abstract class QuartzJobBean implements Job {
 
-	/**
-	 * This implementation applies the passed-in job data map as bean property
-	 * values, and delegates to {@code executeInternal} afterwards.
-	 * @see #executeInternal
-	 */
-	@Override
-	public final void execute(JobExecutionContext context) throws JobExecutionException {
-		try {
-			BeanWrapper bw = PropertyAccessorFactory.forBeanPropertyAccess(this);
-			MutablePropertyValues pvs = new MutablePropertyValues();
-			pvs.addPropertyValues(context.getScheduler().getContext());
-			pvs.addPropertyValues(context.getMergedJobDataMap());
-			bw.setPropertyValues(pvs, true);
-		}
-		catch (SchedulerException ex) {
-			throw new JobExecutionException(ex);
-		}
-		executeInternal(context);
-	}
+    /**
+     * This implementation applies the passed-in job data map as bean property
+     * values, and delegates to {@code executeInternal} afterwards.
+     *
+     * @see #executeInternal
+     */
+    @Override
+    public final void execute(JobExecutionContext context) throws JobExecutionException {
+        try {
+            BeanWrapper bw = PropertyAccessorFactory.forBeanPropertyAccess(this);
+            MutablePropertyValues pvs = new MutablePropertyValues();
+            pvs.addPropertyValues(context.getScheduler().getContext());
+            pvs.addPropertyValues(context.getMergedJobDataMap());
+            bw.setPropertyValues(pvs, true);
+        } catch (SchedulerException ex) {
+            throw new JobExecutionException(ex);
+        }
+        executeInternal(context);
+    }
 
-	/**
-	 * Execute the actual job. The job data map will already have been
-	 * applied as bean property values by execute. The contract is
-	 * exactly the same as for the standard Quartz execute method.
-	 * @see #execute
-	 */
-	protected abstract void executeInternal(JobExecutionContext context) throws JobExecutionException;
+    /**
+     * Execute the actual job. The job data map will already have been
+     * applied as bean property values by execute. The contract is
+     * exactly the same as for the standard Quartz execute method.
+     *
+     * @see #execute
+     */
+    protected abstract void executeInternal(JobExecutionContext context) throws JobExecutionException;
 
 }

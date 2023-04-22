@@ -39,88 +39,88 @@ import org.springframework.util.MultiValueMap;
  */
 public class ZeroDemandResponse implements ServerHttpResponse {
 
-	private final LeakAwareDataBufferFactory bufferFactory;
+    private final LeakAwareDataBufferFactory bufferFactory;
 
-	private final ZeroDemandSubscriber writeSubscriber = new ZeroDemandSubscriber();
-
-
-	public ZeroDemandResponse() {
-		this.bufferFactory = new LeakAwareDataBufferFactory();
-	}
+    private final ZeroDemandSubscriber writeSubscriber = new ZeroDemandSubscriber();
 
 
-	public void checkForLeaks() {
-		this.bufferFactory.checkForLeaks();
-	}
-
-	public void cancelWrite() {
-		this.writeSubscriber.cancel();
-	}
+    public ZeroDemandResponse() {
+        this.bufferFactory = new LeakAwareDataBufferFactory();
+    }
 
 
-	@Override
-	public DataBufferFactory bufferFactory() {
-		return this.bufferFactory;
-	}
+    public void checkForLeaks() {
+        this.bufferFactory.checkForLeaks();
+    }
 
-	@Override
-	public Mono<Void> writeWith(Publisher<? extends DataBuffer> body) {
-		body.subscribe(this.writeSubscriber);
-		return Mono.never();
-	}
+    public void cancelWrite() {
+        this.writeSubscriber.cancel();
+    }
 
 
-	@Override
-	public boolean setStatusCode(HttpStatus status) {
-		throw new UnsupportedOperationException();
-	}
+    @Override
+    public DataBufferFactory bufferFactory() {
+        return this.bufferFactory;
+    }
 
-	@Override
-	public HttpStatus getStatusCode() {
-		throw new UnsupportedOperationException();
-	}
-
-	@Override
-	public MultiValueMap<String, ResponseCookie> getCookies() {
-		throw new UnsupportedOperationException();
-	}
-
-	@Override
-	public void addCookie(ResponseCookie cookie) {
-		throw new UnsupportedOperationException();
-	}
-
-	@Override
-	public void beforeCommit(Supplier<? extends Mono<Void>> action) {
-		throw new UnsupportedOperationException();
-	}
-
-	@Override
-	public boolean isCommitted() {
-		throw new UnsupportedOperationException();
-	}
-
-	@Override
-	public Mono<Void> writeAndFlushWith(Publisher<? extends Publisher<? extends DataBuffer>> body) {
-		throw new UnsupportedOperationException();
-	}
-
-	@Override
-	public Mono<Void> setComplete() {
-		throw new UnsupportedOperationException();
-	}
-
-	@Override
-	public HttpHeaders getHeaders() {
-		throw new UnsupportedOperationException();
-	}
+    @Override
+    public Mono<Void> writeWith(Publisher<? extends DataBuffer> body) {
+        body.subscribe(this.writeSubscriber);
+        return Mono.never();
+    }
 
 
-	private static class ZeroDemandSubscriber extends BaseSubscriber<DataBuffer> {
+    @Override
+    public boolean setStatusCode(HttpStatus status) {
+        throw new UnsupportedOperationException();
+    }
 
-		@Override
-		protected void hookOnSubscribe(Subscription subscription) {
-			// Just subscribe without requesting
-		}
-	}
+    @Override
+    public HttpStatus getStatusCode() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public MultiValueMap<String, ResponseCookie> getCookies() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void addCookie(ResponseCookie cookie) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void beforeCommit(Supplier<? extends Mono<Void>> action) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public boolean isCommitted() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Mono<Void> writeAndFlushWith(Publisher<? extends Publisher<? extends DataBuffer>> body) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Mono<Void> setComplete() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public HttpHeaders getHeaders() {
+        throw new UnsupportedOperationException();
+    }
+
+
+    private static class ZeroDemandSubscriber extends BaseSubscriber<DataBuffer> {
+
+        @Override
+        protected void hookOnSubscribe(Subscription subscription) {
+            // Just subscribe without requesting
+        }
+    }
 }

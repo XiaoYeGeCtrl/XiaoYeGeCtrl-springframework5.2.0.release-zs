@@ -31,36 +31,35 @@ import org.springframework.web.socket.server.standard.UndertowRequestUpgradeStra
  */
 public class UndertowSockJsIntegrationTests extends AbstractSockJsIntegrationTests {
 
-	@Override
-	protected Class<?> upgradeStrategyConfigClass() {
-		return UndertowTestConfig.class;
-	}
+    @Override
+    protected Class<?> upgradeStrategyConfigClass() {
+        return UndertowTestConfig.class;
+    }
 
-	@Override
-	protected WebSocketTestServer createWebSocketTestServer() {
-		return new UndertowTestServer();
-	}
+    @Override
+    protected WebSocketTestServer createWebSocketTestServer() {
+        return new UndertowTestServer();
+    }
 
-	@Override
-	protected Transport createWebSocketTransport() {
-		return new WebSocketTransport(new StandardWebSocketClient());
-	}
+    @Override
+    protected Transport createWebSocketTransport() {
+        return new WebSocketTransport(new StandardWebSocketClient());
+    }
 
-	@Override
-	protected AbstractXhrTransport createXhrTransport() {
-		try {
-			return new UndertowXhrTransport();
-		}
-		catch (IOException ex) {
-			throw new IllegalStateException("Could not create UndertowXhrTransport");
-		}
-	}
+    @Override
+    protected AbstractXhrTransport createXhrTransport() {
+        try {
+            return new UndertowXhrTransport();
+        } catch (IOException ex) {
+            throw new IllegalStateException("Could not create UndertowXhrTransport");
+        }
+    }
 
-	@Configuration
-	static class UndertowTestConfig {
-		@Bean
-		public RequestUpgradeStrategy upgradeStrategy() {
-			return new UndertowRequestUpgradeStrategy();
-		}
-	}
+    @Configuration
+    static class UndertowTestConfig {
+        @Bean
+        public RequestUpgradeStrategy upgradeStrategy() {
+            return new UndertowRequestUpgradeStrategy();
+        }
+    }
 }

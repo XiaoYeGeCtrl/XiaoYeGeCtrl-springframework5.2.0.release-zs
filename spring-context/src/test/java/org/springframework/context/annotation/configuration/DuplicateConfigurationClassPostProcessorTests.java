@@ -35,20 +35,20 @@ import org.springframework.context.support.GenericApplicationContext;
  */
 public class DuplicateConfigurationClassPostProcessorTests {
 
-	@Test
-	public void repro() {
-		GenericApplicationContext ctx = new GenericApplicationContext();
-		ctx.registerBeanDefinition("a", new RootBeanDefinition(ConfigurationClassPostProcessor.class));
-		ctx.registerBeanDefinition("b", new RootBeanDefinition(ConfigurationClassPostProcessor.class));
-		ctx.registerBeanDefinition("myConfig", new RootBeanDefinition(Config.class));
-		ctx.refresh();
-	}
+    @Test
+    public void repro() {
+        GenericApplicationContext ctx = new GenericApplicationContext();
+        ctx.registerBeanDefinition("a", new RootBeanDefinition(ConfigurationClassPostProcessor.class));
+        ctx.registerBeanDefinition("b", new RootBeanDefinition(ConfigurationClassPostProcessor.class));
+        ctx.registerBeanDefinition("myConfig", new RootBeanDefinition(Config.class));
+        ctx.refresh();
+    }
 
-	@Configuration
-	static class Config {
-		@Bean
-		public String string() {
-			return "bean";
-		}
-	}
+    @Configuration
+    static class Config {
+        @Bean
+        public String string() {
+            return "bean";
+        }
+    }
 }

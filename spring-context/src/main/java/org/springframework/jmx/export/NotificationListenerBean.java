@@ -39,39 +39,40 @@ import org.springframework.util.Assert;
  *
  * @author Rob Harrop
  * @author Juergen Hoeller
- * @since 2.0
  * @see MBeanExporter#setNotificationListeners
+ * @since 2.0
  */
 public class NotificationListenerBean extends NotificationListenerHolder implements InitializingBean {
 
-	/**
-	 * Create a new instance of the {@link NotificationListenerBean} class.
-	 */
-	public NotificationListenerBean() {
-	}
+    /**
+     * Create a new instance of the {@link NotificationListenerBean} class.
+     */
+    public NotificationListenerBean() {
+    }
 
-	/**
-	 * Create a new instance of the {@link NotificationListenerBean} class.
-	 * @param notificationListener the encapsulated listener
-	 */
-	public NotificationListenerBean(NotificationListener notificationListener) {
-		Assert.notNull(notificationListener, "NotificationListener must not be null");
-		setNotificationListener(notificationListener);
-	}
+    /**
+     * Create a new instance of the {@link NotificationListenerBean} class.
+     *
+     * @param notificationListener the encapsulated listener
+     */
+    public NotificationListenerBean(NotificationListener notificationListener) {
+        Assert.notNull(notificationListener, "NotificationListener must not be null");
+        setNotificationListener(notificationListener);
+    }
 
 
-	@Override
-	public void afterPropertiesSet() {
-		if (getNotificationListener() == null) {
-			throw new IllegalArgumentException("Property 'notificationListener' is required");
-		}
-	}
+    @Override
+    public void afterPropertiesSet() {
+        if (getNotificationListener() == null) {
+            throw new IllegalArgumentException("Property 'notificationListener' is required");
+        }
+    }
 
-	void replaceObjectName(Object originalName, Object newName) {
-		if (this.mappedObjectNames != null && this.mappedObjectNames.contains(originalName)) {
-			this.mappedObjectNames.remove(originalName);
-			this.mappedObjectNames.add(newName);
-		}
-	}
+    void replaceObjectName(Object originalName, Object newName) {
+        if (this.mappedObjectNames != null && this.mappedObjectNames.contains(originalName)) {
+            this.mappedObjectNames.remove(originalName);
+            this.mappedObjectNames.add(newName);
+        }
+    }
 
 }

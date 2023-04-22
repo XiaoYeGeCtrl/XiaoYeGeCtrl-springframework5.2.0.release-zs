@@ -61,289 +61,285 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 public class RSocketBufferLeakTests {
 
-	private static AnnotationConfigApplicationContext context;
+    private static final PayloadInterceptor payloadInterceptor = new PayloadInterceptor();
+    private static AnnotationConfigApplicationContext context;
+    private static CloseableChannel server;
 
-	private static final PayloadInterceptor payloadInterceptor = new PayloadInterceptor();
-
-	private static CloseableChannel server;
-
-	private static RSocketRequester requester;
+    private static RSocketRequester requester;
 
 
-	@BeforeAll
-	@SuppressWarnings("ConstantConditions")
-	public static void setupOnce() {
+    @BeforeAll
+    @SuppressWarnings("ConstantConditions")
+    public static void setupOnce() {
 
-		context = new AnnotationConfigApplicationContext(ServerConfig.class);
-		RSocketMessageHandler messageHandler = context.getBean(RSocketMessageHandler.class);
-		SocketAcceptor responder = messageHandler.responder();
+        context = new AnnotationConfigApplicationContext(ServerConfig.class);
+        RSocketMessageHandler messageHandler = context.getBean(RSocketMessageHandler.class);
+        SocketAcceptor responder = messageHandler.responder();
 
-		server = RSocketFactory.receive()
-				.frameDecoder(PayloadDecoder.ZERO_COPY)
-				.addResponderPlugin(payloadInterceptor) // intercept responding
-				.acceptor(responder)
-				.transport(TcpServerTransport.create("localhost", 7000))
-				.start()
-				.block();
+        server = RSocketFactory.receive()
+                .frameDecoder(PayloadDecoder.ZERO_COPY)
+                .addResponderPlugin(payloadInterceptor) // intercept responding
+                .acceptor(responder)
+                .transport(TcpServerTransport.create("localhost", 7000))
+                .start()
+                .block();
 
-		requester = RSocketRequester.builder()
-				.rsocketFactory(factory -> factory.addRequesterPlugin(payloadInterceptor))
-				.rsocketStrategies(context.getBean(RSocketStrategies.class))
-				.connectTcp("localhost", 7000)
-				.block();
-	}
+        requester = RSocketRequester.builder()
+                .rsocketFactory(factory -> factory.addRequesterPlugin(payloadInterceptor))
+                .rsocketStrategies(context.getBean(RSocketStrategies.class))
+                .connectTcp("localhost", 7000)
+                .block();
+    }
 
-	@AfterAll
-	public static void tearDownOnce() {
-		requester.rsocket().dispose();
-		server.dispose();
-	}
-
-
-	@BeforeEach
-	public void setUp() {
-		getLeakAwareNettyDataBufferFactory().reset();
-		payloadInterceptor.reset();
-	}
-
-	@AfterEach
-	public void tearDown() throws InterruptedException {
-		getLeakAwareNettyDataBufferFactory().checkForLeaks(Duration.ofSeconds(5));
-		payloadInterceptor.checkForLeaks();
-	}
-
-	private LeakAwareNettyDataBufferFactory getLeakAwareNettyDataBufferFactory() {
-		return (LeakAwareNettyDataBufferFactory) context.getBean(RSocketStrategies.class).dataBufferFactory();
-	}
+    @AfterAll
+    public static void tearDownOnce() {
+        requester.rsocket().dispose();
+        server.dispose();
+    }
 
 
-	@Test
-	public void assemblyTimeErrorForHandleAndReply() {
-		Mono<String> result = requester.route("A.B").data("foo").retrieveMono(String.class);
-		StepVerifier.create(result).expectErrorMatches(ex -> {
-			String prefix = "Ambiguous handler methods mapped for destination 'A.B':";
-			return ex.getMessage().startsWith(prefix);
-		}).verify(Duration.ofSeconds(5));
-	}
+    @BeforeEach
+    public void setUp() {
+        getLeakAwareNettyDataBufferFactory().reset();
+        payloadInterceptor.reset();
+    }
 
-	@Test
-	public void subscriptionTimeErrorForHandleAndReply() {
-		Mono<String> result = requester.route("not-decodable").data("foo").retrieveMono(String.class);
-		StepVerifier.create(result).expectErrorMatches(ex -> {
-			String prefix = "Cannot decode to [org.springframework.core.io.Resource]";
-			return ex.getMessage().contains(prefix);
-		}).verify(Duration.ofSeconds(5));
-	}
+    @AfterEach
+    public void tearDown() throws InterruptedException {
+        getLeakAwareNettyDataBufferFactory().checkForLeaks(Duration.ofSeconds(5));
+        payloadInterceptor.checkForLeaks();
+    }
 
-	@Test
-	public void errorSignalWithExceptionHandler() {
-		Mono<String> result = requester.route("error-signal").data("foo").retrieveMono(String.class);
-		StepVerifier.create(result).expectNext("Handled 'bad input'").expectComplete().verify(Duration.ofSeconds(5));
-	}
-
-	@Test
-	public void ignoreInput() {
-		Flux<String> result = requester.route("ignore-input").data("a").retrieveFlux(String.class);
-		StepVerifier.create(result).expectNext("bar").thenCancel().verify(Duration.ofSeconds(5));
-	}
-
-	@Test
-	public void retrieveMonoFromFluxResponderMethod() {
-		Mono<String> result = requester.route("request-stream").data("foo").retrieveMono(String.class);
-		StepVerifier.create(result).expectNext("foo-1").expectComplete().verify(Duration.ofSeconds(5));
-	}
+    private LeakAwareNettyDataBufferFactory getLeakAwareNettyDataBufferFactory() {
+        return (LeakAwareNettyDataBufferFactory) context.getBean(RSocketStrategies.class).dataBufferFactory();
+    }
 
 
-	@Controller
-	static class ServerController {
+    @Test
+    public void assemblyTimeErrorForHandleAndReply() {
+        Mono<String> result = requester.route("A.B").data("foo").retrieveMono(String.class);
+        StepVerifier.create(result).expectErrorMatches(ex -> {
+            String prefix = "Ambiguous handler methods mapped for destination 'A.B':";
+            return ex.getMessage().startsWith(prefix);
+        }).verify(Duration.ofSeconds(5));
+    }
 
-		@MessageMapping("A.*")
-		void ambiguousMatchA(String payload) {
-			throw new IllegalStateException("Unexpected call");
-		}
+    @Test
+    public void subscriptionTimeErrorForHandleAndReply() {
+        Mono<String> result = requester.route("not-decodable").data("foo").retrieveMono(String.class);
+        StepVerifier.create(result).expectErrorMatches(ex -> {
+            String prefix = "Cannot decode to [org.springframework.core.io.Resource]";
+            return ex.getMessage().contains(prefix);
+        }).verify(Duration.ofSeconds(5));
+    }
 
-		@MessageMapping("*.B")
-		void ambiguousMatchB(String payload) {
-			throw new IllegalStateException("Unexpected call");
-		}
+    @Test
+    public void errorSignalWithExceptionHandler() {
+        Mono<String> result = requester.route("error-signal").data("foo").retrieveMono(String.class);
+        StepVerifier.create(result).expectNext("Handled 'bad input'").expectComplete().verify(Duration.ofSeconds(5));
+    }
 
-		@MessageMapping("not-decodable")
-		void notDecodable(@Payload Resource resource) {
-			throw new IllegalStateException("Unexpected call");
-		}
+    @Test
+    public void ignoreInput() {
+        Flux<String> result = requester.route("ignore-input").data("a").retrieveFlux(String.class);
+        StepVerifier.create(result).expectNext("bar").thenCancel().verify(Duration.ofSeconds(5));
+    }
 
-		@MessageMapping("error-signal")
-		public Flux<String> errorSignal(String payload) {
-			return Flux.error(new IllegalArgumentException("bad input"))
-					.delayElements(Duration.ofMillis(10))
-					.cast(String.class);
-		}
-
-		@MessageExceptionHandler
-		public String handleIllegalArgument(IllegalArgumentException ex) {
-			return "Handled '" + ex.getMessage() + "'";
-		}
-
-		@MessageMapping("ignore-input")
-		Mono<String> ignoreInput() {
-			return Mono.delay(Duration.ofMillis(10)).map(l -> "bar");
-		}
-
-		@MessageMapping("request-stream")
-		Flux<String> stream(String payload) {
-			return Flux.range(1,100).delayElements(Duration.ofMillis(10)).map(idx -> payload + "-" + idx);
-		}
-	}
+    @Test
+    public void retrieveMonoFromFluxResponderMethod() {
+        Mono<String> result = requester.route("request-stream").data("foo").retrieveMono(String.class);
+        StepVerifier.create(result).expectNext("foo-1").expectComplete().verify(Duration.ofSeconds(5));
+    }
 
 
-	@Configuration
-	static class ServerConfig {
+    @Controller
+    static class ServerController {
 
-		@Bean
-		public ServerController controller() {
-			return new ServerController();
-		}
+        @MessageMapping("A.*")
+        void ambiguousMatchA(String payload) {
+            throw new IllegalStateException("Unexpected call");
+        }
 
-		@Bean
-		public RSocketMessageHandler messageHandler() {
-			RSocketMessageHandler handler = new RSocketMessageHandler();
-			handler.setRSocketStrategies(rsocketStrategies());
-			return handler;
-		}
+        @MessageMapping("*.B")
+        void ambiguousMatchB(String payload) {
+            throw new IllegalStateException("Unexpected call");
+        }
 
-		@Bean
-		public RSocketStrategies rsocketStrategies() {
-			return RSocketStrategies.builder()
-					.dataBufferFactory(new LeakAwareNettyDataBufferFactory(PooledByteBufAllocator.DEFAULT))
-					.build();
-		}
-	}
+        @MessageMapping("not-decodable")
+        void notDecodable(@Payload Resource resource) {
+            throw new IllegalStateException("Unexpected call");
+        }
 
+        @MessageMapping("error-signal")
+        public Flux<String> errorSignal(String payload) {
+            return Flux.error(new IllegalArgumentException("bad input"))
+                    .delayElements(Duration.ofMillis(10))
+                    .cast(String.class);
+        }
 
-	/**
-	 * Store all intercepted incoming and outgoing payloads and then use
-	 * {@link #checkForLeaks()} at the end to check reference counts.
-	 */
-	private static class PayloadInterceptor extends AbstractRSocket implements RSocketInterceptor {
+        @MessageExceptionHandler
+        public String handleIllegalArgument(IllegalArgumentException ex) {
+            return "Handled '" + ex.getMessage() + "'";
+        }
 
-		private final List<PayloadSavingDecorator> rsockets = new CopyOnWriteArrayList<>();
+        @MessageMapping("ignore-input")
+        Mono<String> ignoreInput() {
+            return Mono.delay(Duration.ofMillis(10)).map(l -> "bar");
+        }
 
-		void checkForLeaks() {
-			this.rsockets.stream().map(PayloadSavingDecorator::getPayloads)
-					.forEach(payloadInfoProcessor -> {
-						payloadInfoProcessor.onComplete();
-						payloadInfoProcessor
-								.doOnNext(this::checkForLeak)
-								.blockLast();
-					});
-		}
-
-		private void checkForLeak(PayloadLeakInfo info) {
-			Instant start = Instant.now();
-			while (true) {
-				try {
-					int count = info.getReferenceCount();
-					assertThat(count == 0).as("Leaked payload (refCnt=" + count + "): " + info).isTrue();
-					break;
-				}
-				catch (AssertionError ex) {
-					if (Instant.now().isAfter(start.plus(Duration.ofSeconds(5)))) {
-						throw ex;
-					}
-				}
-				try {
-					Thread.sleep(50);
-				}
-				catch (InterruptedException ex) {
-					// ignore
-				}
-			}
-		}
-
-		public void reset() {
-			this.rsockets.forEach(PayloadSavingDecorator::reset);
-		}
-
-		@Override
-		public RSocket apply(RSocket rsocket) {
-			PayloadSavingDecorator decorator = new PayloadSavingDecorator(rsocket);
-			this.rsockets.add(decorator);
-			return decorator;
-		}
+        @MessageMapping("request-stream")
+        Flux<String> stream(String payload) {
+            return Flux.range(1, 100).delayElements(Duration.ofMillis(10)).map(idx -> payload + "-" + idx);
+        }
+    }
 
 
-		private static class PayloadSavingDecorator extends AbstractRSocket {
+    @Configuration
+    static class ServerConfig {
 
-			private final RSocket delegate;
+        @Bean
+        public ServerController controller() {
+            return new ServerController();
+        }
 
-			private ReplayProcessor<PayloadLeakInfo> payloads = ReplayProcessor.create();
+        @Bean
+        public RSocketMessageHandler messageHandler() {
+            RSocketMessageHandler handler = new RSocketMessageHandler();
+            handler.setRSocketStrategies(rsocketStrategies());
+            return handler;
+        }
 
-			PayloadSavingDecorator(RSocket delegate) {
-				this.delegate = delegate;
-			}
-
-			ReplayProcessor<PayloadLeakInfo> getPayloads() {
-				return this.payloads;
-			}
-
-			void reset() {
-				this.payloads = ReplayProcessor.create();
-			}
-
-			@Override
-			public Mono<Void> fireAndForget(io.rsocket.Payload payload) {
-				return this.delegate.fireAndForget(addPayload(payload));
-			}
-
-			@Override
-			public Mono<io.rsocket.Payload> requestResponse(io.rsocket.Payload payload) {
-				return this.delegate.requestResponse(addPayload(payload)).doOnSuccess(this::addPayload);
-			}
-
-			@Override
-			public Flux<io.rsocket.Payload> requestStream(io.rsocket.Payload payload) {
-				return this.delegate.requestStream(addPayload(payload)).doOnNext(this::addPayload);
-			}
-
-			@Override
-			public Flux<io.rsocket.Payload> requestChannel(Publisher<io.rsocket.Payload> payloads) {
-				return this.delegate
-						.requestChannel(Flux.from(payloads).doOnNext(this::addPayload))
-						.doOnNext(this::addPayload);
-			}
-
-			private io.rsocket.Payload addPayload(io.rsocket.Payload payload) {
-				this.payloads.onNext(new PayloadLeakInfo(payload));
-				return payload;
-			}
-
-			@Override
-			public Mono<Void> metadataPush(io.rsocket.Payload payload) {
-				return this.delegate.metadataPush(addPayload(payload));
-			}
-		}
-	}
+        @Bean
+        public RSocketStrategies rsocketStrategies() {
+            return RSocketStrategies.builder()
+                    .dataBufferFactory(new LeakAwareNettyDataBufferFactory(PooledByteBufAllocator.DEFAULT))
+                    .build();
+        }
+    }
 
 
-	private static class PayloadLeakInfo {
+    /**
+     * Store all intercepted incoming and outgoing payloads and then use
+     * {@link #checkForLeaks()} at the end to check reference counts.
+     */
+    private static class PayloadInterceptor extends AbstractRSocket implements RSocketInterceptor {
 
-		private final String description;
+        private final List<PayloadSavingDecorator> rsockets = new CopyOnWriteArrayList<>();
 
-		private final ReferenceCounted referenceCounted;
+        void checkForLeaks() {
+            this.rsockets.stream().map(PayloadSavingDecorator::getPayloads)
+                    .forEach(payloadInfoProcessor -> {
+                        payloadInfoProcessor.onComplete();
+                        payloadInfoProcessor
+                                .doOnNext(this::checkForLeak)
+                                .blockLast();
+                    });
+        }
 
-		PayloadLeakInfo(io.rsocket.Payload payload) {
-			this.description = payload.toString();
-			this.referenceCounted = payload;
-		}
+        private void checkForLeak(PayloadLeakInfo info) {
+            Instant start = Instant.now();
+            while (true) {
+                try {
+                    int count = info.getReferenceCount();
+                    assertThat(count == 0).as("Leaked payload (refCnt=" + count + "): " + info).isTrue();
+                    break;
+                } catch (AssertionError ex) {
+                    if (Instant.now().isAfter(start.plus(Duration.ofSeconds(5)))) {
+                        throw ex;
+                    }
+                }
+                try {
+                    Thread.sleep(50);
+                } catch (InterruptedException ex) {
+                    // ignore
+                }
+            }
+        }
 
-		int getReferenceCount() {
-			return this.referenceCounted.refCnt();
-		}
+        public void reset() {
+            this.rsockets.forEach(PayloadSavingDecorator::reset);
+        }
 
-		@Override
-		public String toString() {
-			return this.description;
-		}
-	}
+        @Override
+        public RSocket apply(RSocket rsocket) {
+            PayloadSavingDecorator decorator = new PayloadSavingDecorator(rsocket);
+            this.rsockets.add(decorator);
+            return decorator;
+        }
+
+
+        private static class PayloadSavingDecorator extends AbstractRSocket {
+
+            private final RSocket delegate;
+
+            private ReplayProcessor<PayloadLeakInfo> payloads = ReplayProcessor.create();
+
+            PayloadSavingDecorator(RSocket delegate) {
+                this.delegate = delegate;
+            }
+
+            ReplayProcessor<PayloadLeakInfo> getPayloads() {
+                return this.payloads;
+            }
+
+            void reset() {
+                this.payloads = ReplayProcessor.create();
+            }
+
+            @Override
+            public Mono<Void> fireAndForget(io.rsocket.Payload payload) {
+                return this.delegate.fireAndForget(addPayload(payload));
+            }
+
+            @Override
+            public Mono<io.rsocket.Payload> requestResponse(io.rsocket.Payload payload) {
+                return this.delegate.requestResponse(addPayload(payload)).doOnSuccess(this::addPayload);
+            }
+
+            @Override
+            public Flux<io.rsocket.Payload> requestStream(io.rsocket.Payload payload) {
+                return this.delegate.requestStream(addPayload(payload)).doOnNext(this::addPayload);
+            }
+
+            @Override
+            public Flux<io.rsocket.Payload> requestChannel(Publisher<io.rsocket.Payload> payloads) {
+                return this.delegate
+                        .requestChannel(Flux.from(payloads).doOnNext(this::addPayload))
+                        .doOnNext(this::addPayload);
+            }
+
+            private io.rsocket.Payload addPayload(io.rsocket.Payload payload) {
+                this.payloads.onNext(new PayloadLeakInfo(payload));
+                return payload;
+            }
+
+            @Override
+            public Mono<Void> metadataPush(io.rsocket.Payload payload) {
+                return this.delegate.metadataPush(addPayload(payload));
+            }
+        }
+    }
+
+
+    private static class PayloadLeakInfo {
+
+        private final String description;
+
+        private final ReferenceCounted referenceCounted;
+
+        PayloadLeakInfo(io.rsocket.Payload payload) {
+            this.description = payload.toString();
+            this.referenceCounted = payload;
+        }
+
+        int getReferenceCount() {
+            return this.referenceCounted.refCnt();
+        }
+
+        @Override
+        public String toString() {
+            return this.description;
+        }
+    }
 
 }

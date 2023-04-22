@@ -28,26 +28,26 @@ import org.springframework.context.ConfigurableApplicationContext;
  */
 public abstract class AbstractJmxTests extends AbstractMBeanServerTests {
 
-	private ConfigurableApplicationContext ctx;
+    private ConfigurableApplicationContext ctx;
 
 
-	@Override
-	protected final void onSetUp() throws Exception {
-		ctx = loadContext(getApplicationContextPath());
-	}
+    @Override
+    protected final void onSetUp() throws Exception {
+        ctx = loadContext(getApplicationContextPath());
+    }
 
-	@Override
-	protected final void onTearDown() throws Exception {
-		if (ctx != null) {
-			ctx.close();
-		}
-	}
+    @Override
+    protected final void onTearDown() throws Exception {
+        if (ctx != null) {
+            ctx.close();
+        }
+    }
 
-	protected String getApplicationContextPath() {
-		return "org/springframework/jmx/applicationContext.xml";
-	}
+    protected String getApplicationContextPath() {
+        return "org/springframework/jmx/applicationContext.xml";
+    }
 
-	protected ApplicationContext getContext() {
-		return this.ctx;
-	}
+    protected ApplicationContext getContext() {
+        return this.ctx;
+    }
 }

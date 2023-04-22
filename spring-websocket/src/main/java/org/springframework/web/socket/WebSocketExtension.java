@@ -46,127 +46,125 @@ import org.springframework.util.StringUtils;
  *
  * @author Brian Clozel
  * @author Juergen Hoeller
- * @since 4.0
  * @see <a href="https://tools.ietf.org/html/rfc6455#section-9">WebSocket Protocol Extensions, RFC 6455 - Section 9</a>
+ * @since 4.0
  */
 public class WebSocketExtension {
 
-	private final String name;
+    private final String name;
 
-	private final Map<String, String> parameters;
-
-
-	/**
-	 * Create a WebSocketExtension with the given name.
-	 * @param name the name of the extension
-	 */
-	public WebSocketExtension(String name) {
-		this(name, null);
-	}
-
-	/**
-	 * Create a WebSocketExtension with the given name and parameters.
-	 * @param name the name of the extension
-	 * @param parameters the parameters
-	 */
-	public WebSocketExtension(String name, @Nullable Map<String, String> parameters) {
-		Assert.hasLength(name, "Extension name must not be empty");
-		this.name = name;
-		if (!CollectionUtils.isEmpty(parameters)) {
-			Map<String, String> map = new LinkedCaseInsensitiveMap<>(parameters.size(), Locale.ENGLISH);
-			map.putAll(parameters);
-			this.parameters = Collections.unmodifiableMap(map);
-		}
-		else {
-			this.parameters = Collections.emptyMap();
-		}
-	}
+    private final Map<String, String> parameters;
 
 
-	/**
-	 * Return the name of the extension (never {@code null) or empty}.
-	 */
-	public String getName() {
-		return this.name;
-	}
+    /**
+     * Create a WebSocketExtension with the given name.
+     *
+     * @param name the name of the extension
+     */
+    public WebSocketExtension(String name) {
+        this(name, null);
+    }
 
-	/**
-	 * Return the parameters of the extension (never {@code null}).
-	 */
-	public Map<String, String> getParameters() {
-		return this.parameters;
-	}
+    /**
+     * Create a WebSocketExtension with the given name and parameters.
+     *
+     * @param name       the name of the extension
+     * @param parameters the parameters
+     */
+    public WebSocketExtension(String name, @Nullable Map<String, String> parameters) {
+        Assert.hasLength(name, "Extension name must not be empty");
+        this.name = name;
+        if (!CollectionUtils.isEmpty(parameters)) {
+            Map<String, String> map = new LinkedCaseInsensitiveMap<>(parameters.size(), Locale.ENGLISH);
+            map.putAll(parameters);
+            this.parameters = Collections.unmodifiableMap(map);
+        } else {
+            this.parameters = Collections.emptyMap();
+        }
+    }
 
+    /**
+     * Parse the given, comma-separated string into a list of {@code WebSocketExtension} objects.
+     * <p>This method can be used to parse a "Sec-WebSocket-Extension" header.
+     *
+     * @param extensions the string to parse
+     * @return the list of extensions
+     * @throws IllegalArgumentException if the string cannot be parsed
+     */
+    public static List<WebSocketExtension> parseExtensions(String extensions) {
+        if (StringUtils.hasText(extensions)) {
+            String[] tokens = StringUtils.tokenizeToStringArray(extensions, ",");
+            List<WebSocketExtension> result = new ArrayList<>(tokens.length);
+            for (String token : tokens) {
+                result.add(parseExtension(token));
+            }
+            return result;
+        } else {
+            return Collections.emptyList();
+        }
+    }
 
-	@Override
-	public boolean equals(@Nullable Object other) {
-		if (this == other) {
-			return true;
-		}
-		if (other == null || getClass() != other.getClass()) {
-			return false;
-		}
-		WebSocketExtension otherExt = (WebSocketExtension) other;
-		return (this.name.equals(otherExt.name) && this.parameters.equals(otherExt.parameters));
-	}
+    private static WebSocketExtension parseExtension(String extension) {
+        if (extension.contains(",")) {
+            throw new IllegalArgumentException("Expected single extension value: [" + extension + "]");
+        }
+        String[] parts = StringUtils.tokenizeToStringArray(extension, ";");
+        String name = parts[0].trim();
 
-	@Override
-	public int hashCode() {
-		return this.name.hashCode() * 31 + this.parameters.hashCode();
-	}
+        Map<String, String> parameters = null;
+        if (parts.length > 1) {
+            parameters = new LinkedHashMap<>(parts.length - 1);
+            for (int i = 1; i < parts.length; i++) {
+                String parameter = parts[i];
+                int eqIndex = parameter.indexOf('=');
+                if (eqIndex != -1) {
+                    String attribute = parameter.substring(0, eqIndex);
+                    String value = parameter.substring(eqIndex + 1, parameter.length());
+                    parameters.put(attribute, value);
+                }
+            }
+        }
 
-	@Override
-	public String toString() {
-		StringBuilder str = new StringBuilder();
-		str.append(this.name);
-		this.parameters.forEach((key, value) -> str.append(';').append(key).append('=').append(value));
-		return str.toString();
-	}
+        return new WebSocketExtension(name, parameters);
+    }
 
+    /**
+     * Return the name of the extension (never {@code null) or empty}.
+     */
+    public String getName() {
+        return this.name;
+    }
 
-	/**
-	 * Parse the given, comma-separated string into a list of {@code WebSocketExtension} objects.
-	 * <p>This method can be used to parse a "Sec-WebSocket-Extension" header.
-	 * @param extensions the string to parse
-	 * @return the list of extensions
-	 * @throws IllegalArgumentException if the string cannot be parsed
-	 */
-	public static List<WebSocketExtension> parseExtensions(String extensions) {
-		if (StringUtils.hasText(extensions)) {
-			String[] tokens = StringUtils.tokenizeToStringArray(extensions, ",");
-			List<WebSocketExtension> result = new ArrayList<>(tokens.length);
-			for (String token : tokens) {
-				result.add(parseExtension(token));
-			}
-			return result;
-		}
-		else {
-			return Collections.emptyList();
-		}
-	}
+    /**
+     * Return the parameters of the extension (never {@code null}).
+     */
+    public Map<String, String> getParameters() {
+        return this.parameters;
+    }
 
-	private static WebSocketExtension parseExtension(String extension) {
-		if (extension.contains(",")) {
-			throw new IllegalArgumentException("Expected single extension value: [" + extension + "]");
-		}
-		String[] parts = StringUtils.tokenizeToStringArray(extension, ";");
-		String name = parts[0].trim();
+    @Override
+    public boolean equals(@Nullable Object other) {
+        if (this == other) {
+            return true;
+        }
+        if (other == null || getClass() != other.getClass()) {
+            return false;
+        }
+        WebSocketExtension otherExt = (WebSocketExtension) other;
+        return (this.name.equals(otherExt.name) && this.parameters.equals(otherExt.parameters));
+    }
 
-		Map<String, String> parameters = null;
-		if (parts.length > 1) {
-			parameters = new LinkedHashMap<>(parts.length - 1);
-			for (int i = 1; i < parts.length; i++) {
-				String parameter = parts[i];
-				int eqIndex = parameter.indexOf('=');
-				if (eqIndex != -1) {
-					String attribute = parameter.substring(0, eqIndex);
-					String value = parameter.substring(eqIndex + 1, parameter.length());
-					parameters.put(attribute, value);
-				}
-			}
-		}
+    @Override
+    public int hashCode() {
+        return this.name.hashCode() * 31 + this.parameters.hashCode();
+    }
 
-		return new WebSocketExtension(name, parameters);
-	}
+    @Override
+    public String toString() {
+        StringBuilder str = new StringBuilder();
+        str.append(this.name);
+        this.parameters.forEach((key, value) -> str.append(';').append(key).append('=').append(value));
+        return str.toString();
+    }
 
 }

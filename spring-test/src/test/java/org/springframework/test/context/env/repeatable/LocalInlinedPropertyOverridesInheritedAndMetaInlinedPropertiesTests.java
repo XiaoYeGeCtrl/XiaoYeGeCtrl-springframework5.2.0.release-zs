@@ -38,15 +38,15 @@ import org.springframework.test.context.env.repeatable.LocalInlinedPropertyOverr
 @Key1InlinedTestProperty
 class LocalInlinedPropertyOverridesInheritedAndMetaInlinedPropertiesTests extends AbstractClassWithTestProperty {
 
-	@Test
-	void test() {
-		assertEnvironmentValue("key1", "local");
-	}
+    @Test
+    void test() {
+        assertEnvironmentValue("key1", "local");
+    }
 
-	@Target(ElementType.TYPE)
-	@Retention(RetentionPolicy.RUNTIME)
-	@TestPropertySource(properties = "key1 = meta")
-	@interface Key1InlinedTestProperty {
-	}
+    @Target(ElementType.TYPE)
+    @Retention(RetentionPolicy.RUNTIME)
+    @TestPropertySource(properties = "key1 = meta")
+    @interface Key1InlinedTestProperty {
+    }
 
 }

@@ -49,127 +49,126 @@ import org.springframework.web.util.pattern.PathPattern;
  */
 public class RouterFunctionMapping extends AbstractHandlerMapping implements InitializingBean {
 
-	@Nullable
-	private RouterFunction<?> routerFunction;
+    @Nullable
+    private RouterFunction<?> routerFunction;
 
-	private List<HttpMessageReader<?>> messageReaders = Collections.emptyList();
-
-
-	/**
-	 * Create an empty {@code RouterFunctionMapping}.
-	 * <p>If this constructor is used, this mapping will detect all
-	 * {@link RouterFunction} instances available in the application context.
-	 */
-	public RouterFunctionMapping() {
-	}
-
-	/**
-	 * Create a {@code RouterFunctionMapping} with the given {@link RouterFunction}.
-	 * <p>If this constructor is used, no application context detection will occur.
-	 * @param routerFunction the router function to use for mapping
-	 */
-	public RouterFunctionMapping(RouterFunction<?> routerFunction) {
-		this.routerFunction = routerFunction;
-	}
+    private List<HttpMessageReader<?>> messageReaders = Collections.emptyList();
 
 
-	/**
-	 * Return the configured {@link RouterFunction}.
-	 * <p><strong>Note:</strong> When router functions are detected from the
-	 * ApplicationContext, this method may return {@code null} if invoked
-	 * prior to {@link #afterPropertiesSet()}.
-	 * @return the router function or {@code null}
-	 */
-	@Nullable
-	public RouterFunction<?> getRouterFunction() {
-		return this.routerFunction;
-	}
+    /**
+     * Create an empty {@code RouterFunctionMapping}.
+     * <p>If this constructor is used, this mapping will detect all
+     * {@link RouterFunction} instances available in the application context.
+     */
+    public RouterFunctionMapping() {
+    }
 
-	/**
-	 * Configure HTTP message readers to de-serialize the request body with.
-	 * <p>By default this is set to the {@link ServerCodecConfigurer}'s defaults.
-	 */
-	public void setMessageReaders(List<HttpMessageReader<?>> messageReaders) {
-		this.messageReaders = messageReaders;
-	}
-
-	@Override
-	public void afterPropertiesSet() throws Exception {
-		if (CollectionUtils.isEmpty(this.messageReaders)) {
-			ServerCodecConfigurer codecConfigurer = ServerCodecConfigurer.create();
-			this.messageReaders = codecConfigurer.getReaders();
-		}
-
-		if (this.routerFunction == null) {
-			initRouterFunctions();
-		}
-	}
-
-	/**
-	 * Initialized the router functions by detecting them in the application context.
-	 */
-	protected void initRouterFunctions() {
-		List<RouterFunction<?>> routerFunctions = routerFunctions();
-		this.routerFunction = routerFunctions.stream().reduce(RouterFunction::andOther).orElse(null);
-		logRouterFunctions(routerFunctions);
-	}
-
-	private List<RouterFunction<?>> routerFunctions() {
-		List<RouterFunction<?>> functions = obtainApplicationContext()
-				.getBeanProvider(RouterFunction.class)
-				.orderedStream()
-				.map(router -> (RouterFunction<?>)router)
-				.collect(Collectors.toList());
-		return (!CollectionUtils.isEmpty(functions) ? functions : Collections.emptyList());
-	}
-
-	private void logRouterFunctions(List<RouterFunction<?>> routerFunctions) {
-		if (logger.isDebugEnabled()) {
-			int total = routerFunctions.size();
-			String message = total + " RouterFunction(s) in " + formatMappingName();
-			if (logger.isTraceEnabled()) {
-				if (total > 0) {
-					routerFunctions.forEach(routerFunction -> logger.trace("Mapped " + routerFunction));
-				}
-				else {
-					logger.trace(message);
-				}
-			}
-			else if (total > 0) {
-				logger.debug(message);
-			}
-		}
-	}
+    /**
+     * Create a {@code RouterFunctionMapping} with the given {@link RouterFunction}.
+     * <p>If this constructor is used, no application context detection will occur.
+     *
+     * @param routerFunction the router function to use for mapping
+     */
+    public RouterFunctionMapping(RouterFunction<?> routerFunction) {
+        this.routerFunction = routerFunction;
+    }
 
 
-	@Override
-	protected Mono<?> getHandlerInternal(ServerWebExchange exchange) {
-		if (this.routerFunction != null) {
-			ServerRequest request = ServerRequest.create(exchange, this.messageReaders);
-			return this.routerFunction.route(request)
-					.doOnNext(handler -> setAttributes(exchange.getAttributes(), request, handler));
-		}
-		else {
-			return Mono.empty();
-		}
-	}
+    /**
+     * Return the configured {@link RouterFunction}.
+     * <p><strong>Note:</strong> When router functions are detected from the
+     * ApplicationContext, this method may return {@code null} if invoked
+     * prior to {@link #afterPropertiesSet()}.
+     *
+     * @return the router function or {@code null}
+     */
+    @Nullable
+    public RouterFunction<?> getRouterFunction() {
+        return this.routerFunction;
+    }
 
-	@SuppressWarnings("unchecked")
-	private void setAttributes(
-			Map<String, Object> attributes, ServerRequest serverRequest, HandlerFunction<?> handlerFunction) {
+    /**
+     * Configure HTTP message readers to de-serialize the request body with.
+     * <p>By default this is set to the {@link ServerCodecConfigurer}'s defaults.
+     */
+    public void setMessageReaders(List<HttpMessageReader<?>> messageReaders) {
+        this.messageReaders = messageReaders;
+    }
 
-		attributes.put(RouterFunctions.REQUEST_ATTRIBUTE, serverRequest);
-		attributes.put(BEST_MATCHING_HANDLER_ATTRIBUTE, handlerFunction);
+    @Override
+    public void afterPropertiesSet() throws Exception {
+        if (CollectionUtils.isEmpty(this.messageReaders)) {
+            ServerCodecConfigurer codecConfigurer = ServerCodecConfigurer.create();
+            this.messageReaders = codecConfigurer.getReaders();
+        }
 
-		PathPattern matchingPattern = (PathPattern) attributes.get(RouterFunctions.MATCHING_PATTERN_ATTRIBUTE);
-		if (matchingPattern != null) {
-			attributes.put(BEST_MATCHING_PATTERN_ATTRIBUTE, matchingPattern);
-		}
-		Map<String, String> uriVariables =
-				(Map<String, String>) attributes.get(RouterFunctions.URI_TEMPLATE_VARIABLES_ATTRIBUTE);
-		if (uriVariables != null) {
-			attributes.put(URI_TEMPLATE_VARIABLES_ATTRIBUTE, uriVariables);
-		}
-	}
+        if (this.routerFunction == null) {
+            initRouterFunctions();
+        }
+    }
+
+    /**
+     * Initialized the router functions by detecting them in the application context.
+     */
+    protected void initRouterFunctions() {
+        List<RouterFunction<?>> routerFunctions = routerFunctions();
+        this.routerFunction = routerFunctions.stream().reduce(RouterFunction::andOther).orElse(null);
+        logRouterFunctions(routerFunctions);
+    }
+
+    private List<RouterFunction<?>> routerFunctions() {
+        List<RouterFunction<?>> functions = obtainApplicationContext()
+                .getBeanProvider(RouterFunction.class)
+                .orderedStream()
+                .map(router -> (RouterFunction<?>) router)
+                .collect(Collectors.toList());
+        return (!CollectionUtils.isEmpty(functions) ? functions : Collections.emptyList());
+    }
+
+    private void logRouterFunctions(List<RouterFunction<?>> routerFunctions) {
+        if (logger.isDebugEnabled()) {
+            int total = routerFunctions.size();
+            String message = total + " RouterFunction(s) in " + formatMappingName();
+            if (logger.isTraceEnabled()) {
+                if (total > 0) {
+                    routerFunctions.forEach(routerFunction -> logger.trace("Mapped " + routerFunction));
+                } else {
+                    logger.trace(message);
+                }
+            } else if (total > 0) {
+                logger.debug(message);
+            }
+        }
+    }
+
+
+    @Override
+    protected Mono<?> getHandlerInternal(ServerWebExchange exchange) {
+        if (this.routerFunction != null) {
+            ServerRequest request = ServerRequest.create(exchange, this.messageReaders);
+            return this.routerFunction.route(request)
+                    .doOnNext(handler -> setAttributes(exchange.getAttributes(), request, handler));
+        } else {
+            return Mono.empty();
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private void setAttributes(
+            Map<String, Object> attributes, ServerRequest serverRequest, HandlerFunction<?> handlerFunction) {
+
+        attributes.put(RouterFunctions.REQUEST_ATTRIBUTE, serverRequest);
+        attributes.put(BEST_MATCHING_HANDLER_ATTRIBUTE, handlerFunction);
+
+        PathPattern matchingPattern = (PathPattern) attributes.get(RouterFunctions.MATCHING_PATTERN_ATTRIBUTE);
+        if (matchingPattern != null) {
+            attributes.put(BEST_MATCHING_PATTERN_ATTRIBUTE, matchingPattern);
+        }
+        Map<String, String> uriVariables =
+                (Map<String, String>) attributes.get(RouterFunctions.URI_TEMPLATE_VARIABLES_ATTRIBUTE);
+        if (uriVariables != null) {
+            attributes.put(URI_TEMPLATE_VARIABLES_ATTRIBUTE, uriVariables);
+        }
+    }
 
 }

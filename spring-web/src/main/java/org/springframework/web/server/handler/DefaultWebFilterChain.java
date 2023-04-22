@@ -45,86 +45,87 @@ import org.springframework.web.server.WebHandler;
  */
 public class DefaultWebFilterChain implements WebFilterChain {
 
-	private final List<WebFilter> allFilters;
+    private final List<WebFilter> allFilters;
 
-	private final WebHandler handler;
+    private final WebHandler handler;
 
-	@Nullable
-	private final WebFilter currentFilter;
+    @Nullable
+    private final WebFilter currentFilter;
 
-	@Nullable
-	private final DefaultWebFilterChain chain;
-
-
-	/**
-	 * Public constructor with the list of filters and the target handler to use.
-	 * @param handler the target handler
-	 * @param filters the filters ahead of the handler
-	 * @since 5.1
-	 */
-	public DefaultWebFilterChain(WebHandler handler, List<WebFilter> filters) {
-		Assert.notNull(handler, "WebHandler is required");
-		this.allFilters = Collections.unmodifiableList(filters);
-		this.handler = handler;
-		DefaultWebFilterChain chain = initChain(filters, handler);
-		this.currentFilter = chain.currentFilter;
-		this.chain = chain.chain;
-	}
-
-	private static DefaultWebFilterChain initChain(List<WebFilter> filters, WebHandler handler) {
-		DefaultWebFilterChain chain = new DefaultWebFilterChain(filters, handler, null, null);
-		ListIterator<? extends WebFilter> iterator = filters.listIterator(filters.size());
-		while (iterator.hasPrevious()) {
-			chain = new DefaultWebFilterChain(filters, handler, iterator.previous(), chain);
-		}
-		return chain;
-	}
-
-	/**
-	 * Private constructor to represent one link in the chain.
-	 */
-	private DefaultWebFilterChain(List<WebFilter> allFilters, WebHandler handler,
-			@Nullable WebFilter currentFilter, @Nullable DefaultWebFilterChain chain) {
-
-		this.allFilters = allFilters;
-		this.currentFilter = currentFilter;
-		this.handler = handler;
-		this.chain = chain;
-	}
-
-	/**
-	 * Public constructor with the list of filters and the target handler to use.
-	 * @param handler the target handler
-	 * @param filters the filters ahead of the handler
-	 * @deprecated as of 5.1 this constructor is deprecated in favor of
-	 * {@link #DefaultWebFilterChain(WebHandler, List)}.
-	 */
-	@Deprecated
-	public DefaultWebFilterChain(WebHandler handler, WebFilter... filters) {
-		this(handler, Arrays.asList(filters));
-	}
+    @Nullable
+    private final DefaultWebFilterChain chain;
 
 
-	public List<WebFilter> getFilters() {
-		return this.allFilters;
-	}
+    /**
+     * Public constructor with the list of filters and the target handler to use.
+     *
+     * @param handler the target handler
+     * @param filters the filters ahead of the handler
+     * @since 5.1
+     */
+    public DefaultWebFilterChain(WebHandler handler, List<WebFilter> filters) {
+        Assert.notNull(handler, "WebHandler is required");
+        this.allFilters = Collections.unmodifiableList(filters);
+        this.handler = handler;
+        DefaultWebFilterChain chain = initChain(filters, handler);
+        this.currentFilter = chain.currentFilter;
+        this.chain = chain.chain;
+    }
 
-	public WebHandler getHandler() {
-		return this.handler;
-	}
+    /**
+     * Private constructor to represent one link in the chain.
+     */
+    private DefaultWebFilterChain(List<WebFilter> allFilters, WebHandler handler,
+                                  @Nullable WebFilter currentFilter, @Nullable DefaultWebFilterChain chain) {
+
+        this.allFilters = allFilters;
+        this.currentFilter = currentFilter;
+        this.handler = handler;
+        this.chain = chain;
+    }
+
+    /**
+     * Public constructor with the list of filters and the target handler to use.
+     *
+     * @param handler the target handler
+     * @param filters the filters ahead of the handler
+     * @deprecated as of 5.1 this constructor is deprecated in favor of
+     * {@link #DefaultWebFilterChain(WebHandler, List)}.
+     */
+    @Deprecated
+    public DefaultWebFilterChain(WebHandler handler, WebFilter... filters) {
+        this(handler, Arrays.asList(filters));
+    }
+
+    private static DefaultWebFilterChain initChain(List<WebFilter> filters, WebHandler handler) {
+        DefaultWebFilterChain chain = new DefaultWebFilterChain(filters, handler, null, null);
+        ListIterator<? extends WebFilter> iterator = filters.listIterator(filters.size());
+        while (iterator.hasPrevious()) {
+            chain = new DefaultWebFilterChain(filters, handler, iterator.previous(), chain);
+        }
+        return chain;
+    }
+
+    public List<WebFilter> getFilters() {
+        return this.allFilters;
+    }
+
+    public WebHandler getHandler() {
+        return this.handler;
+    }
 
 
-	@Override
-	public Mono<Void> filter(ServerWebExchange exchange) {
-		return Mono.defer(() ->
-				this.currentFilter != null && this.chain != null ?
-						invokeFilter(this.currentFilter, this.chain, exchange) :
-						this.handler.handle(exchange));
-	}
+    @Override
+    public Mono<Void> filter(ServerWebExchange exchange) {
+        return Mono.defer(() ->
+                this.currentFilter != null && this.chain != null ?
+                        invokeFilter(this.currentFilter, this.chain, exchange) :
+                        this.handler.handle(exchange));
+    }
 
-	private Mono<Void> invokeFilter(WebFilter current, DefaultWebFilterChain chain, ServerWebExchange exchange) {
-		return current.filter(exchange, chain)
-				.checkpoint(current.getClass().getName() + " [DefaultWebFilterChain]");
-	}
+    private Mono<Void> invokeFilter(WebFilter current, DefaultWebFilterChain chain, ServerWebExchange exchange) {
+        return current.filter(exchange, chain)
+                .checkpoint(current.getClass().getName() + " [DefaultWebFilterChain]");
+    }
 
 }

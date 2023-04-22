@@ -39,57 +39,57 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 class MockMultipartHttpServletRequestTests {
 
-	@Test
-	void mockMultipartHttpServletRequestWithByteArray() throws IOException {
-		MockMultipartHttpServletRequest request = new MockMultipartHttpServletRequest();
-		assertThat(request.getFileNames().hasNext()).isFalse();
-		assertThat(request.getFile("file1")).isNull();
-		assertThat(request.getFile("file2")).isNull();
-		assertThat(request.getFileMap().isEmpty()).isTrue();
+    @Test
+    void mockMultipartHttpServletRequestWithByteArray() throws IOException {
+        MockMultipartHttpServletRequest request = new MockMultipartHttpServletRequest();
+        assertThat(request.getFileNames().hasNext()).isFalse();
+        assertThat(request.getFile("file1")).isNull();
+        assertThat(request.getFile("file2")).isNull();
+        assertThat(request.getFileMap().isEmpty()).isTrue();
 
-		request.addFile(new MockMultipartFile("file1", "myContent1".getBytes()));
-		request.addFile(new MockMultipartFile("file2", "myOrigFilename", "text/plain", "myContent2".getBytes()));
-		doTestMultipartHttpServletRequest(request);
-	}
+        request.addFile(new MockMultipartFile("file1", "myContent1".getBytes()));
+        request.addFile(new MockMultipartFile("file2", "myOrigFilename", "text/plain", "myContent2".getBytes()));
+        doTestMultipartHttpServletRequest(request);
+    }
 
-	@Test
-	void mockMultipartHttpServletRequestWithInputStream() throws IOException {
-		MockMultipartHttpServletRequest request = new MockMultipartHttpServletRequest();
-		request.addFile(new MockMultipartFile("file1", new ByteArrayInputStream("myContent1".getBytes())));
-		request.addFile(new MockMultipartFile("file2", "myOrigFilename", "text/plain", new ByteArrayInputStream(
-			"myContent2".getBytes())));
-		doTestMultipartHttpServletRequest(request);
-	}
+    @Test
+    void mockMultipartHttpServletRequestWithInputStream() throws IOException {
+        MockMultipartHttpServletRequest request = new MockMultipartHttpServletRequest();
+        request.addFile(new MockMultipartFile("file1", new ByteArrayInputStream("myContent1".getBytes())));
+        request.addFile(new MockMultipartFile("file2", "myOrigFilename", "text/plain", new ByteArrayInputStream(
+                "myContent2".getBytes())));
+        doTestMultipartHttpServletRequest(request);
+    }
 
-	private void doTestMultipartHttpServletRequest(MultipartHttpServletRequest request) throws IOException {
-		Set<String> fileNames = new HashSet<>();
-		Iterator<String> fileIter = request.getFileNames();
-		while (fileIter.hasNext()) {
-			fileNames.add(fileIter.next());
-		}
-		assertThat(fileNames.size()).isEqualTo(2);
-		assertThat(fileNames.contains("file1")).isTrue();
-		assertThat(fileNames.contains("file2")).isTrue();
-		MultipartFile file1 = request.getFile("file1");
-		MultipartFile file2 = request.getFile("file2");
-		Map<String, MultipartFile> fileMap = request.getFileMap();
-		List<String> fileMapKeys = new LinkedList<>(fileMap.keySet());
-		assertThat(fileMapKeys.size()).isEqualTo(2);
-		assertThat(fileMap.get("file1")).isEqualTo(file1);
-		assertThat(fileMap.get("file2")).isEqualTo(file2);
+    private void doTestMultipartHttpServletRequest(MultipartHttpServletRequest request) throws IOException {
+        Set<String> fileNames = new HashSet<>();
+        Iterator<String> fileIter = request.getFileNames();
+        while (fileIter.hasNext()) {
+            fileNames.add(fileIter.next());
+        }
+        assertThat(fileNames.size()).isEqualTo(2);
+        assertThat(fileNames.contains("file1")).isTrue();
+        assertThat(fileNames.contains("file2")).isTrue();
+        MultipartFile file1 = request.getFile("file1");
+        MultipartFile file2 = request.getFile("file2");
+        Map<String, MultipartFile> fileMap = request.getFileMap();
+        List<String> fileMapKeys = new LinkedList<>(fileMap.keySet());
+        assertThat(fileMapKeys.size()).isEqualTo(2);
+        assertThat(fileMap.get("file1")).isEqualTo(file1);
+        assertThat(fileMap.get("file2")).isEqualTo(file2);
 
-		assertThat(file1.getName()).isEqualTo("file1");
-		assertThat(file1.getOriginalFilename()).isEqualTo("");
-		assertThat(file1.getContentType()).isNull();
-		assertThat(ObjectUtils.nullSafeEquals("myContent1".getBytes(), file1.getBytes())).isTrue();
-		assertThat(ObjectUtils.nullSafeEquals("myContent1".getBytes(),
-			FileCopyUtils.copyToByteArray(file1.getInputStream()))).isTrue();
-		assertThat(file2.getName()).isEqualTo("file2");
-		assertThat(file2.getOriginalFilename()).isEqualTo("myOrigFilename");
-		assertThat(file2.getContentType()).isEqualTo("text/plain");
-		assertThat(ObjectUtils.nullSafeEquals("myContent2".getBytes(), file2.getBytes())).isTrue();
-		assertThat(ObjectUtils.nullSafeEquals("myContent2".getBytes(),
-			FileCopyUtils.copyToByteArray(file2.getInputStream()))).isTrue();
-	}
+        assertThat(file1.getName()).isEqualTo("file1");
+        assertThat(file1.getOriginalFilename()).isEqualTo("");
+        assertThat(file1.getContentType()).isNull();
+        assertThat(ObjectUtils.nullSafeEquals("myContent1".getBytes(), file1.getBytes())).isTrue();
+        assertThat(ObjectUtils.nullSafeEquals("myContent1".getBytes(),
+                FileCopyUtils.copyToByteArray(file1.getInputStream()))).isTrue();
+        assertThat(file2.getName()).isEqualTo("file2");
+        assertThat(file2.getOriginalFilename()).isEqualTo("myOrigFilename");
+        assertThat(file2.getContentType()).isEqualTo("text/plain");
+        assertThat(ObjectUtils.nullSafeEquals("myContent2".getBytes(), file2.getBytes())).isTrue();
+        assertThat(ObjectUtils.nullSafeEquals("myContent2".getBytes(),
+                FileCopyUtils.copyToByteArray(file2.getInputStream()))).isTrue();
+    }
 
 }

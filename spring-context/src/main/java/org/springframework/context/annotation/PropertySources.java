@@ -31,14 +31,14 @@ import java.lang.annotation.Target;
  * {@linkplain ElementType#TYPE type}, implicitly generating this container annotation.
  *
  * @author Phillip Webb
- * @since 4.0
  * @see PropertySource
+ * @since 4.0
  */
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 public @interface PropertySources {
 
-	PropertySource[] value();
+    PropertySource[] value();
 
 }

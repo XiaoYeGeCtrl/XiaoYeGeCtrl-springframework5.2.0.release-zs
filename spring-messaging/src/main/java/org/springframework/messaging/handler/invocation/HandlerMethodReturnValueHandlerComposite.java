@@ -36,112 +36,112 @@ import org.springframework.util.concurrent.ListenableFuture;
  */
 public class HandlerMethodReturnValueHandlerComposite implements AsyncHandlerMethodReturnValueHandler {
 
-	/** Public for wrapping with fallback logger. */
-	public static final Log defaultLogger = LogFactory.getLog(HandlerMethodReturnValueHandlerComposite.class);
+    /**
+     * Public for wrapping with fallback logger.
+     */
+    public static final Log defaultLogger = LogFactory.getLog(HandlerMethodReturnValueHandlerComposite.class);
+    private final List<HandlerMethodReturnValueHandler> returnValueHandlers = new ArrayList<>();
+    private Log logger = defaultLogger;
 
+    /**
+     * Return the currently configured Logger.
+     *
+     * @since 5.1
+     */
+    public Log getLogger() {
+        return logger;
+    }
 
-	private Log logger = defaultLogger;
+    /**
+     * Set an alternative logger to use than the one based on the class name.
+     *
+     * @param logger the logger to use
+     * @since 5.1
+     */
+    public void setLogger(Log logger) {
+        this.logger = logger;
+    }
 
-	private final List<HandlerMethodReturnValueHandler> returnValueHandlers = new ArrayList<>();
+    /**
+     * Return a read-only list with the configured handlers.
+     */
+    public List<HandlerMethodReturnValueHandler> getReturnValueHandlers() {
+        return Collections.unmodifiableList(this.returnValueHandlers);
+    }
 
+    /**
+     * Clear the list of configured handlers.
+     */
+    public void clear() {
+        this.returnValueHandlers.clear();
+    }
 
-	/**
-	 * Set an alternative logger to use than the one based on the class name.
-	 * @param logger the logger to use
-	 * @since 5.1
-	 */
-	public void setLogger(Log logger) {
-		this.logger = logger;
-	}
+    /**
+     * Add the given {@link HandlerMethodReturnValueHandler}.
+     */
+    public HandlerMethodReturnValueHandlerComposite addHandler(HandlerMethodReturnValueHandler returnValueHandler) {
+        this.returnValueHandlers.add(returnValueHandler);
+        return this;
+    }
 
-	/**
-	 * Return the currently configured Logger.
-	 * @since 5.1
-	 */
-	public Log getLogger() {
-		return logger;
-	}
+    /**
+     * Add the given {@link HandlerMethodReturnValueHandler HandlerMethodReturnValueHandlers}.
+     */
+    public HandlerMethodReturnValueHandlerComposite addHandlers(
+            @Nullable List<? extends HandlerMethodReturnValueHandler> handlers) {
 
-	/**
-	 * Return a read-only list with the configured handlers.
-	 */
-	public List<HandlerMethodReturnValueHandler> getReturnValueHandlers() {
-		return Collections.unmodifiableList(this.returnValueHandlers);
-	}
+        if (handlers != null) {
+            this.returnValueHandlers.addAll(handlers);
+        }
+        return this;
+    }
 
-	/**
-	 * Clear the list of configured handlers.
-	 */
-	public void clear() {
-		this.returnValueHandlers.clear();
-	}
+    @Override
+    public boolean supportsReturnType(MethodParameter returnType) {
+        return getReturnValueHandler(returnType) != null;
+    }
 
-	/**
-	 * Add the given {@link HandlerMethodReturnValueHandler}.
-	 */
-	public HandlerMethodReturnValueHandlerComposite addHandler(HandlerMethodReturnValueHandler returnValueHandler) {
-		this.returnValueHandlers.add(returnValueHandler);
-		return this;
-	}
+    @SuppressWarnings("ForLoopReplaceableByForEach")
+    @Nullable
+    private HandlerMethodReturnValueHandler getReturnValueHandler(MethodParameter returnType) {
+        for (int i = 0; i < this.returnValueHandlers.size(); i++) {
+            HandlerMethodReturnValueHandler handler = this.returnValueHandlers.get(i);
+            if (handler.supportsReturnType(returnType)) {
+                return handler;
+            }
+        }
+        return null;
+    }
 
-	/**
-	 * Add the given {@link HandlerMethodReturnValueHandler HandlerMethodReturnValueHandlers}.
-	 */
-	public HandlerMethodReturnValueHandlerComposite addHandlers(
-			@Nullable List<? extends HandlerMethodReturnValueHandler> handlers) {
+    @Override
+    public void handleReturnValue(@Nullable Object returnValue, MethodParameter returnType, Message<?> message)
+            throws Exception {
 
-		if (handlers != null) {
-			this.returnValueHandlers.addAll(handlers);
-		}
-		return this;
-	}
+        HandlerMethodReturnValueHandler handler = getReturnValueHandler(returnType);
+        if (handler == null) {
+            throw new IllegalStateException("No handler for return value type: " + returnType.getParameterType());
+        }
+        if (logger.isTraceEnabled()) {
+            logger.trace("Processing return value with " + handler);
+        }
+        handler.handleReturnValue(returnValue, returnType, message);
+    }
 
-	@Override
-	public boolean supportsReturnType(MethodParameter returnType) {
-		return getReturnValueHandler(returnType) != null;
-	}
+    @Override
+    public boolean isAsyncReturnValue(Object returnValue, MethodParameter returnType) {
+        HandlerMethodReturnValueHandler handler = getReturnValueHandler(returnType);
+        return (handler instanceof AsyncHandlerMethodReturnValueHandler &&
+                ((AsyncHandlerMethodReturnValueHandler) handler).isAsyncReturnValue(returnValue, returnType));
+    }
 
-	@SuppressWarnings("ForLoopReplaceableByForEach")
-	@Nullable
-	private HandlerMethodReturnValueHandler getReturnValueHandler(MethodParameter returnType) {
-		for (int i = 0; i < this.returnValueHandlers.size(); i++) {
-			HandlerMethodReturnValueHandler handler = this.returnValueHandlers.get(i);
-			if (handler.supportsReturnType(returnType)) {
-				return handler;
-			}
-		}
-		return null;
-	}
-
-	@Override
-	public void handleReturnValue(@Nullable Object returnValue, MethodParameter returnType, Message<?> message)
-			throws Exception {
-
-		HandlerMethodReturnValueHandler handler = getReturnValueHandler(returnType);
-		if (handler == null) {
-			throw new IllegalStateException("No handler for return value type: " + returnType.getParameterType());
-		}
-		if (logger.isTraceEnabled()) {
-			logger.trace("Processing return value with " + handler);
-		}
-		handler.handleReturnValue(returnValue, returnType, message);
-	}
-
-	@Override
-	public boolean isAsyncReturnValue(Object returnValue, MethodParameter returnType) {
-		HandlerMethodReturnValueHandler handler = getReturnValueHandler(returnType);
-		return (handler instanceof AsyncHandlerMethodReturnValueHandler &&
-				((AsyncHandlerMethodReturnValueHandler) handler).isAsyncReturnValue(returnValue, returnType));
-	}
-
-	@Override
-	@Nullable
-	public ListenableFuture<?> toListenableFuture(Object returnValue, MethodParameter returnType) {
-		HandlerMethodReturnValueHandler handler = getReturnValueHandler(returnType);
-		if (handler instanceof AsyncHandlerMethodReturnValueHandler) {
-			return ((AsyncHandlerMethodReturnValueHandler) handler).toListenableFuture(returnValue, returnType);
-		}
-		return null;
-	}
+    @Override
+    @Nullable
+    public ListenableFuture<?> toListenableFuture(Object returnValue, MethodParameter returnType) {
+        HandlerMethodReturnValueHandler handler = getReturnValueHandler(returnType);
+        if (handler instanceof AsyncHandlerMethodReturnValueHandler) {
+            return ((AsyncHandlerMethodReturnValueHandler) handler).toListenableFuture(returnValue, returnType);
+        }
+        return null;
+    }
 
 }

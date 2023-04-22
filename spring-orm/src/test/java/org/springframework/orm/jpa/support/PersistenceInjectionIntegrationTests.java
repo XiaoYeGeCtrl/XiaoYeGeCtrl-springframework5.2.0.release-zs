@@ -32,21 +32,21 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 public class PersistenceInjectionIntegrationTests extends AbstractEntityManagerFactoryIntegrationTests {
 
-	@Autowired
-	private DefaultPublicPersistenceContextSetter defaultSetterInjected;
+    @Autowired
+    private DefaultPublicPersistenceContextSetter defaultSetterInjected;
 
-	@Autowired
-	private DefaultPublicPersistenceUnitSetterNamedPerson namedSetterInjected;
+    @Autowired
+    private DefaultPublicPersistenceUnitSetterNamedPerson namedSetterInjected;
 
 
-	@Test
-	public void testDefaultPersistenceContextSetterInjection() {
-		assertThat(defaultSetterInjected.getEntityManager()).isNotNull();
-	}
+    @Test
+    public void testDefaultPersistenceContextSetterInjection() {
+        assertThat(defaultSetterInjected.getEntityManager()).isNotNull();
+    }
 
-	@Test
-	public void testSetterInjectionOfNamedPersistenceContext() {
-		assertThat(namedSetterInjected.getEntityManagerFactory()).isNotNull();
-	}
+    @Test
+    public void testSetterInjectionOfNamedPersistenceContext() {
+        assertThat(namedSetterInjected.getEntityManagerFactory()).isNotNull();
+    }
 
 }

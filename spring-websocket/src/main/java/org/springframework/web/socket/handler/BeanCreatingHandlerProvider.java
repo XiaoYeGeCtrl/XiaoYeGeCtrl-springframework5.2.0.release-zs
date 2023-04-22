@@ -28,54 +28,53 @@ import org.springframework.util.Assert;
  * an equivalent destroy method. Mainly for internal use to assist with initializing and
  * destroying handlers with per-connection lifecycle.
  *
+ * @param <T> the handler type
  * @author Rossen Stoyanchev
  * @since 4.0
- * @param <T> the handler type
  */
 public class BeanCreatingHandlerProvider<T> implements BeanFactoryAware {
 
-	private final Class<? extends T> handlerType;
+    private final Class<? extends T> handlerType;
 
-	@Nullable
-	private AutowireCapableBeanFactory beanFactory;
-
-
-	public BeanCreatingHandlerProvider(Class<? extends T> handlerType) {
-		Assert.notNull(handlerType, "handlerType must not be null");
-		this.handlerType = handlerType;
-	}
+    @Nullable
+    private AutowireCapableBeanFactory beanFactory;
 
 
-	@Override
-	public void setBeanFactory(BeanFactory beanFactory) {
-		if (beanFactory instanceof AutowireCapableBeanFactory) {
-			this.beanFactory = (AutowireCapableBeanFactory) beanFactory;
-		}
-	}
-
-	public void destroy(T handler) {
-		if (this.beanFactory != null) {
-			this.beanFactory.destroyBean(handler);
-		}
-	}
+    public BeanCreatingHandlerProvider(Class<? extends T> handlerType) {
+        Assert.notNull(handlerType, "handlerType must not be null");
+        this.handlerType = handlerType;
+    }
 
 
-	public Class<? extends T> getHandlerType() {
-		return this.handlerType;
-	}
+    @Override
+    public void setBeanFactory(BeanFactory beanFactory) {
+        if (beanFactory instanceof AutowireCapableBeanFactory) {
+            this.beanFactory = (AutowireCapableBeanFactory) beanFactory;
+        }
+    }
 
-	public T getHandler() {
-		if (this.beanFactory != null) {
-			return this.beanFactory.createBean(this.handlerType);
-		}
-		else {
-			return BeanUtils.instantiateClass(this.handlerType);
-		}
-	}
+    public void destroy(T handler) {
+        if (this.beanFactory != null) {
+            this.beanFactory.destroyBean(handler);
+        }
+    }
 
-	@Override
-	public String toString() {
-		return "BeanCreatingHandlerProvider[handlerType=" + this.handlerType + "]";
-	}
+
+    public Class<? extends T> getHandlerType() {
+        return this.handlerType;
+    }
+
+    public T getHandler() {
+        if (this.beanFactory != null) {
+            return this.beanFactory.createBean(this.handlerType);
+        } else {
+            return BeanUtils.instantiateClass(this.handlerType);
+        }
+    }
+
+    @Override
+    public String toString() {
+        return "BeanCreatingHandlerProvider[handlerType=" + this.handlerType + "]";
+    }
 
 }

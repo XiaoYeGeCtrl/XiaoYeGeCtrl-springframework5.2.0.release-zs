@@ -45,226 +45,226 @@ import static org.mockito.Mockito.verify;
  */
 public class PersistenceContextTransactionTests {
 
-	private EntityManagerFactory factory;
+    private EntityManagerFactory factory;
 
-	private EntityManager manager;
+    private EntityManager manager;
 
-	private EntityTransaction tx;
+    private EntityTransaction tx;
 
-	private TransactionTemplate tt;
+    private TransactionTemplate tt;
 
-	private EntityManagerHoldingBean bean;
-
-
-	@BeforeEach
-	public void setup() {
-		factory = mock(EntityManagerFactory.class);
-		manager = mock(EntityManager.class);
-		tx = mock(EntityTransaction.class);
-
-		JpaTransactionManager tm = new JpaTransactionManager(factory);
-		tt = new TransactionTemplate(tm);
-
-		given(factory.createEntityManager()).willReturn(manager);
-		given(manager.getTransaction()).willReturn(tx);
-		given(manager.isOpen()).willReturn(true);
-
-		bean = new EntityManagerHoldingBean();
-		@SuppressWarnings("serial")
-		PersistenceAnnotationBeanPostProcessor pabpp = new PersistenceAnnotationBeanPostProcessor() {
-			@Override
-			protected EntityManagerFactory findEntityManagerFactory(@Nullable String unitName, String requestingBeanName) {
-				return factory;
-			}
-		};
-		pabpp.postProcessProperties(null, bean, "bean");
-
-		assertThat(TransactionSynchronizationManager.getResourceMap().isEmpty()).isTrue();
-		assertThat(TransactionSynchronizationManager.isSynchronizationActive()).isFalse();
-	}
-
-	@AfterEach
-	public void clear() {
-		assertThat(TransactionSynchronizationManager.getResourceMap().isEmpty()).isTrue();
-		assertThat(TransactionSynchronizationManager.isSynchronizationActive()).isFalse();
-		assertThat(TransactionSynchronizationManager.isCurrentTransactionReadOnly()).isFalse();
-		assertThat(TransactionSynchronizationManager.isActualTransactionActive()).isFalse();
-	}
+    private EntityManagerHoldingBean bean;
 
 
-	@Test
-	public void testTransactionCommitWithSharedEntityManager() {
-		given(manager.getTransaction()).willReturn(tx);
+    @BeforeEach
+    public void setup() {
+        factory = mock(EntityManagerFactory.class);
+        manager = mock(EntityManager.class);
+        tx = mock(EntityTransaction.class);
 
-		tt.execute(status -> {
-			bean.sharedEntityManager.flush();
-			return null;
-		});
+        JpaTransactionManager tm = new JpaTransactionManager(factory);
+        tt = new TransactionTemplate(tm);
 
-		verify(tx).commit();
-		verify(manager).flush();
-		verify(manager).close();
-	}
+        given(factory.createEntityManager()).willReturn(manager);
+        given(manager.getTransaction()).willReturn(tx);
+        given(manager.isOpen()).willReturn(true);
 
-	@Test
-	public void testTransactionCommitWithSharedEntityManagerAndPropagationSupports() {
-		given(manager.isOpen()).willReturn(true);
+        bean = new EntityManagerHoldingBean();
+        @SuppressWarnings("serial")
+        PersistenceAnnotationBeanPostProcessor pabpp = new PersistenceAnnotationBeanPostProcessor() {
+            @Override
+            protected EntityManagerFactory findEntityManagerFactory(@Nullable String unitName, String requestingBeanName) {
+                return factory;
+            }
+        };
+        pabpp.postProcessProperties(null, bean, "bean");
 
-		tt.setPropagationBehavior(TransactionDefinition.PROPAGATION_SUPPORTS);
+        assertThat(TransactionSynchronizationManager.getResourceMap().isEmpty()).isTrue();
+        assertThat(TransactionSynchronizationManager.isSynchronizationActive()).isFalse();
+    }
 
-		tt.execute(status -> {
-			bean.sharedEntityManager.clear();
-			return null;
-		});
-
-		verify(manager).clear();
-		verify(manager).close();
-	}
-
-	@Test
-	public void testTransactionCommitWithExtendedEntityManager() {
-		given(manager.getTransaction()).willReturn(tx);
-
-		tt.execute(status -> {
-			bean.extendedEntityManager.flush();
-			return null;
-		});
-
-		verify(tx, times(2)).commit();
-		verify(manager).flush();
-		verify(manager).close();
-	}
-
-	@Test
-	public void testTransactionCommitWithExtendedEntityManagerAndPropagationSupports() {
-		given(manager.isOpen()).willReturn(true);
-
-		tt.setPropagationBehavior(TransactionDefinition.PROPAGATION_SUPPORTS);
-
-		tt.execute(status -> {
-			bean.extendedEntityManager.flush();
-			return null;
-		});
-
-		verify(manager).flush();
-	}
-
-	@Test
-	public void testTransactionCommitWithSharedEntityManagerUnsynchronized() {
-		given(manager.getTransaction()).willReturn(tx);
-
-		tt.execute(status -> {
-			bean.sharedEntityManagerUnsynchronized.flush();
-			return null;
-		});
-
-		verify(tx).commit();
-		verify(manager).flush();
-		verify(manager, times(2)).close();
-	}
-
-	@Test
-	public void testTransactionCommitWithSharedEntityManagerUnsynchronizedAndPropagationSupports() {
-		given(manager.isOpen()).willReturn(true);
-
-		tt.setPropagationBehavior(TransactionDefinition.PROPAGATION_SUPPORTS);
-
-		tt.execute(status -> {
-			bean.sharedEntityManagerUnsynchronized.clear();
-			return null;
-		});
-
-		verify(manager).clear();
-		verify(manager).close();
-	}
-
-	@Test
-	public void testTransactionCommitWithExtendedEntityManagerUnsynchronized() {
-		given(manager.getTransaction()).willReturn(tx);
-
-		tt.execute(status -> {
-			bean.extendedEntityManagerUnsynchronized.flush();
-			return null;
-		});
-
-		verify(tx).commit();
-		verify(manager).flush();
-		verify(manager).close();
-	}
-
-	@Test
-	public void testTransactionCommitWithExtendedEntityManagerUnsynchronizedAndPropagationSupports() {
-		given(manager.isOpen()).willReturn(true);
-
-		tt.setPropagationBehavior(TransactionDefinition.PROPAGATION_SUPPORTS);
-
-		tt.execute(status -> {
-			bean.extendedEntityManagerUnsynchronized.flush();
-			return null;
-		});
-
-		verify(manager).flush();
-	}
-
-	@Test
-	public void testTransactionCommitWithSharedEntityManagerUnsynchronizedJoined() {
-		given(manager.getTransaction()).willReturn(tx);
-
-		tt.execute(status -> {
-			bean.sharedEntityManagerUnsynchronized.joinTransaction();
-			bean.sharedEntityManagerUnsynchronized.flush();
-			return null;
-		});
-
-		verify(tx).commit();
-		verify(manager).flush();
-		verify(manager, times(2)).close();
-	}
-
-	@Test
-	public void testTransactionCommitWithExtendedEntityManagerUnsynchronizedJoined() {
-		given(manager.getTransaction()).willReturn(tx);
-
-		tt.execute(status -> {
-			bean.extendedEntityManagerUnsynchronized.joinTransaction();
-			bean.extendedEntityManagerUnsynchronized.flush();
-			return null;
-		});
-
-		verify(tx, times(2)).commit();
-		verify(manager).flush();
-		verify(manager).close();
-	}
-
-	@Test
-	public void testTransactionCommitWithExtendedEntityManagerUnsynchronizedJoinedAndPropagationSupports() {
-		given(manager.isOpen()).willReturn(true);
-
-		tt.setPropagationBehavior(TransactionDefinition.PROPAGATION_SUPPORTS);
-
-		tt.execute(status -> {
-			bean.extendedEntityManagerUnsynchronized.joinTransaction();
-			bean.extendedEntityManagerUnsynchronized.flush();
-			return null;
-		});
-
-		verify(manager).flush();
-	}
+    @AfterEach
+    public void clear() {
+        assertThat(TransactionSynchronizationManager.getResourceMap().isEmpty()).isTrue();
+        assertThat(TransactionSynchronizationManager.isSynchronizationActive()).isFalse();
+        assertThat(TransactionSynchronizationManager.isCurrentTransactionReadOnly()).isFalse();
+        assertThat(TransactionSynchronizationManager.isActualTransactionActive()).isFalse();
+    }
 
 
-	public static class EntityManagerHoldingBean {
+    @Test
+    public void testTransactionCommitWithSharedEntityManager() {
+        given(manager.getTransaction()).willReturn(tx);
 
-		@PersistenceContext
-		public EntityManager sharedEntityManager;
+        tt.execute(status -> {
+            bean.sharedEntityManager.flush();
+            return null;
+        });
 
-		@PersistenceContext(type = PersistenceContextType.EXTENDED)
-		public EntityManager extendedEntityManager;
+        verify(tx).commit();
+        verify(manager).flush();
+        verify(manager).close();
+    }
 
-		@PersistenceContext(synchronization = SynchronizationType.UNSYNCHRONIZED)
-		public EntityManager sharedEntityManagerUnsynchronized;
+    @Test
+    public void testTransactionCommitWithSharedEntityManagerAndPropagationSupports() {
+        given(manager.isOpen()).willReturn(true);
 
-		@PersistenceContext(type = PersistenceContextType.EXTENDED, synchronization = SynchronizationType.UNSYNCHRONIZED)
-		public EntityManager extendedEntityManagerUnsynchronized;
-	}
+        tt.setPropagationBehavior(TransactionDefinition.PROPAGATION_SUPPORTS);
+
+        tt.execute(status -> {
+            bean.sharedEntityManager.clear();
+            return null;
+        });
+
+        verify(manager).clear();
+        verify(manager).close();
+    }
+
+    @Test
+    public void testTransactionCommitWithExtendedEntityManager() {
+        given(manager.getTransaction()).willReturn(tx);
+
+        tt.execute(status -> {
+            bean.extendedEntityManager.flush();
+            return null;
+        });
+
+        verify(tx, times(2)).commit();
+        verify(manager).flush();
+        verify(manager).close();
+    }
+
+    @Test
+    public void testTransactionCommitWithExtendedEntityManagerAndPropagationSupports() {
+        given(manager.isOpen()).willReturn(true);
+
+        tt.setPropagationBehavior(TransactionDefinition.PROPAGATION_SUPPORTS);
+
+        tt.execute(status -> {
+            bean.extendedEntityManager.flush();
+            return null;
+        });
+
+        verify(manager).flush();
+    }
+
+    @Test
+    public void testTransactionCommitWithSharedEntityManagerUnsynchronized() {
+        given(manager.getTransaction()).willReturn(tx);
+
+        tt.execute(status -> {
+            bean.sharedEntityManagerUnsynchronized.flush();
+            return null;
+        });
+
+        verify(tx).commit();
+        verify(manager).flush();
+        verify(manager, times(2)).close();
+    }
+
+    @Test
+    public void testTransactionCommitWithSharedEntityManagerUnsynchronizedAndPropagationSupports() {
+        given(manager.isOpen()).willReturn(true);
+
+        tt.setPropagationBehavior(TransactionDefinition.PROPAGATION_SUPPORTS);
+
+        tt.execute(status -> {
+            bean.sharedEntityManagerUnsynchronized.clear();
+            return null;
+        });
+
+        verify(manager).clear();
+        verify(manager).close();
+    }
+
+    @Test
+    public void testTransactionCommitWithExtendedEntityManagerUnsynchronized() {
+        given(manager.getTransaction()).willReturn(tx);
+
+        tt.execute(status -> {
+            bean.extendedEntityManagerUnsynchronized.flush();
+            return null;
+        });
+
+        verify(tx).commit();
+        verify(manager).flush();
+        verify(manager).close();
+    }
+
+    @Test
+    public void testTransactionCommitWithExtendedEntityManagerUnsynchronizedAndPropagationSupports() {
+        given(manager.isOpen()).willReturn(true);
+
+        tt.setPropagationBehavior(TransactionDefinition.PROPAGATION_SUPPORTS);
+
+        tt.execute(status -> {
+            bean.extendedEntityManagerUnsynchronized.flush();
+            return null;
+        });
+
+        verify(manager).flush();
+    }
+
+    @Test
+    public void testTransactionCommitWithSharedEntityManagerUnsynchronizedJoined() {
+        given(manager.getTransaction()).willReturn(tx);
+
+        tt.execute(status -> {
+            bean.sharedEntityManagerUnsynchronized.joinTransaction();
+            bean.sharedEntityManagerUnsynchronized.flush();
+            return null;
+        });
+
+        verify(tx).commit();
+        verify(manager).flush();
+        verify(manager, times(2)).close();
+    }
+
+    @Test
+    public void testTransactionCommitWithExtendedEntityManagerUnsynchronizedJoined() {
+        given(manager.getTransaction()).willReturn(tx);
+
+        tt.execute(status -> {
+            bean.extendedEntityManagerUnsynchronized.joinTransaction();
+            bean.extendedEntityManagerUnsynchronized.flush();
+            return null;
+        });
+
+        verify(tx, times(2)).commit();
+        verify(manager).flush();
+        verify(manager).close();
+    }
+
+    @Test
+    public void testTransactionCommitWithExtendedEntityManagerUnsynchronizedJoinedAndPropagationSupports() {
+        given(manager.isOpen()).willReturn(true);
+
+        tt.setPropagationBehavior(TransactionDefinition.PROPAGATION_SUPPORTS);
+
+        tt.execute(status -> {
+            bean.extendedEntityManagerUnsynchronized.joinTransaction();
+            bean.extendedEntityManagerUnsynchronized.flush();
+            return null;
+        });
+
+        verify(manager).flush();
+    }
+
+
+    public static class EntityManagerHoldingBean {
+
+        @PersistenceContext
+        public EntityManager sharedEntityManager;
+
+        @PersistenceContext(type = PersistenceContextType.EXTENDED)
+        public EntityManager extendedEntityManager;
+
+        @PersistenceContext(synchronization = SynchronizationType.UNSYNCHRONIZED)
+        public EntityManager sharedEntityManagerUnsynchronized;
+
+        @PersistenceContext(type = PersistenceContextType.EXTENDED, synchronization = SynchronizationType.UNSYNCHRONIZED)
+        public EntityManager extendedEntityManagerUnsynchronized;
+    }
 
 }
